@@ -1,0 +1,44 @@
+<div class="flex flex-col gap-4 mt-2">
+      <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg flex items-start gap-3 mb-2">
+        <i class="pi pi-sparkles text-primary-500 text-xl mt-1"></i>
+        <div class="text-sm">
+          Sube un PDF o imagen de una dieta. Nuestra IA procesará el documento, extraerá todas las comidas y días, y creará el menú automáticamente para el paciente seleccionado.
+        </div>
+      </div>
+
+      <div class="field flex flex-col gap-2">
+        <label for="appUserId" class="font-medium">Paciente Destino</label>
+        <p-select 
+          id="appUserId" 
+          [options]="users()" 
+          [(ngModel)]="selectedUserId"
+          optionLabel="fullName" 
+          optionValue="id" 
+          placeholder="Seleccionar Paciente" 
+          [filter]="true" 
+          filterBy="fullName" 
+          class="w-full" 
+          appendTo="body"
+          [loading]="loadingUsers()">
+        </p-select>
+      </div>
+
+      <div class="field flex flex-col gap-2 mt-2" *ngIf="selectedUserId">
+        <label class="font-medium">Documento (PDF o Imagen)</label>
+        <p-fileUpload 
+          mode="advanced" 
+          chooseLabel="Seleccionar"
+          uploadLabel="Procesar y Crear"
+          cancelLabel="Cancelar"
+          [customUpload]="true"
+          (uploadHandler)="onUpload($event)"
+          accept="image/*,application/pdf"
+          maxFileSize="5000000"
+          [auto]="false">
+        </p-fileUpload>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>
+      </div>
+    </div>

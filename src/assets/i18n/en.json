@@ -1,0 +1,72 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "actions": "Actions",
+    "loading": "Loading...",
+    "success": "Success",
+    "error": "Error",
+    "attention": "Attention",
+    "yes": "Yes",
+    "no": "No",
+    "back": "Back",
+    "view": "View detail",
+    "assign": "Assign",
+    "no_results": "No results"
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "users": "Patients & Staff",
+    "diets": "Diets & Menus",
+    "templates": "Templates",
+    "settings": "Settings"
+  },
+  "auth": {
+    "select_tenant": "Select Clinic",
+    "no_access": "You do not have access to any clinic. Contact the administrator.",
+    "role": "Role",
+    "logout": "Logout",
+    "change_tenant": "Change Clinic"
+  },
+  "users": {
+    "title": "Patients and Professionals",
+    "invite": "Invite User",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "email": "Email",
+    "empty": "No users registered in this clinic.",
+    "empty_title": "No users yet",
+    "role_admin": "Administrator",
+    "role_nutritionist": "Nutritionist",
+    "role_user": "Patient",
+    "revoke_confirm_msg": "Are you sure you want to remove {name} from this clinic?",
+    "revoke_confirm_title": "Confirm Revocation",
+    "change_role": "Change role",
+    "revoke": "Revoke access"
+  },
+  "diets": {
+    "title": "Diets & Menus",
+    "create": "Create Menu",
+    "upload_ocr": "Upload (OCR)",
+    "name": "Name",
+    "status": "Status",
+    "created_at": "Created At",
+    "active": "Active",
+    "inactive": "Inactive",
+    "empty": "No menus yet. Start by creating one manually or uploading a file.",
+    "empty_title": "No menus yet",
+    "view": "View detail"
+  },
+  "templates": {
+    "title": "Menu Templates",
+    "create": "Create Template",
+    "description": "Description",
+    "assign": "Assign to Patient",
+    "empty": "No templates found. Create one to reuse it across different patients.",
+    "empty_title": "No templates yet",
+    "delete_confirm_msg": "Are you sure you want to delete the template '{name}'?"
+  }
+}

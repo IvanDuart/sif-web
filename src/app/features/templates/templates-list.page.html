@@ -1,0 +1,73 @@
+<div class="p-4" *transloco="let t">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">{{ t('templates.title') }}</h1>
+    <p-button
+      *appIfPermission="'MANAGE_TEMPLATE'"
+      [label]="t('templates.create')"
+      icon="pi pi-plus"
+      size="small"
+      (onClick)="createTemplate()">
+    </p-button>
+  </div>
+
+  <p-card>
+    <p-table
+      [value]="templates()"
+      [loading]="loading()"
+      [rows]="10"
+      [paginator]="true"
+      [totalRecords]="totalRecords()"
+      [lazy]="true"
+      [rowHover]="true"
+      responsiveLayout="scroll"
+      styleClass="p-datatable-sm"
+      (onLazyLoad)="onPage($event)">
+      <ng-template pTemplate="header">
+        <tr>
+          <th scope="col">{{ t('diets.name') }}</th>
+          <th scope="col">{{ t('templates.description') }}</th>
+          <th scope="col" style="width: 7rem; text-align: center;">{{ t('common.actions') }}</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-template>
+        <tr>
+          <td class="font-medium">{{ template.name }}</td>
+          <td class="text-surface-500 text-sm">{{ template.description }}</td>
+          <td style="text-align: center;">
+            <div class="row-actions">
+              <button
+                *appIfPermission="'INSTANTIATE_TEMPLATE'"
+                class="action-btn"
+                [title]="t('templates.assign')"
+                (click)="instantiateTemplate(template)">
+                <i class="fa-solid fa-user-plus"></i>
+              </button>
+              <button
+                *appIfPermission="'MANAGE_TEMPLATE'"
+                class="action-btn danger"
+                [title]="t('common.delete')"
+                (click)="deleteTemplate(template)">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="3" class="table-empty-cell">
+            <app-empty-state
+              icon="pi-clone"
+              [title]="t('templates.empty_title')"
+              [description]="t('templates.empty')"
+              [actionLabel]="t('templates.create')"
+              (action)="createTemplate()">
+            </app-empty-state>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>

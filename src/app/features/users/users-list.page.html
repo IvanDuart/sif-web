@@ -1,0 +1,78 @@
+<div class="p-4" *transloco="let t">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">{{ t('users.title') }}</h1>
+    <p-button *appIfPermission="'INVITE_USER'"
+      [label]="t('users.invite')"
+      icon="pi pi-user-plus"
+      size="small"
+      (onClick)="showInviteDialog()">
+    </p-button>
+  </div>
+
+  <p-card>
+    <p-table
+      [value]="users()"
+      [loading]="loading()"
+      [rows]="10"
+      [paginator]="true"
+      [rowHover]="true"
+      responsiveLayout="scroll"
+      styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th scope="col">{{ t('users.first_name') }}</th>
+          <th scope="col">{{ t('users.last_name') }}</th>
+          <th scope="col">{{ t('users.email') }}</th>
+          <th scope="col">{{ t('auth.role') }}</th>
+          <th scope="col" style="width: 7rem; text-align: center;">{{ t('common.actions') }}</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-user>
+        <tr>
+          <td class="font-medium">{{ user.firstName }}</td>
+          <td>{{ user.lastName }}</td>
+          <td class="text-surface-500 text-sm">{{ user.email }}</td>
+          <td>
+            <p-tag
+              [value]="t('users.role_' + getRole(user).toLowerCase()) || getRole(user)"
+              severity="info">
+            </p-tag>
+          </td>
+          <td style="text-align: center;">
+            <div class="row-actions">
+              <button
+                *appIfPermission="'MANAGE_USER'"
+                class="action-btn"
+                [title]="t('users.change_role')"
+                (click)="changeRole(user)">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button
+                *appIfPermission="'MANAGE_USER'"
+                class="action-btn danger"
+                [title]="t('users.revoke')"
+                (click)="revokeAccess(user)">
+                <i class="fa-solid fa-user-xmark"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="table-empty-cell">
+            <app-empty-state
+              icon="pi-users"
+              [title]="t('users.empty_title')"
+              [description]="t('users.empty')"
+              [actionLabel]="t('users.invite')"
+              (action)="showInviteDialog()">
+            </app-empty-state>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>

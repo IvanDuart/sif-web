@@ -1,0 +1,95 @@
+<div class="p-4" *ngIf="menu()">
+  <div class="mb-6">
+    <a routerLink="../" class="inline-flex items-center gap-1 text-sm font-semibold text-surface-500 hover:text-primary-600 mb-4 transition-colors">
+      <i class="pi pi-arrow-left text-xs"></i> Volver a Dietas
+    </a>
+
+    <div class="flex justify-between items-start">
+      <div>
+        <h1 class="text-3xl font-bold mb-2">{{ menu()?.name }}</h1>
+        <div class="flex gap-2 items-center">
+          <p-tag
+            [severity]="menu()?.isActive ? 'success' : 'secondary'"
+            [value]="menu()?.isActive ? 'Activa' : 'Inactiva'">
+          </p-tag>
+          <span class="text-surface-500 text-sm">Creada: {{ menu()?.createdAt | date:'longDate' }}</span>
+        </div>
+      </div>
+      <p-button
+        *appIfPermission="'MANAGE_MEAL'"
+        label="Agregar Comida"
+        icon="pi pi-plus"
+        size="small"
+        (onClick)="addMeal()">
+      </p-button>
+    </div>
+  </div>
+
+  <p-card styleClass="mt-6">
+    <h2 class="text-base font-bold mb-4 uppercase tracking-widest text-surface-400">Comidas de la Semana</h2>
+
+    <p-table
+      [value]="meals()"
+      [loading]="loading()"
+      styleClass="p-datatable-sm has-group-rows"
+      rowGroupMode="subheader"
+      groupRowsBy="dayOfWeek"
+      [rowHover]="true"
+      responsiveLayout="scroll">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th scope="col">Tipo</th>
+          <th scope="col">Descripción</th>
+          <th *appIfPermission="'MANAGE_MEAL'" scope="col" style="width: 5rem; text-align: center;">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="groupheader" let-meal>
+        <tr pRowGroupHeader>
+          <td colspan="3">
+            <span class="inline-flex items-center gap-2 font-bold text-sm text-primary-600">
+              <i class="pi pi-calendar text-xs"></i>
+              {{ meal.dayOfWeek }}
+            </span>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-meal>
+        <tr>
+          <td class="font-medium whitespace-nowrap">{{ meal.mealType }}</td>
+          <td class="text-surface-600">{{ meal.description }}</td>
+          <td *appIfPermission="'MANAGE_MEAL'" style="text-align: center;">
+            <div class="row-actions">
+              <button
+                class="action-btn danger"
+                title="Eliminar comida"
+                (click)="deleteMeal(meal)">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="3" class="table-empty-cell">
+            <app-empty-state
+              icon="pi-calendar-plus"
+              title="Sin comidas asignadas"
+              description="Esta dieta aún no tiene comidas. Agregá la primera usando el botón superior."
+              actionLabel="Agregar Comida"
+              (action)="addMeal()">
+            </app-empty-state>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
+
+<div *ngIf="!menu() && !loading()" class="p-8 text-center text-surface-500">
+  Cargando o no encontrado...
+</div>

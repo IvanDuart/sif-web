@@ -1,0 +1,16 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
+      <div class="field flex flex-col gap-2">
+        <label for="name" class="font-medium">Nombre de la Plantilla</label>
+        <input id="name" pInputText formControlName="name" class="w-full" placeholder="Ej: Dieta Cetogénica" autofocus />
+      </div>
+
+      <div class="field flex flex-col gap-2">
+        <label for="description" class="font-medium">Descripción</label>
+        <textarea id="description" pTextarea formControlName="description" class="w-full" rows="3"></textarea>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>
+        <p-button label="Guardar Plantilla" type="submit" [disabled]="form.invalid" [loading]="saving()"></p-button>
+      </div>
+    </form>

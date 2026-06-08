@@ -1,0 +1,72 @@
+{
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "actions": "Acciones",
+    "loading": "Cargando...",
+    "success": "Éxito",
+    "error": "Error",
+    "attention": "Atención",
+    "yes": "Sí",
+    "no": "No",
+    "back": "Volver",
+    "view": "Ver detalle",
+    "assign": "Asignar",
+    "no_results": "Sin resultados"
+  },
+  "menu": {
+    "dashboard": "Panel Principal",
+    "users": "Pacientes y Equipo",
+    "diets": "Dietas y Menús",
+    "templates": "Plantillas",
+    "settings": "Configuración"
+  },
+  "auth": {
+    "select_tenant": "Seleccionar Clínica",
+    "no_access": "No tienes acceso a ninguna clínica. Contacta al administrador.",
+    "role": "Rol",
+    "logout": "Cerrar Sesión",
+    "change_tenant": "Cambiar Clínica"
+  },
+  "users": {
+    "title": "Pacientes y Profesionales",
+    "invite": "Invitar Usuario",
+    "first_name": "Nombre",
+    "last_name": "Apellido",
+    "email": "Correo Electrónico",
+    "empty": "No hay usuarios registrados en la clínica.",
+    "empty_title": "Sin usuarios aún",
+    "role_admin": "Administrador",
+    "role_nutritionist": "Nutricionista",
+    "role_user": "Paciente",
+    "revoke_confirm_msg": "¿Estás seguro de que quieres remover a {name} de esta clínica?",
+    "revoke_confirm_title": "Confirmar Revocación",
+    "change_role": "Cambiar rol",
+    "revoke": "Revocar acceso"
+  },
+  "diets": {
+    "title": "Dietas y Menús",
+    "create": "Crear Menú",
+    "upload_ocr": "Subir (OCR)",
+    "name": "Nombre",
+    "status": "Estado",
+    "created_at": "Creado el",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "empty": "Aún no hay menús creados. Comenzá creando uno manualmente o subiendo un archivo.",
+    "empty_title": "Sin menús aún",
+    "view": "Ver detalle"
+  },
+  "templates": {
+    "title": "Plantillas de Menús",
+    "create": "Crear Plantilla",
+    "description": "Descripción",
+    "assign": "Asignar a Paciente",
+    "empty": "No se encontraron plantillas. Creá una para reutilizarla en distintos pacientes.",
+    "empty_title": "Sin plantillas aún",
+    "delete_confirm_msg": "¿Estás seguro de que quieres eliminar la plantilla '{name}'?"
+  }
+}
