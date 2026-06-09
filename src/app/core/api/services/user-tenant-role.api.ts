@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AppUserDto } from '../models/user.model';
+import { AppUserDto, UserType } from '../models/user.model';
 import { environment } from '../../../../environments/environment';
 
 export interface InviteUserRequest {
@@ -9,6 +9,8 @@ export interface InviteUserRequest {
   firstName: string;
   lastName?: string;
   roleCode: string;
+  birthDate?: string | null;
+  heightCm?: number | null;
 }
 
 export interface ChangeUserRoleRequest {
@@ -23,6 +25,10 @@ export class UserTenantRoleService {
 
   getUsersByTenant(tenantId: string): Observable<AppUserDto[]> {
     return this.http.get<AppUserDto[]>(`${this.baseUrl}/tenant/${tenantId}/users`);
+  }
+
+  getUsersByTenantAndType(tenantId: string, userType: UserType): Observable<AppUserDto[]> {
+    return this.http.get<AppUserDto[]>(`${this.baseUrl}/tenant/${tenantId}/users/by-type/${userType}`);
   }
 
   inviteUser(tenantId: string, request: InviteUserRequest): Observable<void> {

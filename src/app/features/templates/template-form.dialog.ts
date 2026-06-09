@@ -1,9 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { TextareaModule } from 'primeng/textarea';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { Textarea } from 'primeng/textarea';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -11,7 +11,7 @@ import { TenantContextService } from '../../core/tenant/tenant-context.service';
 @Component({
   selector: 'app-template-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ButtonModule, InputTextModule, TextareaModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, Button, InputText, Textarea],
   templateUrl: './template-form.dialog.html'
 })
 export class TemplateFormDialog {

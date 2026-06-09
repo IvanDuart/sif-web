@@ -1,0 +1,67 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
+  <div class="grid grid-cols-3 gap-4">
+    <div class="field flex flex-col gap-2">
+      <label for="weightKg" class="font-medium text-sm">Peso (kg)</label>
+      <p-inputnumber
+        id="weightKg"
+        formControlName="weightKg"
+        [min]="0"
+        [max]="999.99"
+        [maxFractionDigits]="2"
+        suffix=" kg"
+        class="w-full" />
+    </div>
+    <div class="field flex flex-col gap-2">
+      <label for="bodyFatPct" class="font-medium text-sm">% Grasa Corporal</label>
+      <p-inputnumber
+        id="bodyFatPct"
+        formControlName="bodyFatPct"
+        [min]="0"
+        [max]="99.9"
+        [maxFractionDigits]="1"
+        suffix=" %"
+        class="w-full" />
+    </div>
+    <div class="field flex flex-col gap-2">
+      <label for="muscleMassKg" class="font-medium text-sm">Masa Muscular (kg)</label>
+      <p-inputnumber
+        id="muscleMassKg"
+        formControlName="muscleMassKg"
+        [min]="0"
+        [max]="999.99"
+        [maxFractionDigits]="2"
+        suffix=" kg"
+        class="w-full" />
+    </div>
+  </div>
+
+  <div class="field flex flex-col gap-2">
+    <label for="measuredAt" class="font-medium text-sm">Fecha de Medición</label>
+    <p-datepicker
+      id="measuredAt"
+      formControlName="measuredAt"
+      dateFormat="yy-mm-dd"
+      [showIcon]="true"
+      [showTime]="true"
+      [iconDisplay]="'input'"
+      [maxDate]="today"
+      class="w-full"
+      appendTo="body" />
+  </div>
+
+  <div class="field flex flex-col gap-2">
+    <label for="notes" class="font-medium text-sm">Notas</label>
+    <textarea
+      id="notes"
+      pInputTextarea
+      formControlName="notes"
+      rows="2"
+      class="w-full"
+      placeholder="Observaciones opcionales..."></textarea>
+  </div>
+
+  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>
+    <p-button label="Guardar Medición" type="submit" [loading]="saving"></p-button>
+  </div>
+</form>

@@ -50,4 +50,10 @@ export class MenuService {
   delete(tenantId: string, id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/tenant/${tenantId}/menu/${id}`);
   }
+
+  history(tenantId: string, userId: string): Observable<Menu[]> {
+    return this.http.get<Menu[]>(`${this.baseUrl}/tenant/${tenantId}/menu/history`, {
+      params: { userId }
+    });
+  }
 }

@@ -20,7 +20,7 @@
         <p-select 
           id="roleCode" 
           formControlName="roleCode" 
-          [options]="roles" 
+          [options]="roles()" 
           optionLabel="label" 
           optionValue="value" 
           placeholder="Seleccionar Rol" 
@@ -28,6 +28,33 @@
           appendTo="body">
         </p-select>
       </div>
+
+      @if (showClinicalFields()) {
+      <div class="grid grid-cols-2 gap-4">
+        <div class="field flex flex-col gap-2">
+          <label for="birthDate" class="font-medium text-sm">Fecha de Nacimiento</label>
+          <p-datepicker
+            id="birthDate"
+            formControlName="birthDate"
+            dateFormat="yy-mm-dd"
+            [showIcon]="true"
+            [iconDisplay]="'input'"
+            class="w-full"
+            appendTo="body" />
+        </div>
+        <div class="field flex flex-col gap-2">
+          <label for="heightCm" class="font-medium text-sm">Altura (cm)</label>
+          <p-inputnumber
+            id="heightCm"
+            formControlName="heightCm"
+            [min]="50"
+            [max]="250"
+            [maxFractionDigits]="1"
+            suffix=" cm"
+            class="w-full" />
+        </div>
+      </div>
+      }
 
       <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
         <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>

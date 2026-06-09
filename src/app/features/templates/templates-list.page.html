@@ -4,7 +4,7 @@
     <p-button
       *appIfPermission="'MANAGE_TEMPLATE'"
       [label]="t('templates.create')"
-      icon="pi pi-plus"
+      icon="fa-solid fa-plus"
       size="small"
       (onClick)="createTemplate()">
     </p-button>
@@ -59,7 +59,7 @@
         <tr>
           <td colspan="3" class="table-empty-cell">
             <app-empty-state
-              icon="pi-clone"
+              icon="fa-solid fa-clipboard-list"
               [title]="t('templates.empty_title')"
               [description]="t('templates.empty')"
               [actionLabel]="t('templates.create')"

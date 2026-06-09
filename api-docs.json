@@ -32,6 +32,10 @@
       "description": "Controller for menus management"
     },
     {
+      "name": "BodyMeasurementController",
+      "description": "Controller for body measurements (weight, fat, muscle)"
+    },
+    {
       "name": "TenantController",
       "description": "Global Controller for Tenants management"
     },
@@ -389,6 +393,133 @@
         }
       }
     },
+    "/tenant/{tenantId}/users/{userId}/measurements": {
+      "get": {
+        "tags": [
+          "BodyMeasurementController"
+        ],
+        "description": "List body measurement history (paginated)",
+        "operationId": "list",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Zero-based page index (0..N)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "The size of the page to be returned",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sorting criteria in the format: property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "default": [
+                "measuredAt,DESC"
+              ],
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageBodyMeasurementDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "BodyMeasurementController"
+        ],
+        "description": "Register a body measurement for a user",
+        "operationId": "create_1",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBodyMeasurementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BodyMeasurementDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/users/invite": {
       "post": {
         "tags": [
@@ -522,7 +653,7 @@
           "MenuController"
         ],
         "description": "Create a new menu",
-        "operationId": "create_1",
+        "operationId": "create_2",
         "parameters": [
           {
             "name": "tenantId",
@@ -690,7 +821,7 @@
           "MenuTemplateController"
         ],
         "description": "Create a new menu template",
-        "operationId": "create_2",
+        "operationId": "create_3",
         "parameters": [
           {
             "name": "tenantId",
@@ -875,7 +1006,7 @@
           "MealController"
         ],
         "description": "Create a new meal",
-        "operationId": "create_3",
+        "operationId": "create_4",
         "parameters": [
           {
             "name": "tenantId",
@@ -937,7 +1068,7 @@
         "tags": [
           "UserTenantRoleController"
         ],
-        "description": "List all users in the tenant",
+        "description": "List all users in the tenant with their role and permissions",
         "operationId": "getUsersByTenant",
         "parameters": [
           {
@@ -958,7 +1089,54 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/AppUser_List"
+                    "$ref": "#/components/schemas/TenantUserDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/users/{userType}": {
+      "get": {
+        "tags": [
+          "UserTenantRoleController"
+        ],
+        "description": "List users filtered by type (STAFF or PATIENT)",
+        "operationId": "getUsersByType",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "STAFF",
+                "PATIENT"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TenantUserDto"
                   }
                 }
               }
@@ -1036,6 +1214,88 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/users/{userId}/measurements/latest": {
+      "get": {
+        "tags": [
+          "BodyMeasurementController"
+        ],
+        "description": "Get the latest measurement with computed BMI",
+        "operationId": "getLatest",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BodyMeasurementDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/users/{userId}/measurements/evolution": {
+      "get": {
+        "tags": [
+          "BodyMeasurementController"
+        ],
+        "description": "Get measurement time series for charts",
+        "operationId": "getEvolution",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeasurementHistoryDto"
+                }
+              }
+            }
           }
         }
       }
@@ -1141,6 +1401,50 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/menu/history": {
+      "get": {
+        "tags": [
+          "MenuController"
+        ],
+        "description": "Get menu assignment history for a user in the tenant",
+        "operationId": "getMenuHistory",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Menu_List"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -1366,6 +1670,49 @@
           }
         }
       }
+    },
+    "/tenant/{tenantId}/users/{userId}/measurements/{measurementId}": {
+      "delete": {
+        "tags": [
+          "BodyMeasurementController"
+        ],
+        "description": "Delete a measurement entry",
+        "operationId": "delete_4",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "measurementId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1545,6 +1892,62 @@
           }
         }
       },
+      "CreateBodyMeasurementRequest": {
+        "type": "object",
+        "properties": {
+          "weightKg": {
+            "type": "number"
+          },
+          "bodyFatPct": {
+            "type": "number"
+          },
+          "muscleMassKg": {
+            "type": "number"
+          },
+          "measuredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "BodyMeasurementDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "measuredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "weightKg": {
+            "type": "number"
+          },
+          "bodyFatPct": {
+            "type": "number"
+          },
+          "muscleMassKg": {
+            "type": "number"
+          },
+          "bmi": {
+            "type": "number"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "recordedBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "InviteUserRequest": {
         "type": "object",
         "properties": {
@@ -1559,6 +1962,13 @@
           },
           "roleCode": {
             "type": "string"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "heightCm": {
+            "type": "number"
           }
         },
         "required": [
@@ -1594,6 +2004,10 @@
           },
           "isActive": {
             "type": "boolean"
+          },
+          "assignedAt": {
+            "type": "string",
+            "format": "date-time"
           },
           "active": {
             "type": "boolean"
@@ -1634,6 +2048,13 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "assignedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "assignedBy": {
+            "type": "string"
           },
           "meals": {
             "type": "array",
@@ -1791,6 +2212,17 @@
           "lastName": {
             "type": "string"
           },
+          "birthDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "age": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "heightCm": {
+            "type": "number"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -1812,6 +2244,13 @@
           },
           "tenantName": {
             "type": "string"
+          },
+          "userType": {
+            "type": "string",
+            "enum": [
+              "STAFF",
+              "PATIENT"
+            ]
           },
           "roleCode": {
             "type": "string"
@@ -1849,6 +2288,9 @@
             "type": "integer",
             "format": "int32"
           },
+          "sort": {
+            "$ref": "#/components/schemas/SortObject_List"
+          },
           "first": {
             "type": "boolean"
           },
@@ -1862,9 +2304,6 @@
           "pageable": {
             "$ref": "#/components/schemas/PageableObject_List"
           },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject_List"
-          },
           "empty": {
             "type": "boolean"
           }
@@ -1877,6 +2316,12 @@
             "type": "integer",
             "format": "int64"
           },
+          "sort": {
+            "$ref": "#/components/schemas/SortObject_List"
+          },
+          "paged": {
+            "type": "boolean"
+          },
           "unpaged": {
             "type": "boolean"
           },
@@ -1887,12 +2332,6 @@
           "pageSize": {
             "type": "integer",
             "format": "int32"
-          },
-          "paged": {
-            "type": "boolean"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject_List"
           }
         }
       },
@@ -1902,10 +2341,10 @@
           "empty": {
             "type": "boolean"
           },
-          "unsorted": {
+          "sorted": {
             "type": "boolean"
           },
-          "sorted": {
+          "unsorted": {
             "type": "boolean"
           }
         }
@@ -1964,7 +2403,7 @@
           }
         }
       },
-      "AppUser_List": {
+      "TenantUserDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -1982,6 +2421,39 @@
           },
           "enabled": {
             "type": "boolean"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "age": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "heightCm": {
+            "type": "number"
+          },
+          "userType": {
+            "type": "string",
+            "enum": [
+              "STAFF",
+              "PATIENT"
+            ]
+          },
+          "roleCode": {
+            "type": "string"
+          },
+          "roleName": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lastMeasurement": {
+            "$ref": "#/components/schemas/BodyMeasurementDto"
           }
         }
       },
@@ -2001,6 +2473,13 @@
           "lastName": {
             "type": "string"
           },
+          "birthDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "heightCm": {
+            "type": "number"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -2017,6 +2496,139 @@
             "items": {
               "$ref": "#/components/schemas/Menu_Full"
             }
+          },
+          "age": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PageBodyMeasurementDto": {
+        "type": "object",
+        "properties": {
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BodyMeasurementDto"
+            }
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/SortObject"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "numberOfElements": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageable": {
+            "$ref": "#/components/schemas/PageableObject"
+          },
+          "empty": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PageableObject": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/SortObject"
+          },
+          "paged": {
+            "type": "boolean"
+          },
+          "unpaged": {
+            "type": "boolean"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SortObject": {
+        "type": "object",
+        "properties": {
+          "empty": {
+            "type": "boolean"
+          },
+          "sorted": {
+            "type": "boolean"
+          },
+          "unsorted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MeasurementHistoryDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "heightCm": {
+            "type": "number"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MeasurementPoint"
+            }
+          }
+        }
+      },
+      "MeasurementPoint": {
+        "type": "object",
+        "properties": {
+          "measuredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "weightKg": {
+            "type": "number"
+          },
+          "bodyFatPct": {
+            "type": "number"
+          },
+          "muscleMassKg": {
+            "type": "number"
+          },
+          "bmi": {
+            "type": "number"
           }
         }
       },
@@ -2032,6 +2644,10 @@
           },
           "isActive": {
             "type": "boolean"
+          },
+          "assignedAt": {
+            "type": "string",
+            "format": "date-time"
           },
           "active": {
             "type": "boolean"
@@ -2063,6 +2679,9 @@
             "type": "integer",
             "format": "int32"
           },
+          "sort": {
+            "$ref": "#/components/schemas/SortObject_List"
+          },
           "first": {
             "type": "boolean"
           },
@@ -2075,9 +2694,6 @@
           },
           "pageable": {
             "$ref": "#/components/schemas/PageableObject_List"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject_List"
           },
           "empty": {
             "type": "boolean"
@@ -2124,6 +2740,9 @@
             "type": "integer",
             "format": "int32"
           },
+          "sort": {
+            "$ref": "#/components/schemas/SortObject_List"
+          },
           "first": {
             "type": "boolean"
           },
@@ -2136,9 +2755,6 @@
           },
           "pageable": {
             "$ref": "#/components/schemas/PageableObject_List"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject_List"
           },
           "empty": {
             "type": "boolean"
@@ -2188,6 +2804,9 @@
             "type": "integer",
             "format": "int32"
           },
+          "sort": {
+            "$ref": "#/components/schemas/SortObject_List"
+          },
           "first": {
             "type": "boolean"
           },
@@ -2200,9 +2819,6 @@
           },
           "pageable": {
             "$ref": "#/components/schemas/PageableObject_List"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject_List"
           },
           "empty": {
             "type": "boolean"

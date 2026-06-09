@@ -43,8 +43,7 @@ export class MenuFormDialog implements OnInit {
     if (!tenantId) return;
 
     this.loadingUsers.set(true);
-    // Ideally we would search only 'USER' role, but the endpoint currently returns all users
-    this.userRoleService.getUsersByTenant(tenantId).subscribe({
+    this.userRoleService.getUsersByTenantAndType(tenantId, 'PATIENT').subscribe({
       next: (res) => {
         const mapped = res.map(u => ({
           ...u,

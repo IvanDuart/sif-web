@@ -41,6 +41,9 @@ importers:
       autoprefixer:
         specifier: ^10.5.0
         version: 10.5.0(postcss@8.5.15)
+      chart.js:
+        specifier: ^4.5.1
+        version: 4.5.1
       keycloak-angular:
         specifier: ^21.0.0
         version: 21.0.0(@angular/common@20.3.24(@angular/core@20.3.24(@angular/compiler@20.3.24)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.24(@angular/compiler@20.3.24)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/router@20.3.24(@angular/common@20.3.24(@angular/core@20.3.24(@angular/compiler@20.3.24)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.24(@angular/compiler@20.3.24)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.24(@angular/animations@20.3.24(@angular/core@20.3.24(@angular/compiler@20.3.24)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.24(@angular/core@20.3.24(@angular/compiler@20.3.24)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.24(@angular/compiler@20.3.24)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2))(keycloak-js@26.2.4)(rxjs@7.8.2)
@@ -907,6 +910,9 @@ packages:
   '@jsverse/utils@1.0.0-beta.5':
     resolution: {integrity: sha512-z7IdlV6BdSeF3Veii8Yyk64KuyTjNIQnFaW5PAhmDx0wN29lB2BFp8WO6+tJPLPjtlz2yKeNrjkp1XqnMPaeHA==}
 
+  '@kurkle/color@0.3.4':
+    resolution: {integrity: sha512-M5UknZPHRu3DEDWoipU6sE8PdkZ6Z/S+v4dD+Ke8IaNlpdSQah50lz1KtcFBa2vsdOnwbbnxJwVM4wty6udA5w==}
+
   '@listr2/prompt-adapter-inquirer@3.0.1':
     resolution: {integrity: sha512-3XFmGwm3u6ioREG+ynAQB7FoxfajgQnMhIu8wC5eo/Lsih4aKDg0VuIMGaOsYn7hJSJagSeaD4K8yfpkEoDEmA==}
     engines: {node: '>=20.0.0'}
@@ -1623,6 +1629,10 @@ packages:
 
   chardet@2.1.1:
     resolution: {integrity: sha512-PsezH1rqdV9VvyNhxxOW32/d75r01NY7TQCmOqomRo15ZSOKbpTFVsfjghxo6JloQUCGnH4k1LGu0R4yCLlWQQ==}
+
+  chart.js@4.5.1:
+    resolution: {integrity: sha512-GIjfiT9dbmHRiYi6Nl2yFCq7kkwdkp1W/lp2J99rX0yo9tgJGn3lKQATztIjb5tVtevcBtIdICNWqlq5+E8/Pw==}
+    engines: {pnpm: '>=8'}
 
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
@@ -4082,6 +4092,8 @@ snapshots:
 
   '@jsverse/utils@1.0.0-beta.5': {}
 
+  '@kurkle/color@0.3.4': {}
+
   '@listr2/prompt-adapter-inquirer@3.0.1(@inquirer/prompts@7.8.2(@types/node@25.9.1))(@types/node@25.9.1)(listr2@9.0.1)':
     dependencies:
       '@inquirer/prompts': 7.8.2(@types/node@25.9.1)
@@ -4716,6 +4728,10 @@ snapshots:
   chalk@5.6.2: {}
 
   chardet@2.1.1: {}
+
+  chart.js@4.5.1:
+    dependencies:
+      '@kurkle/color': 0.3.4
 
   chokidar@3.6.0:
     dependencies:

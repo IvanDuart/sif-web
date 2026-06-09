@@ -5,7 +5,7 @@
       <p-button
         *appIfPermission="'MANAGE_MENU'"
         [label]="t('diets.upload_ocr')"
-        icon="pi pi-upload"
+        icon="fa-solid fa-file-arrow-up"
         size="small"
         severity="secondary"
         (onClick)="uploadMenu()">
@@ -13,7 +13,7 @@
       <p-button
         *appIfPermission="'MANAGE_MENU'"
         [label]="t('diets.create')"
-        icon="pi pi-plus"
+        icon="fa-solid fa-plus"
         size="small"
         (onClick)="createMenu()">
       </p-button>
@@ -75,7 +75,7 @@
         <tr>
           <td colspan="4" class="table-empty-cell">
             <app-empty-state
-              icon="pi-book"
+              icon="fa-solid fa-utensils"
               [title]="t('diets.empty_title')"
               [description]="t('diets.empty')"
               [actionLabel]="t('diets.create')"

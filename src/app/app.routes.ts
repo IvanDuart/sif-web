@@ -21,8 +21,16 @@ export const routes: Routes = [
         loadComponent: () => import('./features/tenant/dashboard/tenant-dashboard.component').then(m => m.TenantDashboardComponent)
       },
       {
-        path: 'users',
-        loadComponent: () => import('./features/users/users-list.page').then(m => m.default)
+        path: 'patients',
+        loadComponent: () => import('./features/patients/patients-list.page').then(m => m.default)
+      },
+      {
+        path: 'staff',
+        loadComponent: () => import('./features/staff/staff-list.page').then(m => m.default)
+      },
+      {
+        path: 'users/:id',
+        loadComponent: () => import('./features/users/user-detail.page').then(m => m.default)
       },
       {
         path: 'menus',

@@ -7,7 +7,7 @@
       <!-- Logo Section -->
       <div class="nav-brand" routerLink="/">
         <div class="font-semibold text-2xl text-primary-500">
-          <i class="pi pi-apple mr-2"></i>Tus Dietas
+          <i class="fa-solid fa-apple-whole mr-2"></i>Tus Dietas
         </div>
       </div>
 
@@ -20,9 +20,9 @@
               <div class="tenant-selector">
                 @if (tenants().length > 1) {
                   <button class="tenant-pill static dark:bg-surface-800 dark:border-surface-700 dark:text-surface-0" (click)="mobileTp.toggle($event)" style="cursor: pointer;">
-                    <i class="pi pi-building text-surface-500 dark:text-surface-400"></i>
+                    <i class="fa-solid fa-building text-surface-500 dark:text-surface-400"></i>
                     <span class="tenant-name dark:text-surface-0">{{ activeTenant()?.tenantName || authTranslations()['select_tenant'] }}</span>
-                    <i class="pi pi-chevron-down text-xs opacity-60 dark:text-surface-400"></i>
+                    <i class="fa-solid fa-chevron-down text-xs opacity-60 dark:text-surface-400"></i>
                   </button>
                   <p-popover #mobileTp [appendTo]="'body'">
                     <div class="dropdown-menu-content dark:bg-surface-800">
@@ -31,7 +31,7 @@
                       <button class="menu-item-action dark:hover:bg-surface-700" (click)="selectTenant(tenant); mobileTp.hide()">
                         <span class="tenant-label dark:text-surface-0">{{ tenant.tenantName }}</span>
                         @if (activeTenant()?.tenantId === tenant.tenantId) {
-                        <i class="pi pi-check" [style.color]="'var(--primary-color)'"></i>
+                        <i class="fa-solid fa-check" [style.color]="'var(--primary-color)'"></i>
                         }
                       </button>
                       }
@@ -39,7 +39,7 @@
                   </p-popover>
                 } @else if (activeTenant()) {
                   <div class="tenant-pill static cursor-default dark:bg-surface-800 dark:border-surface-700 dark:text-surface-0">
-                    <i class="pi pi-building text-surface-500 dark:text-surface-400"></i>
+                    <i class="fa-solid fa-building text-surface-500 dark:text-surface-400"></i>
                     <span class="tenant-name dark:text-surface-0">{{ activeTenant()?.tenantName }}</span>
                   </div>
                 }
@@ -53,12 +53,12 @@
               
               <!-- Mobile Theme Toggle -->
               <button class="user-menu-item mb-2 dark:hover:bg-surface-700" (click)="toggleTheme()" style="color: inherit;">
-                <i [class]="themeService.colorScheme() === 'dark' ? 'pi pi-sun' : 'pi pi-moon'"></i>
+                <i [class]="themeService.colorScheme() === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
                 <span>Cambiar Tema</span>
               </button>
 
               <button class="user-menu-item logout-btn" (click)="logout()">
-                <i class="pi pi-sign-out"></i>
+                <i class="fa-solid fa-right-from-bracket"></i>
                 <span>{{ authTranslations()['logout'] }}</span>
               </button>
             </div>
@@ -80,7 +80,7 @@
                 }
                 <span class="p-menubar-item-label">{{ item.label }}</span>
                 @if (item.items) {
-                <i class="pi pi-angle-down ml-auto"></i>
+                <i class="fa-solid fa-angle-down ml-auto"></i>
                 }
               </a>
             }
@@ -95,9 +95,9 @@
           @if (tenants().length > 1) {
             <button class="tenant-pill dark:bg-surface-800 dark:border-surface-700 dark:text-surface-0 dark:hover:border-primary-500" (click)="tp.toggle($event)"
               [attr.aria-label]="authTranslations()['select_tenant']">
-              <i class="pi pi-building text-surface-500 dark:text-surface-400"></i>
+              <i class="fa-solid fa-building text-surface-500 dark:text-surface-400"></i>
               <span class="tenant-name dark:text-surface-0">{{ activeTenant()?.tenantName || authTranslations()['select_tenant'] }}</span>
-              <i class="pi pi-chevron-down text-xs opacity-60 dark:text-surface-400"></i>
+              <i class="fa-solid fa-chevron-down text-xs opacity-60 dark:text-surface-400"></i>
             </button>
 
             <p-popover #tp>
@@ -107,7 +107,7 @@
                 <button class="menu-item-action dark:hover:bg-surface-700" (click)="selectTenant(tenant); tp.hide()">
                   <span class="tenant-label dark:text-surface-0">{{ tenant.tenantName }}</span>
                   @if (activeTenant()?.tenantId === tenant.tenantId) {
-                  <i class="pi pi-check" [style.color]="'var(--primary-color)'"></i>
+                  <i class="fa-solid fa-check" [style.color]="'var(--primary-color)'"></i>
                   }
                 </button>
                 }
@@ -115,7 +115,7 @@
             </p-popover>
           } @else if (activeTenant()) {
             <div class="tenant-pill static cursor-default dark:bg-surface-800 dark:border-surface-700 dark:text-surface-0">
-              <i class="pi pi-building text-surface-500 dark:text-surface-400"></i>
+              <i class="fa-solid fa-building text-surface-500 dark:text-surface-400"></i>
               <span class="tenant-name dark:text-surface-0">{{ activeTenant()?.tenantName }}</span>
             </div>
           }
@@ -125,7 +125,7 @@
 
         <!-- Theme Toggle -->
         <button class="p-link w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors" (click)="toggleTheme()">
-          <i [class]="themeService.colorScheme() === 'dark' ? 'pi pi-sun text-surface-0' : 'pi pi-moon text-surface-600'"></i>
+          <i [class]="themeService.colorScheme() === 'dark' ? 'fa-solid fa-sun text-surface-0' : 'fa-solid fa-moon text-surface-600'"></i>
         </button>
 
         <!-- User Profile -->
@@ -145,7 +145,7 @@
               </div>
               <div class="user-menu-divider dark:bg-surface-700"></div>
               <button class="user-menu-item dark:hover:bg-red-900/20" (click)="logout(); op.hide()">
-                <i class="pi pi-sign-out"></i>
+                <i class="fa-solid fa-right-from-bracket"></i>
                 <span>{{ authTranslations()['logout'] }}</span>
               </button>
             </div>

@@ -38,7 +38,7 @@ export class MenuUploadDialog implements OnInit {
     if (!tenantId) return;
 
     this.loadingUsers.set(true);
-    this.userRoleService.getUsersByTenant(tenantId).subscribe({
+    this.userRoleService.getUsersByTenantAndType(tenantId, 'PATIENT').subscribe({
       next: (res) => {
         const mapped = res.map(u => ({
           ...u,

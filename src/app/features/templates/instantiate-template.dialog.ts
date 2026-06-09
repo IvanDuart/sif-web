@@ -1,10 +1,10 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { CheckboxModule } from 'primeng/checkbox';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import { Checkbox } from 'primeng/checkbox';
 import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
@@ -15,7 +15,7 @@ import { MenuTemplate } from '../../core/api/models/menu-template.model';
 @Component({
   selector: 'app-instantiate-template',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ButtonModule, InputTextModule, SelectModule, CheckboxModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, Button, InputText, Select, Checkbox],
   templateUrl: './instantiate-template.dialog.html'
 })
 export class InstantiateTemplateDialog implements OnInit {
@@ -51,7 +51,7 @@ export class InstantiateTemplateDialog implements OnInit {
     if (!tenantId) return;
 
     this.loadingUsers.set(true);
-    this.userRoleService.getUsersByTenant(tenantId).subscribe({
+    this.userRoleService.getUsersByTenantAndType(tenantId, 'PATIENT').subscribe({
       next: (res) => {
         const mapped = res.map(u => ({
           ...u,

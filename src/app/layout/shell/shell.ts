@@ -70,23 +70,28 @@ export class Shell {
       },
       {
         label: nav['dashboard'] || 'Dashboard',
-        icon: 'pi pi-home',
+        icon: 'fa-solid fa-house',
         routerLink: ['/dashboard']
       }
     ];
 
     if (this.permissionsService.has('VIEW_USER') || this.permissionsService.has('MANAGE_USER')) {
       items.push({
-        label: nav['users'] || 'Users',
-        icon: 'pi pi-users',
-        routerLink: ['/users']
+        label: nav['patients'] || 'Pacientes',
+        icon: 'fa-solid fa-user-injured',
+        routerLink: ['/patients']
+      });
+      items.push({
+        label: nav['staff'] || 'Equipo',
+        icon: 'fa-solid fa-user-doctor',
+        routerLink: ['/staff']
       });
     }
 
     if (this.permissionsService.has('VIEW_MENU') || this.permissionsService.has('MANAGE_MENU')) {
       items.push({
         label: nav['diets'] || 'Diets',
-        icon: 'pi pi-apple',
+        icon: 'fa-solid fa-utensils',
         routerLink: ['/menus']
       });
     }
@@ -94,7 +99,7 @@ export class Shell {
     if (this.permissionsService.has('MANAGE_TEMPLATE')) {
       items.push({
         label: nav['templates'] || 'Templates',
-        icon: 'pi pi-copy',
+        icon: 'fa-solid fa-clipboard-list',
         routerLink: ['/templates']
       });
     }
@@ -102,7 +107,7 @@ export class Shell {
     if (this.permissionsService.has('MANAGE_TENANT_BRANDING')) {
       items.push({
         label: nav['settings'] || 'Settings',
-        icon: 'pi pi-cog',
+        icon: 'fa-solid fa-gear',
         routerLink: ['/settings']
       });
     }

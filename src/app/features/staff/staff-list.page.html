@@ -1,9 +1,9 @@
 <div class="p-4" *transloco="let t">
   <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold">{{ t('users.title') }}</h1>
+    <h1 class="text-2xl font-bold">{{ t('staff.title') }}</h1>
     <p-button *appIfPermission="'INVITE_USER'"
-      [label]="t('users.invite')"
-      icon="pi pi-user-plus"
+      [label]="t('staff.invite')"
+      icon="fa-solid fa-user-plus"
       size="small"
       (onClick)="showInviteDialog()">
     </p-button>
@@ -23,8 +23,9 @@
           <th scope="col">{{ t('users.first_name') }}</th>
           <th scope="col">{{ t('users.last_name') }}</th>
           <th scope="col">{{ t('users.email') }}</th>
-          <th scope="col">{{ t('auth.role') }}</th>
-          <th scope="col" style="width: 7rem; text-align: center;">{{ t('common.actions') }}</th>
+          <th scope="col">{{ t('users.role') }}</th>
+          <th scope="col">{{ t('users.status') }}</th>
+          <th scope="col" style="width: 8rem; text-align: center;">{{ t('common.actions') }}</th>
         </tr>
       </ng-template>
 
@@ -35,12 +36,24 @@
           <td class="text-surface-500 text-sm">{{ user.email }}</td>
           <td>
             <p-tag
-              [value]="t('users.role_' + getRole(user).toLowerCase()) || getRole(user)"
+              [value]="getRole(user)"
               severity="info">
+            </p-tag>
+          </td>
+          <td>
+            <p-tag
+              [severity]="user.enabled !== false ? 'success' : 'secondary'"
+              [value]="user.enabled !== false ? t('users.enabled') : t('users.disabled')">
             </p-tag>
           </td>
           <td style="text-align: center;">
             <div class="row-actions">
+              <button
+                class="action-btn"
+                [title]="t('common.view')"
+                [routerLink]="['/users', user.id]">
+                <i class="fa-solid fa-eye"></i>
+              </button>
               <button
                 *appIfPermission="'MANAGE_USER'"
                 class="action-btn"
@@ -62,12 +75,12 @@
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="5" class="table-empty-cell">
+          <td colspan="6" class="table-empty-cell">
             <app-empty-state
-              icon="pi-users"
-              [title]="t('users.empty_title')"
-              [description]="t('users.empty')"
-              [actionLabel]="t('users.invite')"
+              icon="fa-solid fa-user-doctor"
+              [title]="t('staff.empty_title')"
+              [description]="t('staff.empty')"
+              [actionLabel]="t('staff.invite')"
               (action)="showInviteDialog()">
             </app-empty-state>
           </td>

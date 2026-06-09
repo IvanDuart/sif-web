@@ -7,4 +7,6 @@ export interface Menu {
   active?: boolean;
   createdAt?: string;
   meals?: Meal[];
+  assignedAt?: string;
+  assignedBy?: string;
 }

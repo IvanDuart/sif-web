@@ -1,0 +1,280 @@
+<div class="p-4" *transloco="let t">
+  <!-- Back button + header -->
+  <div class="flex items-center gap-3 mb-6">
+    <button
+      pButton
+      [text]="true"
+      severity="secondary"
+      icon="fa-solid fa-arrow-left"
+      [label]="isStaff() ? t('staff.back_to_list') : t('patients.back_to_list')"
+      [routerLink]="backRoute()">
+    </button>
+  </div>
+
+  @if (loadingUser()) {
+    <div class="flex justify-center py-8">
+      <i class="pi pi-spin pi-spinner text-2xl text-surface-400"></i>
+    </div>
+  } @else if (user(); as u) {
+    <!-- Profile header card -->
+    <p-card class="mb-4">
+      <div class="flex items-start justify-between">
+        <div>
+          <h1 class="text-2xl font-bold mb-1">{{ u.firstName }} {{ u.lastName }}</h1>
+          <p class="text-surface-500 text-sm mb-0">{{ u.email }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <p-tag
+            [severity]="isStaff() ? 'info' : 'warn'"
+            [icon]="isStaff() ? 'fa-solid fa-user-doctor' : 'fa-solid fa-user-injured'"
+            [value]="isStaff() ? t('users.user_type_staff') : t('users.user_type_patient')">
+          </p-tag>
+          <p-tag
+            [severity]="u.enabled !== false ? 'success' : 'secondary'"
+            [value]="u.enabled !== false ? t('users.enabled') : t('users.disabled')">
+          </p-tag>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Tabs: Perfil | Mediciones | Menús -->
+    <p-tabs [value]="activeTab()">
+      <p-tablist>
+        <p-tab value="0">{{ t('users.tab_profile') }}</p-tab>
+        @if (!isStaff()) {
+        <p-tab value="1">{{ t('users.tab_measurements') }}</p-tab>
+        <p-tab value="2">{{ t('users.tab_menus') }}</p-tab>
+        }
+      </p-tablist>
+      <p-tabpanels>
+      <!-- TAB 1: Perfil -->
+      <p-tabpanel value="0">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+          <div class="flex flex-col gap-4">
+            <div>
+              <span class="text-sm text-surface-400 font-medium">{{ t('users.role') }}</span>
+              <p class="font-medium mt-1">{{ getRoleLabel(u) }}</p>
+            </div>
+            <div>
+              <span class="text-sm text-surface-400 font-medium">{{ t('users.invited_at') }}</span>
+              <p class="font-medium mt-1">{{ formatInstant(u.createdAt) }}</p>
+            </div>
+          </div>
+          <div class="flex flex-col gap-4">
+            <div>
+              <span class="text-sm text-surface-400 font-medium">{{ t('users.birth_date') }}</span>
+              <p class="font-medium mt-1">{{ u.birthDate ?? '—' }}</p>
+            </div>
+            <div>
+              <span class="text-sm text-surface-400 font-medium">{{ t('users.age') }}</span>
+              <p class="font-medium mt-1">
+                @if (u.age != null) {
+                  {{ u.age }} años
+                } @else {
+                  —
+                }
+              </p>
+            </div>
+            <div>
+              <span class="text-sm text-surface-400 font-medium">{{ t('users.height_cm') }}</span>
+              <p class="font-medium mt-1">{{ u.heightCm != null ? (u.heightCm + ' cm') : '—' }}</p>
+            </div>
+          </div>
+        </div>
+
+        @if (u.lastMeasurement) {
+          <p-card [header]="t('users.last_measurement')" styleClass="mt-4">
+            <div class="grid grid-cols-4 gap-4 text-center">
+              <div>
+                <span class="text-sm text-surface-400">{{ t('users.weight') }}</span>
+                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.weightKg ?? '—' }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-surface-400">{{ t('users.bmi') }}</span>
+                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.bmi ?? '—' }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-surface-400">{{ t('users.body_fat') }}</span>
+                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.bodyFatPct ?? '—' }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-surface-400">{{ t('users.muscle_mass') }}</span>
+                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.muscleMassKg ?? '—' }}</p>
+              </div>
+            </div>
+          </p-card>
+        }
+      </p-tabpanel>
+
+      <!-- TAB 2: Mediciones -->
+      <p-tabpanel value="1">
+        <div class="py-4">
+          <!-- Register button -->
+          <div class="flex justify-end mb-4" *appIfPermission="'MANAGE_USER'">
+            <p-button
+              [label]="t('measurements.register')"
+              icon="fa-solid fa-plus"
+              size="small"
+              (onClick)="showRegisterDialog()">
+            </p-button>
+          </div>
+
+          <!-- Evolution chart -->
+          @if (chartLoaded() && chartData) {
+            <p-card [header]="t('measurements.chart_title')" styleClass="mb-4">
+              <p-chart
+                type="line"
+                [data]="chartData"
+                [options]="chartOptions"
+                height="300px"
+                width="100%">
+              </p-chart>
+              <p class="text-xs text-surface-400 mt-2 italic">
+                {{ t('measurements.bmi_disclaimer') }}
+              </p>
+            </p-card>
+          }
+
+          <!-- Measurements table -->
+          <p-card>
+            <p-table
+              [value]="measurements()"
+              [loading]="loadingMeasurements()"
+              [rows]="20"
+              [paginator]="true"
+              [totalRecords]="totalRecords()"
+              [lazy]="true"
+              [rowHover]="true"
+              responsiveLayout="scroll"
+              styleClass="p-datatable-sm"
+              (onLazyLoad)="onPage($event)">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th scope="col">{{ t('measurements.measured_at') }}</th>
+                  <th scope="col">{{ t('measurements.weight') }}</th>
+                  <th scope="col">{{ t('measurements.bmi') }}</th>
+                  <th scope="col">{{ t('measurements.body_fat') }}</th>
+                  <th scope="col">{{ t('measurements.muscle_mass') }}</th>
+                  <th scope="col">{{ t('measurements.notes') }}</th>
+                  <th scope="col">{{ t('measurements.recorded_by') }}</th>
+                  <th scope="col" style="width: 5rem; text-align: center;">{{ t('common.actions') }}</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-m>
+                <tr>
+                  <td class="text-sm">{{ formatInstantWithTime(m.measuredAt) }}</td>
+                  <td>{{ m.weightKg ?? '—' }}</td>
+                  <td>{{ m.bmi ?? '—' }}</td>
+                  <td>{{ m.bodyFatPct ?? '—' }}</td>
+                  <td>{{ m.muscleMassKg ?? '—' }}</td>
+                  <td class="text-surface-400 text-sm max-w-32 truncate">{{ m.notes ?? '—' }}</td>
+                  <td class="text-sm">{{ m.recordedBy ?? '—' }}</td>
+                  <td style="text-align: center;">
+                    <button
+                      *appIfPermission="'MANAGE_USER'"
+                      class="action-btn danger"
+                      [title]="t('common.delete')"
+                      (click)="deleteMeasurement(m)">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="8" class="table-empty-cell">
+                    <app-empty-state
+                      icon="fa-solid fa-chart-line"
+                      [title]="t('measurements.empty_title')"
+                      [description]="t('measurements.empty')"
+                      [actionLabel]="t('measurements.register')"
+                      (action)="showRegisterDialog()">
+                    </app-empty-state>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </p-card>
+        </div>
+      </p-tabpanel>
+
+      <!-- TAB 3: Menús -->
+      <p-tabpanel value="2">
+        <div class="py-4 flex flex-col gap-4">
+          @if (activeMenu(); as menu) {
+            <p-card [header]="t('menu_history.active_menu')">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="font-medium text-lg">{{ menu.name }}</p>
+                  <p class="text-sm text-surface-400 mt-1">
+                    {{ t('menu_history.assigned_at') }}: {{ formatInstantWithTime(menu.assignedAt) }}
+                    @if (menu.assignedBy) {
+                      · {{ t('menu_history.assigned_by') }}: {{ menu.assignedBy }}
+                    }
+                  </p>
+                </div>
+                <p-button
+                  [label]="t('menu_history.view_detail')"
+                  icon="fa-solid fa-eye"
+                  size="small"
+                  severity="secondary"
+                  [routerLink]="['/menus', menu.id]">
+                </p-button>
+              </div>
+            </p-card>
+          }
+
+          @if (menus().length > 0) {
+            <p-card [header]="t('menu_history.history')">
+              <div class="flex flex-col gap-2">
+                @for (menu of menus(); track menu.id) {
+                  <div class="flex items-center justify-between p-3 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors">
+                    <div class="flex items-center gap-3">
+                      <i class="fa-solid fa-utensils text-surface-400"></i>
+                      <div>
+                        <p class="font-medium">{{ menu.name }}</p>
+                        <p class="text-xs text-surface-400">
+                          {{ formatInstantWithTime(menu.assignedAt) }}
+                          @if (menu.assignedBy) {
+                            · {{ t('menu_history.assigned_by') }}: {{ menu.assignedBy }}
+                          }
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <p-tag
+                        [severity]="menu.isActive || menu.active ? 'success' : 'secondary'"
+                        [value]="menu.isActive || menu.active ? t('menu_history.active') : t('menu_history.inactive')">
+                      </p-tag>
+                      <button
+                        class="action-btn"
+                        [title]="t('menu_history.view_detail')"
+                        [routerLink]="['/menus', menu.id]">
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </p-card>
+          }
+
+          @if (menus().length === 0 && !loadingMenus()) {
+            <app-empty-state
+              icon="fa-solid fa-utensils"
+              [title]="t('menu_history.empty_title')"
+              [description]="t('menu_history.empty')">
+            </app-empty-state>
+          }
+
+          @if (loadingMenus()) {
+            <div class="flex justify-center py-8">
+<i class="fa-solid fa-spinner fa-spin text-2xl text-surface-400"></i>
+            </div>
+          }
+        </div>
+      </p-tabpanel>
+    </p-tabpanels>
+    </p-tabs>
+  }
+</div>

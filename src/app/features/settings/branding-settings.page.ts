@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ColorPickerModule } from 'primeng/colorpicker';
 import { FileUploadModule } from 'primeng/fileupload';
 import { TenantBrandingService } from '../../core/api/services/tenant-branding.api';
+import { TenantService } from '../../core/api/services/tenant.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { TenantPreferences } from '../../core/api/models/tenant.model';
 import { MessageService } from 'primeng/api';
@@ -19,6 +20,7 @@ import { MessageService } from 'primeng/api';
 })
 export default class BrandingSettingsPage implements OnInit {
   private tenantBrandingService = inject(TenantBrandingService);
+  private tenantService = inject(TenantService);
   private tenantCtx = inject(TenantContextService);
   private messageService = inject(MessageService);
   
@@ -31,17 +33,24 @@ export default class BrandingSettingsPage implements OnInit {
   }
 
   loadBranding() {
-    // For MVP we just initialize a default preferences object if we can't fetch it
-    // because GET /branding returns TenantBrandingDto, and GET /tenant/{id} returns full Tenant including preferences
-    // For simplicity, we initialize it here:
-    this.preferences.set({
-      enable_vacation_module: false,
-      enable_clock_in_module: false,
-      default_language: 'es',
-      primary_color: '#000000',
-      keycloak_sync_mode: '',
-      from_email: '',
-      standard_vacation_days: 0
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+
+    this.loading.set(true);
+    this.tenantService.getById(tenantId).subscribe({
+      next: (tenant) => {
+        this.preferences.set(tenant.preferences ?? {
+          enable_vacation_module: false,
+          enable_clock_in_module: false,
+          default_language: 'es',
+          primary_color: '#000000',
+          keycloak_sync_mode: '',
+          from_email: '',
+          standard_vacation_days: 0
+        });
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
     });
   }
 

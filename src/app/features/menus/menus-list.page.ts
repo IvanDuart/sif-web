@@ -57,7 +57,7 @@ export default class MenusListPage implements OnInit {
     this.menuService.search(tenantId, page, size).subscribe({
       next: (res) => {
         this.menus.set(res.content || []);
-        this.totalRecords.set(res.totalElements || 0);
+        this.totalRecords.set(res.page?.totalElements || 0);
         this.loading.set(false);
       },
       error: () => this.loading.set(false)
@@ -116,7 +116,7 @@ export default class MenusListPage implements OnInit {
     this.confirmationService.confirm({
       message: '¿Estás seguro de que quieres eliminar el menú "' + menu.name + '"?',
       header: this.transloco.translate('common.attention'),
-      icon: 'pi pi-exclamation-triangle',
+      icon: 'fa-solid fa-triangle-exclamation',
       acceptLabel: this.transloco.translate('common.yes'),
       rejectLabel: this.transloco.translate('common.cancel'),
       acceptButtonStyleClass: 'p-button-danger',
