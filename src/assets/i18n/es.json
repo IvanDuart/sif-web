@@ -70,7 +70,16 @@
     "measurements_delete_confirm": "¿Eliminar esta medición del {date}?",
     "measurement_at_least_one": "Debe ingresar al menos una métrica (peso, % grasa o masa muscular).",
     "measurement_future_date": "La fecha de medición no puede ser futura.",
-    "height_tooltip": "El IMC se calcula con la altura actual del usuario."
+    "height_tooltip": "El IMC se calcula con la altura actual del usuario.",
+    "edit": "Editar",
+    "edit_user_title": "Editar Perfil de Usuario",
+    "update": "Actualizar",
+    "update_success": "Usuario actualizado correctamente",
+    "update_error": "No se pudo actualizar el usuario",
+    "email_already_in_use": "Este email ya está en uso por otro usuario",
+    "future_birth_date": "La fecha de nacimiento no puede ser futura",
+    "height_out_of_range": "La altura debe estar entre 30 y 275 cm",
+    "partial_update_warning": "Perfil actualizado pero no se pudo cambiar el rol"
   },
   "patients": {
     "title": "Pacientes",

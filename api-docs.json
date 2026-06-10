@@ -144,6 +144,128 @@
         }
       }
     },
+    "/tenant/{tenantId}/users/{userId}": {
+      "get": {
+        "tags": [
+          "UserTenantRoleController"
+        ],
+        "description": "Get a specific user in the tenant",
+        "operationId": "getUser",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppUser_Full"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "UserTenantRoleController"
+        ],
+        "description": "Update profile data of a user in the tenant",
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest_Full"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppUser_Full"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "UserTenantRoleController"
+        ],
+        "description": "Revoke user access to the tenant",
+        "operationId": "revokeAccess",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/users/{userId}/role": {
       "put": {
         "tags": [
@@ -356,7 +478,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/PageTenant_List"
+                  "$ref": "#/components/schemas/PagedModel"
                 }
               }
             }
@@ -463,7 +585,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/PageBodyMeasurementDto"
+                  "$ref": "#/components/schemas/PagedModel"
                 }
               }
             }
@@ -641,7 +763,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/PageMenu_List"
+                  "$ref": "#/components/schemas/PagedModel"
                 }
               }
             }
@@ -809,7 +931,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/PageMenuTemplate_List"
+                  "$ref": "#/components/schemas/PagedModel"
                 }
               }
             }
@@ -994,7 +1116,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/PageMeal_List"
+                  "$ref": "#/components/schemas/PagedModel"
                 }
               }
             }
@@ -1055,7 +1177,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/AppUserDto"
+                  "$ref": "#/components/schemas/AppUser_Me"
                 }
               }
             }
@@ -1094,126 +1216,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/tenant/{tenantId}/users/{userType}": {
-      "get": {
-        "tags": [
-          "UserTenantRoleController"
-        ],
-        "description": "List users filtered by type (STAFF or PATIENT)",
-        "operationId": "getUsersByType",
-        "parameters": [
-          {
-            "name": "tenantId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "userType",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "STAFF",
-                "PATIENT"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TenantUserDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tenant/{tenantId}/users/{userId}": {
-      "get": {
-        "tags": [
-          "UserTenantRoleController"
-        ],
-        "description": "Get a specific user in the tenant",
-        "operationId": "getUser",
-        "parameters": [
-          {
-            "name": "tenantId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/AppUser_Full"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "UserTenantRoleController"
-        ],
-        "description": "Revoke user access to the tenant",
-        "operationId": "revokeAccess",
-        "parameters": [
-          {
-            "name": "tenantId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
           }
         }
       }
@@ -1324,7 +1326,54 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/AppUserDto"
+                  "$ref": "#/components/schemas/AppUser_Me"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/users/by-type/{userType}": {
+      "get": {
+        "tags": [
+          "UserTenantRoleController"
+        ],
+        "description": "List users filtered by type (STAFF or PATIENT)",
+        "operationId": "getUsersByType",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "STAFF",
+                "PATIENT"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TenantUserDto"
+                  }
                 }
               }
             }
@@ -1793,6 +1842,132 @@
           }
         }
       },
+      "UpdateUserRequest_Full": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "lastName": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "email": {
+            "type": "string"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "heightCm": {
+            "type": "number",
+            "maximum": 275,
+            "minimum": 30
+          }
+        }
+      },
+      "AppUser_Full": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "heightCm": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "disabledAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "menus": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Menu_Full"
+            }
+          },
+          "age": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "Meal_Full": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayOfWeek": {
+            "type": "string"
+          },
+          "mealType": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "Menu_Full": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "assignedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "assignedBy": {
+            "type": "string"
+          },
+          "meals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Meal_Full"
+            }
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
       "ChangeUserRoleRequest": {
         "type": "object",
         "properties": {
@@ -2014,59 +2189,6 @@
           }
         }
       },
-      "Meal_Full": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "dayOfWeek": {
-            "type": "string"
-          },
-          "mealType": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          }
-        }
-      },
-      "Menu_Full": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "assignedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "assignedBy": {
-            "type": "string"
-          },
-          "meals": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Meal_Full"
-            }
-          },
-          "active": {
-            "type": "boolean"
-          }
-        }
-      },
       "CreateMealTemplateRequest_Full": {
         "type": "object",
         "properties": {
@@ -2196,7 +2318,7 @@
           }
         }
       },
-      "AppUserDto": {
+      "AppUser_Me": {
         "type": "object",
         "properties": {
           "id": {
@@ -2216,10 +2338,6 @@
             "type": "string",
             "format": "date"
           },
-          "age": {
-            "type": "integer",
-            "format": "int32"
-          },
           "heightCm": {
             "type": "number"
           },
@@ -2227,22 +2345,32 @@
             "type": "string",
             "format": "date-time"
           },
+          "age": {
+            "type": "integer",
+            "format": "int32"
+          },
           "memberships": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TenantMembershipDto"
+              "$ref": "#/components/schemas/UserTenantRole_Me"
             }
           }
         }
       },
-      "TenantMembershipDto": {
+      "UserTenantRole_Me": {
         "type": "object",
         "properties": {
           "tenantId": {
             "type": "string",
             "format": "uuid"
           },
-          "tenantName": {
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "roleCode": {
             "type": "string"
           },
           "userType": {
@@ -2252,154 +2380,43 @@
               "PATIENT"
             ]
           },
-          "roleCode": {
+          "tenantName": {
             "type": "string"
-          },
-          "permissions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           }
         }
       },
-      "PageTenant_List": {
+      "PageMetadata": {
         "type": "object",
         "properties": {
-          "totalPages": {
+          "size": {
             "type": "integer",
-            "format": "int32"
+            "format": "int64"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int64"
           },
           "totalElements": {
             "type": "integer",
             "format": "int64"
           },
-          "size": {
+          "totalPages": {
             "type": "integer",
-            "format": "int32"
-          },
+            "format": "int64"
+          }
+        }
+      },
+      "PagedModel": {
+        "type": "object",
+        "properties": {
           "content": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Tenant_List"
+              "type": "object"
             }
           },
-          "number": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject_List"
-          },
-          "first": {
-            "type": "boolean"
-          },
-          "last": {
-            "type": "boolean"
-          },
-          "numberOfElements": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageable": {
-            "$ref": "#/components/schemas/PageableObject_List"
-          },
-          "empty": {
-            "type": "boolean"
-          }
-        }
-      },
-      "PageableObject_List": {
-        "type": "object",
-        "properties": {
-          "offset": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject_List"
-          },
-          "paged": {
-            "type": "boolean"
-          },
-          "unpaged": {
-            "type": "boolean"
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "SortObject_List": {
-        "type": "object",
-        "properties": {
-          "empty": {
-            "type": "boolean"
-          },
-          "sorted": {
-            "type": "boolean"
-          },
-          "unsorted": {
-            "type": "boolean"
-          }
-        }
-      },
-      "TenantPreferences_List": {
-        "type": "object",
-        "properties": {
-          "enable_vacation_module": {
-            "type": "boolean"
-          },
-          "enable_clock_in_module": {
-            "type": "boolean"
-          },
-          "default_language": {
-            "type": "string"
-          },
-          "primary_color": {
-            "type": "string"
-          },
-          "keycloak_sync_mode": {
-            "type": "string"
-          },
-          "from_email": {
-            "type": "string"
-          },
-          "standard_vacation_days": {
-            "type": "number"
-          }
-        }
-      },
-      "Tenant_List": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "cif": {
-            "type": "string"
-          },
-          "disabledAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "adminTenant": {
-            "type": "boolean"
-          },
-          "preferences": {
-            "$ref": "#/components/schemas/TenantPreferences_List"
+          "page": {
+            "$ref": "#/components/schemas/PageMetadata"
           }
         }
       },
@@ -2454,138 +2471,6 @@
           },
           "lastMeasurement": {
             "$ref": "#/components/schemas/BodyMeasurementDto"
-          }
-        }
-      },
-      "AppUser_Full": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "email": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "birthDate": {
-            "type": "string",
-            "format": "date"
-          },
-          "heightCm": {
-            "type": "number"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "disabledAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "menus": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Menu_Full"
-            }
-          },
-          "age": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "PageBodyMeasurementDto": {
-        "type": "object",
-        "properties": {
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalElements": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "size": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "content": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BodyMeasurementDto"
-            }
-          },
-          "number": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject"
-          },
-          "first": {
-            "type": "boolean"
-          },
-          "last": {
-            "type": "boolean"
-          },
-          "numberOfElements": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageable": {
-            "$ref": "#/components/schemas/PageableObject"
-          },
-          "empty": {
-            "type": "boolean"
-          }
-        }
-      },
-      "PageableObject": {
-        "type": "object",
-        "properties": {
-          "offset": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject"
-          },
-          "paged": {
-            "type": "boolean"
-          },
-          "unpaged": {
-            "type": "boolean"
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "SortObject": {
-        "type": "object",
-        "properties": {
-          "empty": {
-            "type": "boolean"
-          },
-          "sorted": {
-            "type": "boolean"
-          },
-          "unsorted": {
-            "type": "boolean"
           }
         }
       },
@@ -2650,177 +2535,6 @@
             "format": "date-time"
           },
           "active": {
-            "type": "boolean"
-          }
-        }
-      },
-      "PageMenu_List": {
-        "type": "object",
-        "properties": {
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalElements": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "size": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "content": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Menu_List"
-            }
-          },
-          "number": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject_List"
-          },
-          "first": {
-            "type": "boolean"
-          },
-          "last": {
-            "type": "boolean"
-          },
-          "numberOfElements": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageable": {
-            "$ref": "#/components/schemas/PageableObject_List"
-          },
-          "empty": {
-            "type": "boolean"
-          }
-        }
-      },
-      "MenuTemplate_List": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          }
-        }
-      },
-      "PageMenuTemplate_List": {
-        "type": "object",
-        "properties": {
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalElements": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "size": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "content": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MenuTemplate_List"
-            }
-          },
-          "number": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject_List"
-          },
-          "first": {
-            "type": "boolean"
-          },
-          "last": {
-            "type": "boolean"
-          },
-          "numberOfElements": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageable": {
-            "$ref": "#/components/schemas/PageableObject_List"
-          },
-          "empty": {
-            "type": "boolean"
-          }
-        }
-      },
-      "Meal_List": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "dayOfWeek": {
-            "type": "string"
-          },
-          "mealType": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          }
-        }
-      },
-      "PageMeal_List": {
-        "type": "object",
-        "properties": {
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalElements": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "size": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "content": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Meal_List"
-            }
-          },
-          "number": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject_List"
-          },
-          "first": {
-            "type": "boolean"
-          },
-          "last": {
-            "type": "boolean"
-          },
-          "numberOfElements": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageable": {
-            "$ref": "#/components/schemas/PageableObject_List"
-          },
-          "empty": {
             "type": "boolean"
           }
         }

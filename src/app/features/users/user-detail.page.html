@@ -33,6 +33,14 @@
             [severity]="u.enabled !== false ? 'success' : 'secondary'"
             [value]="u.enabled !== false ? t('users.enabled') : t('users.disabled')">
           </p-tag>
+          <p-button
+            *appIfPermission="'MANAGE_USER'"
+            [label]="t('users.edit')"
+            icon="fa-solid fa-pen-to-square"
+            size="small"
+            severity="secondary"
+            (onClick)="showEditDialog()">
+          </p-button>
         </div>
       </div>
     </p-card>

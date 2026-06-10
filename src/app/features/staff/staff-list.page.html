@@ -57,9 +57,9 @@
               <button
                 *appIfPermission="'MANAGE_USER'"
                 class="action-btn"
-                [title]="t('users.change_role')"
-                (click)="changeRole(user)">
-                <i class="fa-solid fa-pen-to-square"></i>
+                [title]="t('users.edit')"
+                (click)="editUser(user)">
+                <i class="fa-solid fa-pen"></i>
               </button>
               <button
                 *appIfPermission="'MANAGE_USER'"

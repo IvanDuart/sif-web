@@ -13,7 +13,7 @@ import { IfPermissionDirective } from '../../core/permissions/if-permission.dire
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
 import { InviteUserDialog } from '../users/invite-user.dialog';
-import { ChangeRoleDialog } from '../users/change-role.dialog';
+import { EditUserDialog } from '../users/edit-user.dialog';
 import { EmptyState } from '../../shared/ui/empty-state';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
@@ -78,22 +78,17 @@ export default class PatientsListPage implements OnInit {
     }
   }
 
-  changeRole(user: AppUserDto) {
-    const currentRole = this.getRole(user);
-    const ref = this.dialogService.open(ChangeRoleDialog, {
-      header: 'Cambiar Rol de Usuario',
-      width: '400px',
+  editUser(user: AppUserDto) {
+    const ref = this.dialogService.open(EditUserDialog, {
+      header: this.transloco.translate('users.edit_user_title'),
+      width: '500px',
       modal: true,
-      data: { user, currentRole },
+      data: { user },
       breakpoints: { '960px': '75vw', '640px': '90vw' }
     });
-
     if (ref) {
       ref.onClose.subscribe((result) => {
-        if (result) {
-          this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Rol actualizado correctamente' });
-          this.loadUsers();
-        }
+        if (result) this.loadUsers();
       });
     }
   }

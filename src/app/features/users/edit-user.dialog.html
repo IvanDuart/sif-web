@@ -1,0 +1,84 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2" *transloco="let t">
+  <div class="grid grid-cols-2 gap-4">
+    <div class="field flex flex-col gap-1">
+      <label for="firstName" class="font-medium text-sm">{{ t('users.first_name') }}</label>
+      <input id="firstName" pInputText formControlName="firstName" class="w-full" />
+      @if (form.get('firstName')?.invalid && form.get('firstName')?.dirty) {
+        <small class="text-red-500">{{ t('common.required') }}</small>
+      }
+    </div>
+    <div class="field flex flex-col gap-1">
+      <label for="lastName" class="font-medium text-sm">{{ t('users.last_name') }}</label>
+      <input id="lastName" pInputText formControlName="lastName" class="w-full" />
+      @if (form.get('lastName')?.invalid && form.get('lastName')?.dirty) {
+        <small class="text-red-500">{{ t('common.required') }}</small>
+      }
+    </div>
+  </div>
+
+  <div class="field flex flex-col gap-1">
+    <label for="email" class="font-medium text-sm">{{ t('users.email') }}</label>
+    <input id="email" type="email" pInputText formControlName="email" class="w-full" [class.ng-invalid]="fieldErrors['email']" />
+    @if (fieldErrors['email']) {
+      <small class="text-red-500">{{ fieldErrors['email'] }}</small>
+    } @else if (form.get('email')?.invalid && form.get('email')?.dirty) {
+      <small class="text-red-500">{{ t('common.required') }}</small>
+    }
+  </div>
+
+  @if (isStaff()) {
+    <div class="field flex flex-col gap-1">
+      <label for="roleCode" class="font-medium text-sm">{{ t('users.role') }}</label>
+      <p-select
+        id="roleCode"
+        formControlName="roleCode"
+        [options]="staffRoles"
+        optionLabel="label"
+        optionValue="value"
+        class="w-full"
+        appendTo="body">
+      </p-select>
+    </div>
+  }
+
+  @if (!isStaff()) {
+    <div class="grid grid-cols-2 gap-4">
+      <div class="field flex flex-col gap-1">
+        <label for="birthDate" class="font-medium text-sm">{{ t('users.birth_date') }}</label>
+        <p-datepicker
+          id="birthDate"
+          formControlName="birthDate"
+          dateFormat="yy-mm-dd"
+          [showIcon]="true"
+          [iconDisplay]="'input'"
+          [maxDate]="today"
+          class="w-full"
+          [class.ng-invalid]="fieldErrors['birthDate']"
+          appendTo="body" />
+        @if (fieldErrors['birthDate']) {
+          <small class="text-red-500">{{ fieldErrors['birthDate'] }}</small>
+        }
+      </div>
+      <div class="field flex flex-col gap-1">
+        <label for="heightCm" class="font-medium text-sm">{{ t('users.height_cm') }}</label>
+        <p-inputnumber
+          id="heightCm"
+          formControlName="heightCm"
+          [min]="30"
+          [max]="275"
+          [maxFractionDigits]="1"
+          suffix=" cm"
+          class="w-full"
+          [class.ng-invalid]="fieldErrors['heightCm']" />
+        @if (fieldErrors['heightCm']) {
+          <small class="text-red-500">{{ fieldErrors['heightCm'] }}</small>
+        }
+      </div>
+    </div>
+  }
+
+  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>
+    <p-button [label]="t('users.update')" type="submit" [disabled]="form.invalid" [loading]="saving"></p-button>
+  </div>
+</form>

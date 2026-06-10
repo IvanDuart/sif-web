@@ -4,6 +4,14 @@ import { Observable } from 'rxjs';
 import { AppUserDto, UserType } from '../models/user.model';
 import { environment } from '../../../../environments/environment';
 
+export interface UpdateUserRequest {
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  birthDate?: string | null;
+  heightCm?: number | null;
+}
+
 export interface InviteUserRequest {
   email: string;
   firstName: string;
@@ -37,6 +45,10 @@ export class UserTenantRoleService {
 
   getUser(tenantId: string, userId: string): Observable<AppUserDto> {
     return this.http.get<AppUserDto>(`${this.baseUrl}/tenant/${tenantId}/users/${userId}`);
+  }
+
+  updateUser(tenantId: string, userId: string, request: UpdateUserRequest): Observable<AppUserDto> {
+    return this.http.put<AppUserDto>(`${this.baseUrl}/tenant/${tenantId}/users/${userId}`, request);
   }
 
   revokeAccess(tenantId: string, userId: string): Observable<void> {

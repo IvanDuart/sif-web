@@ -70,7 +70,16 @@
     "measurements_delete_confirm": "Delete this measurement from {date}?",
     "measurement_at_least_one": "At least one metric (weight, body fat %, or muscle mass) is required.",
     "measurement_future_date": "Measurement date cannot be in the future.",
-    "height_tooltip": "BMI is calculated using the user's current height."
+    "height_tooltip": "BMI is calculated using the user's current height.",
+    "edit": "Edit",
+    "edit_user_title": "Edit User Profile",
+    "update": "Update",
+    "update_success": "User updated successfully",
+    "update_error": "Could not update the user",
+    "email_already_in_use": "This email is already in use by another user",
+    "future_birth_date": "Date of birth cannot be in the future",
+    "height_out_of_range": "Height must be between 30 and 275 cm",
+    "partial_update_warning": "Profile updated but role could not be changed"
   },
   "patients": {
     "title": "Patients",

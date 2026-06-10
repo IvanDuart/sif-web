@@ -22,6 +22,7 @@ import { Page } from '../../core/api/models/page.model';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
 import { EmptyState } from '../../shared/ui/empty-state';
 import { MeasurementFormDialog } from './measurement-form.dialog';
+import { EditUserDialog } from './edit-user.dialog';
 import { formatInstant, formatInstantWithTime } from '../../shared/utils/date';
 import { METRIC_SERIES, buildChartConfig } from '../../shared/utils/chart-config';
 
@@ -203,6 +204,23 @@ export default class UserDetailPage implements OnInit {
           this.loadMeasurements(0, this.size);
           this.loadEvolution();
         }
+      });
+    }
+  }
+
+  showEditDialog() {
+    const current = this.user();
+    if (!current) return;
+    const ref = this.dialogService.open(EditUserDialog, {
+      header: this.transloco.translate('users.edit_user_title'),
+      width: '500px',
+      modal: true,
+      data: { user: current },
+      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    });
+    if (ref) {
+      ref.onClose.subscribe((updated) => {
+        if (updated) this.loadUser();
       });
     }
   }
