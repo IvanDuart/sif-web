@@ -1,0 +1,36 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2" *transloco="let t">
+  <div class="grid grid-cols-1 gap-4">
+    <div class="field flex flex-col gap-1">
+      <label for="consultationReason" class="font-medium text-sm">{{ t('patient_profile.consultation_reason') }}</label>
+      <textarea id="consultationReason" pInputTextarea formControlName="consultationReason" rows="3" class="w-full"></textarea>
+    </div>
+    <div class="field flex flex-col gap-1">
+      <label for="diseases" class="font-medium text-sm">{{ t('patient_profile.diseases') }}</label>
+      <textarea id="diseases" pInputTextarea formControlName="diseases" rows="3" class="w-full"></textarea>
+    </div>
+    <div class="field flex flex-col gap-1">
+      <label for="medicalHistory" class="font-medium text-sm">{{ t('patient_profile.medical_history') }}</label>
+      <textarea id="medicalHistory" pInputTextarea formControlName="medicalHistory" rows="3" class="w-full"></textarea>
+    </div>
+    <div class="field flex flex-col gap-1">
+      <label for="habits" class="font-medium text-sm">{{ t('patient_profile.habits') }}</label>
+      <textarea id="habits" pInputTextarea formControlName="habits" rows="3" class="w-full"></textarea>
+    </div>
+    <div class="field flex flex-col gap-1">
+      <label for="lifestyle" class="font-medium text-sm">{{ t('patient_profile.lifestyle') }}</label>
+      <textarea id="lifestyle" pInputTextarea formControlName="lifestyle" rows="3" class="w-full"></textarea>
+    </div>
+    <div class="field flex flex-col gap-1">
+      <label for="exercise" class="font-medium text-sm">{{ t('patient_profile.exercise') }}</label>
+      <textarea id="exercise" pInputTextarea formControlName="exercise" rows="3" class="w-full"></textarea>
+    </div>
+    <div class="field flex flex-col gap-1">
+      <label for="psyche" class="font-medium text-sm">{{ t('patient_profile.psyche') }}</label>
+      <textarea id="psyche" pInputTextarea formControlName="psyche" rows="3" class="w-full"></textarea>
+    </div>
+  </div>
+  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>
+    <p-button [label]="t('common.save')" type="submit" [loading]="saving"></p-button>
+  </div>
+</form>

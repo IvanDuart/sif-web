@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AppUserDto, UserType } from '../models/user.model';
+import { AppUserDto, UserType, UserTenantProfileDto, UpdateUserTenantProfileRequest } from '../models/user.model';
 import { environment } from '../../../../environments/environment';
 
 export interface UpdateUserRequest {
@@ -10,6 +10,7 @@ export interface UpdateUserRequest {
   email?: string | null;
   birthDate?: string | null;
   heightCm?: number | null;
+  gender?: string | null;
 }
 
 export interface InviteUserRequest {
@@ -19,6 +20,7 @@ export interface InviteUserRequest {
   roleCode: string;
   birthDate?: string | null;
   heightCm?: number | null;
+  gender?: string | null;
 }
 
 export interface ChangeUserRoleRequest {
@@ -57,5 +59,13 @@ export class UserTenantRoleService {
 
   changeRole(tenantId: string, userId: string, request: ChangeUserRoleRequest): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/tenant/${tenantId}/users/${userId}/role`, request);
+  }
+
+  getPatientProfile(tenantId: string, userId: string): Observable<UserTenantProfileDto> {
+    return this.http.get<UserTenantProfileDto>(`${this.baseUrl}/tenant/${tenantId}/users/${userId}/profile`);
+  }
+
+  updatePatientProfile(tenantId: string, userId: string, request: UpdateUserTenantProfileRequest): Observable<UserTenantProfileDto> {
+    return this.http.put<UserTenantProfileDto>(`${this.baseUrl}/tenant/${tenantId}/users/${userId}/profile`, request);
   }
 }

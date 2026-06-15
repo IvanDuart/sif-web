@@ -9,7 +9,9 @@ import { MenuTemplate } from '../../core/api/models/menu-template.model';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
+import { Router } from '@angular/router';
 import { TemplateFormDialog } from './template-form.dialog';
+import { TemplateUploadDialog } from './template-upload.dialog';
 import { InstantiateTemplateDialog } from './instantiate-template.dialog';
 import { EmptyState } from '../../shared/ui/empty-state';
 
@@ -27,6 +29,7 @@ export default class TemplatesListPage implements OnInit {
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
   private dialogService = inject(DialogService);
+  private router = inject(Router);
   private transloco = inject(TranslocoService);
 
   templates = signal<MenuTemplate[]>([]);
@@ -73,10 +76,31 @@ export default class TemplatesListPage implements OnInit {
       ref.onClose.subscribe((result) => {
         if (result) {
           this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Plantilla creada' });
-          this.loadTemplates(this.lastPage, this.lastSize);
+          this.router.navigate(['/templates', result.id]);
         }
       });
     }
+  }
+
+  uploadTemplate() {
+    const ref = this.dialogService.open(TemplateUploadDialog, {
+      header: 'Subir Plantilla (Reconocimiento por IA)',
+      width: '550px',
+      modal: true,
+      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    });
+
+    if (ref) {
+      ref.onClose.subscribe((result) => {
+        if (result) {
+          this.router.navigate(['/templates', result.id]);
+        }
+      });
+    }
+  }
+
+  viewTemplate(template: MenuTemplate) {
+    this.router.navigate(['/templates', template.id]);
   }
 
   instantiateTemplate(template: MenuTemplate) {

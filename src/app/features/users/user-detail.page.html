@@ -1,14 +1,13 @@
 <div class="p-4" *transloco="let t">
   <!-- Back button + header -->
   <div class="flex items-center gap-3 mb-6">
-    <button
-      pButton
+    <p-button
       [text]="true"
       severity="secondary"
       icon="fa-solid fa-arrow-left"
       [label]="isStaff() ? t('staff.back_to_list') : t('patients.back_to_list')"
       [routerLink]="backRoute()">
-    </button>
+    </p-button>
   </div>
 
   @if (loadingUser()) {
@@ -45,13 +44,19 @@
       </div>
     </p-card>
 
-    <!-- Tabs: Perfil | Mediciones | Menús -->
+    <!-- Tabs: Perfil | Mediciones | Menús | Citas -->
     <p-tabs [value]="activeTab()">
       <p-tablist>
         <p-tab value="0">{{ t('users.tab_profile') }}</p-tab>
         @if (!isStaff()) {
         <p-tab value="1">{{ t('users.tab_measurements') }}</p-tab>
         <p-tab value="2">{{ t('users.tab_menus') }}</p-tab>
+        }
+        @if (!isStaff() && canViewPatientProfile()) {
+        <p-tab value="3">{{ t('users.tab_patient_profile') }}</p-tab>
+        }
+        @if (!isStaff() && canViewAppointments()) {
+        <p-tab value="4">{{ t('appointments.history_title') }}</p-tab>
         }
       </p-tablist>
       <p-tabpanels>
@@ -84,6 +89,18 @@
               </p>
             </div>
             <div>
+              <span class="text-sm text-surface-400 font-medium">{{ t('users.gender') }}</span>
+              <p class="font-medium mt-1">
+                @if (u.gender === 'MALE') {
+                  {{ t('users.gender_male') }}
+                } @else if (u.gender === 'FEMALE') {
+                  {{ t('users.gender_female') }}
+                } @else {
+                  —
+                }
+              </p>
+            </div>
+            <div>
               <span class="text-sm text-surface-400 font-medium">{{ t('users.height_cm') }}</span>
               <p class="font-medium mt-1">{{ u.heightCm != null ? (u.heightCm + ' cm') : '—' }}</p>
             </div>
@@ -92,7 +109,7 @@
 
         @if (u.lastMeasurement) {
           <p-card [header]="t('users.last_measurement')" styleClass="mt-4">
-            <div class="grid grid-cols-4 gap-4 text-center">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-center">
               <div>
                 <span class="text-sm text-surface-400">{{ t('users.weight') }}</span>
                 <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.weightKg ?? '—' }}</p>
@@ -108,6 +125,30 @@
               <div>
                 <span class="text-sm text-surface-400">{{ t('users.muscle_mass') }}</span>
                 <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.muscleMassKg ?? '—' }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-surface-400">{{ t('measurements.body_water') }}</span>
+                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.bodyWaterPct ?? '—' }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-surface-400">{{ t('measurements.waist') }}</span>
+                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.waistCm ?? '—' }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-surface-400">{{ t('measurements.chest') }}</span>
+                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.chestCm ?? '—' }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-surface-400">{{ t('measurements.hips') }}</span>
+                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.hipsCm ?? '—' }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-surface-400">{{ t('measurements.contour') }}</span>
+                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.contourCm ?? '—' }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-surface-400">{{ t('measurements.arm') }}</span>
+                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.armCm ?? '—' }}</p>
               </div>
             </div>
           </p-card>
@@ -163,6 +204,12 @@
                   <th scope="col">{{ t('measurements.bmi') }}</th>
                   <th scope="col">{{ t('measurements.body_fat') }}</th>
                   <th scope="col">{{ t('measurements.muscle_mass') }}</th>
+                  <th scope="col">{{ t('measurements.body_water') }}</th>
+                  <th scope="col">{{ t('measurements.waist') }}</th>
+                  <th scope="col">{{ t('measurements.chest') }}</th>
+                  <th scope="col">{{ t('measurements.hips') }}</th>
+                  <th scope="col">{{ t('measurements.contour') }}</th>
+                  <th scope="col">{{ t('measurements.arm') }}</th>
                   <th scope="col">{{ t('measurements.notes') }}</th>
                   <th scope="col">{{ t('measurements.recorded_by') }}</th>
                   <th scope="col" style="width: 5rem; text-align: center;">{{ t('common.actions') }}</th>
@@ -175,22 +222,30 @@
                   <td>{{ m.bmi ?? '—' }}</td>
                   <td>{{ m.bodyFatPct ?? '—' }}</td>
                   <td>{{ m.muscleMassKg ?? '—' }}</td>
+                  <td>{{ m.bodyWaterPct ?? '—' }}</td>
+                  <td>{{ m.waistCm ?? '—' }}</td>
+                  <td>{{ m.chestCm ?? '—' }}</td>
+                  <td>{{ m.hipsCm ?? '—' }}</td>
+                  <td>{{ m.contourCm ?? '—' }}</td>
+                  <td>{{ m.armCm ?? '—' }}</td>
                   <td class="text-surface-400 text-sm max-w-32 truncate">{{ m.notes ?? '—' }}</td>
                   <td class="text-sm">{{ m.recordedBy ?? '—' }}</td>
                   <td style="text-align: center;">
-                    <button
+                    <p-button
                       *appIfPermission="'MANAGE_USER'"
-                      class="action-btn danger"
-                      [title]="t('common.delete')"
-                      (click)="deleteMeasurement(m)">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
+                      icon="fa-solid fa-trash"
+                      [text]="true"
+                      [rounded]="true"
+                      severity="danger"
+                      (onClick)="deleteMeasurement(m)"
+                      [title]="t('common.delete')">
+                    </p-button>
                   </td>
                 </tr>
               </ng-template>
               <ng-template pTemplate="emptymessage">
                 <tr>
-                  <td colspan="8" class="table-empty-cell">
+                  <td colspan="14" class="table-empty-cell">
                     <app-empty-state
                       icon="fa-solid fa-chart-line"
                       [title]="t('measurements.empty_title')"
@@ -205,6 +260,86 @@
           </p-card>
         </div>
       </p-tabpanel>
+
+      <!-- TAB 3: Perfil Médico -->
+      @if (!isStaff() && canViewPatientProfile()) {
+      <p-tabpanel value="3">
+        <div class="py-4">
+          @if (loadingProfile()) {
+            <div class="flex justify-center py-8">
+              <i class="pi pi-spin pi-spinner text-2xl text-surface-400"></i>
+            </div>
+          } @else if (patientProfile(); as profile) {
+            @if (profile.consultationReason || profile.diseases || profile.medicalHistory || profile.habits || profile.lifestyle || profile.exercise || profile.psyche) {
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @if (profile.consultationReason) {
+                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.consultation_reason') }}</span>
+                    <p class="mt-1 whitespace-pre-wrap">{{ profile.consultationReason }}</p>
+                  </div>
+                }
+                @if (profile.diseases) {
+                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.diseases') }}</span>
+                    <p class="mt-1 whitespace-pre-wrap">{{ profile.diseases }}</p>
+                  </div>
+                }
+                @if (profile.medicalHistory) {
+                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.medical_history') }}</span>
+                    <p class="mt-1 whitespace-pre-wrap">{{ profile.medicalHistory }}</p>
+                  </div>
+                }
+                @if (profile.habits) {
+                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.habits') }}</span>
+                    <p class="mt-1 whitespace-pre-wrap">{{ profile.habits }}</p>
+                  </div>
+                }
+                @if (profile.lifestyle) {
+                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.lifestyle') }}</span>
+                    <p class="mt-1 whitespace-pre-wrap">{{ profile.lifestyle }}</p>
+                  </div>
+                }
+                @if (profile.exercise) {
+                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.exercise') }}</span>
+                    <p class="mt-1 whitespace-pre-wrap">{{ profile.exercise }}</p>
+                  </div>
+                }
+                @if (profile.psyche) {
+                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.psyche') }}</span>
+                    <p class="mt-1 whitespace-pre-wrap">{{ profile.psyche }}</p>
+                  </div>
+                }
+              </div>
+            } @else {
+              <app-empty-state
+                icon="fa-solid fa-notes-medical"
+                [title]="t('patient_profile.empty_title')"
+                [description]="t('patient_profile.empty')"
+                [actionLabel]="canManagePatientProfile() ? t('patient_profile.fill_profile') : undefined"
+                (action)="showEditProfileDialog()">
+              </app-empty-state>
+            }
+
+            @if (canManagePatientProfile()) {
+              <div class="flex justify-end mt-4">
+                <p-button
+                  [label]="t('patient_profile.edit')"
+                  icon="fa-solid fa-pen-to-square"
+                  size="small"
+                  severity="secondary"
+                  (onClick)="showEditProfileDialog()">
+                </p-button>
+              </div>
+            }
+          }
+        </div>
+      </p-tabpanel>
+      }
 
       <!-- TAB 3: Menús -->
       <p-tabpanel value="2">
@@ -254,12 +389,14 @@
                         [severity]="menu.isActive || menu.active ? 'success' : 'secondary'"
                         [value]="menu.isActive || menu.active ? t('menu_history.active') : t('menu_history.inactive')">
                       </p-tag>
-                      <button
-                        class="action-btn"
-                        [title]="t('menu_history.view_detail')"
-                        [routerLink]="['/menus', menu.id]">
-                        <i class="fa-solid fa-eye"></i>
-                      </button>
+                      <p-button
+                        icon="fa-solid fa-eye"
+                        [text]="true"
+                        [rounded]="true"
+                        severity="secondary"
+                        [routerLink]="['/menus', menu.id]"
+                        [title]="t('menu_history.view_detail')">
+                      </p-button>
                     </div>
                   </div>
                 }
@@ -282,6 +419,58 @@
           }
         </div>
       </p-tabpanel>
+
+      <!-- TAB 4: Citas -->
+      @if (!isStaff() && canViewAppointments()) {
+      <p-tabpanel value="4">
+        <div class="py-4">
+          @if (loadingAppointments()) {
+            <div class="flex justify-center py-8">
+              <i class="fa-solid fa-spinner fa-spin text-2xl text-surface-400"></i>
+            </div>
+          } @else if (appointments().length === 0) {
+            <app-empty-state
+              icon="fa-solid fa-calendar"
+              [title]="'Sin citas'"
+              [description]="'No hay citas registradas para este paciente.'">
+            </app-empty-state>
+          } @else {
+            <p-table
+              [value]="appointments()"
+              [rowHover]="true"
+              responsiveLayout="scroll"
+              styleClass="p-datatable-sm">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th scope="col">{{ t('appointments.date') }}</th>
+                  <th scope="col">{{ t('appointments.nutritionist') }}</th>
+                  <th scope="col">{{ t('appointments.type') }}</th>
+                  <th scope="col">{{ t('appointments.start_time') }}</th>
+                  <th scope="col">{{ t('appointments.end_time') }}</th>
+                  <th scope="col">{{ t('common.status') }}</th>
+                  <th scope="col">{{ t('appointments.notes') }}</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-a>
+                <tr>
+                  <td class="text-sm">{{ formatInstant(a.startTime) }}</td>
+                  <td class="font-medium">{{ a.nutritionistName }}</td>
+                  <td class="text-sm">{{ a.typeName || '—' }}</td>
+                  <td class="text-sm">{{ a.startTime | date:'HH:mm' }}</td>
+                  <td class="text-sm">{{ a.endTime | date:'HH:mm' }}</td>
+                  <td>
+                    <p-tag
+                      [severity]="getStatusSeverity(a.status)"
+                      [value]="getStatusLabel(a.status)" />
+                  </td>
+                  <td class="text-surface-400 text-sm max-w-40 truncate">{{ a.notes || '—' }}</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          }
+        </div>
+      </p-tabpanel>
+      }
     </p-tabpanels>
     </p-tabs>
   }

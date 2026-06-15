@@ -1,0 +1,37 @@
+<div class="flex flex-col gap-4 mt-2">
+      <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg flex items-start gap-3 mb-2">
+        <i class="fa-solid fa-wand-magic-sparkles text-primary-500 text-xl mt-1"></i>
+        <div class="text-sm">
+          Subí un PDF o imagen de una dieta. La IA extraerá los platos y creará la plantilla automáticamente.
+        </div>
+      </div>
+
+      <div class="field flex flex-col gap-2">
+        <label for="name" class="font-medium">Nombre de la Plantilla (opcional)</label>
+        <input id="name" pInputText [(ngModel)]="name" class="w-full" placeholder="Ej: Plantilla Semana 1" />
+      </div>
+
+      <div class="field flex flex-col gap-2">
+        <label for="description" class="font-medium">Descripción (opcional)</label>
+        <textarea id="description" pTextarea [(ngModel)]="description" class="w-full" rows="2"></textarea>
+      </div>
+
+      <div class="field flex flex-col gap-2 mt-2">
+        <label class="font-medium">Documento (PDF o Imagen)</label>
+        <p-fileUpload
+          mode="advanced"
+          chooseLabel="Seleccionar"
+          uploadLabel="Procesar y Crear"
+          cancelLabel="Cancelar"
+          [customUpload]="true"
+          (uploadHandler)="onUpload($event)"
+          accept="image/*,application/pdf"
+          maxFileSize="5000000"
+          [auto]="false">
+        </p-fileUpload>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>
+      </div>
+    </div>

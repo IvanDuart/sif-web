@@ -1,13 +1,23 @@
 <div class="p-4" *transloco="let t">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">{{ t('templates.title') }}</h1>
-    <p-button
-      *appIfPermission="'MANAGE_TEMPLATE'"
-      [label]="t('templates.create')"
-      icon="fa-solid fa-plus"
-      size="small"
-      (onClick)="createTemplate()">
-    </p-button>
+    <div class="flex gap-2">
+      <p-button
+        *appIfPermission="'MANAGE_TEMPLATE'"
+        [label]="t('templates.upload_ocr')"
+        icon="fa-solid fa-file-arrow-up"
+        size="small"
+        severity="secondary"
+        (onClick)="uploadTemplate()">
+      </p-button>
+      <p-button
+        *appIfPermission="'MANAGE_TEMPLATE'"
+        [label]="t('templates.create')"
+        icon="fa-solid fa-plus"
+        size="small"
+        (onClick)="createTemplate()">
+      </p-button>
+    </div>
   </div>
 
   <p-card>
@@ -36,20 +46,32 @@
           <td class="text-surface-500 text-sm">{{ template.description }}</td>
           <td style="text-align: center;">
             <div class="row-actions">
-              <button
+              <p-button
+                icon="fa-solid fa-eye"
+                [text]="true"
+                [rounded]="true"
+                severity="secondary"
+                (onClick)="viewTemplate(template)"
+                [title]="t('templates.view_detail')">
+              </p-button>
+              <p-button
                 *appIfPermission="'INSTANTIATE_TEMPLATE'"
-                class="action-btn"
-                [title]="t('templates.assign')"
-                (click)="instantiateTemplate(template)">
-                <i class="fa-solid fa-user-plus"></i>
-              </button>
-              <button
+                icon="fa-solid fa-user-plus"
+                [text]="true"
+                [rounded]="true"
+                severity="secondary"
+                (onClick)="instantiateTemplate(template)"
+                [title]="t('templates.assign')">
+              </p-button>
+              <p-button
                 *appIfPermission="'MANAGE_TEMPLATE'"
-                class="action-btn danger"
-                [title]="t('common.delete')"
-                (click)="deleteTemplate(template)">
-                <i class="fa-solid fa-trash"></i>
-              </button>
+                icon="fa-solid fa-trash"
+                [text]="true"
+                [rounded]="true"
+                severity="danger"
+                (onClick)="deleteTemplate(template)"
+                [title]="t('common.delete')">
+              </p-button>
             </div>
           </td>
         </tr>

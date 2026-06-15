@@ -4,6 +4,12 @@ export interface BodyMeasurementDto {
   weightKg: number | null;
   bodyFatPct: number | null;
   muscleMassKg: number | null;
+  waistCm: number | null;
+  chestCm: number | null;
+  hipsCm: number | null;
+  contourCm: number | null;
+  armCm: number | null;
+  bodyWaterPct: number | null;
   bmi: number | null;
   notes?: string | null;
   recordedBy?: string | null;
@@ -14,6 +20,12 @@ export interface CreateBodyMeasurementRequest {
   weightKg?: number | null;
   bodyFatPct?: number | null;
   muscleMassKg?: number | null;
+  waistCm?: number | null;
+  chestCm?: number | null;
+  hipsCm?: number | null;
+  contourCm?: number | null;
+  armCm?: number | null;
+  bodyWaterPct?: number | null;
   measuredAt?: string | null;
   notes?: string | null;
 }
@@ -23,6 +35,12 @@ export interface MeasurementPoint {
   weightKg: number | null;
   bodyFatPct: number | null;
   muscleMassKg: number | null;
+  waistCm: number | null;
+  chestCm: number | null;
+  hipsCm: number | null;
+  contourCm: number | null;
+  armCm: number | null;
+  bodyWaterPct: number | null;
   bmi: number | null;
 }
 

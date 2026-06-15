@@ -1,44 +1,18 @@
-<div class="p-4 max-w-3xl mx-auto">
-      <h1 class="text-2xl font-bold mb-4">Branding Settings</h1>
-      
-      <p-card>
-        <div class="flex flex-col gap-6" *ngIf="preferences()">
-          
-          <div class="field">
-            <label class="block font-medium mb-2">Logo de la Clínica</label>
-            <p-fileUpload 
-              mode="basic" 
-              accept="image/*" 
-              [maxFileSize]="1000000" 
-              chooseLabel="Cambiar Logo" 
-              [customUpload]="true"
-              (uploadHandler)="uploadLogo($event)"
-              [auto]="true">
-            </p-fileUpload>
-            <p class="text-sm text-surface-500 mt-2">Máximo 1MB. Formatos soportados: JPG, PNG, WEBP.</p>
-          </div>
+<div class="p-4 max-w-5xl mx-auto" *transloco="let t">
+  <h1 class="text-2xl font-bold mb-6">{{ t('menu.settings') }}</h1>
 
-          <hr class="border-surface-200 dark:border-surface-700 my-2">
-
-          <div class="field">
-            <label class="block font-medium mb-2">Color Primario</label>
-            <p-colorPicker [(ngModel)]="preferences()!.primary_color"></p-colorPicker>
-            <span class="ml-2">{{ preferences()!.primary_color }}</span>
-          </div>
-
-          <div class="field">
-            <label class="block font-medium mb-2">Idioma por Defecto</label>
-            <input pInputText [(ngModel)]="preferences()!.default_language" class="w-full" />
-          </div>
-
-          <div class="flex justify-end mt-4">
-            <p-button label="Guardar Configuración" icon="pi pi-check" (onClick)="save()" [loading]="saving()"></p-button>
-          </div>
-        </div>
-        
-        <div *ngIf="loading()" class="text-center p-4">
-          <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-          <p>Cargando preferencias...</p>
-        </div>
-      </p-card>
-    </div>
+  <p-tabs [value]="activeTab">
+    <p-tablist>
+      <p-tab value="0">{{ t('settings.branding_tab') }}</p-tab>
+      <p-tab value="1">{{ t('appointment_types.title') }}</p-tab>
+    </p-tablist>
+    <p-tabpanels>
+      <p-tabpanel value="0">
+        <app-branding-settings />
+      </p-tabpanel>
+      <p-tabpanel value="1">
+        <app-appointment-types-settings />
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
+</div>

@@ -159,51 +159,7 @@ html, body {
   justify-content: center;
 }
 
-.action-btn {
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  color: var(--p-text-muted-color);
-  border: 1px solid transparent;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: color 120ms ease, background 120ms ease, border-color 120ms ease;
-  padding: 0;
-  font-size: 0.8125rem;
-  line-height: 1;
-  text-decoration: none;
-}
 
-.action-btn:hover {
-  color: var(--p-primary-color);
-  background: var(--p-surface-100);
-  border-color: var(--p-surface-200);
-}
-
-.action-btn:focus-visible {
-  outline: 2px solid var(--p-primary-color);
-  outline-offset: 2px;
-}
-
-.action-btn.danger:hover {
-  color: #dc2626;
-  background: #fef2f2;
-  border-color: #fecaca;
-}
-
-.dark .action-btn:hover {
-  background: var(--p-surface-800);
-  border-color: var(--p-surface-700);
-}
-
-.dark .action-btn.danger:hover {
-  background: rgba(220, 38, 38, 0.12);
-  border-color: rgba(220, 38, 38, 0.3);
-  color: #f87171;
-}
 
 /* Empty state dentro de tabla */
 .p-datatable .table-empty-cell {

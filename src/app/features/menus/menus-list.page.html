@@ -53,19 +53,23 @@
           <td class="text-surface-500 text-sm">{{ menu.createdAt | date:'mediumDate' }}</td>
           <td style="text-align: center;">
             <div class="row-actions">
-              <button
-                class="action-btn"
-                [title]="t('diets.view')"
-                (click)="viewMenu(menu)">
-                <i class="fa-solid fa-eye"></i>
-              </button>
-              <button
+              <p-button
+                icon="fa-solid fa-eye"
+                [text]="true"
+                [rounded]="true"
+                severity="secondary"
+                (onClick)="viewMenu(menu)"
+                [title]="t('diets.view')">
+              </p-button>
+              <p-button
                 *appIfPermission="'MANAGE_MENU'"
-                class="action-btn danger"
-                [title]="t('common.delete')"
-                (click)="deleteMenu(menu)">
-                <i class="fa-solid fa-trash"></i>
-              </button>
+                icon="fa-solid fa-trash"
+                [text]="true"
+                [rounded]="true"
+                severity="danger"
+                (onClick)="deleteMenu(menu)"
+                [title]="t('common.delete')">
+              </p-button>
             </div>
           </td>
         </tr>

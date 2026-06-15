@@ -1,6 +1,7 @@
 import { BodyMeasurementDto } from './body-measurement.model';
 
 export type UserType = 'STAFF' | 'PATIENT';
+export type Gender = 'MALE' | 'FEMALE';
 
 export interface TenantMembershipDto {
   tenantId: string;
@@ -9,6 +10,18 @@ export interface TenantMembershipDto {
   permissions: string[];
   userType?: UserType;
 }
+
+export interface UserTenantProfileDto {
+  consultationReason: string | null;
+  diseases: string | null;
+  medicalHistory: string | null;
+  habits: string | null;
+  lifestyle: string | null;
+  exercise: string | null;
+  psyche: string | null;
+}
+
+export type UpdateUserTenantProfileRequest = UserTenantProfileDto;
 
 export interface AppUserDto {
   id: string;
@@ -25,6 +38,7 @@ export interface AppUserDto {
   birthDate?: string | null;
   age?: number | null;
   heightCm?: number | null;
+  gender?: Gender | null;
   lastMeasurement?: BodyMeasurementDto | null;
   userType?: UserType;
 }

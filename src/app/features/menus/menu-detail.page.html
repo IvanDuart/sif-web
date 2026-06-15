@@ -62,12 +62,14 @@
           <td class="text-surface-600">{{ meal.description }}</td>
           <td *appIfPermission="'MANAGE_MEAL'" style="text-align: center;">
             <div class="row-actions">
-              <button
-                class="action-btn danger"
-                title="Eliminar comida"
-                (click)="deleteMeal(meal)">
-                <i class="fa-solid fa-trash"></i>
-              </button>
+              <p-button
+                icon="fa-solid fa-trash"
+                [text]="true"
+                [rounded]="true"
+                severity="danger"
+                (onClick)="deleteMeal(meal)"
+                title="Eliminar comida">
+              </p-button>
             </div>
           </td>
         </tr>

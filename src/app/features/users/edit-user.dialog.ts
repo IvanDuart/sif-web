@@ -10,7 +10,7 @@ import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { MessageService } from 'primeng/api';
 import { UserTenantRoleService, UpdateUserRequest } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
-import { AppUserDto } from '../../core/api/models/user.model';
+import { AppUserDto, Gender } from '../../core/api/models/user.model';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { switchMap, map, catchError, of } from 'rxjs';
 
@@ -49,6 +49,11 @@ export class EditUserDialog {
 
   initialRoleCode = this.getCurrentRoleCode();
 
+  genderOptions = [
+    { label: this.transloco.translate('users.gender_male'), value: 'MALE' as Gender },
+    { label: this.transloco.translate('users.gender_female'), value: 'FEMALE' as Gender }
+  ];
+
   staffRoles = [
     { label: this.transloco.translate('users.role_admin'), value: 'ADMIN' },
     { label: this.transloco.translate('users.role_nutritionist'), value: 'NUTRITIONIST' }
@@ -60,6 +65,7 @@ export class EditUserDialog {
     email: [this.user.email, [Validators.required, Validators.email]],
     birthDate: [this.toDate(this.user.birthDate)],
     heightCm: [this.user.heightCm ?? null],
+    gender: [this.user.gender ?? null],
     roleCode: [this.initialRoleCode]
   });
 
@@ -90,9 +96,11 @@ export class EditUserDialog {
     if (this.isStaff()) {
       request.birthDate = this.user.birthDate ?? null;
       request.heightCm = this.user.heightCm ?? null;
+      request.gender = this.user.gender ?? null;
     } else {
       request.birthDate = this.formatDate(raw.birthDate ?? null);
       request.heightCm = raw.heightCm ?? null;
+      request.gender = raw.gender ?? null;
     }
 
     const tenantId = this.tenantCtx.currentTenantId();

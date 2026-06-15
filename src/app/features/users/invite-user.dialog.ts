@@ -9,7 +9,8 @@ import { SelectModule } from 'primeng/select';
 import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
-import { UserType } from '../../core/api/models/user.model';
+import { UserType, Gender } from '../../core/api/models/user.model';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-invite-user',
@@ -21,6 +22,7 @@ export class InviteUserDialog {
   private fb = inject(FormBuilder);
   private userRoleService = inject(UserTenantRoleService);
   private tenantCtx = inject(TenantContextService);
+  private transloco = inject(TranslocoService);
   ref = inject(DynamicDialogRef);
   config = inject(DynamicDialogConfig);
 
@@ -47,6 +49,11 @@ export class InviteUserDialog {
     ];
   });
 
+  genderOptions = [
+    { label: this.transloco.translate('users.gender_male'), value: 'MALE' as Gender },
+    { label: this.transloco.translate('users.gender_female'), value: 'FEMALE' as Gender }
+  ];
+
   showClinicalFields = computed(() => {
     if (this.lockedUserType === 'STAFF') return false;
     const role = this.form.get('roleCode')?.value;
@@ -59,7 +66,8 @@ export class InviteUserDialog {
     lastName: ['', Validators.required],
     roleCode: [{ value: '', disabled: false }, Validators.required],
     birthDate: [null as Date | null],
-    heightCm: [null as number | null]
+    heightCm: [null as number | null],
+    gender: [null as Gender | null]
   });
 
   constructor() {
@@ -88,6 +96,9 @@ export class InviteUserDialog {
     }
     if (raw.heightCm != null) {
       request.heightCm = raw.heightCm;
+    }
+    if (raw.gender) {
+      request.gender = raw.gender;
     }
 
     this.saving.set(true);

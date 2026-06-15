@@ -88,6 +88,14 @@ export class Shell {
       });
     }
 
+    if (this.permissionsService.has('VIEW_APPOINTMENTS') || this.permissionsService.has('MANAGE_APPOINTMENTS')) {
+      items.push({
+        label: nav['appointments'] || 'Citas',
+        icon: 'fa-solid fa-calendar-days',
+        routerLink: ['/appointments']
+      });
+    }
+
     if (this.permissionsService.has('VIEW_MENU') || this.permissionsService.has('MANAGE_MENU')) {
       items.push({
         label: nav['diets'] || 'Diets',

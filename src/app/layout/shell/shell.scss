@@ -206,7 +206,7 @@
 }
 
 /* User Profile Pill */
-.user-pill {
+:host ::ng-deep .user-pill {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -221,7 +221,7 @@
   outline: none;
 }
 
-.user-pill:hover {
+:host ::ng-deep .user-pill:hover {
   border-color: var(--primary-color);
   box-shadow: 0 0 8px rgba(var(--primary-color-rgb), 0.2);
 }

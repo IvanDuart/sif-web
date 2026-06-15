@@ -1,0 +1,78 @@
+<div *transloco="let t">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
+
+    <div class="flex flex-col gap-1.5">
+      <label for="patientId" class="text-sm font-medium text-surface-700">{{ t('appointments.patient') }}</label>
+      <p-select
+        id="patientId"
+        formControlName="patientId"
+        [options]="patients()"
+        optionLabel="label"
+        optionValue="value"
+        [placeholder]="t('appointments.patient')"
+        [filter]="true"
+        class="w-full"
+        appendTo="body">
+      </p-select>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="typeId" class="text-sm font-medium text-surface-700">{{ t('appointments.type') }}</label>
+      <p-select
+        id="typeId"
+        formControlName="typeId"
+        [options]="appointmentTypes()"
+        optionLabel="label"
+        optionValue="value"
+        [placeholder]="t('appointments.type')"
+        class="w-full"
+        appendTo="body">
+      </p-select>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="startTime" class="text-sm font-medium text-surface-700">{{ t('appointments.start_time') }}</label>
+      <p-datePicker
+        id="startTime"
+        formControlName="startTime"
+        [showTime]="true"
+        [hourFormat]="'24'"
+        [dateFormat]="'dd/mm/yy'"
+        [minDate]="minDate"
+        class="w-full"
+        appendTo="body">
+      </p-datePicker>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="notes" class="text-sm font-medium text-surface-700">{{ t('appointments.notes') }}</label>
+      <textarea
+        id="notes"
+        pInputTextarea
+        formControlName="notes"
+        [rows]="3"
+        class="w-full"
+        placeholder="Observaciones opcionales...">
+      </textarea>
+    </div>
+
+    <div class="flex justify-end gap-2 mt-2">
+      <p-button
+        [label]="t('common.cancel')"
+        severity="secondary"
+        [text]="true"
+        (onClick)="ref.close()">
+      </p-button>
+      <p-button
+        type="submit"
+        [label]="t('appointments.schedule_new')"
+        [loading]="saving()"
+        [disabled]="form.invalid">
+      </p-button>
+    </div>
+  </form>
+
+  @if (error()) {
+    <p class="text-red-500 text-sm mt-2">{{ error() }}</p>
+  }
+</div>

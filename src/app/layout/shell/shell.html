@@ -19,21 +19,21 @@
             <div class="mobile-menu-integrated-section mobile-only">
               <div class="tenant-selector">
                 @if (tenants().length > 1) {
-                  <button class="tenant-pill static dark:bg-surface-800 dark:border-surface-700 dark:text-surface-0" (click)="mobileTp.toggle($event)" style="cursor: pointer;">
+                  <p-button styleClass="tenant-pill static dark:bg-surface-800 dark:border-surface-700 dark:text-surface-0" (onClick)="mobileTp.toggle($event)">
                     <i class="fa-solid fa-building text-surface-500 dark:text-surface-400"></i>
                     <span class="tenant-name dark:text-surface-0">{{ activeTenant()?.tenantName || authTranslations()['select_tenant'] }}</span>
                     <i class="fa-solid fa-chevron-down text-xs opacity-60 dark:text-surface-400"></i>
-                  </button>
+                  </p-button>
                   <p-popover #mobileTp [appendTo]="'body'">
                     <div class="dropdown-menu-content dark:bg-surface-800">
                       <div class="menu-section-title dark:text-surface-400">{{ authTranslations()['change_tenant'] | uppercase }}</div>
                       @for (tenant of tenants(); track tenant.tenantId) {
-                      <button class="menu-item-action dark:hover:bg-surface-700" (click)="selectTenant(tenant); mobileTp.hide()">
+                      <p-button styleClass="menu-item-action dark:hover:bg-surface-700" (onClick)="selectTenant(tenant); mobileTp.hide()">
                         <span class="tenant-label dark:text-surface-0">{{ tenant.tenantName }}</span>
                         @if (activeTenant()?.tenantId === tenant.tenantId) {
                         <i class="fa-solid fa-check" [style.color]="'var(--primary-color)'"></i>
                         }
-                      </button>
+                      </p-button>
                       }
                     </div>
                   </p-popover>
@@ -52,15 +52,15 @@
               <div class="user-menu-divider dark:bg-surface-700"></div>
               
               <!-- Mobile Theme Toggle -->
-              <button class="user-menu-item mb-2 dark:hover:bg-surface-700" (click)="toggleTheme()" style="color: inherit;">
+              <p-button styleClass="user-menu-item mb-2 dark:hover:bg-surface-700" (onClick)="toggleTheme()">
                 <i [class]="themeService.colorScheme() === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
                 <span>Cambiar Tema</span>
-              </button>
+              </p-button>
 
-              <button class="user-menu-item logout-btn" (click)="logout()">
+              <p-button styleClass="user-menu-item logout-btn" (onClick)="logout()">
                 <i class="fa-solid fa-right-from-bracket"></i>
                 <span>{{ authTranslations()['logout'] }}</span>
-              </button>
+              </p-button>
             </div>
           }
           <!-- Standard Menu Item -->
@@ -93,23 +93,23 @@
         <!-- Tenant Switcher -->
         <div class="tenant-selector">
           @if (tenants().length > 1) {
-            <button class="tenant-pill dark:bg-surface-800 dark:border-surface-700 dark:text-surface-0 dark:hover:border-primary-500" (click)="tp.toggle($event)"
+            <p-button styleClass="tenant-pill dark:bg-surface-800 dark:border-surface-700 dark:text-surface-0 dark:hover:border-primary-500" (onClick)="tp.toggle($event)"
               [attr.aria-label]="authTranslations()['select_tenant']">
               <i class="fa-solid fa-building text-surface-500 dark:text-surface-400"></i>
               <span class="tenant-name dark:text-surface-0">{{ activeTenant()?.tenantName || authTranslations()['select_tenant'] }}</span>
               <i class="fa-solid fa-chevron-down text-xs opacity-60 dark:text-surface-400"></i>
-            </button>
+            </p-button>
 
             <p-popover #tp>
               <div class="dropdown-menu-content dark:bg-surface-800">
                 <div class="menu-section-title dark:text-surface-400">{{ authTranslations()['change_tenant'] | uppercase }}</div>
                 @for (tenant of tenants(); track tenant.tenantId) {
-                <button class="menu-item-action dark:hover:bg-surface-700" (click)="selectTenant(tenant); tp.hide()">
+                <p-button styleClass="menu-item-action dark:hover:bg-surface-700" (onClick)="selectTenant(tenant); tp.hide()">
                   <span class="tenant-label dark:text-surface-0">{{ tenant.tenantName }}</span>
                   @if (activeTenant()?.tenantId === tenant.tenantId) {
                   <i class="fa-solid fa-check" [style.color]="'var(--primary-color)'"></i>
                   }
-                </button>
+                </p-button>
                 }
               </div>
             </p-popover>
@@ -124,15 +124,15 @@
         <div class="separator dark:bg-surface-700"></div>
 
         <!-- Theme Toggle -->
-        <button class="p-link w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors" (click)="toggleTheme()">
+        <p-button styleClass="p-button-link w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors" (onClick)="toggleTheme()">
           <i [class]="themeService.colorScheme() === 'dark' ? 'fa-solid fa-sun text-surface-0' : 'fa-solid fa-moon text-surface-600'"></i>
-        </button>
+        </p-button>
 
         <!-- User Profile -->
         <div class="user-profile">
-          <button class="user-pill" (click)="op.toggle($event)" [attr.aria-label]="'User Menu'">
+          <p-button styleClass="p-button-link user-pill" (onClick)="op.toggle($event)" [attr.aria-label]="'User Menu'">
             <p-avatar [label]="userInitials()" class="identity-avatar-custom" shape="circle" size="large" />
-          </button>
+          </p-button>
 
           <p-popover #op>
             <div class="user-menu-popover dark:bg-surface-800">
@@ -144,10 +144,10 @@
                 </div>
               </div>
               <div class="user-menu-divider dark:bg-surface-700"></div>
-              <button class="user-menu-item dark:hover:bg-red-900/20" (click)="logout(); op.hide()">
+              <p-button styleClass="user-menu-item dark:hover:bg-red-900/20" (onClick)="logout(); op.hide()">
                 <i class="fa-solid fa-right-from-bracket"></i>
                 <span>{{ authTranslations()['logout'] }}</span>
-              </button>
+              </p-button>
             </div>
           </p-popover>
         </div>

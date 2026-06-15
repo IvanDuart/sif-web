@@ -45,6 +45,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/templates/templates-list.page').then(m => m.default)
       },
       {
+        path: 'templates/:id',
+        loadComponent: () => import('./features/templates/template-detail.page').then(m => m.default)
+      },
+      {
+        path: 'appointments',
+        loadComponent: () => import('./features/appointments/appointments.page').then(m => m.default)
+      },
+      {
         path: 'settings',
         loadComponent: () => import('./features/settings/branding-settings.page').then(m => m.default)
       }

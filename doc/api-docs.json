@@ -16,6 +16,14 @@
       "description": "Controller for currently logged in user context"
     },
     {
+      "name": "MenuTemplateUploadController",
+      "description": "Controller for uploading and parsing diet menus as templates"
+    },
+    {
+      "name": "AppointmentTypeController",
+      "description": "CRUD for appointment types per tenant"
+    },
+    {
       "name": "MenuTemplateController",
       "description": "Controller for Menu Templates"
     },
@@ -38,6 +46,10 @@
     {
       "name": "TenantController",
       "description": "Global Controller for Tenants management"
+    },
+    {
+      "name": "AppointmentController",
+      "description": "Controller for appointments management"
     },
     {
       "name": "TenantBrandingController",
@@ -310,6 +322,197 @@
         }
       }
     },
+    "/tenant/{tenantId}/users/{userId}/profile": {
+      "get": {
+        "tags": [
+          "UserTenantRoleController"
+        ],
+        "description": "Get the medical/sensitive profile of a patient",
+        "operationId": "getPatientProfile",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserTenantProfileDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "UserTenantRoleController"
+        ],
+        "description": "Create or update the medical/sensitive profile of a patient",
+        "operationId": "updatePatientProfile",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserTenantProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserTenantProfileDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/menu-template/{templateId}/meals/{mealId}": {
+      "put": {
+        "tags": [
+          "MenuTemplateController"
+        ],
+        "description": "Update a meal in a menu template",
+        "operationId": "updateMeal",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "mealId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMealTemplateRequest_Public"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealTemplate_Public"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "MenuTemplateController"
+        ],
+        "description": "Delete a meal from a menu template",
+        "operationId": "deleteMeal",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "mealId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/branding/preferences": {
       "put": {
         "tags": [
@@ -419,6 +622,89 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/appointment-types/{typeId}": {
+      "put": {
+        "tags": [
+          "AppointmentTypeController"
+        ],
+        "description": "Update an appointment type",
+        "operationId": "update_1",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "typeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAppointmentTypeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentTypeDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "AppointmentTypeController"
+        ],
+        "description": "Soft-delete an appointment type (sets is_active = false)",
+        "operationId": "delete_1",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "typeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -979,6 +1265,57 @@
         }
       }
     },
+    "/tenant/{tenantId}/menu-template/{templateId}/meals": {
+      "post": {
+        "tags": [
+          "MenuTemplateController"
+        ],
+        "description": "Add a meal to a menu template",
+        "operationId": "addMeal",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMealTemplateRequest_Public"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealTemplate_Public"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/menu-template/{id}/instantiate": {
       "post": {
         "tags": [
@@ -1023,6 +1360,72 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Menu_Full"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/menu-template/upload": {
+      "post": {
+        "tags": [
+          "MenuTemplateUploadController"
+        ],
+        "description": "Upload a PDF or image to create a weekly menu template",
+        "operationId": "uploadMenuTemplate",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuTemplate_Full"
                 }
               }
             }
@@ -1157,6 +1560,234 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Meal_Public"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/appointments": {
+      "post": {
+        "tags": [
+          "AppointmentController"
+        ],
+        "description": "Create a new appointment",
+        "operationId": "create_5",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppointmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/appointment-types": {
+      "get": {
+        "tags": [
+          "AppointmentTypeController"
+        ],
+        "description": "List appointment types (active only by default)",
+        "operationId": "list_1",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "onlyActive",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppointmentTypeDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AppointmentTypeController"
+        ],
+        "description": "Create a new appointment type",
+        "operationId": "create_6",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppointmentTypeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentTypeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/appointments/{appointmentId}": {
+      "patch": {
+        "tags": [
+          "AppointmentController"
+        ],
+        "description": "Reschedule an existing appointment (change time, date, type or notes)",
+        "operationId": "reschedule",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "appointmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RescheduleAppointmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/appointments/{appointmentId}/status": {
+      "patch": {
+        "tags": [
+          "AppointmentController"
+        ],
+        "description": "Update appointment status (to COMPLETED, CANCELLED, or NO_SHOW)",
+        "operationId": "updateStatus",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "appointmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAppointmentStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentDto"
                 }
               }
             }
@@ -1426,7 +2057,7 @@
           "MenuController"
         ],
         "description": "Delete menu",
-        "operationId": "delete_1",
+        "operationId": "delete_2",
         "parameters": [
           {
             "name": "tenantId",
@@ -1543,7 +2174,7 @@
           "MenuTemplateController"
         ],
         "description": "Delete a menu template",
-        "operationId": "delete_2",
+        "operationId": "delete_3",
         "parameters": [
           {
             "name": "tenantId",
@@ -1616,7 +2247,7 @@
           "MealController"
         ],
         "description": "Delete meal",
-        "operationId": "delete_3",
+        "operationId": "delete_4",
         "parameters": [
           {
             "name": "tenantId",
@@ -1720,13 +2351,209 @@
         }
       }
     },
+    "/tenant/{tenantId}/appointments/patient/{patientId}": {
+      "get": {
+        "tags": [
+          "AppointmentController"
+        ],
+        "description": "Get appointments by patient",
+        "operationId": "findByPatient",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SCHEDULED",
+                "COMPLETED",
+                "CANCELLED",
+                "NO_SHOW"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppointmentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/appointments/nutritionist/{nutritionistId}": {
+      "get": {
+        "tags": [
+          "AppointmentController"
+        ],
+        "description": "Get appointments by nutritionist",
+        "operationId": "findByNutritionist",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "nutritionistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SCHEDULED",
+                "COMPLETED",
+                "CANCELLED",
+                "NO_SHOW"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppointmentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/appointments/nutritionist/{nutritionistId}/patients": {
+      "get": {
+        "tags": [
+          "AppointmentController"
+        ],
+        "description": "List distinct patients of a nutritionist",
+        "operationId": "findPatientsByNutritionist",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "nutritionistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NutritionistPatientDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/users/{userId}/measurements/{measurementId}": {
       "delete": {
         "tags": [
           "BodyMeasurementController"
         ],
         "description": "Delete a measurement entry",
-        "operationId": "delete_4",
+        "operationId": "delete_5",
         "parameters": [
           {
             "name": "tenantId",
@@ -1866,6 +2693,13 @@
             "type": "number",
             "maximum": 275,
             "minimum": 30
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "MALE",
+              "FEMALE"
+            ]
           }
         }
       },
@@ -1891,6 +2725,13 @@
           },
           "heightCm": {
             "type": "number"
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "MALE",
+              "FEMALE"
+            ]
           },
           "createdAt": {
             "type": "string",
@@ -1979,6 +2820,99 @@
           "roleCode"
         ]
       },
+      "UpdateUserTenantProfileRequest": {
+        "type": "object",
+        "properties": {
+          "consultationReason": {
+            "type": "string"
+          },
+          "diseases": {
+            "type": "string"
+          },
+          "medicalHistory": {
+            "type": "string"
+          },
+          "habits": {
+            "type": "string"
+          },
+          "lifestyle": {
+            "type": "string"
+          },
+          "exercise": {
+            "type": "string"
+          },
+          "psyche": {
+            "type": "string"
+          }
+        }
+      },
+      "UserTenantProfileDto": {
+        "type": "object",
+        "properties": {
+          "consultationReason": {
+            "type": "string"
+          },
+          "diseases": {
+            "type": "string"
+          },
+          "medicalHistory": {
+            "type": "string"
+          },
+          "habits": {
+            "type": "string"
+          },
+          "lifestyle": {
+            "type": "string"
+          },
+          "exercise": {
+            "type": "string"
+          },
+          "psyche": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateMealTemplateRequest_Public": {
+        "type": "object",
+        "properties": {
+          "dayOfWeek": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "mealType": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "dayOfWeek",
+          "description",
+          "mealType"
+        ]
+      },
+      "MealTemplate_Public": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayOfWeek": {
+            "type": "string"
+          },
+          "mealType": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
       "TenantPreferences": {
         "type": "object",
         "properties": {
@@ -2002,6 +2936,54 @@
           },
           "standard_vacation_days": {
             "type": "number"
+          }
+        }
+      },
+      "UpdateAppointmentTypeRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AppointmentTypeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -2079,6 +3061,24 @@
           "muscleMassKg": {
             "type": "number"
           },
+          "waistCm": {
+            "type": "number"
+          },
+          "chestCm": {
+            "type": "number"
+          },
+          "hipsCm": {
+            "type": "number"
+          },
+          "contourCm": {
+            "type": "number"
+          },
+          "armCm": {
+            "type": "number"
+          },
+          "bodyWaterPct": {
+            "type": "number"
+          },
           "measuredAt": {
             "type": "string",
             "format": "date-time"
@@ -2106,6 +3106,24 @@
             "type": "number"
           },
           "muscleMassKg": {
+            "type": "number"
+          },
+          "waistCm": {
+            "type": "number"
+          },
+          "chestCm": {
+            "type": "number"
+          },
+          "hipsCm": {
+            "type": "number"
+          },
+          "contourCm": {
+            "type": "number"
+          },
+          "armCm": {
+            "type": "number"
+          },
+          "bodyWaterPct": {
             "type": "number"
           },
           "bmi": {
@@ -2318,6 +3336,152 @@
           }
         }
       },
+      "CreateAppointmentRequest": {
+        "type": "object",
+        "properties": {
+          "nutritionistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "typeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "nutritionistId",
+          "patientId",
+          "startTime"
+        ]
+      },
+      "AppointmentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nutritionistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nutritionistName": {
+            "type": "string"
+          },
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "patientName": {
+            "type": "string"
+          },
+          "typeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "typeName": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "SCHEDULED",
+              "COMPLETED",
+              "CANCELLED",
+              "NO_SHOW"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateAppointmentTypeRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isDefault": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "RescheduleAppointmentRequest": {
+        "type": "object",
+        "properties": {
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "typeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateAppointmentStatusRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "SCHEDULED",
+              "COMPLETED",
+              "CANCELLED",
+              "NO_SHOW"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
       "AppUser_Me": {
         "type": "object",
         "properties": {
@@ -2340,6 +3504,13 @@
           },
           "heightCm": {
             "type": "number"
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "MALE",
+              "FEMALE"
+            ]
           },
           "createdAt": {
             "type": "string",
@@ -2512,6 +3683,24 @@
           "muscleMassKg": {
             "type": "number"
           },
+          "waistCm": {
+            "type": "number"
+          },
+          "chestCm": {
+            "type": "number"
+          },
+          "hipsCm": {
+            "type": "number"
+          },
+          "contourCm": {
+            "type": "number"
+          },
+          "armCm": {
+            "type": "number"
+          },
+          "bodyWaterPct": {
+            "type": "number"
+          },
           "bmi": {
             "type": "number"
           }
@@ -2553,6 +3742,32 @@
           },
           "logoUrl": {
             "type": "string"
+          }
+        }
+      },
+      "NutritionistPatientDto": {
+        "type": "object",
+        "properties": {
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "lastAppointment": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nextAppointment": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       }

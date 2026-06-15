@@ -14,15 +14,19 @@ import { UIChart } from 'primeng/chart';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { BodyMeasurementService } from '../../core/api/services/body-measurement.api';
 import { MenuService } from '../../core/api/services/menu.api';
+import { AppointmentService } from '../../core/api/services/appointment.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
-import { AppUserDto } from '../../core/api/models/user.model';
+import { AppUserDto, UserTenantProfileDto } from '../../core/api/models/user.model';
+import { PermissionsService } from '../../core/permissions/permissions.service';
 import { BodyMeasurementDto, MeasurementHistoryDto } from '../../core/api/models/body-measurement.model';
 import { Menu } from '../../core/api/models/menu.model';
+import { AppointmentDto } from '../../core/api/models/appointment.model';
 import { Page } from '../../core/api/models/page.model';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
 import { EmptyState } from '../../shared/ui/empty-state';
 import { MeasurementFormDialog } from './measurement-form.dialog';
 import { EditUserDialog } from './edit-user.dialog';
+import { PatientProfileFormDialog } from './patient-profile-form.dialog';
 import { formatInstant, formatInstantWithTime } from '../../shared/utils/date';
 import { METRIC_SERIES, buildChartConfig } from '../../shared/utils/chart-config';
 
@@ -43,25 +47,36 @@ export default class UserDetailPage implements OnInit {
   private userTenantRoleService = inject(UserTenantRoleService);
   private measurementService = inject(BodyMeasurementService);
   private menuService = inject(MenuService);
+  private appointmentService = inject(AppointmentService);
   private tenantCtx = inject(TenantContextService);
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
   private dialogService = inject(DialogService);
   private transloco = inject(TranslocoService);
+  private permissionsService = inject(PermissionsService);
 
   user = signal<AppUserDto | null>(null);
   measurements = signal<BodyMeasurementDto[]>([]);
   measurementHistory = signal<MeasurementHistoryDto | null>(null);
   menus = signal<Menu[]>([]);
   activeMenu = signal<Menu | null>(null);
+  appointments = signal<AppointmentDto[]>([]);
   loadingUser = signal(true);
   loadingMeasurements = signal(true);
   loadingMenus = signal(true);
+  loadingAppointments = signal(true);
   totalRecords = signal(0);
   userId = '';
 
   isStaff = computed(() => this.user()?.userType === 'STAFF');
   backRoute = computed(() => this.isStaff() ? '/staff' : '/patients');
+
+  canViewPatientProfile = computed(() => this.permissionsService.has('VIEW_PATIENT_PROFILE'));
+  canManagePatientProfile = computed(() => this.permissionsService.has('MANAGE_PATIENT_PROFILE'));
+  canViewAppointments = computed(() => this.permissionsService.has('VIEW_APPOINTMENTS'));
+
+  patientProfile = signal<UserTenantProfileDto | null>(null);
+  loadingProfile = signal(false);
 
   activeTab = signal('0');
 
@@ -96,6 +111,10 @@ export default class UserDetailPage implements OnInit {
     this.loadMeasurements(0, this.size);
     this.loadEvolution();
     this.loadMenuHistory();
+    this.loadAppointments();
+    if (this.canViewPatientProfile()) {
+      this.loadPatientProfile();
+    }
   }
 
   private loadUser() {
@@ -189,10 +208,68 @@ export default class UserDetailPage implements OnInit {
     });
   }
 
+  private loadPatientProfile() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    this.loadingProfile.set(true);
+    this.userTenantRoleService.getPatientProfile(tenantId, this.userId).subscribe({
+      next: (profile) => {
+        this.patientProfile.set(profile);
+        this.loadingProfile.set(false);
+      },
+      error: () => this.loadingProfile.set(false)
+    });
+  }
+
+  private loadAppointments() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId || !this.canViewAppointments()) return;
+    this.loadingAppointments.set(true);
+    this.appointmentService.getByPatient(tenantId, this.userId).subscribe({
+      next: (res) => {
+        this.appointments.set(res || []);
+        this.loadingAppointments.set(false);
+      },
+      error: () => this.loadingAppointments.set(false)
+    });
+  }
+
+  getStatusLabel(status: string): string {
+    const key = `appointments.status_${status.toLowerCase()}`;
+    return this.transloco.translate(key);
+  }
+
+  getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'secondary' {
+    switch (status) {
+      case 'SCHEDULED': return 'info';
+      case 'COMPLETED': return 'success';
+      case 'CANCELLED': return 'secondary';
+      case 'NO_SHOW': return 'warn';
+      default: return 'info';
+    }
+  }
+
+  showEditProfileDialog() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    const ref = this.dialogService.open(PatientProfileFormDialog, {
+      header: this.transloco.translate('patient_profile.edit'),
+      width: '650px',
+      modal: true,
+      data: { profile: this.patientProfile(), userId: this.userId },
+      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    });
+    if (ref) {
+      ref.onClose.subscribe((result) => {
+        if (result) this.loadPatientProfile();
+      });
+    }
+  }
+
   showRegisterDialog() {
     const ref = this.dialogService.open(MeasurementFormDialog, {
       header: this.transloco.translate('measurements.register'),
-      width: '500px',
+      width: '50vw',
       modal: true,
       data: { userId: this.userId },
       breakpoints: { '960px': '75vw', '640px': '90vw' }

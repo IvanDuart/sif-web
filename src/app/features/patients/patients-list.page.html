@@ -45,26 +45,32 @@
           <td class="text-sm">{{ user.lastMeasurement?.bmi ?? '—' }}</td>
           <td style="text-align: center;">
             <div class="row-actions">
-              <button
-                class="action-btn"
-                [title]="t('common.view')"
-                [routerLink]="['/users', user.id]">
-                <i class="fa-solid fa-eye"></i>
-              </button>
-              <button
+              <p-button
+                icon="fa-solid fa-eye"
+                [text]="true"
+                [rounded]="true"
+                severity="secondary"
+                [routerLink]="['/users', user.id]"
+                [title]="t('common.view')">
+              </p-button>
+              <p-button
                 *appIfPermission="'MANAGE_USER'"
-                class="action-btn"
-                [title]="t('users.edit')"
-                (click)="editUser(user)">
-                <i class="fa-solid fa-pen"></i>
-              </button>
-              <button
+                icon="fa-solid fa-pen"
+                [text]="true"
+                [rounded]="true"
+                severity="secondary"
+                (onClick)="editUser(user)"
+                [title]="t('users.edit')">
+              </p-button>
+              <p-button
                 *appIfPermission="'MANAGE_USER'"
-                class="action-btn danger"
-                [title]="t('users.revoke')"
-                (click)="revokeAccess(user)">
-                <i class="fa-solid fa-user-xmark"></i>
-              </button>
+                icon="fa-solid fa-user-xmark"
+                [text]="true"
+                [rounded]="true"
+                severity="danger"
+                (onClick)="revokeAccess(user)"
+                [title]="t('users.revoke')">
+              </p-button>
             </div>
           </td>
         </tr>

@@ -1,0 +1,97 @@
+<div *transloco="let t">
+  <!-- Current Info -->
+  <div class="mb-6 p-4 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
+    <h4 class="text-xs font-semibold text-surface-500 uppercase tracking-wider mb-3">{{ t('appointments.current_info') }}</h4>
+    <div class="space-y-2">
+      <div class="flex justify-between items-center">
+        <span class="text-sm text-surface-500">{{ t('appointments.patient') }}</span>
+        <span class="text-sm font-medium text-surface-900 dark:text-surface-0">{{ appointment.patientName }}</span>
+      </div>
+      <div class="flex justify-between items-center">
+        <span class="text-sm text-surface-500">{{ t('appointments.date') }}</span>
+        <span class="text-sm font-medium text-surface-900 dark:text-surface-0">{{ formatDateTime(appointment.startTime) }}</span>
+      </div>
+      <div class="flex justify-between items-center">
+        <span class="text-sm text-surface-500">{{ t('appointments.type') }}</span>
+        <span class="text-sm font-medium text-surface-900 dark:text-surface-0">{{ appointment.typeName || '—' }}</span>
+      </div>
+      <div class="flex justify-between items-center">
+        <span class="text-sm text-surface-500">{{ t('appointments.status_label') || 'Estado' }}</span>
+        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+          {{ t('appointments.status_scheduled') }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reschedule Form -->
+  <form [formGroup]="form" (ngSubmit)="submitReschedule()" class="flex flex-col gap-4">
+    <h4 class="text-xs font-semibold text-surface-500 uppercase tracking-wider">{{ t('appointments.new_datetime') }}</h4>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="startTime" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('appointments.start_time') }}</label>
+      <p-datePicker
+        id="startTime"
+        formControlName="startTime"
+        [showTime]="true"
+        [hourFormat]="'24'"
+        [dateFormat]="'dd/mm/yy'"
+        [minDate]="minDate"
+        class="w-full"
+        appendTo="body">
+      </p-datePicker>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="typeId" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('appointments.type') }}</label>
+      <p-select
+        id="typeId"
+        formControlName="typeId"
+        [options]="appointmentTypes()"
+        optionLabel="label"
+        optionValue="value"
+        [placeholder]="t('appointments.type')"
+        class="w-full"
+        appendTo="body">
+      </p-select>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="notes" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('appointments.notes') }}</label>
+      <textarea
+        id="notes"
+        pInputTextarea
+        formControlName="notes"
+        [rows]="3"
+        class="w-full"
+        [placeholder]="t('appointments.notes')">
+      </textarea>
+    </div>
+
+    <div class="flex justify-between items-center mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+      <p-button
+        [label]="t('appointments.cancel')"
+        severity="danger"
+        [text]="true"
+        icon="fa-solid fa-ban"
+        [loading]="saving()"
+        (onClick)="confirmCancel()">
+      </p-button>
+      <div class="flex gap-2">
+        <p-button
+          [label]="t('common.cancel')"
+          severity="secondary"
+          [text]="true"
+          (onClick)="ref.close()">
+        </p-button>
+        <p-button
+          type="submit"
+          [label]="t('appointments.reschedule')"
+          icon="fa-solid fa-calendar-check"
+          [loading]="saving()"
+          [disabled]="form.invalid">
+        </p-button>
+      </div>
+    </div>
+  </form>
+</div>
