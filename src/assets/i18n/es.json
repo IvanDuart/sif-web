@@ -15,7 +15,8 @@
     "back": "Volver",
     "view": "Ver detalle",
     "assign": "Asignar",
-    "no_results": "Sin resultados"
+    "no_results": "Sin resultados",
+    "status": "Estado"
   },
   "menu": {
     "dashboard": "Panel Principal",

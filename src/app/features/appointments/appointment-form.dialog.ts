@@ -51,6 +51,10 @@ export class AppointmentFormDialog implements OnInit {
   ngOnInit() {
     this.loadPatients();
     this.loadAppointmentTypes();
+
+    if (this.config.data?.startTime) {
+      this.form.patchValue({ startTime: new Date(this.config.data.startTime) });
+    }
   }
 
   private loadPatients() {

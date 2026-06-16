@@ -81,6 +81,9 @@ export default class AppointmentsPage implements OnInit {
       firstDay: 1,
       editable: false,
       selectable: false,
+      dateClick: (info: any) => {
+        this.handleDateClick(info);
+      },
       eventClick: (info: any) => {
         this.handleEventClick(info);
       },
@@ -210,6 +213,12 @@ export default class AppointmentsPage implements OnInit {
       || this.todayAppointments().find(a => a.id === id);
   }
 
+  handleDateClick(info: any) {
+    if (info.date > new Date()) {
+      this.showNewAppointmentDialog(info.date);
+    }
+  }
+
   markAttended(appointment: AppointmentDto) {
     this.updateStatus(appointment.id, 'COMPLETED');
   }
@@ -248,12 +257,12 @@ export default class AppointmentsPage implements OnInit {
     });
   }
 
-  showNewAppointmentDialog() {
+  showNewAppointmentDialog(prefilledDate?: Date) {
     const ref = this.dialogService.open(AppointmentFormDialog, {
       header: this.transloco.translate('appointments.schedule_new'),
       width: '500px',
       modal: true,
-      data: { nutritionistId: this.currentUserId() },
+      data: { nutritionistId: this.currentUserId(), startTime: prefilledDate },
       breakpoints: { '960px': '75vw', '640px': '90vw' }
     });
     if (ref) {

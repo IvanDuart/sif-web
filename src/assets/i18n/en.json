@@ -15,7 +15,8 @@
     "back": "Back",
     "view": "View detail",
     "assign": "Assign",
-    "no_results": "No results"
+    "no_results": "No results",
+    "status": "Status"
   },
   "menu": {
     "dashboard": "Dashboard",

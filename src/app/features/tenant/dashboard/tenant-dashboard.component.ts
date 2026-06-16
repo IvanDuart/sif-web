@@ -19,6 +19,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { AppointmentService } from '../../../core/api/services/appointment.api';
 import { AppointmentDto, AppointmentStatus } from '../../../core/api/models/appointment.model';
 import { AppointmentFormDialog } from '../../appointments/appointment-form.dialog';
+import { AppointmentActionDialog } from '../../appointments/appointment-action.dialog';
 import { formatInstant } from '../../../shared/utils/date';
 
 @Component({
@@ -113,6 +114,9 @@ export class TenantDashboardComponent implements OnInit {
       firstDay: 1,
       editable: false,
       selectable: false,
+      dateClick: (info: any) => {
+        this.handleDateClick(info);
+      },
       eventClick: (info: any) => {
         this.handleEventClick(info);
       },
@@ -203,15 +207,78 @@ export class TenantDashboardComponent implements OnInit {
     this.loadWeekAppointments();
   }
 
-  private handleEventClick(info: any) {
-    // For now, just show toast with info
+  handleDateClick(info: any) {
+    if (info.date > new Date()) {
+      this.showNewAppointmentDialog(info.date);
+    }
+  }
+
+  handleEventClick(info: any) {
     const props = info.event.extendedProps;
-    this.messageService.add({
-      severity: 'info',
-      summary: props.patientName,
-      detail: `${props.typeName || 'Cita'} — ${this.getStatusLabel(props.status)}`,
-      life: 4000
-    });
+    const eventStart = info.event.start as Date;
+    const isFuture = eventStart > new Date();
+
+    if (props.status === 'SCHEDULED' && isFuture) {
+      const appointment = this.findAppointment(info.event.id);
+      if (appointment) {
+        const ref = this.dialogService.open(AppointmentActionDialog, {
+          header: `${appointment.patientName} — ${this.getStatusLabel(appointment.status)}`,
+          width: '500px',
+          modal: true,
+          data: { appointment },
+          breakpoints: { '960px': '75vw', '640px': '90vw' }
+        });
+        if (ref) {
+          ref.onClose.subscribe((result) => {
+            if (result) {
+              this.loadTodayAppointments();
+              this.loadWeekAppointments();
+            }
+          });
+        }
+      }
+    } else {
+      this.messageService.add({
+        severity: 'info',
+        summary: props.patientName,
+        detail: `${props.typeName || 'Cita'} — ${this.getStatusLabel(props.status)}`,
+        life: 4000
+      });
+    }
+  }
+
+  handleTodayAppointmentClick(appt: AppointmentDto) {
+    const isFuture = new Date(appt.startTime) > new Date();
+
+    if (appt.status === 'SCHEDULED' && isFuture) {
+      const ref = this.dialogService.open(AppointmentActionDialog, {
+        header: `${appt.patientName} — ${this.getStatusLabel(appt.status)}`,
+        width: '500px',
+        modal: true,
+        data: { appointment: appt },
+        breakpoints: { '960px': '75vw', '640px': '90vw' }
+      });
+      if (ref) {
+        ref.onClose.subscribe((result) => {
+          if (result) {
+            this.loadTodayAppointments();
+            this.loadWeekAppointments();
+          }
+        });
+      }
+    } else {
+      this.messageService.add({
+        severity: 'info',
+        summary: appt.patientName,
+        detail: `${appt.typeName || 'Cita'} — ${this.getStatusLabel(appt.status)}`,
+        life: 4000
+      });
+    }
+  }
+
+  private findAppointment(id: string): AppointmentDto | undefined {
+    return this.weekAppointments().find(a => a.id === id)
+      || this.todayAppointments().find(a => a.id === id);
   }
 
   attendanceRate = computed(() => {
@@ -256,12 +323,12 @@ export class TenantDashboardComponent implements OnInit {
     });
   }
 
-  showNewAppointmentDialog() {
+  showNewAppointmentDialog(prefilledDate?: Date) {
     const ref = this.dialogService.open(AppointmentFormDialog, {
       header: this.transloco.translate('appointments.schedule_new'),
       width: '500px',
       modal: true,
-      data: { nutritionistId: this.currentUserId() },
+      data: { nutritionistId: this.currentUserId(), startTime: prefilledDate },
       breakpoints: { '960px': '75vw', '640px': '90vw' }
     });
     if (ref) {
@@ -287,5 +354,20 @@ export class TenantDashboardComponent implements OnInit {
       case 'NO_SHOW': return 'warn';
       default: return 'info';
     }
+  }
+
+  getInitials(name: string): string {
+    return name
+      .split(' ')
+      .map(w => w[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  }
+
+  formatTime(isoString: string): string {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    return date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
   }
 }
