@@ -9,6 +9,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { StepperModule } from 'primeng/stepper';
 import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { BodyMeasurementService } from '../../core/api/services/body-measurement.api';
+import { CreateBodyMeasurementRequest } from '../../core/api/models/body-measurement.model';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
@@ -71,7 +72,7 @@ export class MeasurementFormDialog {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
 
-    const request: any = {};
+    const request: CreateBodyMeasurementRequest = {};
     if (raw.weightKg != null) request.weightKg = raw.weightKg;
     if (raw.bodyFatPct != null) request.bodyFatPct = raw.bodyFatPct;
     if (raw.muscleMassKg != null) request.muscleMassKg = raw.muscleMassKg;

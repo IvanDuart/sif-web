@@ -1,10 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
-import { FileUploadModule } from 'primeng/fileupload';
+import { FileUploadModule, FileUpload } from 'primeng/fileupload';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -25,7 +25,9 @@ export class TemplateUploadDialog {
   name = '';
   description = '';
 
-  onUpload(event: any) {
+  fileUpload = viewChild(FileUpload);
+
+  onUpload(event: { files: File[] }) {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
 
@@ -38,7 +40,7 @@ export class TemplateUploadDialog {
         this.ref.close(createdTemplate);
       },
       error: () => {
-        event.options.clear();
+        this.fileUpload()?.clear();
       }
     });
   }

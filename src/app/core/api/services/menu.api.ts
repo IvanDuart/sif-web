@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Menu } from '../models/menu.model';
@@ -14,13 +14,12 @@ export interface CreateMenuRequest {
 @Injectable({ providedIn: 'root' })
 export class MenuService {
   private readonly baseUrl = environment.apiBaseUrl;
-
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   search(
     tenantId: string,
-    page: number = 0,
-    size: number = 10,
+    page = 0,
+    size = 10,
     sort: string[] = ['name,ASC'],
     userId?: string,
     name?: string,

@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { MenuTemplate, MealTemplate } from '../models/menu-template.model';
 import { Menu } from '../models/menu.model';
@@ -33,13 +33,12 @@ export interface InstantiateMenuTemplateRequest {
 @Injectable({ providedIn: 'root' })
 export class MenuTemplateService {
   private readonly baseUrl = environment.apiBaseUrl;
-
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   search(
     tenantId: string,
-    page: number = 0,
-    size: number = 10,
+    page = 0,
+    size = 10,
     sort: string[] = ['name,ASC']
   ): Observable<Page<MenuTemplate>> {
     let params = new HttpParams()

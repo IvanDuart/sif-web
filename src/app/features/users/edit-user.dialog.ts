@@ -12,6 +12,7 @@ import { UserTenantRoleService, UpdateUserRequest } from '../../core/api/service
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppUserDto, Gender } from '../../core/api/models/user.model';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { HttpErrorResponse } from '@angular/common/http';
 import { switchMap, map, catchError, of } from 'rxjs';
 
 @Component({
@@ -144,7 +145,7 @@ export class EditUserDialog {
     });
   }
 
-  private handleError(err: any) {
+  private handleError(err: HttpErrorResponse) {
     const body = err.error;
     const errorMsg = typeof body === 'object' && body !== null ? body.error || body.message || '' : body || '';
 

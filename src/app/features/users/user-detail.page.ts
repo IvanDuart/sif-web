@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -8,9 +9,10 @@ import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService, type LazyLoadMeta } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
 import { UIChart } from 'primeng/chart';
+import { SelectButton } from 'primeng/selectbutton';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { BodyMeasurementService } from '../../core/api/services/body-measurement.api';
 import { MenuService } from '../../core/api/services/menu.api';
@@ -27,8 +29,11 @@ import { EmptyState } from '../../shared/ui/empty-state';
 import { MeasurementFormDialog } from './measurement-form.dialog';
 import { EditUserDialog } from './edit-user.dialog';
 import { PatientProfileFormDialog } from './patient-profile-form.dialog';
+import { AssignMenuTemplateDialog } from './assign-menu-template.dialog';
+import { MenuFormDialog } from '../menus/menu-form.dialog';
 import { formatInstant, formatInstantWithTime } from '../../shared/utils/date';
 import { METRIC_SERIES, buildChartConfig } from '../../shared/utils/chart-config';
+import type { ChartConfiguration } from 'chart.js/auto';
 
 import { Chart, registerables } from 'chart.js';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
@@ -38,7 +43,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-user-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, CardModule, ButtonModule, TagModule, TableModule, TabsModule, TooltipModule, ConfirmDialogModule, UIChart, IfPermissionDirective, TranslocoDirective, EmptyState],
+  imports: [CommonModule, FormsModule, RouterModule, CardModule, ButtonModule, TagModule, TableModule, TabsModule, TooltipModule, ConfirmDialogModule, UIChart, SelectButton, IfPermissionDirective, TranslocoDirective, EmptyState],
   providers: [ConfirmationService, DialogService],
   templateUrl: './user-detail.page.html'
 })
@@ -74,6 +79,7 @@ export default class UserDetailPage implements OnInit {
   canViewPatientProfile = computed(() => this.permissionsService.has('VIEW_PATIENT_PROFILE'));
   canManagePatientProfile = computed(() => this.permissionsService.has('MANAGE_PATIENT_PROFILE'));
   canViewAppointments = computed(() => this.permissionsService.has('VIEW_APPOINTMENTS'));
+  canManageMenu = computed(() => this.permissionsService.has('MANAGE_MENU'));
 
   patientProfile = signal<UserTenantProfileDto | null>(null);
   loadingProfile = signal(false);
@@ -81,9 +87,16 @@ export default class UserDetailPage implements OnInit {
   activeTab = signal('0');
 
   // Chart
-  chartData: any = null;
-  chartOptions: any = null;
+  chartData: ChartConfiguration<'line'>['data'] | null = null;
+  chartOptions: ChartConfiguration<'line'>['options'] | null = null;
   chartLoaded = signal(false);
+  chartType = signal<'composition' | 'anthropometry'>('composition');
+  readonly chartTypeOptions = [
+    { label: 'Composición Corporal', value: 'composition' as const },
+    { label: 'Antropometría', value: 'anthropometry' as const },
+  ];
+  private readonly COMPOSITION_FIELDS = new Set<string>(['weightKg', 'bmi', 'bodyFatPct', 'muscleMassKg', 'bodyWaterPct']);
+  private readonly ANTHROPOMETRY_FIELDS = new Set<string>(['waistCm', 'chestCm', 'hipsCm', 'contourCm', 'armCm']);
 
   // Table pagination
   private page = 0;
@@ -147,8 +160,8 @@ export default class UserDetailPage implements OnInit {
     });
   }
 
-  onPage(event: any) {
-    this.loadMeasurements(event.first / event.rows, event.rows);
+  onPage(event: LazyLoadMeta) {
+    this.loadMeasurements((event.first ?? 0) / (event.rows ?? 20), event.rows ?? 20);
   }
 
   private loadEvolution() {
@@ -175,22 +188,34 @@ export default class UserDetailPage implements OnInit {
       return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
     });
 
+    const selectedFields = this.chartType() === 'composition' ? this.COMPOSITION_FIELDS : this.ANTHROPOMETRY_FIELDS;
+
     const transloco = this.transloco;
-    const datasets = METRIC_SERIES.map(series => ({
-      label: transloco.translate(series.label),
-      data: sorted.map(p => p[series.field]),
-      borderColor: series.color,
-      backgroundColor: series.color + '20',
-      tension: 0.3,
-      pointRadius: 4,
-      pointHoverRadius: 6,
-      spanGaps: true,
-    }));
+    const datasets = METRIC_SERIES
+      .filter(series => selectedFields.has(series.field))
+      .map(series => ({
+        label: transloco.translate(series.label),
+        data: sorted.map(p => p[series.field]),
+        borderColor: series.color,
+        backgroundColor: series.color + '20',
+        tension: 0.3,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        spanGaps: true,
+      }));
 
     const config = buildChartConfig(labels, datasets);
     this.chartData = config.data;
     this.chartOptions = config.options;
     this.chartLoaded.set(true);
+  }
+
+  setChartType(type: 'composition' | 'anthropometry') {
+    this.chartType.set(type);
+    const history = this.measurementHistory();
+    if (history) {
+      this.buildChart(history);
+    }
   }
 
   private loadMenuHistory() {
@@ -280,6 +305,42 @@ export default class UserDetailPage implements OnInit {
           this.messageService.add({ severity: 'success', summary: this.transloco.translate('common.success'), detail: 'Medición registrada correctamente' });
           this.loadMeasurements(0, this.size);
           this.loadEvolution();
+        }
+      });
+    }
+  }
+
+  showCreateMenuDialog() {
+    const ref = this.dialogService.open(MenuFormDialog, {
+      header: 'Crear Menú',
+      width: '500px',
+      modal: true,
+      data: { userId: this.userId },
+      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    });
+    if (ref) {
+      ref.onClose.subscribe((result) => {
+        if (result) {
+          this.messageService.add({ severity: 'success', summary: 'Menú creado', detail: 'Menú asignado al paciente correctamente' });
+          this.loadMenuHistory();
+        }
+      });
+    }
+  }
+
+  showAssignTemplateDialog() {
+    const ref = this.dialogService.open(AssignMenuTemplateDialog, {
+      header: 'Asignar desde Plantilla',
+      width: '500px',
+      modal: true,
+      data: { userId: this.userId },
+      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    });
+    if (ref) {
+      ref.onClose.subscribe((result) => {
+        if (result) {
+          this.messageService.add({ severity: 'success', summary: 'Menú asignado', detail: 'Plantilla asignada al paciente correctamente' });
+          this.loadMenuHistory();
         }
       });
     }

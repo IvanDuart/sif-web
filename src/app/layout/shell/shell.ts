@@ -49,12 +49,12 @@ export class Shell {
   // Select translations reactively
   readonly navTranslations = toSignal(
     this.transloco.selectTranslateObject('menu'),
-    { initialValue: {} as any }
+    { initialValue: {} as Record<string, string> }
   );
 
   readonly authTranslations = toSignal(
     this.transloco.selectTranslateObject('auth'),
-    { initialValue: {} as any }
+    { initialValue: {} as Record<string, string> }
   );
 
   menuItems = computed<MenuItem[]>(() => {

@@ -11,13 +11,14 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
+import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
+import type { CalendarOptions, EventSourceInput, EventClickArg, DatesSetArg } from '@fullcalendar/core';
 
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { AppointmentService } from '../../core/api/services/appointment.api';
-import { AppointmentDto, AppointmentStatus } from '../../core/api/models/appointment.model';
+import { AppointmentDto, AppointmentStatus, UpdateAppointmentStatusRequest } from '../../core/api/models/appointment.model';
 import { AppointmentFormDialog } from './appointment-form.dialog';
 import { AppointmentActionDialog } from './appointment-action.dialog';
 import { formatInstant } from '../../shared/utils/date';
@@ -55,8 +56,8 @@ export default class AppointmentsPage implements OnInit {
 
   protected readonly formatInstant = formatInstant;
 
-  calendarOptions: any = {};
-  calendarEvents = signal<any[]>([]);
+  calendarOptions: CalendarOptions = {};
+  calendarEvents = signal<EventSourceInput>([]);
 
   ngOnInit() {
     this.computeDateRanges();
@@ -81,13 +82,13 @@ export default class AppointmentsPage implements OnInit {
       firstDay: 1,
       editable: false,
       selectable: false,
-      dateClick: (info: any) => {
+      dateClick: (info: DateClickArg) => {
         this.handleDateClick(info);
       },
-      eventClick: (info: any) => {
+      eventClick: (info: EventClickArg) => {
         this.handleEventClick(info);
       },
-      datesSet: (info: any) => {
+      datesSet: (info: DatesSetArg) => {
         this.onDatesSet(info);
       }
     };
@@ -166,21 +167,21 @@ export default class AppointmentsPage implements OnInit {
     );
   }
 
-  private onDatesSet(info: any) {
-    const start = info.start as Date;
-    const end = info.end as Date;
+  private onDatesSet(info: DatesSetArg) {
+    const start = info.start;
+    const end = info.end;
     this.weekStart = start.toISOString();
     this.weekEnd = end.toISOString();
     this.loadWeekAppointments();
   }
 
-  handleEventClick(info: any) {
+  handleEventClick(info: EventClickArg | { event: { extendedProps: Record<string, unknown>; id?: string; start?: Date } }) {
     const props = info.event.extendedProps;
-    const eventStart = info.event.start as Date;
-    const isFuture = eventStart > new Date();
+    const eventStart = info.event.start;
+    const isFuture = eventStart ? eventStart > new Date() : false;
 
-    if (props.status === 'SCHEDULED' && isFuture) {
-      const appointment = this.findAppointment(info.event.id);
+    if (props['status'] === 'SCHEDULED' && isFuture) {
+      const appointment = this.findAppointment(info.event.id as string);
       if (appointment) {
         const ref = this.dialogService.open(AppointmentActionDialog, {
           header: `${appointment.patientName} — ${this.getStatusLabel(appointment.status)}`,
@@ -201,8 +202,8 @@ export default class AppointmentsPage implements OnInit {
     } else {
       this.messageService.add({
         severity: 'info',
-        summary: props.patientName,
-        detail: `${props.typeName || 'Cita'} — ${this.getStatusLabel(props.status)}`,
+        summary: props['patientName'] as string,
+        detail: `${(props['typeName'] as string) || 'Cita'} — ${this.getStatusLabel(props['status'] as string)}`,
         life: 4000
       });
     }
@@ -213,7 +214,7 @@ export default class AppointmentsPage implements OnInit {
       || this.todayAppointments().find(a => a.id === id);
   }
 
-  handleDateClick(info: any) {
+  handleDateClick(info: DateClickArg) {
     if (info.date > new Date()) {
       this.showNewAppointmentDialog(info.date);
     }
@@ -235,7 +236,7 @@ export default class AppointmentsPage implements OnInit {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
     this.updatingStatus.set(appointmentId);
-    this.appointmentService.updateStatus(tenantId, appointmentId, { status: status as any }).subscribe({
+    this.appointmentService.updateStatus(tenantId, appointmentId, { status: status as UpdateAppointmentStatusRequest['status'] }).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',

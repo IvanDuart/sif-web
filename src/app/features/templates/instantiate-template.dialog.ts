@@ -6,7 +6,7 @@ import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Checkbox } from 'primeng/checkbox';
 import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
-import { MenuTemplateService } from '../../core/api/services/menu-template.api';
+import { MenuTemplateService, InstantiateMenuTemplateRequest } from '../../core/api/services/menu-template.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppUserDto } from '../../core/api/models/user.model';
@@ -70,7 +70,7 @@ export class InstantiateTemplateDialog implements OnInit {
     if (!tenantId) return;
 
     this.saving.set(true);
-    this.templateService.instantiate(tenantId, this.template.id, this.form.value as any).subscribe({
+    this.templateService.instantiate(tenantId, this.template.id, this.form.value as InstantiateMenuTemplateRequest).subscribe({
       next: (menu) => {
         this.saving.set(false);
         this.ref.close(menu);

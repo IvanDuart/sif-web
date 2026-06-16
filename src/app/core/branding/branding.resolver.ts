@@ -7,7 +7,7 @@ import { TenantBrandingDto } from '../api/models/branding.model';
 import { tap, EMPTY } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 
-export const brandingResolver: ResolveFn<TenantBrandingDto | null> = (route, state) => {
+export const brandingResolver: ResolveFn<TenantBrandingDto | null> = () => {
   const api = inject(TenantBrandingService);
   const themeService = inject(ThemeService);
   const appLangService = inject(AppLangService);

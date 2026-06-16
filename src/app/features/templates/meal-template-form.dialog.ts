@@ -5,9 +5,8 @@ import { Button } from 'primeng/button';
 import { Textarea } from 'primeng/textarea';
 import { Select } from 'primeng/select';
 import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
-import { MenuTemplateService } from '../../core/api/services/menu-template.api';
+import { MenuTemplateService, UpdateMealTemplateRequest } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
-import { MealTemplate } from '../../core/api/models/menu-template.model';
 
 const DAYS = [
   { label: 'Lunes', value: 'LUNES' },
@@ -118,7 +117,7 @@ export class MealTemplateFormDialog {
     if (!tenantId) return;
 
     this.saving.set(true);
-    const payload = this.form.value as any;
+    const payload = this.form.value as UpdateMealTemplateRequest;
 
     const action = this.isEdit
       ? this.templateService.updateMeal(tenantId, this.templateId, this.mealId, payload)

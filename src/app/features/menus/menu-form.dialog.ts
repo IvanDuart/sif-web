@@ -5,8 +5,8 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { CheckboxModule } from 'primeng/checkbox';
-import { DynamicDialogRef } from 'primeng/dynamicdialog';
-import { MenuService } from '../../core/api/services/menu.api';
+import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { MenuService, CreateMenuRequest } from '../../core/api/services/menu.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppUserDto } from '../../core/api/models/user.model';
@@ -21,8 +21,9 @@ export class MenuFormDialog implements OnInit {
   private fb = inject(FormBuilder);
   private menuService = inject(MenuService);
   private userRoleService = inject(UserTenantRoleService);
-  private tenantCtx = inject(TenantContextService);
+  tenantCtx = inject(TenantContextService);
   ref = inject(DynamicDialogRef);
+  config = inject(DynamicDialogConfig);
 
   users = signal<(AppUserDto & { fullName: string })[]>([]);
   loadingUsers = signal(false);
@@ -51,6 +52,12 @@ export class MenuFormDialog implements OnInit {
         }));
         this.users.set(mapped);
         this.loadingUsers.set(false);
+
+        const userId = this.config.data?.userId;
+        if (userId) {
+          this.form.patchValue({ appUserId: userId });
+          this.form.get('appUserId')?.disable();
+        }
       },
       error: () => this.loadingUsers.set(false)
     });
@@ -63,7 +70,7 @@ export class MenuFormDialog implements OnInit {
     if (!tenantId) return;
 
     this.saving.set(true);
-    const req = this.form.value as any; // Matches CreateMenuRequest_Public
+    const req = this.form.getRawValue() as CreateMenuRequest;
     
     this.menuService.create(tenantId, req).subscribe({
       next: (createdMenu) => {

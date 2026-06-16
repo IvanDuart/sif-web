@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Tenant, TenantPreferences } from '../models/tenant.model';
@@ -20,10 +20,9 @@ export interface UpdateTenantRequest {
 @Injectable({ providedIn: 'root' })
 export class TenantService {
   private readonly baseUrl = `${environment.apiBaseUrl}/tenants`;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
-
-  search(page: number = 0, size: number = 10, sort: string[] = ['name,ASC']): Observable<Page<Tenant>> {
+  search(page = 0, size = 10, sort: string[] = ['name,ASC']): Observable<Page<Tenant>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());

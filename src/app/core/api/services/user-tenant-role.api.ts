@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AppUserDto, UserType, UserTenantProfileDto, UpdateUserTenantProfileRequest } from '../models/user.model';
@@ -30,8 +30,7 @@ export interface ChangeUserRoleRequest {
 @Injectable({ providedIn: 'root' })
 export class UserTenantRoleService {
   private readonly baseUrl = environment.apiBaseUrl;
-
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   getUsersByTenant(tenantId: string): Observable<AppUserDto[]> {
     return this.http.get<AppUserDto[]>(`${this.baseUrl}/tenant/${tenantId}/users`);

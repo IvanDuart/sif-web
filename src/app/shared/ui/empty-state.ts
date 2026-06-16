@@ -13,7 +13,9 @@ import { Button } from 'primeng/button';
       </div>
       <h3 class="text-xl font-bold mb-2 text-surface-900 dark:text-surface-0">{{ title }}</h3>
       <p class="text-surface-500 mb-6 max-w-md">{{ description }}</p>
-      <p-button *ngIf="actionLabel" [label]="actionLabel" [icon]="actionIcon" (onClick)="action.emit()"></p-button>
+      @if (actionLabel) {
+        <p-button [label]="actionLabel" [icon]="actionIcon" (onClick)="action.emit()"></p-button>
+      }
     </div>
   `
 })

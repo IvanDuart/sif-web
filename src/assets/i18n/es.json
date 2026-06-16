@@ -167,7 +167,9 @@
     "inactive": "Inactivo",
     "view_detail": "Ver Detalle",
     "empty": "No hay menús asignados a este usuario.",
-    "empty_title": "Sin menús asignados"
+    "empty_title": "Sin menús asignados",
+    "assign_template": "Desde Plantilla",
+    "create_menu": "Crear de Cero"
   },
   "patient_profile": {
     "title": "Perfil Médico",

@@ -9,7 +9,9 @@ import { CommonModule } from '@angular/common';
     <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
       <div>
         <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0">{{ title }}</h1>
-        <p *ngIf="description" class="text-surface-500 mt-1">{{ description }}</p>
+        @if (description) {
+          <p class="text-surface-500 mt-1">{{ description }}</p>
+        }
       </div>
       <div class="flex items-center gap-2">
         <ng-content></ng-content>

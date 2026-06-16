@@ -1,5 +1,6 @@
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
+import type { AuthGuardData } from 'keycloak-angular';
 import Keycloak from 'keycloak-js';
 import { createAuthGuard } from 'keycloak-angular';
 import { AuthService } from './auth.service';
@@ -8,9 +9,10 @@ import { firstValueFrom } from 'rxjs';
 
 export const authGuard = createAuthGuard(
   async (
-    route: ActivatedRouteSnapshot,
+    _route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot,
-    authData
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _authData: AuthGuardData
   ): Promise<boolean | UrlTree> => {
     const keycloak = inject(Keycloak);
     const authService = inject(AuthService);

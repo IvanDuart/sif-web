@@ -1,9 +1,9 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
-import { FileUploadModule } from 'primeng/fileupload';
+import { FileUploadModule, FileUpload } from 'primeng/fileupload';
 import { MessageModule } from 'primeng/message';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { MenuUploadService } from '../../core/api/services/menu-upload.api';
@@ -15,7 +15,7 @@ import { MessageService } from 'primeng/api';
 @Component({
   selector: 'app-menu-upload',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ButtonModule, SelectModule, FileUploadModule, MessageModule],
+  imports: [CommonModule, FormsModule, ButtonModule, SelectModule, FileUploadModule, MessageModule],
   templateUrl: './menu-upload.dialog.html'
 })
 export class MenuUploadDialog implements OnInit {
@@ -28,6 +28,8 @@ export class MenuUploadDialog implements OnInit {
   users = signal<(AppUserDto & { fullName: string })[]>([]);
   loadingUsers = signal(false);
   selectedUserId: string | null = null;
+
+  fileUpload = viewChild(FileUpload);
 
   ngOnInit() {
     this.loadUsers();
@@ -51,7 +53,7 @@ export class MenuUploadDialog implements OnInit {
     });
   }
 
-  onUpload(event: any) {
+  onUpload(event: { files: File[] }) {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId || !this.selectedUserId) {
       this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Selecciona un paciente primero' });
@@ -61,15 +63,13 @@ export class MenuUploadDialog implements OnInit {
     const file = event.files[0];
     if (!file) return;
 
-    // Trigger upload
     this.menuUploadService.uploadMenu(tenantId, this.selectedUserId, file).subscribe({
       next: (createdMenu) => {
         this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Menú extraído y creado correctamente' });
         this.ref.close(createdMenu);
       },
       error: () => {
-        // Error interceptor handles the toast
-        event.options.clear(); // Clear files on error so they can try again
+        this.fileUpload()?.clear();
       }
     });
   }

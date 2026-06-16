@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { TenantBrandingDto } from '../models/branding.model';
@@ -8,8 +8,7 @@ import { environment } from '../../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class TenantBrandingService {
   private readonly baseUrl = environment.apiBaseUrl;
-
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   getBranding(tenantId: string): Observable<TenantBrandingDto> {
     return this.http.get<TenantBrandingDto>(`${this.baseUrl}/tenant/${tenantId}/branding`);

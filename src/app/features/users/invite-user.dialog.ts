@@ -7,7 +7,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
 import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
-import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
+import { UserTenantRoleService, InviteUserRequest } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { UserType, Gender } from '../../core/api/models/user.model';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
@@ -85,11 +85,11 @@ export class InviteUserDialog {
     if (!tenantId) return;
 
     const raw = this.form.getRawValue();
-    const request: any = {
-      email: raw.email,
-      firstName: raw.firstName,
-      lastName: raw.lastName,
-      roleCode: raw.roleCode,
+    const request: InviteUserRequest = {
+      email: raw.email!,
+      firstName: raw.firstName!,
+      lastName: raw.lastName!,
+      roleCode: raw.roleCode!,
     };
     if (raw.birthDate) {
       request.birthDate = (raw.birthDate as Date).toISOString().slice(0, 10);

@@ -78,7 +78,10 @@
               @for (appt of todayAppointments(); track appt.id) {
                 <div
                   class="p-4 rounded-lg bg-surface-50 dark:bg-surface-800 border border-transparent hover:border-primary-300 dark:hover:border-primary-600 cursor-pointer transition-all duration-200"
-                  (click)="handleEventClick({ event: { extendedProps: { patientName: appt.patientName, typeName: appt.typeName, status: appt.status } } })">
+                  (click)="handleEventClick({ event: { extendedProps: { patientName: appt.patientName, typeName: appt.typeName, status: appt.status } } })"
+                  (keydown.enter)="handleEventClick({ event: { extendedProps: { patientName: appt.patientName, typeName: appt.typeName, status: appt.status } } })"
+                  tabindex="0"
+                  role="button">
                   <div class="flex justify-between items-start mb-2">
                     <div class="flex items-center gap-3">
                       <div

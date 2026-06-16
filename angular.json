@@ -23,7 +23,8 @@
             ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "css",
-            "assets": ["src/assets",
+            "assets": [
+              "src/assets",
               {
                 "glob": "**/*",
                 "input": "public"
@@ -43,9 +44,9 @@
                   "maximumError": "1MB"
                 },
                 {
-                "type": "anyComponentStyle",
-                "maximumWarning": "8kB",
-                "maximumError": "16kB"
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "8kB",
+                  "maximumError": "16kB"
                 }
               ],
               "outputHashing": "all"
@@ -88,7 +89,8 @@
             ],
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "css",
-            "assets": ["src/assets",
+            "assets": [
+              "src/assets",
               {
                 "glob": "**/*",
                 "input": "public"
@@ -98,11 +100,23 @@
               "src/styles.css"
             ]
           }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
+          }
         }
       }
     }
   },
   "cli": {
-    "analytics": "7667537a-a1f5-4547-acd7-9a64d4cb3835"
+    "analytics": "7667537a-a1f5-4547-acd7-9a64d4cb3835",
+    "schematicCollections": [
+      "angular-eslint"
+    ]
   }
 }

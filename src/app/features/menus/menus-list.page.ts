@@ -8,7 +8,7 @@ import { MenuService } from '../../core/api/services/menu.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { Menu } from '../../core/api/models/menu.model';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService, type LazyLoadMeta } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
 import { Router } from '@angular/router';
 import { MenuFormDialog } from './menu-form.dialog';
@@ -43,9 +43,9 @@ export default class MenusListPage implements OnInit {
     this.loadMenus(0, 10);
   }
 
-  onPage(event: any) {
-    this.lastPage = event.first / event.rows;
-    this.lastSize = event.rows;
+  onPage(event: LazyLoadMeta) {
+    this.lastPage = (event.first ?? 0) / (event.rows ?? 10);
+    this.lastSize = event.rows ?? 10;
     this.loadMenus(this.lastPage, this.lastSize);
   }
 

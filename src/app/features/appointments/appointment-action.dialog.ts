@@ -13,7 +13,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AppointmentService } from '../../core/api/services/appointment.api';
 import { AppointmentTypeService } from '../../core/api/services/appointment-type.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
-import { AppointmentDto, AppointmentStatus } from '../../core/api/models/appointment.model';
+import { AppointmentDto } from '../../core/api/models/appointment.model';
 
 @Component({
   selector: 'app-appointment-action-dialog',

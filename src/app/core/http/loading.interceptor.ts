@@ -1,5 +1,5 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject, signal } from '@angular/core';
+import { signal } from '@angular/core';
 import { finalize } from 'rxjs';
 
 export const globalLoadingSignal = signal<number>(0);

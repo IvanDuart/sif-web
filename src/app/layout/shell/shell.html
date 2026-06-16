@@ -1,4 +1,6 @@
-<p-progressBar *ngIf="loading() > 0" mode="indeterminate" [style]="{'height': '4px'}" class="absolute top-0 left-0 w-full z-[1001]"></p-progressBar>
+@if (loading() > 0) {
+<p-progressBar mode="indeterminate" [style]="{'height': '4px'}" class="absolute top-0 left-0 w-full z-[1001]"></p-progressBar>
+}
 
 <a href="#main-content" class="skip-to-content">{{ 'common.back' | transloco }}</a>
 <div class="app-layout font-poppins text-surface-900 dark:text-surface-0 bg-surface-50 dark:bg-surface-950">

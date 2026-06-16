@@ -148,7 +148,9 @@
     "inactive": "Inactive",
     "view_detail": "View Detail",
     "empty": "No menus assigned to this user.",
-    "empty_title": "No menus assigned"
+    "empty_title": "No menus assigned",
+    "assign_template": "From Template",
+    "create_menu": "Create from Scratch"
   },
   "patient_profile": {
     "title": "Medical Profile",

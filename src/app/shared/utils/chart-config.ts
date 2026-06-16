@@ -1,4 +1,4 @@
-import type { ChartConfiguration, ChartType } from 'chart.js/auto';
+import type { ChartConfiguration } from 'chart.js/auto';
 
 export interface ChartMetricSeries {
   label: string;

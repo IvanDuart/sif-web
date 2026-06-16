@@ -38,7 +38,9 @@
           <td>
             <span class="text-sm">
               {{ user.age ?? '—' }}
-              <span *ngIf="user.age != null" class="text-surface-400">años</span>
+              @if (user.age !== null) {
+                <span class="text-surface-400">años</span>
+              }
             </span>
           </td>
           <td class="text-sm">{{ user.lastMeasurement?.weightKg ?? '—' }}</td>

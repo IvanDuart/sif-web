@@ -64,7 +64,8 @@ import { TranslocoDirective } from '@jsverse/transloco';
               [maxFileSize]="2097152"
               [auto]="true"
               chooseLabel="Subir logo"
-              (onUpload)="uploadLogo($event)">
+              [customUpload]="true"
+              (uploadHandler)="uploadLogo($event)">
             </p-fileUpload>
             <p class="text-sm text-surface-400">{{ t('settings.logo_hint') }}</p>
           </div>
@@ -131,14 +132,13 @@ export class BrandingSettings implements OnInit {
     });
   }
 
-  uploadLogo(event: any) {
+  uploadLogo(event: { files: File[] }) {
     const tenantId = this.tenantCtx.currentTenantId();
     const file = event.files[0];
     if (!tenantId || !file) return;
     this.tenantBrandingService.updateLogo(tenantId, file).subscribe({
       next: () => {
         this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Logo actualizado' });
-        event.options.clear();
       }
     });
   }

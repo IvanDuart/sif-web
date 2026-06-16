@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { BodyMeasurementDto, CreateBodyMeasurementRequest, MeasurementHistoryDto } from '../models/body-measurement.model';
@@ -8,8 +8,7 @@ import { environment } from '../../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class BodyMeasurementService {
   private readonly baseUrl = environment.apiBaseUrl;
-
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   private endpoint(tenantId: string, userId: string): string {
     return `${this.baseUrl}/tenant/${tenantId}/users/${userId}/measurements`;
@@ -18,8 +17,8 @@ export class BodyMeasurementService {
   list(
     tenantId: string,
     userId: string,
-    page: number = 0,
-    size: number = 20,
+    page = 0,
+    size = 20,
     sort: string[] = ['measuredAt,desc']
   ): Observable<Page<BodyMeasurementDto>> {
     let params = new HttpParams()

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AppointmentTypeDto, CreateAppointmentTypeRequest, UpdateAppointmentTypeRequest } from '../models/appointment-type.model';
@@ -7,15 +7,14 @@ import { environment } from '../../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class AppointmentTypeService {
   private readonly baseUrl = environment.apiBaseUrl;
-
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   private endpoint(tenantId: string): string {
     return `${this.baseUrl}/tenant/${tenantId}/appointment-types`;
   }
 
-  getAll(tenantId: string, onlyActive: boolean = true): Observable<AppointmentTypeDto[]> {
-    let params = new HttpParams().set('onlyActive', onlyActive.toString());
+  getAll(tenantId: string, onlyActive = true): Observable<AppointmentTypeDto[]> {
+    const params = new HttpParams().set('onlyActive', onlyActive.toString());
     return this.http.get<AppointmentTypeDto[]>(this.endpoint(tenantId), { params });
   }
 

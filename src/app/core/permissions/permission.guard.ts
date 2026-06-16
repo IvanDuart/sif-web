@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { PermissionsService } from './permissions.service';
 
-export const permissionGuard: CanActivateFn = (route, state) => {
+export const permissionGuard: CanActivateFn = (route) => {
   const permissionsService = inject(PermissionsService);
   const router = inject(Router);
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Meal } from '../models/meal.model';
@@ -15,13 +15,12 @@ export interface CreateMealRequest {
 @Injectable({ providedIn: 'root' })
 export class MealService {
   private readonly baseUrl = environment.apiBaseUrl;
-
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   search(
     tenantId: string,
-    page: number = 0,
-    size: number = 10,
+    page = 0,
+    size = 10,
     sort: string[] = ['dayOfWeek,ASC'],
     menuId?: string,
     dayOfWeek?: string,

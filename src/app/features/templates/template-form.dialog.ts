@@ -5,7 +5,7 @@ import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
-import { MenuTemplateService } from '../../core/api/services/menu-template.api';
+import { MenuTemplateService, CreateMenuTemplateRequest } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 
 @Component({
@@ -33,7 +33,7 @@ export class TemplateFormDialog {
     if (!tenantId) return;
 
     this.saving.set(true);
-    const payload = { ...this.form.value, meals: [] } as any; // CreateMenuTemplateRequest requires meals array
+    const payload = { ...this.form.value, meals: [] } as CreateMenuTemplateRequest;
     this.templateService.create(tenantId, payload).subscribe({
       next: (created) => {
         this.saving.set(false);

@@ -8,14 +8,15 @@ import { TenantContextService } from '../../core/tenant/tenant-context.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <ng-container *ngIf="logoUrl(); else placeholder">
-      <img [src]="logoUrl()" alt="Tenant Logo" [class]="imgClass" (error)="imageError = true" *ngIf="!imageError" />
-    </ng-container>
-    <ng-template #placeholder>
-      <div *ngIf="showPlaceholder" [class]="placeholderClass + ' flex items-center justify-center bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-300 font-bold'">
+    @if (logoUrl()) {
+      @if (!imageError) {
+        <img [src]="logoUrl()" alt="Tenant Logo" [class]="imgClass" (error)="imageError = true" />
+      }
+    } @else if (showPlaceholder) {
+      <div [class]="placeholderClass + ' flex items-center justify-center bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-300 font-bold'">
         {{ fallbackText }}
       </div>
-    </ng-template>
+    }
   `
 })
 export class TenantLogo implements OnInit {

@@ -1,7 +1,7 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2" *transloco="let t">
       <div class="field flex flex-col gap-2">
         <label for="email" class="font-medium">{{ t('users.email') }}</label>
-        <input id="email" type="email" pInputText formControlName="email" class="w-full" placeholder="ejemplo@correo.com" autofocus />
+        <input id="email" type="email" pInputText formControlName="email" class="w-full" placeholder="ejemplo@correo.com" />
       </div>
 
       <div class="grid grid-cols-2 gap-4">

@@ -16,12 +16,11 @@ import { provideTransloco } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
 
 import { ThemeService } from './core/branding/theme.service';
-import { InitService } from './core/auth/init.service';
+import {InitService} from './core/auth/init.service';
 
-function initializeApp(theme: ThemeService, initService: InitService) {
+function initializeApp(theme: ThemeService) {
   return async () => {
     theme.init();
-    // initService constructor already set up the effect for Keycloak
   };
 }
 

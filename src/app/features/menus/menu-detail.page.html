@@ -1,4 +1,5 @@
-<div class="p-4" *ngIf="menu()">
+@if (menu()) {
+<div class="p-4">
   <div class="mb-6">
     <a routerLink="../" class="inline-flex items-center gap-1 text-sm font-semibold text-surface-500 hover:text-primary-600 mb-4 transition-colors">
       <i class="fa-solid fa-arrow-left text-xs"></i> Volver a Dietas
@@ -91,7 +92,8 @@
     </p-table>
   </p-card>
 </div>
-
-<div *ngIf="!menu() && !loading()" class="p-8 text-center text-surface-500">
-  Cargando o no encontrado...
-</div>
+} @else if (!loading()) {
+  <div class="p-8 text-center text-surface-500">
+    Cargando o no encontrado...
+  </div>
+}
