@@ -3,7 +3,7 @@ import { TranslocoService } from '@jsverse/transloco';
 
 @Injectable({ providedIn: 'root' })
 export class AppLangService {
-  private transloco = inject(TranslocoService);
+  private readonly transloco = inject(TranslocoService);
 
   setLang(lang: string) {
     localStorage.setItem('preferredLanguage', lang);

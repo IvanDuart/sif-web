@@ -764,7 +764,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedModel"
+                  "$ref": "#/components/schemas/PagedModelTenant"
                 }
               }
             }
@@ -871,7 +871,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedModel"
+                  "$ref": "#/components/schemas/PagedModelBodyMeasurementDto"
                 }
               }
             }
@@ -1049,7 +1049,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedModel"
+                  "$ref": "#/components/schemas/PagedModelMenu"
                 }
               }
             }
@@ -1217,7 +1217,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedModel"
+                  "$ref": "#/components/schemas/PagedModelMenuTemplate"
                 }
               }
             }
@@ -1519,7 +1519,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedModel"
+                  "$ref": "#/components/schemas/PagedModelMeal"
                 }
               }
             }
@@ -2683,7 +2683,8 @@
             "minLength": 0
           },
           "email": {
-            "type": "string"
+            "type": "string",
+            "format": "email"
           },
           "birthDate": {
             "type": "string",
@@ -2813,7 +2814,8 @@
         "type": "object",
         "properties": {
           "roleCode": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
@@ -2886,7 +2888,8 @@
             "minLength": 0
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
@@ -2991,7 +2994,8 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "cif": {
             "type": "string"
@@ -3145,16 +3149,20 @@
         "type": "object",
         "properties": {
           "email": {
-            "type": "string"
+            "type": "string",
+            "format": "email",
+            "minLength": 1
           },
           "firstName": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "lastName": {
             "type": "string"
           },
           "roleCode": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "birthDate": {
             "type": "string",
@@ -3431,7 +3439,8 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "durationMinutes": {
             "type": "integer",
@@ -3577,17 +3586,53 @@
           }
         }
       },
-      "PagedModel": {
+      "PagedModelTenant": {
         "type": "object",
         "properties": {
           "content": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/Tenant"
             }
           },
           "page": {
             "$ref": "#/components/schemas/PageMetadata"
+          }
+        }
+      },
+      "Tenant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "cif": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "disabledAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "adminTenant": {
+            "type": "boolean"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/TenantPreferences"
           }
         }
       },
@@ -3642,6 +3687,20 @@
           },
           "lastMeasurement": {
             "$ref": "#/components/schemas/BodyMeasurementDto"
+          }
+        }
+      },
+      "PagedModelBodyMeasurementDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BodyMeasurementDto"
+            }
+          },
+          "page": {
+            "$ref": "#/components/schemas/PageMetadata"
           }
         }
       },
@@ -3706,6 +3765,73 @@
           }
         }
       },
+      "Meal": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayOfWeek": {
+            "type": "string"
+          },
+          "mealType": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "Menu": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "assignedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "assignedBy": {
+            "type": "string"
+          },
+          "meals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Meal"
+            }
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PagedModelMenu": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Menu"
+            }
+          },
+          "page": {
+            "$ref": "#/components/schemas/PageMetadata"
+          }
+        }
+      },
       "Menu_List": {
         "type": "object",
         "properties": {
@@ -3725,6 +3851,81 @@
           },
           "active": {
             "type": "boolean"
+          }
+        }
+      },
+      "MealTemplate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayOfWeek": {
+            "type": "string"
+          },
+          "mealType": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "MenuTemplate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "mealTemplates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MealTemplate"
+            }
+          }
+        }
+      },
+      "PagedModelMenuTemplate": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuTemplate"
+            }
+          },
+          "page": {
+            "$ref": "#/components/schemas/PageMetadata"
+          }
+        }
+      },
+      "PagedModelMeal": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Meal"
+            }
+          },
+          "page": {
+            "$ref": "#/components/schemas/PageMetadata"
           }
         }
       },

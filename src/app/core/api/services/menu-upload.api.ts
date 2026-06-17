@@ -7,7 +7,7 @@ import { environment } from '../../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class MenuUploadService {
   private readonly baseUrl = environment.apiBaseUrl;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   uploadMenu(tenantId: string, userId: string, file: File): Observable<Menu> {
     const formData = new FormData();

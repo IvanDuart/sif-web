@@ -24,7 +24,7 @@ export function formatInstantWithTime(isoString: string | null | undefined): str
 export function formatDateInput(isoString: string | null | undefined): Date | undefined {
   if (!isoString) return undefined;
   const d = new Date(isoString);
-  return isNaN(d.getTime()) ? undefined : d;
+  return Number.isNaN(d.getTime()) ? undefined : d;
 }
 
 export function nowUtcIso(): string {

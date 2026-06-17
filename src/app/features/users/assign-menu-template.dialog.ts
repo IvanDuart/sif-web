@@ -17,9 +17,9 @@ import { MenuTemplate } from '../../core/api/models/menu-template.model';
   templateUrl: './assign-menu-template.dialog.html'
 })
 export class AssignMenuTemplateDialog implements OnInit {
-  private fb = inject(FormBuilder);
-  private templateService = inject(MenuTemplateService);
-  private tenantCtx = inject(TenantContextService);
+  private readonly fb = inject(FormBuilder);
+  private readonly templateService = inject(MenuTemplateService);
+  private readonly tenantCtx = inject(TenantContextService);
 
   ref = inject(DynamicDialogRef);
   config = inject(DynamicDialogConfig);

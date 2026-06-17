@@ -1,8 +1,11 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
 @if (menu()) {
-<div class="p-4">
+<div class="p-4" *transloco="let t">
   <div class="mb-6">
     <a routerLink="../" class="inline-flex items-center gap-1 text-sm font-semibold text-surface-500 hover:text-primary-600 mb-4 transition-colors">
-      <i class="fa-solid fa-arrow-left text-xs"></i> Volver a Dietas
+      <i class="fa-solid fa-arrow-left text-xs"></i> {{ t('diet_detail.back') }}
     </a>
 
     <div class="flex justify-between items-start">
@@ -16,80 +19,77 @@
           <span class="text-surface-500 text-sm">Creada: {{ menu()?.createdAt | date:'longDate' }}</span>
         </div>
       </div>
-      <p-button
-        *appIfPermission="'MANAGE_MEAL'"
-        label="Agregar Comida"
-        icon="fa-solid fa-plus"
-        size="small"
-        (onClick)="addMeal()">
-      </p-button>
+      <div class="flex gap-2">
+        <p-button
+          *appIfPermission="'MANAGE_MEAL'"
+          [label]="t('diet_detail.add_meal')"
+          icon="fa-solid fa-plus"
+          size="small"
+          (onClick)="addMeal()">
+        </p-button>
+      </div>
     </div>
   </div>
 
   <p-card styleClass="mt-6">
-    <h2 class="text-base font-bold mb-4 uppercase tracking-widest text-surface-400">Comidas de la Semana</h2>
+    <h2 class="text-base font-bold mb-4 uppercase tracking-widest text-surface-400">{{ t('diet_detail.title') }}</h2>
 
-    <p-table
-      [value]="meals()"
-      [loading]="loading()"
-      styleClass="p-datatable-sm has-group-rows"
-      rowGroupMode="subheader"
-      groupRowsBy="dayOfWeek"
-      [rowHover]="true"
-      responsiveLayout="scroll">
-
-      <ng-template pTemplate="header">
-        <tr>
-          <th scope="col">Tipo</th>
-          <th scope="col">Descripción</th>
-          <th *appIfPermission="'MANAGE_MEAL'" scope="col" style="width: 5rem; text-align: center;">Acciones</th>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="groupheader" let-meal>
-        <tr pRowGroupHeader>
-          <td colspan="3">
-            <span class="inline-flex items-center gap-2 font-bold text-sm text-primary-600">
-              <i class="fa-solid fa-calendar-day text-xs"></i>
-              {{ meal.dayOfWeek }}
-            </span>
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="body" let-meal>
-        <tr>
-          <td class="font-medium whitespace-nowrap">{{ meal.mealType }}</td>
-          <td class="text-surface-600">{{ meal.description }}</td>
-          <td *appIfPermission="'MANAGE_MEAL'" style="text-align: center;">
-            <div class="row-actions">
-              <p-button
-                icon="fa-solid fa-trash"
-                [text]="true"
-                [rounded]="true"
-                severity="danger"
-                (onClick)="deleteMeal(meal)"
-                title="Eliminar comida">
-              </p-button>
+    @if (loading()) {
+      <div class="flex items-center justify-center py-12">
+        <i class="fa-solid fa-circle-notch fa-spin text-2xl text-surface-300"></i>
+      </div>
+    } @else {
+      <div class="weekly-grid">
+        @for (day of allDays; track day) {
+          <div class="day-column">
+            <div class="day-header">
+              <i class="fa-regular fa-calendar text-xs"></i>
+              <span>{{ dayLabel(day) }}</span>
             </div>
-          </td>
-        </tr>
-      </ng-template>
 
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="3" class="table-empty-cell">
-            <app-empty-state
-              icon="fa-solid fa-calendar-plus"
-              title="Sin comidas asignadas"
-              description="Esta dieta aún no tiene comidas. Agregá la primera usando el botón superior."
-              actionLabel="Agregar Comida"
-              (action)="addMeal()">
-            </app-empty-state>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
+            <div class="day-body">
+              @for (meal of groupedMeals().get(day); track meal.id) {
+                <div class="meal-card" [class.meal-card--lunch]="meal.mealType === 'COMIDA'" [class.meal-card--dinner]="meal.mealType === 'CENA'">
+                  <div class="meal-card__header">
+                    <div class="meal-card__type">
+                      @if (meal.mealType === 'COMIDA') {
+                        <i class="fa-solid fa-utensils text-xs"></i>
+                      } @else {
+                        <i class="fa-solid fa-moon text-xs"></i>
+                      }
+                      <span>{{ mealTypeLabel(meal.mealType) }}</span>
+                    </div>
+                    @if (canManageMeal()) {
+                      <div class="meal-card__actions">
+                        <button class="meal-action-btn" (click)="editMeal(meal)" [title]="t('common.edit')">
+                          <i class="fa-solid fa-pen-to-square text-xs"></i>
+                        </button>
+                        <button class="meal-action-btn meal-action-btn--danger" (click)="deleteMeal(meal)" [title]="t('common.delete')">
+                          <i class="fa-solid fa-trash text-xs"></i>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                  <p class="meal-card__description">{{ meal.description }}</p>
+                </div>
+              } @empty {
+                <div class="empty-day-card">
+                  <div class="empty-day-card__icon">
+                    <i class="fa-solid fa-plus"></i>
+                  </div>
+                  <p class="empty-day-card__text">{{ t('diet_detail.free_day') }}</p>
+                  @if (canManageMeal()) {
+                    <button class="empty-day-card__btn" (click)="addMeal(day)">
+                      {{ t('diet_detail.add_meal_short') }}
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
   </p-card>
 </div>
 } @else if (!loading()) {

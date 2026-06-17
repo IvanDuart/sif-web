@@ -20,7 +20,7 @@ export interface UpdateTenantRequest {
 @Injectable({ providedIn: 'root' })
 export class TenantService {
   private readonly baseUrl = `${environment.apiBaseUrl}/tenants`;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   search(page = 0, size = 10, sort: string[] = ['name,ASC']): Observable<Page<Tenant>> {
     let params = new HttpParams()

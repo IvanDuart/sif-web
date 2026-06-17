@@ -17,9 +17,9 @@ import { MessageService } from 'primeng/api';
   templateUrl: './template-upload.dialog.html'
 })
 export class TemplateUploadDialog {
-  private templateService = inject(MenuTemplateService);
-  private tenantCtx = inject(TenantContextService);
-  private messageService = inject(MessageService);
+  private readonly templateService = inject(MenuTemplateService);
+  private readonly tenantCtx = inject(TenantContextService);
+  private readonly messageService = inject(MessageService);
   ref = inject(DynamicDialogRef);
 
   name = '';

@@ -7,7 +7,7 @@ import { environment } from '../../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class MeService {
   private readonly baseUrl = environment.apiBaseUrl;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   getLoggedUser(): Observable<AppUserDto> {
     return this.http.get<AppUserDto>(`${this.baseUrl}/users/me`);

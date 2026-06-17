@@ -199,6 +199,50 @@
     "empty_title": "Sin plantillas aún",
     "delete_confirm_msg": "¿Estás seguro de que quieres eliminar la plantilla '{name}'?"
   },
+  "diet_detail": {
+    "title": "Comidas de la Semana",
+    "back": "Volver a Dietas",
+    "add_meal": "Agregar Comida",
+    "add_meal_short": "Añadir",
+    "free_day": "Día libre o sin comidas definidas",
+    "empty_title": "Sin comidas asignadas",
+    "empty_description": "Esta dieta aún no tiene comidas. Agregá la primera usando el botón superior.",
+    "days": {
+      "lunes": "Lunes",
+      "martes": "Martes",
+      "miercoles": "Miércoles",
+      "jueves": "Jueves",
+      "viernes": "Viernes",
+      "sabado": "Sábado",
+      "domingo": "Domingo"
+    },
+    "meal_types": {
+      "lunch": "Comida",
+      "dinner": "Cena"
+    }
+  },
+  "template_detail": {
+    "title": "Platos de la Semana",
+    "back": "Volver a Plantillas",
+    "add_meal": "Agregar Plato",
+    "add_meal_short": "Añadir",
+    "free_day": "Día libre o sin platos definidos",
+    "empty_title": "Sin platos aún",
+    "empty_description": "Esta plantilla no tiene platos. Agregá el primero usando el botón superior.",
+    "days": {
+      "lunes": "Lunes",
+      "martes": "Martes",
+      "miercoles": "Miércoles",
+      "jueves": "Jueves",
+      "viernes": "Viernes",
+      "sabado": "Sábado",
+      "domingo": "Domingo"
+    },
+    "meal_types": {
+      "lunch": "Comida",
+      "dinner": "Cena"
+    }
+  },
   "appointments": {
     "title": "Citas",
     "calendar": "Calendario",

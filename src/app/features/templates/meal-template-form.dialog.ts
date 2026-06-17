@@ -1,88 +1,33 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { Textarea } from 'primeng/textarea';
 import { Select } from 'primeng/select';
 import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { TranslocoService } from '@jsverse/transloco';
 import { MenuTemplateService, UpdateMealTemplateRequest } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 
-const DAYS = [
-  { label: 'Lunes', value: 'LUNES' },
-  { label: 'Martes', value: 'MARTES' },
-  { label: 'Miércoles', value: 'MIERCOLES' },
-  { label: 'Jueves', value: 'JUEVES' },
-  { label: 'Viernes', value: 'VIERNES' },
-  { label: 'Sábado', value: 'SABADO' },
-  { label: 'Domingo', value: 'DOMINGO' },
-];
-
-const MEAL_TYPES = [
-  { label: 'Comida', value: 'COMIDA' },
-  { label: 'Cena', value: 'CENA' },
-];
+const DAY_VALUES = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'] as const;
+const MEAL_VALUES = ['COMIDA', 'CENA'] as const;
 
 @Component({
   selector: 'app-meal-template-form',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, Button, Textarea, Select],
-  template: `
-    <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
-      <div class="field flex flex-col gap-2">
-        <label for="dayOfWeek" class="font-medium">Día de la semana</label>
-        <p-select
-          id="dayOfWeek"
-          formControlName="dayOfWeek"
-          [options]="days"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Seleccionar día"
-          class="w-full"
-          appendTo="body">
-        </p-select>
-      </div>
-
-      <div class="field flex flex-col gap-2">
-        <label for="mealType" class="font-medium">Tipo de comida</label>
-        <p-select
-          id="mealType"
-          formControlName="mealType"
-          [options]="mealTypes"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Seleccionar tipo"
-          class="w-full"
-          appendTo="body">
-        </p-select>
-      </div>
-
-      <div class="field flex flex-col gap-2">
-        <label for="description" class="font-medium">Descripción del plato</label>
-        <textarea id="description" pTextarea formControlName="description" class="w-full" rows="3" placeholder="Ej: Pechuga de pollo con arroz y verduras"></textarea>
-      </div>
-
-      <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>
-        <p-button
-          [label]="isEdit ? 'Guardar Cambios' : 'Añadir Plato'"
-          type="submit"
-          [disabled]="form.invalid"
-          [loading]="saving()">
-        </p-button>
-      </div>
-    </form>
-  `
+  templateUrl: './meal-template-form.dialog.html'
 })
-export class MealTemplateFormDialog {
-  private fb = inject(FormBuilder);
-  private templateService = inject(MenuTemplateService);
-  private tenantCtx = inject(TenantContextService);
+export class MealTemplateFormDialog implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly templateService = inject(MenuTemplateService);
+  private readonly tenantCtx = inject(TenantContextService);
+  private readonly transloco = inject(TranslocoService);
   ref = inject(DynamicDialogRef);
   config = inject(DynamicDialogConfig);
 
-  days = DAYS;
-  mealTypes = MEAL_TYPES;
+  days: { label: string; value: string }[] = [];
+  mealTypes: { label: string; value: string }[] = [];
 
   templateId = '';
   isEdit = false;
@@ -108,7 +53,20 @@ export class MealTemplateFormDialog {
         mealType: data.meal.mealType,
         description: data.meal.description
       });
+    } else if (data.prefillDay) {
+      this.form.patchValue({ dayOfWeek: data.prefillDay });
     }
+  }
+
+  ngOnInit() {
+    this.days = DAY_VALUES.map(d => ({
+      label: this.transloco.translate(`template_detail.days.${d.toLowerCase()}`),
+      value: d
+    }));
+    this.mealTypes = MEAL_VALUES.map(m => ({
+      label: this.transloco.translate(`template_detail.meal_types.${m === 'COMIDA' ? 'lunch' : 'dinner'}`),
+      value: m
+    }));
   }
 
   submit() {

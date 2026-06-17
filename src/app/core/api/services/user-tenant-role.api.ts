@@ -30,7 +30,7 @@ export interface ChangeUserRoleRequest {
 @Injectable({ providedIn: 'root' })
 export class UserTenantRoleService {
   private readonly baseUrl = environment.apiBaseUrl;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   getUsersByTenant(tenantId: string): Observable<AppUserDto[]> {
     return this.http.get<AppUserDto[]>(`${this.baseUrl}/tenant/${tenantId}/users`);

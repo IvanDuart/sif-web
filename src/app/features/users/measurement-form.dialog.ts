@@ -20,10 +20,10 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
   templateUrl: './measurement-form.dialog.html'
 })
 export class MeasurementFormDialog {
-  private fb = inject(FormBuilder);
-  private measurementService = inject(BodyMeasurementService);
-  private tenantCtx = inject(TenantContextService);
-  private transloco = inject(TranslocoService);
+  private readonly fb = inject(FormBuilder);
+  private readonly measurementService = inject(BodyMeasurementService);
+  private readonly tenantCtx = inject(TenantContextService);
+  private readonly transloco = inject(TranslocoService);
   ref = inject(DynamicDialogRef);
   config = inject(DynamicDialogConfig);
 
@@ -82,7 +82,7 @@ export class MeasurementFormDialog {
     if (raw.hipsCm != null) request.hipsCm = raw.hipsCm;
     if (raw.contourCm != null) request.contourCm = raw.contourCm;
     if (raw.armCm != null) request.armCm = raw.armCm;
-    if (raw.measuredAt) request.measuredAt = (raw.measuredAt as Date).toISOString();
+    if (raw.measuredAt) request.measuredAt = raw.measuredAt.toISOString();
     if (raw.notes) request.notes = raw.notes;
 
     this.saving = true;

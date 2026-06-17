@@ -75,10 +75,10 @@ import { TranslocoDirective } from '@jsverse/transloco';
   `
 })
 export class BrandingSettings implements OnInit {
-  private tenantBrandingService = inject(TenantBrandingService);
-  private tenantService = inject(TenantService);
-  private tenantCtx = inject(TenantContextService);
-  private messageService = inject(MessageService);
+  private readonly tenantBrandingService = inject(TenantBrandingService);
+  private readonly tenantService = inject(TenantService);
+  private readonly tenantCtx = inject(TenantContextService);
+  private readonly messageService = inject(MessageService);
 
   preferences = signal<TenantPreferences>({
     enable_vacation_module: false,

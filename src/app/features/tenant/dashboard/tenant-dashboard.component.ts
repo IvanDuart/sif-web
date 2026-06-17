@@ -64,12 +64,12 @@ import { formatInstant } from '../../../shared/utils/date';
   `]
 })
 export class TenantDashboardComponent implements OnInit {
-  private tenantCtx = inject(TenantContextService);
-  private authService = inject(AuthService);
-  private appointmentService = inject(AppointmentService);
-  private dialogService = inject(DialogService);
-  private messageService = inject(MessageService);
-  private transloco = inject(TranslocoService);
+  private readonly tenantCtx = inject(TenantContextService);
+  private readonly authService = inject(AuthService);
+  private readonly appointmentService = inject(AppointmentService);
+  private readonly dialogService = inject(DialogService);
+  private readonly messageService = inject(MessageService);
+  private readonly transloco = inject(TranslocoService);
 
   tenantName = computed(() => this.tenantCtx.currentMembership()?.tenantName || 'la clínica');
 
@@ -201,8 +201,8 @@ export class TenantDashboardComponent implements OnInit {
   }
 
   private onDatesSet(info: DatesSetArg) {
-    const start = info.start as Date;
-    const end = info.end as Date;
+    const start = info.start;
+    const end = info.end;
     this.weekStart = start.toISOString();
     this.weekEnd = end.toISOString();
     this.loadWeekAppointments();

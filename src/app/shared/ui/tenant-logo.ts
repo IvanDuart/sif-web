@@ -25,8 +25,8 @@ export class TenantLogo implements OnInit {
   @Input() showPlaceholder = true;
   @Input() fallbackText = 'S';
 
-  private brandingService = inject(TenantBrandingService);
-  private tenantCtx = inject(TenantContextService);
+  private readonly brandingService = inject(TenantBrandingService);
+  private readonly tenantCtx = inject(TenantContextService);
   
   logoUrl = signal<string | null>(null);
   imageError = false;

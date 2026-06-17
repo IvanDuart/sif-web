@@ -3,7 +3,7 @@ import { AuthService } from '../auth/auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class TenantContextService {
-  private authService = inject(AuthService);
+  private readonly authService = inject(AuthService);
 
   // The tenantId derived from selectedTenant
   currentTenantId = computed(() => this.authService.selectedTenant()?.tenantId ?? null);

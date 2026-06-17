@@ -6,9 +6,9 @@ import { PermissionsService } from './permissions.service';
   standalone: true
 })
 export class IfPermissionDirective {
-  private permissionsService = inject(PermissionsService);
-  private templateRef = inject(TemplateRef);
-  private viewContainer = inject(ViewContainerRef);
+  private readonly permissionsService = inject(PermissionsService);
+  private readonly templateRef = inject(TemplateRef);
+  private readonly viewContainer = inject(ViewContainerRef);
 
   private hasView = false;
   private permissionCode = '';

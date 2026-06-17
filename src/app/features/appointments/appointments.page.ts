@@ -33,12 +33,12 @@ import { formatInstant } from '../../shared/utils/date';
   styleUrls: ['./appointments.page.scss'],
 })
 export default class AppointmentsPage implements OnInit {
-  private tenantCtx = inject(TenantContextService);
-  private authService = inject(AuthService);
-  private appointmentService = inject(AppointmentService);
-  private dialogService = inject(DialogService);
-  private messageService = inject(MessageService);
-  private transloco = inject(TranslocoService);
+  private readonly tenantCtx = inject(TenantContextService);
+  private readonly authService = inject(AuthService);
+  private readonly appointmentService = inject(AppointmentService);
+  private readonly dialogService = inject(DialogService);
+  private readonly messageService = inject(MessageService);
+  private readonly transloco = inject(TranslocoService);
 
   canViewAppointments = computed(() => this.tenantCtx.hasPermission('VIEW_APPOINTMENTS'));
   currentUserId = computed(() => this.authService.user()?.id || '');

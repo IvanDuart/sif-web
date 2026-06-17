@@ -8,7 +8,7 @@ import { environment } from '../../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class BodyMeasurementService {
   private readonly baseUrl = environment.apiBaseUrl;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   private endpoint(tenantId: string, userId: string): string {
     return `${this.baseUrl}/tenant/${tenantId}/users/${userId}/measurements`;

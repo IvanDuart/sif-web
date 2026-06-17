@@ -24,13 +24,13 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
   templateUrl: './menus-list.page.html'
 })
 export default class MenusListPage implements OnInit {
-  private menuService = inject(MenuService);
-  private tenantCtx = inject(TenantContextService);
-  private confirmationService = inject(ConfirmationService);
-  private messageService = inject(MessageService);
-  private dialogService = inject(DialogService);
-  private router = inject(Router);
-  private transloco = inject(TranslocoService);
+  private readonly menuService = inject(MenuService);
+  private readonly tenantCtx = inject(TenantContextService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly messageService = inject(MessageService);
+  private readonly dialogService = inject(DialogService);
+  private readonly router = inject(Router);
+  private readonly transloco = inject(TranslocoService);
   
   menus = signal<Menu[]>([]);
   loading = signal(false);

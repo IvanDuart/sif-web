@@ -7,7 +7,7 @@ import { environment } from '../../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class AppointmentService {
   private readonly baseUrl = environment.apiBaseUrl;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   private endpoint(tenantId: string): string {
     return `${this.baseUrl}/tenant/${tenantId}/appointments`;

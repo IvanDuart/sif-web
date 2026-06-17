@@ -180,6 +180,50 @@
     "empty_title": "No templates yet",
     "delete_confirm_msg": "Are you sure you want to delete the template '{name}'?"
   },
+  "diet_detail": {
+    "title": "Weekly Meals",
+    "back": "Back to Diets",
+    "add_meal": "Add Meal",
+    "add_meal_short": "Add",
+    "free_day": "Free day or no meals defined",
+    "empty_title": "No meals assigned",
+    "empty_description": "This diet doesn't have meals yet. Add the first one using the button above.",
+    "days": {
+      "lunes": "Monday",
+      "martes": "Tuesday",
+      "miercoles": "Wednesday",
+      "jueves": "Thursday",
+      "viernes": "Friday",
+      "sabado": "Saturday",
+      "domingo": "Sunday"
+    },
+    "meal_types": {
+      "lunch": "Lunch",
+      "dinner": "Dinner"
+    }
+  },
+  "template_detail": {
+    "title": "Weekly Meals",
+    "back": "Back to Templates",
+    "add_meal": "Add Meal",
+    "add_meal_short": "Add",
+    "free_day": "Free day or no meals defined",
+    "empty_title": "No meals yet",
+    "empty_description": "This template doesn't have meals yet. Add the first one using the button above.",
+    "days": {
+      "lunes": "Monday",
+      "martes": "Tuesday",
+      "miercoles": "Wednesday",
+      "jueves": "Thursday",
+      "viernes": "Friday",
+      "sabado": "Saturday",
+      "domingo": "Sunday"
+    },
+    "meal_types": {
+      "lunch": "Lunch",
+      "dinner": "Dinner"
+    }
+  },
   "appointments": {
     "title": "Appointments",
     "calendar": "Calendar",

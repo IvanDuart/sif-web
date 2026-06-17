@@ -15,9 +15,9 @@ import { TenantContextService } from '../../core/tenant/tenant-context.service';
   templateUrl: './template-form.dialog.html'
 })
 export class TemplateFormDialog {
-  private fb = inject(FormBuilder);
-  private templateService = inject(MenuTemplateService);
-  private tenantCtx = inject(TenantContextService);
+  private readonly fb = inject(FormBuilder);
+  private readonly templateService = inject(MenuTemplateService);
+  private readonly tenantCtx = inject(TenantContextService);
   ref = inject(DynamicDialogRef);
 
   saving = signal(false);

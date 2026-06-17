@@ -19,10 +19,10 @@ import { MessageService } from 'primeng/api';
   templateUrl: './menu-upload.dialog.html'
 })
 export class MenuUploadDialog implements OnInit {
-  private menuUploadService = inject(MenuUploadService);
-  private userRoleService = inject(UserTenantRoleService);
-  private tenantCtx = inject(TenantContextService);
-  private messageService = inject(MessageService);
+  private readonly menuUploadService = inject(MenuUploadService);
+  private readonly userRoleService = inject(UserTenantRoleService);
+  private readonly tenantCtx = inject(TenantContextService);
+  private readonly messageService = inject(MessageService);
   ref = inject(DynamicDialogRef);
 
   users = signal<(AppUserDto & { fullName: string })[]>([]);

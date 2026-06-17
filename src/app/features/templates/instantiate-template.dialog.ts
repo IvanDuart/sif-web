@@ -19,10 +19,10 @@ import { MenuTemplate } from '../../core/api/models/menu-template.model';
   templateUrl: './instantiate-template.dialog.html'
 })
 export class InstantiateTemplateDialog implements OnInit {
-  private fb = inject(FormBuilder);
-  private templateService = inject(MenuTemplateService);
-  private userRoleService = inject(UserTenantRoleService);
-  private tenantCtx = inject(TenantContextService);
+  private readonly fb = inject(FormBuilder);
+  private readonly templateService = inject(MenuTemplateService);
+  private readonly userRoleService = inject(UserTenantRoleService);
+  private readonly tenantCtx = inject(TenantContextService);
   
   ref = inject(DynamicDialogRef);
   config = inject(DynamicDialogConfig);

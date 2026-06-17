@@ -5,7 +5,7 @@ import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private keycloak = inject(Keycloak);
+  private readonly keycloak = inject(Keycloak);
 
   // Signals
   readonly user: WritableSignal<AppUserDto | null> = signal<AppUserDto | null>(null);

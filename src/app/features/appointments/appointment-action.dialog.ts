@@ -23,13 +23,13 @@ import { AppointmentDto } from '../../core/api/models/appointment.model';
   templateUrl: './appointment-action.dialog.html'
 })
 export class AppointmentActionDialog implements OnInit {
-  private fb = inject(FormBuilder);
-  private appointmentService = inject(AppointmentService);
-  private appointmentTypeService = inject(AppointmentTypeService);
-  private tenantCtx = inject(TenantContextService);
-  private confirmationService = inject(ConfirmationService);
-  private messageService = inject(MessageService);
-  private transloco = inject(TranslocoService);
+  private readonly fb = inject(FormBuilder);
+  private readonly appointmentService = inject(AppointmentService);
+  private readonly appointmentTypeService = inject(AppointmentTypeService);
+  private readonly tenantCtx = inject(TenantContextService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly messageService = inject(MessageService);
+  private readonly transloco = inject(TranslocoService);
   ref = inject(DynamicDialogRef);
   config = inject(DynamicDialogConfig);
 

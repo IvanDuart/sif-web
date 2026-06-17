@@ -22,11 +22,11 @@ import { switchMap, map, catchError, of } from 'rxjs';
   templateUrl: './edit-user.dialog.html'
 })
 export class EditUserDialog {
-  private fb = inject(FormBuilder);
-  private userRoleService = inject(UserTenantRoleService);
-  private tenantCtx = inject(TenantContextService);
-  private messageService = inject(MessageService);
-  private transloco = inject(TranslocoService);
+  private readonly fb = inject(FormBuilder);
+  private readonly userRoleService = inject(UserTenantRoleService);
+  private readonly tenantCtx = inject(TenantContextService);
+  private readonly messageService = inject(MessageService);
+  private readonly transloco = inject(TranslocoService);
   ref = inject(DynamicDialogRef);
   config = inject(DynamicDialogConfig);
 
@@ -37,7 +37,7 @@ export class EditUserDialog {
 
   isStaff = computed(() => this.user.userType === 'STAFF');
 
-  private tenantId = this.tenantCtx.currentTenantId();
+  private readonly tenantId = this.tenantCtx.currentTenantId();
 
   private getCurrentRoleCode(): string {
     if (this.user.roleCode) return this.user.roleCode;
@@ -75,7 +75,7 @@ export class EditUserDialog {
   private toDate(dateStr: string | undefined | null): Date | null {
     if (!dateStr) return null;
     const d = new Date(dateStr + 'T00:00:00');
-    return isNaN(d.getTime()) ? null : d;
+    return Number.isNaN(d.getTime()) ? null : d;
   }
 
   private formatDate(date: Date | null): string | null {

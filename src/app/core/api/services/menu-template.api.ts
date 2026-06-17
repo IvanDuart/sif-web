@@ -33,7 +33,7 @@ export interface InstantiateMenuTemplateRequest {
 @Injectable({ providedIn: 'root' })
 export class MenuTemplateService {
   private readonly baseUrl = environment.apiBaseUrl;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   search(
     tenantId: string,

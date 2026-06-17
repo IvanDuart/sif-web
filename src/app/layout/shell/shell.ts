@@ -49,12 +49,12 @@ export class Shell {
   // Select translations reactively
   readonly navTranslations = toSignal(
     this.transloco.selectTranslateObject('menu'),
-    { initialValue: {} as Record<string, string> }
+    { initialValue: <Record<string, string>>{} }
   );
 
   readonly authTranslations = toSignal(
     this.transloco.selectTranslateObject('auth'),
-    { initialValue: {} as Record<string, string> }
+    { initialValue: <Record<string, string>>{} }
   );
 
   menuItems = computed<MenuItem[]>(() => {
@@ -76,16 +76,18 @@ export class Shell {
     ];
 
     if (this.permissionsService.has('VIEW_USER') || this.permissionsService.has('MANAGE_USER')) {
-      items.push({
-        label: nav['patients'] || 'Pacientes',
-        icon: 'fa-solid fa-user-injured',
-        routerLink: ['/patients']
-      });
-      items.push({
-        label: nav['staff'] || 'Equipo',
-        icon: 'fa-solid fa-user-doctor',
-        routerLink: ['/staff']
-      });
+      items.push(
+        {
+          label: nav['patients'] || 'Pacientes',
+          icon: 'fa-solid fa-user-injured',
+          routerLink: ['/patients']
+        },
+        {
+          label: nav['staff'] || 'Equipo',
+          icon: 'fa-solid fa-user-doctor',
+          routerLink: ['/staff']
+        }
+      );
     }
 
     if (this.permissionsService.has('VIEW_APPOINTMENTS') || this.permissionsService.has('MANAGE_APPOINTMENTS')) {

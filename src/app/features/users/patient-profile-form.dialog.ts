@@ -18,11 +18,11 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
   templateUrl: './patient-profile-form.dialog.html'
 })
 export class PatientProfileFormDialog {
-  private fb = inject(FormBuilder);
-  private userRoleService = inject(UserTenantRoleService);
-  private tenantCtx = inject(TenantContextService);
-  private messageService = inject(MessageService);
-  private transloco = inject(TranslocoService);
+  private readonly fb = inject(FormBuilder);
+  private readonly userRoleService = inject(UserTenantRoleService);
+  private readonly tenantCtx = inject(TenantContextService);
+  private readonly messageService = inject(MessageService);
+  private readonly transloco = inject(TranslocoService);
   ref = inject(DynamicDialogRef);
   config = inject(DynamicDialogConfig);
 

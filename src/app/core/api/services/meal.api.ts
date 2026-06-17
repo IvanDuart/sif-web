@@ -12,10 +12,14 @@ export interface CreateMealRequest {
   description?: string;
 }
 
+export interface UpdateMealRequest {
+  description: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MealService {
   private readonly baseUrl = environment.apiBaseUrl;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   search(
     tenantId: string,
@@ -49,6 +53,10 @@ export class MealService {
 
   delete(tenantId: string, id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/tenant/${tenantId}/meal/${id}`);
+  }
+
+  update(tenantId: string, id: string, request: UpdateMealRequest): Observable<Meal> {
+    return this.http.put<Meal>(`${this.baseUrl}/tenant/${tenantId}/meal/${id}`, request);
   }
 
   getByMenuId(tenantId: string, menuId: string): Observable<Meal[]> {

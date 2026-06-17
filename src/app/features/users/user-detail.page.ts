@@ -48,17 +48,17 @@ Chart.register(...registerables);
   templateUrl: './user-detail.page.html'
 })
 export default class UserDetailPage implements OnInit {
-  private route = inject(ActivatedRoute);
-  private userTenantRoleService = inject(UserTenantRoleService);
-  private measurementService = inject(BodyMeasurementService);
-  private menuService = inject(MenuService);
-  private appointmentService = inject(AppointmentService);
-  private tenantCtx = inject(TenantContextService);
-  private confirmationService = inject(ConfirmationService);
-  private messageService = inject(MessageService);
-  private dialogService = inject(DialogService);
-  private transloco = inject(TranslocoService);
-  private permissionsService = inject(PermissionsService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly userTenantRoleService = inject(UserTenantRoleService);
+  private readonly measurementService = inject(BodyMeasurementService);
+  private readonly menuService = inject(MenuService);
+  private readonly appointmentService = inject(AppointmentService);
+  private readonly tenantCtx = inject(TenantContextService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly messageService = inject(MessageService);
+  private readonly dialogService = inject(DialogService);
+  private readonly transloco = inject(TranslocoService);
+  private readonly permissionsService = inject(PermissionsService);
 
   user = signal<AppUserDto | null>(null);
   measurements = signal<BodyMeasurementDto[]>([]);

@@ -1,0 +1,44 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
+  <div class="field flex flex-col gap-2">
+    <label for="dayOfWeek" class="font-medium">Día de la semana</label>
+    <p-select
+      id="dayOfWeek"
+      formControlName="dayOfWeek"
+      [options]="days"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Seleccionar día"
+      class="w-full"
+      appendTo="body">
+    </p-select>
+  </div>
+
+  <div class="field flex flex-col gap-2">
+    <label for="mealType" class="font-medium">Tipo de comida</label>
+    <p-select
+      id="mealType"
+      formControlName="mealType"
+      [options]="mealTypes"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Seleccionar tipo"
+      class="w-full"
+      appendTo="body">
+    </p-select>
+  </div>
+
+  <div class="field flex flex-col gap-2">
+    <label for="description" class="font-medium">Descripción del plato</label>
+    <textarea id="description" pTextarea formControlName="description" class="w-full" rows="3" placeholder="Ej: Pechuga de pollo con arroz y verduras"></textarea>
+  </div>
+
+  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>
+    <p-button
+      [label]="isEdit ? 'Guardar Cambios' : 'Añadir Plato'"
+      type="submit"
+      [disabled]="form.invalid"
+      [loading]="saving()">
+    </p-button>
+  </div>
+</form>

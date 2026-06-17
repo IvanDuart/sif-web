@@ -18,9 +18,9 @@ import { AppUserDto } from '../../core/api/models/user.model';
   templateUrl: './menu-form.dialog.html'
 })
 export class MenuFormDialog implements OnInit {
-  private fb = inject(FormBuilder);
-  private menuService = inject(MenuService);
-  private userRoleService = inject(UserTenantRoleService);
+  private readonly fb = inject(FormBuilder);
+  private readonly menuService = inject(MenuService);
+  private readonly userRoleService = inject(UserTenantRoleService);
   tenantCtx = inject(TenantContextService);
   ref = inject(DynamicDialogRef);
   config = inject(DynamicDialogConfig);

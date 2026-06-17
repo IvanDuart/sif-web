@@ -19,10 +19,10 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
   templateUrl: './invite-user.dialog.html'
 })
 export class InviteUserDialog {
-  private fb = inject(FormBuilder);
-  private userRoleService = inject(UserTenantRoleService);
-  private tenantCtx = inject(TenantContextService);
-  private transloco = inject(TranslocoService);
+  private readonly fb = inject(FormBuilder);
+  private readonly userRoleService = inject(UserTenantRoleService);
+  private readonly tenantCtx = inject(TenantContextService);
+  private readonly transloco = inject(TranslocoService);
   ref = inject(DynamicDialogRef);
   config = inject(DynamicDialogConfig);
 
@@ -92,7 +92,7 @@ export class InviteUserDialog {
       roleCode: raw.roleCode!,
     };
     if (raw.birthDate) {
-      request.birthDate = (raw.birthDate as Date).toISOString().slice(0, 10);
+      request.birthDate = raw.birthDate.toISOString().slice(0, 10);
     }
     if (raw.heightCm != null) {
       request.heightCm = raw.heightCm;

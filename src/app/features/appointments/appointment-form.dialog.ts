@@ -23,14 +23,14 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
   templateUrl: './appointment-form.dialog.html'
 })
 export class AppointmentFormDialog implements OnInit {
-  private fb = inject(FormBuilder);
-  private appointmentService = inject(AppointmentService);
-  private appointmentTypeService = inject(AppointmentTypeService);
-  private userRoleService = inject(UserTenantRoleService);
-  private tenantCtx = inject(TenantContextService);
-  private authService = inject(AuthService);
-  private messageService = inject(MessageService);
-  private transloco = inject(TranslocoService);
+  private readonly fb = inject(FormBuilder);
+  private readonly appointmentService = inject(AppointmentService);
+  private readonly appointmentTypeService = inject(AppointmentTypeService);
+  private readonly userRoleService = inject(UserTenantRoleService);
+  private readonly tenantCtx = inject(TenantContextService);
+  private readonly authService = inject(AuthService);
+  private readonly messageService = inject(MessageService);
+  private readonly transloco = inject(TranslocoService);
   ref = inject(DynamicDialogRef);
   config = inject(DynamicDialogConfig);
 
