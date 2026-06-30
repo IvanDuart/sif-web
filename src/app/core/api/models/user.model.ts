@@ -19,6 +19,13 @@ export interface UserTenantProfileDto {
   lifestyle: string | null;
   exercise: string | null;
   psyche: string | null;
+  allergiesIntolerances: string | null;
+  foodPreferences: string | null;
+  medicationSupplements: string | null;
+  gastrointestinalStatus: string | null;
+  hormonalCycle: string | null;
+  breakfast: string | null;
+  snack: string | null;
 }
 
 export type UpdateUserTenantProfileRequest = UserTenantProfileDto;

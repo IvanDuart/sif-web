@@ -28,6 +28,26 @@
       <label for="psyche" class="font-medium text-sm">{{ t('patient_profile.psyche') }}</label>
       <textarea id="psyche" pInputTextarea formControlName="psyche" rows="3" class="w-full"></textarea>
     </div>
+    <div class="field flex flex-col gap-1">
+      <label for="allergiesIntolerances" class="font-medium text-sm">{{ t('patient_profile.allergies_intolerances') }}</label>
+      <textarea id="allergiesIntolerances" pInputTextarea formControlName="allergiesIntolerances" rows="3" class="w-full"></textarea>
+    </div>
+    <div class="field flex flex-col gap-1">
+      <label for="foodPreferences" class="font-medium text-sm">{{ t('patient_profile.food_preferences') }}</label>
+      <textarea id="foodPreferences" pInputTextarea formControlName="foodPreferences" rows="3" class="w-full"></textarea>
+    </div>
+    <div class="field flex flex-col gap-1">
+      <label for="medicationSupplements" class="font-medium text-sm">{{ t('patient_profile.medication_supplements') }}</label>
+      <textarea id="medicationSupplements" pInputTextarea formControlName="medicationSupplements" rows="3" class="w-full"></textarea>
+    </div>
+    <div class="field flex flex-col gap-1">
+      <label for="gastrointestinalStatus" class="font-medium text-sm">{{ t('patient_profile.gastrointestinal_status') }}</label>
+      <textarea id="gastrointestinalStatus" pInputTextarea formControlName="gastrointestinalStatus" rows="3" class="w-full"></textarea>
+    </div>
+    <div class="field flex flex-col gap-1">
+      <label for="hormonalCycle" class="font-medium text-sm">{{ t('patient_profile.hormonal_cycle') }}</label>
+      <textarea id="hormonalCycle" pInputTextarea formControlName="hormonalCycle" rows="3" class="w-full"></textarea>
+    </div>
   </div>
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
     <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>

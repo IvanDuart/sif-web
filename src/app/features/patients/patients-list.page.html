@@ -13,11 +13,14 @@
     <p-table
       [value]="users()"
       [loading]="loading()"
-      [rows]="10"
+      [rows]="25"
       [paginator]="true"
       [rowHover]="true"
       responsiveLayout="scroll"
-      styleClass="p-datatable-sm">
+      styleClass="p-datatable-sm"
+      [rowsPerPageOptions]="[25, 50, 100]"
+      [showCurrentPageReport]="true"
+      [currentPageReportTemplate]="t('common.pagination_report', { first: '{first}', last: '{last}', totalRecords: '{totalRecords}' })">
       <ng-template pTemplate="header">
         <tr>
           <th scope="col">{{ t('users.first_name') }}</th>

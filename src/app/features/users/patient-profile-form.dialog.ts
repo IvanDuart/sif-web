@@ -37,7 +37,12 @@ export class PatientProfileFormDialog {
     habits: [this.profile.habits ?? ''],
     lifestyle: [this.profile.lifestyle ?? ''],
     exercise: [this.profile.exercise ?? ''],
-    psyche: [this.profile.psyche ?? '']
+    psyche: [this.profile.psyche ?? ''],
+    allergiesIntolerances: [this.profile.allergiesIntolerances ?? ''],
+    foodPreferences: [this.profile.foodPreferences ?? ''],
+    medicationSupplements: [this.profile.medicationSupplements ?? ''],
+    gastrointestinalStatus: [this.profile.gastrointestinalStatus ?? ''],
+    hormonalCycle: [this.profile.hormonalCycle ?? '']
   });
 
   submit() {
@@ -45,13 +50,19 @@ export class PatientProfileFormDialog {
 
     const raw = this.form.value;
     const request: UserTenantProfileDto = {
+      ...this.profile,
       consultationReason: raw.consultationReason || null,
       diseases: raw.diseases || null,
       medicalHistory: raw.medicalHistory || null,
       habits: raw.habits || null,
       lifestyle: raw.lifestyle || null,
       exercise: raw.exercise || null,
-      psyche: raw.psyche || null
+      psyche: raw.psyche || null,
+      allergiesIntolerances: raw.allergiesIntolerances || null,
+      foodPreferences: raw.foodPreferences || null,
+      medicationSupplements: raw.medicationSupplements || null,
+      gastrointestinalStatus: raw.gastrointestinalStatus || null,
+      hormonalCycle: raw.hormonalCycle || null
     };
 
     const tenantId = this.tenantCtx.currentTenantId();

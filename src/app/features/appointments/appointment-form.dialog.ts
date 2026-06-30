@@ -15,11 +15,12 @@ import { AuthService } from '../../core/auth/auth.service';
 import { AppointmentTypeDto } from '../../core/api/models/appointment-type.model';
 import { AppUserDto } from '../../core/api/models/user.model';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import {Textarea} from 'primeng/textarea';
 
 @Component({
   selector: 'app-appointment-form-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ButtonModule, SelectModule, DatePickerModule, InputTextModule, TranslocoDirective],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ButtonModule, SelectModule, DatePickerModule, InputTextModule, TranslocoDirective, Textarea],
   templateUrl: './appointment-form.dialog.html'
 })
 export class AppointmentFormDialog implements OnInit {

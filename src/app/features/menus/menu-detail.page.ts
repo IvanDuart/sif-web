@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -39,6 +39,7 @@ export default class MenuDetailPage implements OnInit {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
   private readonly permissionsService = inject(PermissionsService);
+  private readonly location = inject(Location);
 
   menu = signal<Menu | null>(null);
   meals = signal<Meal[]>([]);
@@ -64,6 +65,10 @@ export default class MenuDetailPage implements OnInit {
     }
     return mealMap;
   });
+
+  goBack() {
+    this.location.back();
+  }
 
   ngOnInit() {
     this.menuId = this.route.snapshot.paramMap.get('id') || '';

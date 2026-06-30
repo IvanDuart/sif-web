@@ -1,0 +1,44 @@
+:host ::ng-deep .fc {
+  --fc-border-color: var(--p-surface-200);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: var(--p-surface-50);
+  --fc-today-bg-color: var(--p-primary-50);
+  --fc-event-bg-color: var(--p-primary-500);
+  --fc-event-border-color: var(--p-primary-500);
+  --fc-event-text-color: #fff;
+  --fc-button-text-color: var(--p-primary-contrast-color);
+  --fc-button-bg-color: var(--p-primary-500);
+  --fc-button-border-color: var(--p-primary-500);
+  --fc-button-hover-bg-color: var(--p-primary-600);
+  --fc-button-hover-border-color: var(--p-primary-600);
+  --fc-button-active-bg-color: var(--p-primary-700);
+  --fc-button-active-border-color: var(--p-primary-700);
+}
+:host ::ng-deep .fc .fc-toolbar-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+:host ::ng-deep .fc .fc-button {
+  font-weight: 500;
+  box-shadow: none;
+}
+:host ::ng-deep .fc .fc-button-primary:not(:disabled):active,
+:host ::ng-deep .fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: var(--fc-button-active-bg-color);
+  border-color: var(--fc-button-active-border-color);
+}
+:host ::ng-deep .fc .fc-button-primary:disabled {
+  opacity: 0.6;
+}
+:host ::ng-deep .fc .fc-daygrid-day-frame {
+  min-height: 80px;
+}
+:host ::ng-deep .fc .fc-col-header-cell {
+  padding: 0.5rem 0;
+}
+:host ::ng-deep .fc .fc-col-header-cell-cushion {
+  font-weight: 500;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

@@ -24,13 +24,16 @@
     <p-table
       [value]="templates()"
       [loading]="loading()"
-      [rows]="10"
+      [rows]="25"
       [paginator]="true"
       [totalRecords]="totalRecords()"
       [lazy]="true"
       [rowHover]="true"
       responsiveLayout="scroll"
       styleClass="p-datatable-sm"
+      [rowsPerPageOptions]="[25, 50, 100]"
+      [showCurrentPageReport]="true"
+      [currentPageReportTemplate]="t('common.pagination_report', { first: '{first}', last: '{last}', totalRecords: '{totalRecords}' })"
       (onLazyLoad)="onPage($event)">
       <ng-template pTemplate="header">
         <tr>

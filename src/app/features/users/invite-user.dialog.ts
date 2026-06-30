@@ -92,7 +92,11 @@ export class InviteUserDialog {
       roleCode: raw.roleCode!,
     };
     if (raw.birthDate) {
-      request.birthDate = raw.birthDate.toISOString().slice(0, 10);
+      const d = raw.birthDate;
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      request.birthDate = `${y}-${m}-${day}`;
     }
     if (raw.heightCm != null) {
       request.heightCm = raw.heightCm;

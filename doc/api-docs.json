@@ -12,16 +12,28 @@
   ],
   "tags": [
     {
+      "name": "AppointmentTypeController",
+      "description": "CRUD for appointment types per tenant"
+    },
+    {
+      "name": "MenuController",
+      "description": "Controller for menus management"
+    },
+    {
+      "name": "TenantController",
+      "description": "Global Controller for Tenants management"
+    },
+    {
+      "name": "AppointmentController",
+      "description": "Controller for appointments management"
+    },
+    {
       "name": "MeController",
       "description": "Controller for currently logged in user context"
     },
     {
       "name": "MenuTemplateUploadController",
       "description": "Controller for uploading and parsing diet menus as templates"
-    },
-    {
-      "name": "AppointmentTypeController",
-      "description": "CRUD for appointment types per tenant"
     },
     {
       "name": "MenuTemplateController",
@@ -36,20 +48,12 @@
       "description": "Controller for meals management"
     },
     {
-      "name": "MenuController",
-      "description": "Controller for menus management"
+      "name": "PatientEventController",
+      "description": "Controller for patient events management"
     },
     {
       "name": "BodyMeasurementController",
       "description": "Controller for body measurements (weight, fat, muscle)"
-    },
-    {
-      "name": "TenantController",
-      "description": "Global Controller for Tenants management"
-    },
-    {
-      "name": "AppointmentController",
-      "description": "Controller for appointments management"
     },
     {
       "name": "TenantBrandingController",
@@ -412,6 +416,89 @@
         }
       }
     },
+    "/tenant/{tenantId}/patient-events/{eventId}": {
+      "put": {
+        "tags": [
+          "PatientEventController"
+        ],
+        "description": "Update a patient event",
+        "operationId": "update_1",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePatientEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientEventDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "PatientEventController"
+        ],
+        "description": "Delete a patient event",
+        "operationId": "delete_1",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/menu-template/{templateId}/meals/{mealId}": {
       "put": {
         "tags": [
@@ -498,6 +585,128 @@
           },
           {
             "name": "mealId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/meal/{id}": {
+      "get": {
+        "tags": [
+          "MealController"
+        ],
+        "description": "Get meal by id",
+        "operationId": "getById_1",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Meal_Full"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "MealController"
+        ],
+        "description": "Update meal description",
+        "operationId": "update_2",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMealRequest_Public"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Meal_Public"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "MealController"
+        ],
+        "description": "Delete meal",
+        "operationId": "delete_2",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -635,7 +844,7 @@
           "AppointmentTypeController"
         ],
         "description": "Update an appointment type",
-        "operationId": "update_1",
+        "operationId": "update_3",
         "parameters": [
           {
             "name": "tenantId",
@@ -684,7 +893,7 @@
           "AppointmentTypeController"
         ],
         "description": "Soft-delete an appointment type (sets is_active = false)",
-        "operationId": "delete_1",
+        "operationId": "delete_3",
         "parameters": [
           {
             "name": "tenantId",
@@ -963,6 +1172,117 @@
         }
       }
     },
+    "/tenant/{tenantId}/patients/{patientId}/events": {
+      "get": {
+        "tags": [
+          "PatientEventController"
+        ],
+        "description": "Get events by patient",
+        "operationId": "findByPatient",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PatientEventDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "PatientEventController"
+        ],
+        "description": "Create a new patient event",
+        "operationId": "create_2",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePatientEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientEventDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/menu": {
       "get": {
         "tags": [
@@ -1061,7 +1381,7 @@
           "MenuController"
         ],
         "description": "Create a new menu",
-        "operationId": "create_2",
+        "operationId": "create_3",
         "parameters": [
           {
             "name": "tenantId",
@@ -1229,7 +1549,7 @@
           "MenuTemplateController"
         ],
         "description": "Create a new menu template",
-        "operationId": "create_3",
+        "operationId": "create_4",
         "parameters": [
           {
             "name": "tenantId",
@@ -1531,7 +1851,7 @@
           "MealController"
         ],
         "description": "Create a new meal",
-        "operationId": "create_4",
+        "operationId": "create_5",
         "parameters": [
           {
             "name": "tenantId",
@@ -1573,7 +1893,7 @@
           "AppointmentController"
         ],
         "description": "Create a new appointment",
-        "operationId": "create_5",
+        "operationId": "create_6",
         "parameters": [
           {
             "name": "tenantId",
@@ -1657,7 +1977,7 @@
           "AppointmentTypeController"
         ],
         "description": "Create a new appointment type",
-        "operationId": "create_6",
+        "operationId": "create_7",
         "parameters": [
           {
             "name": "tenantId",
@@ -2018,7 +2338,7 @@
           "MenuController"
         ],
         "description": "Get menu by id",
-        "operationId": "getById_1",
+        "operationId": "getById_2",
         "parameters": [
           {
             "name": "tenantId",
@@ -2057,7 +2377,7 @@
           "MenuController"
         ],
         "description": "Delete menu",
-        "operationId": "delete_2",
+        "operationId": "delete_4",
         "parameters": [
           {
             "name": "tenantId",
@@ -2135,7 +2455,7 @@
           "MenuTemplateController"
         ],
         "description": "Get a specific menu template",
-        "operationId": "getById_2",
+        "operationId": "getById_3",
         "parameters": [
           {
             "name": "tenantId",
@@ -2174,80 +2494,7 @@
           "MenuTemplateController"
         ],
         "description": "Delete a menu template",
-        "operationId": "delete_3",
-        "parameters": [
-          {
-            "name": "tenantId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/tenant/{tenantId}/meal/{id}": {
-      "get": {
-        "tags": [
-          "MealController"
-        ],
-        "description": "Get meal by id",
-        "operationId": "getById_3",
-        "parameters": [
-          {
-            "name": "tenantId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/Meal_Full"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "MealController"
-        ],
-        "description": "Delete meal",
-        "operationId": "delete_4",
+        "operationId": "delete_5",
         "parameters": [
           {
             "name": "tenantId",
@@ -2357,7 +2604,7 @@
           "AppointmentController"
         ],
         "description": "Get appointments by patient",
-        "operationId": "findByPatient",
+        "operationId": "findByPatient_1",
         "parameters": [
           {
             "name": "tenantId",
@@ -2553,7 +2800,7 @@
           "BodyMeasurementController"
         ],
         "description": "Delete a measurement entry",
-        "operationId": "delete_5",
+        "operationId": "delete_6",
         "parameters": [
           {
             "name": "tenantId",
@@ -2845,6 +3092,27 @@
           },
           "psyche": {
             "type": "string"
+          },
+          "allergiesIntolerances": {
+            "type": "string"
+          },
+          "foodPreferences": {
+            "type": "string"
+          },
+          "medicationSupplements": {
+            "type": "string"
+          },
+          "gastrointestinalStatus": {
+            "type": "string"
+          },
+          "hormonalCycle": {
+            "type": "string"
+          },
+          "breakfast": {
+            "type": "string"
+          },
+          "snack": {
+            "type": "string"
           }
         }
       },
@@ -2871,6 +3139,84 @@
           },
           "psyche": {
             "type": "string"
+          },
+          "allergiesIntolerances": {
+            "type": "string"
+          },
+          "foodPreferences": {
+            "type": "string"
+          },
+          "medicationSupplements": {
+            "type": "string"
+          },
+          "gastrointestinalStatus": {
+            "type": "string"
+          },
+          "hormonalCycle": {
+            "type": "string"
+          },
+          "breakfast": {
+            "type": "string"
+          },
+          "snack": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdatePatientEventRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PatientEventDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "patientName": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -2899,6 +3245,36 @@
         ]
       },
       "MealTemplate_Public": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayOfWeek": {
+            "type": "string"
+          },
+          "mealType": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateMealRequest_Public": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "description"
+        ]
+      },
+      "Meal_Public": {
         "type": "object",
         "properties": {
           "id": {
@@ -3178,6 +3554,30 @@
           "roleCode"
         ]
       },
+      "CreatePatientEventRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "startTime",
+          "title"
+        ]
+      },
       "CreateMenuRequest_Public": {
         "type": "object",
         "properties": {
@@ -3312,24 +3712,6 @@
         "type": "object",
         "properties": {
           "menuId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "dayOfWeek": {
-            "type": "string"
-          },
-          "mealType": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          }
-        }
-      },
-      "Meal_Public": {
-        "type": "object",
-        "properties": {
-          "id": {
             "type": "string",
             "format": "uuid"
           },

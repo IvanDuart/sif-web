@@ -7,18 +7,26 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
+import { Textarea } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService, type LazyLoadMeta } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
 import { UIChart } from 'primeng/chart';
 import { SelectButton } from 'primeng/selectbutton';
+import { FullCalendarModule } from '@fullcalendar/angular';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import esLocale from '@fullcalendar/core/locales/es';
+import type { CalendarOptions, EventSourceInput, EventClickArg, DatesSetArg } from '@fullcalendar/core';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
+import { PatientEventService } from '../../core/api/services/patient-event.api';
 import { BodyMeasurementService } from '../../core/api/services/body-measurement.api';
 import { MenuService } from '../../core/api/services/menu.api';
 import { AppointmentService } from '../../core/api/services/appointment.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppUserDto, UserTenantProfileDto } from '../../core/api/models/user.model';
+import { PatientEventDto } from '../../core/api/models/patient-event.model';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { BodyMeasurementDto, MeasurementHistoryDto } from '../../core/api/models/body-measurement.model';
 import { Menu } from '../../core/api/models/menu.model';
@@ -29,6 +37,7 @@ import { EmptyState } from '../../shared/ui/empty-state';
 import { MeasurementFormDialog } from './measurement-form.dialog';
 import { EditUserDialog } from './edit-user.dialog';
 import { PatientProfileFormDialog } from './patient-profile-form.dialog';
+import { PatientEventFormDialog } from './patient-event-form.dialog';
 import { AssignMenuTemplateDialog } from './assign-menu-template.dialog';
 import { MenuFormDialog } from '../menus/menu-form.dialog';
 import { formatInstant, formatInstantWithTime } from '../../shared/utils/date';
@@ -43,9 +52,10 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-user-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, CardModule, ButtonModule, TagModule, TableModule, TabsModule, TooltipModule, ConfirmDialogModule, UIChart, SelectButton, IfPermissionDirective, TranslocoDirective, EmptyState],
+  imports: [CommonModule, FormsModule, RouterModule, CardModule, ButtonModule, TagModule, TableModule, TabsModule, TooltipModule, ConfirmDialogModule, UIChart, SelectButton, IfPermissionDirective, TranslocoDirective, EmptyState, FullCalendarModule, Textarea],
   providers: [ConfirmationService, DialogService],
-  templateUrl: './user-detail.page.html'
+  templateUrl: './user-detail.page.html',
+  styleUrls: ['./user-detail.page.scss']
 })
 export default class UserDetailPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -53,6 +63,7 @@ export default class UserDetailPage implements OnInit {
   private readonly measurementService = inject(BodyMeasurementService);
   private readonly menuService = inject(MenuService);
   private readonly appointmentService = inject(AppointmentService);
+  private readonly patientEventService = inject(PatientEventService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
@@ -80,11 +91,26 @@ export default class UserDetailPage implements OnInit {
   canManagePatientProfile = computed(() => this.permissionsService.has('MANAGE_PATIENT_PROFILE'));
   canViewAppointments = computed(() => this.permissionsService.has('VIEW_APPOINTMENTS'));
   canManageMenu = computed(() => this.permissionsService.has('MANAGE_MENU'));
+  canViewPatientEvents = computed(() => this.permissionsService.has('VIEW_PATIENT_EVENTS'));
+  canManagePatientEvents = computed(() => this.permissionsService.has('MANAGE_PATIENT_EVENTS'));
 
   patientProfile = signal<UserTenantProfileDto | null>(null);
   loadingProfile = signal(false);
+  editingGuidelines = signal(false);
+  savingGuidelines = signal(false);
+  editBreakfast = signal('');
+  editSnack = signal('');
+
+  patientEvents = signal<PatientEventDto[]>([]);
+  loadingEvents = signal(false);
+  calendarEvents = signal<EventSourceInput>([]);
+  calendarOptions: CalendarOptions = {};
 
   activeTab = signal('0');
+
+  onTabChange(value: string | number | undefined) {
+    this.activeTab.set(String(value ?? '0'));
+  }
 
   // Chart
   chartData: ChartConfiguration<'line'>['data'] | null = null;
@@ -117,6 +143,28 @@ export default class UserDetailPage implements OnInit {
     if (this.userId) {
       this.loadUser();
     }
+
+    this.calendarOptions = {
+      plugins: [dayGridPlugin, interactionPlugin],
+      initialView: 'dayGridMonth',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth'
+      },
+      locales: [esLocale],
+      locale: 'es',
+      height: 'auto',
+      firstDay: 1,
+      editable: false,
+      selectable: false,
+      eventClick: (info: EventClickArg) => {
+        this.handlePatientEventClick(info);
+      },
+      datesSet: (info: DatesSetArg) => {
+        this.onPatientEventDatesSet(info);
+      }
+    };
   }
 
   private onUserLoaded() {
@@ -127,6 +175,9 @@ export default class UserDetailPage implements OnInit {
     this.loadAppointments();
     if (this.canViewPatientProfile()) {
       this.loadPatientProfile();
+    }
+    if (this.canViewPatientEvents()) {
+      this.loadPatientEvents();
     }
   }
 
@@ -246,6 +297,102 @@ export default class UserDetailPage implements OnInit {
     });
   }
 
+  private loadPatientEvents(from?: string, to?: string) {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    this.loadingEvents.set(true);
+    this.patientEventService.getByPatient(tenantId, this.userId, from, to).subscribe({
+      next: (events) => {
+        this.patientEvents.set(events || []);
+        this.buildCalendarEvents(events || []);
+        this.loadingEvents.set(false);
+      },
+      error: () => this.loadingEvents.set(false)
+    });
+  }
+
+  private buildCalendarEvents(events: PatientEventDto[]) {
+    this.calendarEvents.set(
+      (events || []).map(e => ({
+        id: e.id,
+        title: e.title,
+        start: e.startTime,
+        allDay: true,
+        backgroundColor: 'var(--p-primary-500)',
+        borderColor: 'var(--p-primary-500)',
+        textColor: '#ffffff',
+        extendedProps: {
+          description: e.description,
+          startTime: e.startTime
+        }
+      }))
+    );
+  }
+
+  private onPatientEventDatesSet(info: DatesSetArg) {
+    const start = info.start.toISOString();
+    const end = info.end.toISOString();
+    this.loadPatientEvents(start, end);
+  }
+
+  handlePatientEventClick(info: EventClickArg) {
+    const event = this.patientEvents().find(e => e.id === info.event.id);
+    if (!event) return;
+
+    if (this.canManagePatientEvents()) {
+      this.confirmationService.confirm({
+        message: this.transloco.translate('patient_events.delete_confirm'),
+        header: event.title,
+        icon: 'fa-solid fa-calendar',
+        rejectLabel: this.transloco.translate('patient_events.edit_event'),
+        rejectButtonStyleClass: 'p-button-text',
+        acceptLabel: this.transloco.translate('common.delete'),
+        acceptButtonStyleClass: 'p-button-danger',
+        accept: () => this.deletePatientEvent(event),
+        reject: () => this.showEventFormDialog(event)
+      });
+    }
+  }
+
+  showEventFormDialog(event?: PatientEventDto) {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    const ref = this.dialogService.open(PatientEventFormDialog, {
+      header: this.transloco.translate(event ? 'patient_events.edit_event' : 'patient_events.new_event'),
+      width: '500px',
+      modal: true,
+      data: { event, userId: this.userId },
+      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    });
+    if (ref) {
+      ref.onClose.subscribe((result) => {
+        if (result) this.loadPatientEvents();
+      });
+    }
+  }
+
+  private deletePatientEvent(event: PatientEventDto) {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    this.patientEventService.delete(tenantId, event.id).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: this.transloco.translate('common.success'),
+          detail: this.transloco.translate('patient_events.delete_success')
+        });
+        this.loadPatientEvents();
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: this.transloco.translate('common.error'),
+          detail: this.transloco.translate('patient_events.delete_error')
+        });
+      }
+    });
+  }
+
   private loadAppointments() {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId || !this.canViewAppointments()) return;
@@ -272,6 +419,51 @@ export default class UserDetailPage implements OnInit {
       case 'NO_SHOW': return 'warn';
       default: return 'info';
     }
+  }
+
+  startEditGuidelines() {
+    const profile = this.patientProfile();
+    this.editBreakfast.set(profile?.breakfast ?? '');
+    this.editSnack.set(profile?.snack ?? '');
+    this.editingGuidelines.set(true);
+  }
+
+  cancelEditGuidelines() {
+    this.editingGuidelines.set(false);
+  }
+
+  saveGuidelines() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    const profile = this.patientProfile();
+    if (!profile) return;
+
+    this.savingGuidelines.set(true);
+    const request: UserTenantProfileDto = {
+      ...profile,
+      breakfast: this.editBreakfast() || null,
+      snack: this.editSnack() || null
+    };
+    this.userTenantRoleService.updatePatientProfile(tenantId, this.userId, request).subscribe({
+      next: () => {
+        this.savingGuidelines.set(false);
+        this.editingGuidelines.set(false);
+        this.messageService.add({
+          severity: 'success',
+          summary: this.transloco.translate('common.success'),
+          detail: 'Pautas guardadas correctamente'
+        });
+        this.loadPatientProfile();
+      },
+      error: () => {
+        this.savingGuidelines.set(false);
+        this.messageService.add({
+          severity: 'error',
+          summary: this.transloco.translate('common.error'),
+          detail: 'No se pudieron guardar las pautas'
+        });
+      }
+    });
   }
 
   showEditProfileDialog() {

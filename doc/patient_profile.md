@@ -25,7 +25,12 @@ Obtiene el perfil médico del paciente.
   "habits": "Fumador ocasional, 2 cafés al día",
   "lifestyle": "Trabajo de oficina, 8h sentado",
   "exercise": "Caminata 20min 3x semana",
-  "psyche": "Estrés laboral moderado"
+  "psyche": "Estrés laboral moderado",
+  "allergiesIntolerances": "Lactosa, frutos secos",
+  "foodPreferences": "Dieta ovolactovegetariana",
+  "medicationSupplements": "Metformina 850mg, Vitamina D3",
+  "gastrointestinalStatus": "Digestión lenta, ocasional hinchazón",
+  "hormonalCycle": "SOP, ciclo irregular"
 }
 ```
 
@@ -38,7 +43,12 @@ Si el paciente aún no tiene perfil, todos los campos vuelven `null`:
   "habits": null,
   "lifestyle": null,
   "exercise": null,
-  "psyche": null
+  "psyche": null,
+  "allergiesIntolerances": null,
+  "foodPreferences": null,
+  "medicationSupplements": null,
+  "gastrointestinalStatus": null,
+  "hormonalCycle": null
 }
 ```
 
@@ -57,7 +67,12 @@ Crea o actualiza el perfil médico del paciente (upsert).
   "habits": "Fumador ocasional",
   "lifestyle": "Trabajo de oficina",
   "exercise": "Caminata 20min 3x semana",
-  "psyche": "Estrés laboral moderado"
+  "psyche": "Estrés laboral moderado",
+  "allergiesIntolerances": "Lactosa",
+  "foodPreferences": "No le gusta el pescado",
+  "medicationSupplements": "Metformina 850mg",
+  "gastrointestinalStatus": "Hinchazón ocasional",
+  "hormonalCycle": null
 }
 ```
 
@@ -81,6 +96,11 @@ Crea o actualiza el perfil médico del paciente (upsert).
 | `lifestyle` | `string` | Estilo de vida (trabajo, horarios, descanso) |
 | `exercise` | `string` | Actividad física y ejercicio |
 | `psyche` | `string` | Estado psicológico / emocional |
+| `allergiesIntolerances` | `string` | Alergias e intolerancias alimentarias |
+| `foodPreferences` | `string` | Preferencias, aversiones y tipo de dieta |
+| `medicationSupplements` | `string` | Medicación y suplementación actual |
+| `gastrointestinalStatus` | `string` | Estado gastrointestinal (digestión, ritmo intestinal, etc.) |
+| `hormonalCycle` | `string` | Ciclo hormonal (SOP, menopausia, embarazo, lactancia, etc.) |
 
 Todos los campos son de tipo `TEXT` en PostgreSQL y aceptan contenido largo sin límite práctico.
 
@@ -125,8 +145,9 @@ Los permisos del usuario logado se obtienen desde `GET /me` en el campo `permiss
 ## 6. Ficheros modificados / creados
 
 | Ruta | Cambio |
-|---|---|
+|---|---|---|
 | `db/migration/V7__add_user_tenant_profile.sql` | Nuevo — crea tabla `user_tenant_profile` + permisos + asignación |
+| `db/migration/V10__add_extended_anamnesis_fields.sql` | Nuevo — añade 5 campos de anamnesis extendida |
 | `models/entity/UserTenantProfile.java` | Nuevo — entidad JPA con `@IdClass(UserTenantRoleId.class)` |
 | `models/dto/UserTenantProfileDto.java` | Nuevo — DTO de respuesta |
 | `controller/dto/UpdateUserTenantProfileRequest.java` | Nuevo — DTO de petición |
