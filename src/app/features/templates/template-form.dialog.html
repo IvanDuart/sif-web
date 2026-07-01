@@ -1,13 +1,16 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
-  <tui-textfield>
-    <label tuiLabel>Nombre de la Plantilla</label>
-    <input tuiTextfield formControlName="name" placeholder="Ej: Dieta Cetogénica" />
-  </tui-textfield>
+  <div class="field flex flex-col gap-1.5">
+    <label for="name" class="text-sm font-medium text-surface-700 dark:text-surface-300">Nombre de la Plantilla</label>
+    <input id="name" formControlName="name" class="form-input" placeholder="Ej: Dieta Cetogénica" />
+  </div>
 
-  <textarea tuiTextarea formControlName="description" placeholder="Descripción"></textarea>
+  <div class="field flex flex-col gap-1.5">
+    <label for="description" class="text-sm font-medium text-surface-700 dark:text-surface-300">Descripción</label>
+    <textarea id="description" formControlName="description" class="form-input" rows="4" placeholder="Descripción"></textarea>
+  </div>
 
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-    <button type="button" class="inline-flex items-center justify-center gap-2 rounded-lg border border-surface-300 bg-white px-4 py-2 text-sm font-medium text-surface-700 hover:bg-surface-50 transition-colors" (click)="cancel()">Cancelar</button>
-    <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:pointer-events-none" [disabled]="form.invalid">Guardar Plantilla</button>
+    <button type="button" class="btn-secondary" (click)="cancel()">Cancelar</button>
+    <button type="submit" class="btn-primary" [disabled]="form.invalid">Guardar Plantilla</button>
   </div>
 </form>

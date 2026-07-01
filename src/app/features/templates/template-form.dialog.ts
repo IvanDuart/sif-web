@@ -1,7 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { TuiTextfield } from '@taiga-ui/core';
-import { TuiTextarea } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext } from '@taiga-ui/core';
 import { MenuTemplateService, CreateMenuTemplateRequest } from '../../core/api/services/menu-template.api';
@@ -11,7 +9,7 @@ import { MenuTemplate } from '../../core/api/models/menu-template.model';
 @Component({
   selector: 'app-template-form',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, TuiTextfield, TuiTextarea],
+  imports: [FormsModule, ReactiveFormsModule],
   templateUrl: './template-form.dialog.html'
 })
 export class TemplateFormDialog {

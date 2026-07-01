@@ -69,12 +69,16 @@
 
 /* ── Dialog background ─────────────────────────────── */
 tui-dialog {
-  background: var(--p-surface-0, #ffffff);
+  display: block;
+  background: var(--p-surface-0, #ffffff) !important;
   border-radius: 14px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid var(--tui-border, #e2e8f0);
 }
 
 .dark tui-dialog {
-  background: var(--p-surface-800, #1e293b);
+  background: var(--p-surface-800, #1e293b) !important;
+  border-color: var(--tui-border, #334155);
 }
 
 /* Base layout resets */
@@ -83,7 +87,7 @@ html, body {
   padding: 0;
   height: 100%;
   font-family: var(--p-font-family, 'Poppins', sans-serif);
-  background-color: var(--p-content-background, var(--tui-background));
+  background-color: var(--tui-background);
   color: var(--p-text-color, var(--tui-text-primary));
 }
 
@@ -96,6 +100,8 @@ html, body {
   padding: 1.25rem;
   position: relative;
   min-height: 120px;
+  border: 1px solid var(--tui-border, #e2e8f0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .dark .data-card {

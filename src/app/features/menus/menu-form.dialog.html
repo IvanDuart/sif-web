@@ -1,9 +1,7 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
   <div class="field flex flex-col gap-1.5">
     <label for="name" class="text-sm font-medium text-surface-700 dark:text-surface-300">Nombre de la Dieta / Menú</label>
-    <tui-textfield>
-      <input tuiTextfield id="name" formControlName="name" placeholder="Ej: Dieta de Volumen 3000kcal" />
-    </tui-textfield>
+    <input id="name" formControlName="name" class="form-input" placeholder="Ej: Dieta de Volumen 3000kcal" />
   </div>
 
   <div class="field flex flex-col gap-1.5">

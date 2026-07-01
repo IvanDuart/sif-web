@@ -1,6 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TuiTextfield } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext } from '@taiga-ui/core';
 import { UserTenantRoleService, InviteUserRequest } from '../../core/api/services/user-tenant-role.api';
@@ -15,7 +14,7 @@ export interface InviteUserDialogInput {
 @Component({
   selector: 'app-invite-user',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, TuiTextfield, TranslocoDirective],
+  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective],
   templateUrl: './invite-user.dialog.html'
 })
 export class InviteUserDialog {

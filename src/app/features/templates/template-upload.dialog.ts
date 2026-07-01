@@ -1,7 +1,5 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TuiTextfield } from '@taiga-ui/core';
-import { TuiTextarea } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext } from '@taiga-ui/core';
 import { NotificationService } from '../../core/ui/notification.service';
@@ -12,7 +10,7 @@ import { MenuTemplate } from '../../core/api/models/menu-template.model';
 @Component({
   selector: 'app-template-upload',
   standalone: true,
-  imports: [FormsModule, TuiTextfield, TuiTextarea],
+  imports: [FormsModule],
   templateUrl: './template-upload.dialog.html'
 })
 export class TemplateUploadDialog {

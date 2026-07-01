@@ -1,23 +1,23 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2" *transloco="let t">
-  <tui-textfield>
-    <label tuiLabel>{{ t('users.email') }}</label>
-    <input tuiTextfield type="email" formControlName="email" placeholder="ejemplo@correo.com" />
-  </tui-textfield>
+  <div class="field flex flex-col gap-1.5">
+    <label for="email" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('users.email') }}</label>
+    <input id="email" type="email" formControlName="email" class="form-input" placeholder="ejemplo@correo.com" />
+  </div>
 
   <div class="grid grid-cols-2 gap-4">
-    <tui-textfield>
-      <label tuiLabel>{{ t('users.first_name') }}</label>
-      <input tuiTextfield formControlName="firstName" />
-    </tui-textfield>
-    <tui-textfield>
-      <label tuiLabel>{{ t('users.last_name') }}</label>
-      <input tuiTextfield formControlName="lastName" />
-    </tui-textfield>
+    <div class="field flex flex-col gap-1.5">
+      <label for="firstName" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('users.first_name') }}</label>
+      <input id="firstName" formControlName="firstName" class="form-input" />
+    </div>
+    <div class="field flex flex-col gap-1.5">
+      <label for="lastName" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('users.last_name') }}</label>
+      <input id="lastName" formControlName="lastName" class="form-input" />
+    </div>
   </div>
 
   <div class="field flex flex-col gap-1.5">
     <label for="roleCode" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('users.role') }}</label>
-    <select id="roleCode" formControlName="roleCode" class="w-full rounded-lg border border-surface-300 bg-white px-3 py-2.5 text-sm text-surface-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:bg-surface-800 dark:border-surface-600 dark:text-surface-100 dark:focus:ring-primary-800 outline-none transition-all">
+    <select id="roleCode" formControlName="roleCode" class="form-input">
       <option value="" disabled>Seleccionar Rol</option>
       @for (role of roles(); track role.value) {
         <option [value]="role.value">{{ role.label }}</option>
@@ -29,15 +29,15 @@
     <div class="grid grid-cols-3 gap-4">
       <div class="field flex flex-col gap-1.5">
         <label for="birthDate" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('users.birth_date') }}</label>
-        <input id="birthDate" type="date" formControlName="birthDate" class="w-full rounded-lg border border-surface-300 bg-white px-3 py-2.5 text-sm text-surface-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:bg-surface-800 dark:border-surface-600 dark:text-surface-100 dark:focus:ring-primary-800 outline-none transition-all" />
+        <input id="birthDate" type="date" formControlName="birthDate" class="form-input" />
       </div>
       <div class="field flex flex-col gap-1.5">
         <label for="heightCm" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('users.height_cm') }}</label>
-        <input id="heightCm" type="number" formControlName="heightCm" min="50" max="250" step="0.1" class="w-full rounded-lg border border-surface-300 bg-white px-3 py-2.5 text-sm text-surface-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:bg-surface-800 dark:border-surface-600 dark:text-surface-100 dark:focus:ring-primary-800 outline-none transition-all" />
+        <input id="heightCm" type="number" formControlName="heightCm" min="50" max="250" step="0.1" class="form-input" />
       </div>
       <div class="field flex flex-col gap-1.5">
         <label for="gender" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('users.gender') }}</label>
-        <select id="gender" formControlName="gender" class="w-full rounded-lg border border-surface-300 bg-white px-3 py-2.5 text-sm text-surface-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:bg-surface-800 dark:border-surface-600 dark:text-surface-100 dark:focus:ring-primary-800 outline-none transition-all">
+        <select id="gender" formControlName="gender" class="form-input">
           <option value="" disabled>Seleccionar...</option>
           @for (opt of genderOptions; track opt.value) {
             <option [value]="opt.value">{{ opt.label }}</option>
@@ -48,7 +48,7 @@
   }
 
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-    <button type="button" class="inline-flex items-center justify-center gap-2 rounded-lg border border-surface-300 bg-white px-4 py-2 text-sm font-medium text-surface-700 hover:bg-surface-50 transition-colors" (click)="cancel()">{{ t('common.cancel') }}</button>
-    <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:pointer-events-none" [disabled]="form.invalid">Invitar Usuario</button>
+    <button type="button" class="btn-secondary" (click)="cancel()">{{ t('common.cancel') }}</button>
+    <button type="submit" class="btn-primary" [disabled]="form.invalid">Invitar Usuario</button>
   </div>
 </form>

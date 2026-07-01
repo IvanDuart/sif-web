@@ -1,6 +1,5 @@
 import { Component, inject, computed } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TuiTextfield } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext } from '@taiga-ui/core';
 import { NotificationService } from '../../core/ui/notification.service';
@@ -18,7 +17,7 @@ export interface EditUserDialogInput {
 @Component({
   selector: 'app-edit-user',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, TuiTextfield, TranslocoDirective],
+  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective],
   templateUrl: './edit-user.dialog.html'
 })
 export class EditUserDialog {
