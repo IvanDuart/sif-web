@@ -30,67 +30,48 @@
 
     <div class="flex flex-col gap-1.5">
       <label for="startTime" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('appointments.start_time') }}</label>
-      <p-datePicker
-        id="startTime"
-        formControlName="startTime"
-        [showTime]="true"
-        [hourFormat]="'24'"
-        [dateFormat]="'dd/mm/yy'"
-        [minDate]="minDate"
-        class="w-full"
-        appendTo="body">
-      </p-datePicker>
+      <input type="datetime-local" class="form-input" id="startTime" formControlName="startTime">
     </div>
 
     <div class="flex flex-col gap-1.5">
       <label for="typeId" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('appointments.type') }}</label>
-      <p-select
-        id="typeId"
-        formControlName="typeId"
-        [options]="appointmentTypes()"
-        optionLabel="label"
-        optionValue="value"
-        [placeholder]="t('appointments.type')"
-        class="w-full"
-        appendTo="body">
-      </p-select>
+      <select class="form-input" id="typeId" formControlName="typeId">
+        <option value="" disabled selected>{{ t('appointments.type') }}</option>
+        @for (t of appointmentTypes(); track t.value) {
+          <option [value]="t.value">{{ t.label }}</option>
+        }
+      </select>
     </div>
 
     <div class="flex flex-col gap-1.5">
       <label for="notes" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('appointments.notes') }}</label>
       <textarea
         id="notes"
-        pInputTextarea
+        class="form-input w-full rounded-lg border border-surface-300 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 px-3 py-2 text-sm"
         formControlName="notes"
-        [rows]="3"
-        class="w-full"
-        [placeholder]="t('appointments.notes')">
+        rows="3">
       </textarea>
     </div>
 
     <div class="flex justify-between items-center mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-      <p-button
-        [label]="t('appointments.cancel')"
-        severity="danger"
-        [text]="true"
-        icon="fa-solid fa-ban"
-        [loading]="saving()"
-        (onClick)="confirmCancel()">
-      </p-button>
+      <button class="btn-icon--danger" [disabled]="saving()" (click)="confirmCancel()">
+        @if (saving()) {
+          <i class="fa-solid fa-spinner fa-spin"></i>
+        } @else {
+          <i class="fa-solid fa-ban"></i>
+        }
+        {{ t('appointments.cancel') }}
+      </button>
       <div class="flex gap-2">
-        <p-button
-          [label]="t('common.cancel')"
-          severity="secondary"
-          [text]="true"
-          (onClick)="ref.close()">
-        </p-button>
-        <p-button
-          type="submit"
-          [label]="t('appointments.reschedule')"
-          icon="fa-solid fa-calendar-check"
-          [loading]="saving()"
-          [disabled]="form.invalid">
-        </p-button>
+        <button class="btn-secondary" type="button" (click)="context.$implicit.complete()">{{ t('common.cancel') }}</button>
+        <button type="submit" class="btn-primary" [disabled]="form.invalid || saving()">
+          @if (saving()) {
+            <i class="fa-solid fa-spinner fa-spin"></i>
+          } @else {
+            <i class="fa-solid fa-calendar-check"></i>
+          }
+          {{ t('appointments.reschedule') }}
+        </button>
       </div>
     </div>
   </form>

@@ -1,24 +1,24 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Button } from 'primeng/button';
-import { InputText } from 'primeng/inputtext';
-import { Textarea } from 'primeng/textarea';
-import { DynamicDialogRef } from 'primeng/dynamicdialog';
+import { TuiTextfield } from '@taiga-ui/core';
+import { TuiTextarea } from '@taiga-ui/kit';
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiDialogContext } from '@taiga-ui/core';
 import { MenuTemplateService, CreateMenuTemplateRequest } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
+import { MenuTemplate } from '../../core/api/models/menu-template.model';
 
 @Component({
   selector: 'app-template-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, Button, InputText, Textarea],
+  imports: [FormsModule, ReactiveFormsModule, TuiTextfield, TuiTextarea],
   templateUrl: './template-form.dialog.html'
 })
 export class TemplateFormDialog {
   private readonly fb = inject(FormBuilder);
   private readonly templateService = inject(MenuTemplateService);
   private readonly tenantCtx = inject(TenantContextService);
-  ref = inject(DynamicDialogRef);
+  readonly context = injectContext<TuiDialogContext<MenuTemplate, void>>();
 
   saving = signal(false);
 
@@ -26,6 +26,10 @@ export class TemplateFormDialog {
     name: ['', Validators.required],
     description: ['']
   });
+
+  cancel() {
+    this.context.$implicit.complete();
+  }
 
   submit() {
     if (this.form.invalid) return;
@@ -37,7 +41,8 @@ export class TemplateFormDialog {
     this.templateService.create(tenantId, payload).subscribe({
       next: (created) => {
         this.saving.set(false);
-        this.ref.close(created);
+        this.context.$implicit.next(created);
+        this.context.$implicit.complete();
       },
       error: () => this.saving.set(false)
     });

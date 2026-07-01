@@ -1,11 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { Textarea } from 'primeng/textarea';
-import { InputTextModule } from 'primeng/inputtext';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
-import { MessageService } from 'primeng/api';
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiDialogContext } from '@taiga-ui/core';
+import { NotificationService } from '../../core/ui/notification.service';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { UserTenantProfileDto } from '../../core/api/models/user.model';
@@ -14,21 +12,21 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 @Component({
   selector: 'app-patient-profile-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ButtonModule, Textarea, InputTextModule, TranslocoDirective],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslocoDirective],
   templateUrl: './patient-profile-form.dialog.html'
 })
 export class PatientProfileFormDialog {
   private readonly fb = inject(FormBuilder);
   private readonly userRoleService = inject(UserTenantRoleService);
   private readonly tenantCtx = inject(TenantContextService);
-  private readonly messageService = inject(MessageService);
+  private readonly notify = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
-  ref = inject(DynamicDialogRef);
-  config = inject(DynamicDialogConfig);
+  readonly context = injectContext<TuiDialogContext<boolean, { profile: UserTenantProfileDto; userId: string }>>();
+  ref = { close: () => this.context.$implicit.complete() };
 
   saving = false;
-  profile: UserTenantProfileDto = this.config.data.profile;
-  userId: string = this.config.data.userId;
+  profile: UserTenantProfileDto = this.context.data.profile;
+  userId: string = this.context.data.userId;
 
   form = this.fb.group({
     consultationReason: [this.profile.consultationReason ?? ''],
@@ -72,20 +70,13 @@ export class PatientProfileFormDialog {
     this.userRoleService.updatePatientProfile(tenantId, this.userId, request).subscribe({
       next: () => {
         this.saving = false;
-        this.messageService.add({
-          severity: 'success',
-          summary: this.transloco.translate('common.success'),
-          detail: this.transloco.translate('patient_profile.save_success')
-        });
-        this.ref.close(true);
+        this.notify.success(this.transloco.translate('patient_profile.save_success'), this.transloco.translate('common.success'));
+        this.context.$implicit.next(true);
+        this.context.$implicit.complete();
       },
       error: () => {
         this.saving = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: this.transloco.translate('common.error'),
-          detail: this.transloco.translate('patient_profile.save_error')
-        });
+        this.notify.error(this.transloco.translate('patient_profile.save_error'), this.transloco.translate('common.error'));
       }
     });
   }

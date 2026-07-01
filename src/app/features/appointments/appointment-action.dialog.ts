@@ -1,25 +1,21 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { SelectModule } from 'primeng/select';
-import { DatePickerModule } from 'primeng/datepicker';
-import { InputTextModule } from 'primeng/inputtext';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { TuiTextfield } from '@taiga-ui/core';
+import { TuiTextarea } from '@taiga-ui/kit';
+import { injectContext } from '@taiga-ui/polymorpheus';
+import type { TuiDialogContext } from '@taiga-ui/core';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
 import { AppointmentService } from '../../core/api/services/appointment.api';
 import { AppointmentTypeService } from '../../core/api/services/appointment-type.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppointmentDto } from '../../core/api/models/appointment.model';
+import { NotificationService, ConfirmService } from '../../core/ui';
 
 @Component({
   selector: 'app-appointment-action-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ButtonModule, SelectModule, DatePickerModule, InputTextModule, ConfirmDialogModule, TranslocoDirective],
-  providers: [ConfirmationService, MessageService],
+  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective, TuiTextfield, TuiTextarea],
   templateUrl: './appointment-action.dialog.html'
 })
 export class AppointmentActionDialog implements OnInit {
@@ -27,21 +23,19 @@ export class AppointmentActionDialog implements OnInit {
   private readonly appointmentService = inject(AppointmentService);
   private readonly appointmentTypeService = inject(AppointmentTypeService);
   private readonly tenantCtx = inject(TenantContextService);
-  private readonly confirmationService = inject(ConfirmationService);
-  private readonly messageService = inject(MessageService);
+  private readonly confirm = inject(ConfirmService);
+  private readonly notify = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
-  ref = inject(DynamicDialogRef);
-  config = inject(DynamicDialogConfig);
 
-  appointment: AppointmentDto = this.config.data.appointment;
+  readonly context = injectContext<TuiDialogContext<boolean, { appointment: AppointmentDto }>>();
+
+  appointment: AppointmentDto = this.context.data.appointment;
 
   appointmentTypes = signal<{ label: string; value: string }[]>([]);
   saving = signal(false);
 
-  minDate = new Date();
-
   form = this.fb.group({
-    startTime: [null as Date | null, Validators.required],
+    startTime: ['', Validators.required],
     typeId: ['', Validators.required],
     notes: ['']
   });
@@ -67,9 +61,8 @@ export class AppointmentActionDialog implements OnInit {
   }
 
   private prefillForm() {
-    const startDate = new Date(this.appointment.startTime);
     this.form.patchValue({
-      startTime: startDate,
+      startTime: this.appointment.startTime ? new Date(this.appointment.startTime).toISOString().slice(0, 16) : '',
       typeId: this.appointment.typeId || '',
       notes: this.appointment.notes || ''
     });
@@ -82,51 +75,47 @@ export class AppointmentActionDialog implements OnInit {
     if (!tenantId) return;
 
     const raw = this.form.value;
-    const startTime = raw.startTime as Date;
 
     this.saving.set(true);
 
     this.appointmentService.reschedule(tenantId, this.appointment.id, {
-      startTime: startTime.toISOString(),
+      startTime: new Date(raw.startTime!).toISOString(),
       typeId: raw.typeId!,
       notes: raw.notes || undefined
     }).subscribe({
       next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: this.transloco.translate('common.success'),
-          detail: this.transloco.translate('appointments.reschedule_success')
-        });
-        this.ref.close(true);
+        this.notify.success(
+          this.transloco.translate('appointments.reschedule_success'),
+          this.transloco.translate('common.success')
+        );
+        this.context.$implicit.next(true);
+        this.context.$implicit.complete();
       },
       error: (err) => {
         this.saving.set(false);
         if (err.status === 409) {
-          this.messageService.add({
-            severity: 'error',
-            summary: this.transloco.translate('common.error'),
-            detail: this.transloco.translate('appointments.conflict')
-          });
+          this.notify.error(
+            this.transloco.translate('appointments.conflict'),
+            this.transloco.translate('common.error')
+          );
         } else {
-          this.messageService.add({
-            severity: 'error',
-            summary: this.transloco.translate('common.error'),
-            detail: this.transloco.translate('appointments.reschedule_error')
-          });
+          this.notify.error(
+            this.transloco.translate('appointments.reschedule_error'),
+            this.transloco.translate('common.error')
+          );
         }
       }
     });
   }
 
   confirmCancel() {
-    this.confirmationService.confirm({
-      message: this.transloco.translate('appointments.cancel_confirm'),
-      header: this.transloco.translate('appointments.cancel'),
-      icon: 'fa-solid fa-triangle-exclamation',
-      acceptLabel: this.transloco.translate('common.yes'),
-      rejectLabel: this.transloco.translate('common.no'),
-      acceptButtonStyleClass: 'p-button-danger',
-      accept: () => {
+    this.confirm.confirm({
+      label: this.transloco.translate('appointments.cancel'),
+      content: this.transloco.translate('appointments.cancel_confirm'),
+      yes: this.transloco.translate('common.yes'),
+      no: this.transloco.translate('common.no'),
+    }).subscribe(confirmed => {
+      if (confirmed) {
         this.cancelAppointment();
       }
     });
@@ -139,20 +128,19 @@ export class AppointmentActionDialog implements OnInit {
     this.saving.set(true);
     this.appointmentService.updateStatus(tenantId, this.appointment.id, { status: 'CANCELLED' }).subscribe({
       next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: this.transloco.translate('common.success'),
-          detail: this.transloco.translate('appointments.update_success')
-        });
-        this.ref.close(true);
+        this.notify.success(
+          this.transloco.translate('appointments.update_success'),
+          this.transloco.translate('common.success')
+        );
+        this.context.$implicit.next(true);
+        this.context.$implicit.complete();
       },
       error: () => {
         this.saving.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.transloco.translate('common.error'),
-          detail: this.transloco.translate('appointments.update_error')
-        });
+        this.notify.error(
+          this.transloco.translate('appointments.update_error'),
+          this.transloco.translate('common.error')
+        );
       }
     });
   }

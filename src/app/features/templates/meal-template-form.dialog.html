@@ -1,44 +1,33 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
-  <div class="field flex flex-col gap-2">
-    <label for="dayOfWeek" class="font-medium">Día de la semana</label>
-    <p-select
-      id="dayOfWeek"
-      formControlName="dayOfWeek"
-      [options]="days"
-      optionLabel="label"
-      optionValue="value"
-      placeholder="Seleccionar día"
-      class="w-full"
-      appendTo="body">
-    </p-select>
+  <div class="field flex flex-col gap-1.5">
+    <label for="dayOfWeek" class="text-sm font-medium text-surface-700 dark:text-surface-300">Día de la semana</label>
+    <select id="dayOfWeek" formControlName="dayOfWeek" class="form-input">
+      <option value="" disabled>Seleccionar día</option>
+      @for (d of days; track d.value) {
+        <option [value]="d.value">{{ d.label }}</option>
+      }
+    </select>
   </div>
 
-  <div class="field flex flex-col gap-2">
-    <label for="mealType" class="font-medium">Tipo de comida</label>
-    <p-select
-      id="mealType"
-      formControlName="mealType"
-      [options]="mealTypes"
-      optionLabel="label"
-      optionValue="value"
-      placeholder="Seleccionar tipo"
-      class="w-full"
-      appendTo="body">
-    </p-select>
+  <div class="field flex flex-col gap-1.5">
+    <label for="mealType" class="text-sm font-medium text-surface-700 dark:text-surface-300">Tipo de comida</label>
+    <select id="mealType" formControlName="mealType" class="form-input">
+      <option value="" disabled>Seleccionar tipo</option>
+      @for (m of mealTypes; track m.value) {
+        <option [value]="m.value">{{ m.label }}</option>
+      }
+    </select>
   </div>
 
-  <div class="field flex flex-col gap-2">
-    <label for="description" class="font-medium">Descripción del plato</label>
-    <textarea id="description" pTextarea formControlName="description" class="w-full" rows="3" placeholder="Ej: Pechuga de pollo con arroz y verduras"></textarea>
+  <div class="field flex flex-col gap-1.5">
+    <label for="description" class="text-sm font-medium text-surface-700 dark:text-surface-300">Descripción del plato</label>
+    <tui-textfield>
+      <textarea tuiTextfield id="description" formControlName="description" rows="3" placeholder="Ej: Pechuga de pollo con arroz y verduras"></textarea>
+    </tui-textfield>
   </div>
 
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-    <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>
-    <p-button
-      [label]="isEdit ? 'Guardar Cambios' : 'Añadir Plato'"
-      type="submit"
-      [disabled]="form.invalid"
-      [loading]="saving()">
-    </p-button>
+    <button type="button" class="btn-secondary" (click)="cancel()">Cancelar</button>
+    <button type="submit" class="btn-primary" [disabled]="form.invalid" [class.loading]="saving()">{{ isEdit ? 'Guardar Cambios' : 'Añadir Plato' }}</button>
   </div>
 </form>

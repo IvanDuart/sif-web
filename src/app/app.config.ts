@@ -2,10 +2,9 @@ import { ApplicationConfig, provideZoneChangeDetection, APP_INITIALIZER } from '
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { providePrimeNG } from 'primeng/config';
-import Aura from '@primeuix/themes/aura';
-import { MessageService, ConfirmationService } from 'primeng/api';
-import { DialogService } from 'primeng/dynamicdialog';
+import { provideTaiga } from '@taiga-ui/core';
+import { NG_EVENT_PLUGINS } from '@taiga-ui/event-plugins';
+import { TuiConfirmService } from '@taiga-ui/kit';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
@@ -33,13 +32,10 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([authInterceptor, errorInterceptor, loadingInterceptor])
     ),
     provideAnimationsAsync(),
-    providePrimeNG({
-      theme: {
-        preset: Aura,
-        options: {
-          darkModeSelector: '.dark'
-        }
-      }
+    NG_EVENT_PLUGINS,
+    provideTaiga({
+      fontScaling: true,
+      scrollbars: 'native',
     }),
     getKeycloakProvider(),
     {
@@ -57,8 +53,6 @@ export const appConfig: ApplicationConfig = {
       },
       loader: TranslocoHttpLoader
     }),
-    MessageService,
-    ConfirmationService,
-    DialogService
+    TuiConfirmService
   ]
 };

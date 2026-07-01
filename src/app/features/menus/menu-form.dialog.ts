@@ -1,11 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { CheckboxModule } from 'primeng/checkbox';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { TuiTextfield } from '@taiga-ui/core';
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiDialogContext } from '@taiga-ui/core';
 import { MenuService, CreateMenuRequest } from '../../core/api/services/menu.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -14,16 +11,15 @@ import { AppUserDto } from '../../core/api/models/user.model';
 @Component({
   selector: 'app-menu-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ButtonModule, InputTextModule, SelectModule, CheckboxModule],
+  imports: [FormsModule, ReactiveFormsModule, TuiTextfield],
   templateUrl: './menu-form.dialog.html'
 })
 export class MenuFormDialog implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly menuService = inject(MenuService);
   private readonly userRoleService = inject(UserTenantRoleService);
-  tenantCtx = inject(TenantContextService);
-  ref = inject(DynamicDialogRef);
-  config = inject(DynamicDialogConfig);
+  private readonly tenantCtx = inject(TenantContextService);
+  readonly context = injectContext<TuiDialogContext<unknown, { userId?: string }>>();
 
   users = signal<(AppUserDto & { fullName: string })[]>([]);
   loadingUsers = signal(false);
@@ -53,7 +49,7 @@ export class MenuFormDialog implements OnInit {
         this.users.set(mapped);
         this.loadingUsers.set(false);
 
-        const userId = this.config.data?.userId;
+        const userId = this.context.data?.userId;
         if (userId) {
           this.form.patchValue({ appUserId: userId });
           this.form.get('appUserId')?.disable();
@@ -61,6 +57,10 @@ export class MenuFormDialog implements OnInit {
       },
       error: () => this.loadingUsers.set(false)
     });
+  }
+
+  cancel() {
+    this.context.$implicit.complete();
   }
 
   submit() {
@@ -71,11 +71,12 @@ export class MenuFormDialog implements OnInit {
 
     this.saving.set(true);
     const req = this.form.getRawValue() as CreateMenuRequest;
-    
+
     this.menuService.create(tenantId, req).subscribe({
       next: (createdMenu) => {
         this.saving.set(false);
-        this.ref.close(createdMenu);
+        this.context.$implicit.next(createdMenu);
+        this.context.$implicit.complete();
       },
       error: () => this.saving.set(false)
     });

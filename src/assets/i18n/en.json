@@ -17,8 +17,8 @@
     "assign": "Assign",
     "no_results": "No results",
     "status": "Status",
-    "pagination_report": "Showing {first} to {last} of {totalRecords} entries",
-    "total_records": "Total: {total} entries"
+    "pagination_report": "Showing {{first}} to {{last}} of {{totalRecords}} entries",
+    "total_records": "Total: {{total}} entries"
   },
   "menu": {
     "dashboard": "Dashboard",
@@ -43,7 +43,7 @@
     "role_admin": "Administrator",
     "role_nutritionist": "Nutritionist",
     "role_user": "Patient",
-    "revoke_confirm_msg": "Are you sure you want to remove {name} from this clinic?",
+    "revoke_confirm_msg": "Are you sure you want to remove {{name}} from this clinic?",
     "revoke_confirm_title": "Confirm Revocation",
     "change_role": "Change role",
     "revoke": "Revoke access",
@@ -74,7 +74,7 @@
     "measurements_register": "Register Measurement",
     "measurements_empty_title": "No measurements yet",
     "measurements_empty": "No measurements recorded for this user.",
-    "measurements_delete_confirm": "Delete this measurement from {date}?",
+    "measurements_delete_confirm": "Delete this measurement from {{date}}?",
     "measurement_at_least_one": "At least one metric (weight, body fat %, or muscle mass) is required.",
     "measurement_future_date": "Measurement date cannot be in the future.",
     "height_tooltip": "BMI is calculated using the user's current height.",
@@ -130,7 +130,7 @@
     "chart_title": "Measurement Evolution",
     "empty_title": "No measurements yet",
     "empty": "No measurements recorded for this user. Register the first one to start tracking.",
-    "delete_confirm_msg": "Are you sure you want to delete the measurement from {date}?",
+    "delete_confirm_msg": "Are you sure you want to delete the measurement from {{date}}?",
     "at_least_one_metric": "At least one metric is required.",
     "future_date_invalid": "The measurement date cannot be in the future.",
     "series": {
@@ -209,7 +209,7 @@
     "view_detail": "View detail",
     "empty": "No templates found. Create one to reuse it across different patients.",
     "empty_title": "No templates yet",
-    "delete_confirm_msg": "Are you sure you want to delete the template '{name}'?"
+    "delete_confirm_msg": "Are you sure you want to delete the template '{{name}}'?"
   },
   "diet_detail": {
     "title": "Weekly Meals",
@@ -313,7 +313,7 @@
     "edit": "Edit Appointment Type",
     "create_success": "Appointment type created",
     "update_success": "Appointment type updated",
-    "delete_confirm": "Deactivate appointment type '{name}'?",
+    "delete_confirm": "Deactivate appointment type '{{name}}'?",
     "delete_success": "Appointment type deactivated",
     "empty": "No appointment types configured"
   },

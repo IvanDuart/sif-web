@@ -1,35 +1,31 @@
-import { Component, inject, OnInit, signal, viewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { SelectModule } from 'primeng/select';
-import { FileUploadModule, FileUpload } from 'primeng/fileupload';
-import { MessageModule } from 'primeng/message';
-import { DynamicDialogRef } from 'primeng/dynamicdialog';
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiDialogContext } from '@taiga-ui/core';
 import { MenuUploadService } from '../../core/api/services/menu-upload.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppUserDto } from '../../core/api/models/user.model';
-import { MessageService } from 'primeng/api';
+import { NotificationService } from '../../core/ui';
 
 @Component({
   selector: 'app-menu-upload',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, SelectModule, FileUploadModule, MessageModule],
+  imports: [FormsModule],
   templateUrl: './menu-upload.dialog.html'
 })
 export class MenuUploadDialog implements OnInit {
   private readonly menuUploadService = inject(MenuUploadService);
   private readonly userRoleService = inject(UserTenantRoleService);
   private readonly tenantCtx = inject(TenantContextService);
-  private readonly messageService = inject(MessageService);
-  ref = inject(DynamicDialogRef);
+  private readonly notify = inject(NotificationService);
+  readonly context = injectContext<TuiDialogContext<unknown, void>>();
 
   users = signal<(AppUserDto & { fullName: string })[]>([]);
   loadingUsers = signal(false);
   selectedUserId: string | null = null;
-
-  fileUpload = viewChild(FileUpload);
+  selectedFile: File | null = null;
+  uploading = signal(false);
 
   ngOnInit() {
     this.loadUsers();
@@ -53,24 +49,36 @@ export class MenuUploadDialog implements OnInit {
     });
   }
 
-  onUpload(event: { files: File[] }) {
+  onFileChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.selectedFile = input.files[0];
+    }
+  }
+
+  upload() {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId || !this.selectedUserId) {
-      this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Selecciona un paciente primero' });
+      this.notify.warning('Selecciona un paciente primero');
       return;
     }
 
-    const file = event.files[0];
-    if (!file) return;
+    if (!this.selectedFile) return;
 
-    this.menuUploadService.uploadMenu(tenantId, this.selectedUserId, file).subscribe({
+    this.uploading.set(true);
+    this.menuUploadService.uploadMenu(tenantId, this.selectedUserId, this.selectedFile).subscribe({
       next: (createdMenu) => {
-        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Menú extraído y creado correctamente' });
-        this.ref.close(createdMenu);
+        this.notify.success('Menú extraído y creado correctamente');
+        this.context.$implicit.next(createdMenu);
+        this.context.$implicit.complete();
       },
       error: () => {
-        this.fileUpload()?.clear();
+        this.uploading.set(false);
       }
     });
+  }
+
+  cancel() {
+    this.context.$implicit.complete();
   }
 }

@@ -1,12 +1,11 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { SelectModule } from 'primeng/select';
-import { DatePickerModule } from 'primeng/datepicker';
-import { InputTextModule } from 'primeng/inputtext';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
-import { MessageService } from 'primeng/api';
+import { TuiTextfield } from '@taiga-ui/core';
+import { TuiTextarea } from '@taiga-ui/kit';
+import { injectContext } from '@taiga-ui/polymorpheus';
+import type { TuiDialogContext } from '@taiga-ui/core';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+
 import { AppointmentService } from '../../core/api/services/appointment.api';
 import { AppointmentTypeService } from '../../core/api/services/appointment-type.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
@@ -14,13 +13,12 @@ import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { AppointmentTypeDto } from '../../core/api/models/appointment-type.model';
 import { AppUserDto } from '../../core/api/models/user.model';
-import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import {Textarea} from 'primeng/textarea';
+import { NotificationService } from '../../core/ui';
 
 @Component({
   selector: 'app-appointment-form-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ButtonModule, SelectModule, DatePickerModule, InputTextModule, TranslocoDirective, Textarea],
+  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective, TuiTextfield, TuiTextarea],
   templateUrl: './appointment-form.dialog.html'
 })
 export class AppointmentFormDialog implements OnInit {
@@ -30,22 +28,20 @@ export class AppointmentFormDialog implements OnInit {
   private readonly userRoleService = inject(UserTenantRoleService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly authService = inject(AuthService);
-  private readonly messageService = inject(MessageService);
+  private readonly notify = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
-  ref = inject(DynamicDialogRef);
-  config = inject(DynamicDialogConfig);
+
+  readonly context = injectContext<TuiDialogContext<boolean, { nutritionistId?: string; startTime?: Date }>>();
 
   patients = signal<{ label: string; value: string }[]>([]);
   appointmentTypes = signal<{ label: string; value: string }[]>([]);
   saving = signal(false);
   error = signal('');
 
-  minDate = new Date();
-
   form = this.fb.group({
     patientId: ['', Validators.required],
     typeId: ['', Validators.required],
-    startTime: [null as Date | null, Validators.required],
+    startTime: ['', Validators.required],
     notes: ['']
   });
 
@@ -53,8 +49,9 @@ export class AppointmentFormDialog implements OnInit {
     this.loadPatients();
     this.loadAppointmentTypes();
 
-    if (this.config.data?.startTime) {
-      this.form.patchValue({ startTime: new Date(this.config.data.startTime) });
+    if (this.context.data?.startTime) {
+      const d = new Date(this.context.data.startTime);
+      this.form.patchValue({ startTime: d.toISOString().slice(0, 16) });
     }
   }
 
@@ -95,9 +92,8 @@ export class AppointmentFormDialog implements OnInit {
     const user = this.authService.user();
     if (!tenantId || !user) return;
 
-    const nutritionistId = this.config.data?.nutritionistId || user.id;
+    const nutritionistId = this.context.data?.nutritionistId || user.id;
     const raw = this.form.value;
-    const startTime = raw.startTime as Date;
 
     this.saving.set(true);
     this.error.set('');
@@ -106,16 +102,16 @@ export class AppointmentFormDialog implements OnInit {
       nutritionistId,
       patientId: raw.patientId!,
       typeId: raw.typeId!,
-      startTime: startTime.toISOString(),
+      startTime: new Date(raw.startTime!).toISOString(),
       notes: raw.notes || undefined
     }).subscribe({
       next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: this.transloco.translate('common.success'),
-          detail: this.transloco.translate('appointments.create_success')
-        });
-        this.ref.close(true);
+        this.notify.success(
+          this.transloco.translate('appointments.create_success'),
+          this.transloco.translate('common.success')
+        );
+        this.context.$implicit.next(true);
+        this.context.$implicit.complete();
       },
       error: (err) => {
         this.saving.set(false);

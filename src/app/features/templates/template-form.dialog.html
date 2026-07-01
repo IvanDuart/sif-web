@@ -1,16 +1,13 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
-      <div class="field flex flex-col gap-2">
-        <label for="name" class="font-medium">Nombre de la Plantilla</label>
-        <input id="name" pInputText formControlName="name" class="w-full" placeholder="Ej: Dieta Cetogénica" />
-      </div>
+  <tui-textfield>
+    <label tuiLabel>Nombre de la Plantilla</label>
+    <input tuiTextfield formControlName="name" placeholder="Ej: Dieta Cetogénica" />
+  </tui-textfield>
 
-      <div class="field flex flex-col gap-2">
-        <label for="description" class="font-medium">Descripción</label>
-        <textarea id="description" pTextarea formControlName="description" class="w-full" rows="3"></textarea>
-      </div>
+  <textarea tuiTextarea formControlName="description" placeholder="Descripción"></textarea>
 
-      <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>
-        <p-button label="Guardar Plantilla" type="submit" [disabled]="form.invalid" [loading]="saving()"></p-button>
-      </div>
-    </form>
+  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <button type="button" class="inline-flex items-center justify-center gap-2 rounded-lg border border-surface-300 bg-white px-4 py-2 text-sm font-medium text-surface-700 hover:bg-surface-50 transition-colors" (click)="cancel()">Cancelar</button>
+    <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:pointer-events-none" [disabled]="form.invalid">Guardar Plantilla</button>
+  </div>
+</form>

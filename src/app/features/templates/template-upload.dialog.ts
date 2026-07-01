@@ -1,46 +1,49 @@
-import { Component, inject, viewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Button } from 'primeng/button';
-import { InputText } from 'primeng/inputtext';
-import { Textarea } from 'primeng/textarea';
-import { FileUploadModule, FileUpload } from 'primeng/fileupload';
-import { DynamicDialogRef } from 'primeng/dynamicdialog';
+import { TuiTextfield } from '@taiga-ui/core';
+import { TuiTextarea } from '@taiga-ui/kit';
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiDialogContext } from '@taiga-ui/core';
+import { NotificationService } from '../../core/ui/notification.service';
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
-import { MessageService } from 'primeng/api';
+import { MenuTemplate } from '../../core/api/models/menu-template.model';
 
 @Component({
   selector: 'app-template-upload',
   standalone: true,
-  imports: [CommonModule, FormsModule, Button, InputText, Textarea, FileUploadModule],
+  imports: [FormsModule, TuiTextfield, TuiTextarea],
   templateUrl: './template-upload.dialog.html'
 })
 export class TemplateUploadDialog {
   private readonly templateService = inject(MenuTemplateService);
   private readonly tenantCtx = inject(TenantContextService);
-  private readonly messageService = inject(MessageService);
-  ref = inject(DynamicDialogRef);
+  private readonly notify = inject(NotificationService);
+  readonly context = injectContext<TuiDialogContext<MenuTemplate, void>>();
 
   name = '';
   description = '';
 
-  fileUpload = viewChild(FileUpload);
+  cancel() {
+    this.context.$implicit.complete();
+  }
 
-  onUpload(event: { files: File[] }) {
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
 
-    const file = event.files[0];
-    if (!file) return;
-
     this.templateService.upload(tenantId, file, this.name || undefined, this.description || undefined).subscribe({
       next: (createdTemplate) => {
-        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Plantilla extraída y creada correctamente' });
-        this.ref.close(createdTemplate);
+        this.notify.success('Plantilla extraída y creada correctamente');
+        this.context.$implicit.next(createdTemplate);
+        this.context.$implicit.complete();
       },
       error: () => {
-        this.fileUpload()?.clear();
+        input.value = '';
       }
     });
   }

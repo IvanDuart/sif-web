@@ -6,33 +6,25 @@
         </div>
       </div>
 
-      <div class="field flex flex-col gap-2">
-        <label for="name" class="font-medium">Nombre de la Plantilla (opcional)</label>
-        <input id="name" pInputText [(ngModel)]="name" class="w-full" placeholder="Ej: Plantilla Semana 1" />
-      </div>
+      <tui-textfield>
+        <label tuiLabel>Nombre de la Plantilla (opcional)</label>
+        <input tuiTextfield [(ngModel)]="name" placeholder="Ej: Plantilla Semana 1" />
+      </tui-textfield>
 
-      <div class="field flex flex-col gap-2">
-        <label for="description" class="font-medium">Descripción (opcional)</label>
-        <textarea id="description" pTextarea [(ngModel)]="description" class="w-full" rows="2"></textarea>
-      </div>
+      <textarea tuiTextarea [(ngModel)]="description" placeholder="Descripción (opcional)"></textarea>
 
       <div class="field flex flex-col gap-2 mt-2">
         <p class="font-medium">Documento (PDF o Imagen)</p>
-        <p-fileUpload
-          #fileUpload
-          mode="advanced"
-          chooseLabel="Seleccionar"
-          uploadLabel="Procesar y Crear"
-          cancelLabel="Cancelar"
-          [customUpload]="true"
-          (uploadHandler)="onUpload($event)"
-          accept="image/*,application/pdf"
-          maxFileSize="5000000"
-          [auto]="false">
-        </p-fileUpload>
+        <div class="flex items-center justify-center w-full">
+          <label class="flex flex-col items-center justify-center w-full border-2 border-dashed border-surface-300 rounded-lg cursor-pointer bg-surface-50 hover:bg-surface-100 dark:border-surface-600 dark:bg-surface-800 dark:hover:bg-surface-700 py-8 px-4 transition-colors">
+            <i class="fa-solid fa-cloud-arrow-up text-3xl text-surface-400 mb-2"></i>
+            <span class="text-sm text-surface-500">Click para seleccionar o arrastrar archivo</span>
+            <input type="file" class="hidden" (change)="onFileSelected($event)" accept="image/*,application/pdf" />
+          </label>
+        </div>
       </div>
 
       <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>
+        <button type="button" class="inline-flex items-center justify-center gap-2 rounded-lg border border-surface-300 bg-white px-4 py-2 text-sm font-medium text-surface-700 hover:bg-surface-50 transition-colors" (click)="cancel()">Cancelar</button>
       </div>
     </div>

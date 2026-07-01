@@ -1,10 +1,8 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { SelectModule } from 'primeng/select';
-import { Textarea } from 'primeng/textarea';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { TuiTextfield } from '@taiga-ui/core';
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiDialogContext } from '@taiga-ui/core';
 import { TranslocoService } from '@jsverse/transloco';
 import { MealService, CreateMealRequest } from '../../core/api/services/meal.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -13,20 +11,24 @@ import { Meal } from '../../core/api/models/meal.model';
 const DAY_VALUES = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'] as const;
 const MEAL_VALUES = ['COMIDA', 'CENA'] as const;
 
+export interface MealFormDialogInput {
+  menuId?: string;
+  meal?: Meal;
+  prefillDay?: string;
+}
+
 @Component({
   selector: 'app-meal-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ButtonModule, SelectModule, Textarea],
+  imports: [FormsModule, ReactiveFormsModule, TuiTextfield],
   templateUrl: './meal-form.dialog.html'
 })
 export class MealFormDialog implements OnInit {
-  private fb = inject(FormBuilder);
-  private mealService = inject(MealService);
-  private tenantCtx = inject(TenantContextService);
+  private readonly fb = inject(FormBuilder);
+  private readonly mealService = inject(MealService);
+  private readonly tenantCtx = inject(TenantContextService);
   private readonly transloco = inject(TranslocoService);
-
-  ref = inject(DynamicDialogRef);
-  config = inject(DynamicDialogConfig);
+  readonly context = injectContext<TuiDialogContext<Meal, MealFormDialogInput>>();
 
   days: { label: string; value: string }[] = [];
   mealTypes: { label: string; value: string }[] = [];
@@ -51,7 +53,7 @@ export class MealFormDialog implements OnInit {
       value: m
     }));
 
-    const data = this.config.data;
+    const data = this.context.data;
     if (data?.meal) {
       const meal = data.meal as Meal;
       this.isEdit = true;
@@ -68,6 +70,10 @@ export class MealFormDialog implements OnInit {
     }
   }
 
+  cancel() {
+    this.context.$implicit.complete();
+  }
+
   submit() {
     if (this.form.invalid) return;
 
@@ -82,14 +88,15 @@ export class MealFormDialog implements OnInit {
       }).subscribe({
         next: (updated) => {
           this.saving.set(false);
-          this.ref.close(updated);
+          this.context.$implicit.next(updated);
+          this.context.$implicit.complete();
         },
         error: () => this.saving.set(false),
       });
     } else {
       const raw = this.form.getRawValue();
       const payload: CreateMealRequest = {
-        menuId: this.config.data?.menuId,
+        menuId: this.context.data?.menuId,
         dayOfWeek: raw.dayOfWeek!,
         mealType: raw.mealType!,
         description: raw.description!,
@@ -97,7 +104,8 @@ export class MealFormDialog implements OnInit {
       this.mealService.create(tenantId, payload).subscribe({
         next: (created) => {
           this.saving.set(false);
-          this.ref.close(created);
+          this.context.$implicit.next(created);
+          this.context.$implicit.complete();
         },
         error: () => this.saving.set(false),
       });

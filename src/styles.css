@@ -1,8 +1,81 @@
-@import "primeicons/primeicons.css";
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ─────────────────────────────────────────────
+   PRIME FALLBACK — surface/primary tokens
+   (replaces what PrimeNG + tailwindcss-primeui provided)
+   ───────────────────────────────────────────── */
+:root {
+  --p-surface-0: #ffffff;
+  --p-surface-50: #f8fafc;
+  --p-surface-100: #f1f5f9;
+  --p-surface-200: #e2e8f0;
+  --p-surface-300: #cbd5e1;
+  --p-surface-400: #94a3b8;
+  --p-surface-500: #64748b;
+  --p-surface-600: #475569;
+  --p-surface-700: #334155;
+  --p-surface-800: #1e293b;
+  --p-surface-900: #0f172a;
+  --p-surface-950: #020617;
+  --p-primary-50: #eff6ff;
+  --p-primary-100: #dbeafe;
+  --p-primary-200: #bfdbfe;
+  --p-primary-300: #93c5fd;
+  --p-primary-400: #60a5fa;
+  --p-primary-500: #3b82f6;
+  --p-primary-600: #2563eb;
+  --p-primary-700: #1d4ed8;
+  --p-primary-contrast-color: #ffffff;
+  --p-content-background: var(--p-surface-0);
+  --p-text-color: var(--p-surface-700);
+  --p-font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --p-text-muted-color: var(--p-surface-400);
+}
+
+/* ─────────────────────────────────────────────
+   TAIGA UI THEME — Emerald + Slate palette
+   ───────────────────────────────────────────── */
+:root {
+  --tui-primary: #059669;
+  --tui-primary-hover: #047857;
+  --tui-background-accent-1: #059669;
+  --tui-background-accent-1-hover: #047857;
+  --tui-background-neutral-1: #f8fafc;
+  --tui-background-neutral-2: #f1f5f9;
+  --tui-clear: rgba(0, 0, 0, 0.04);
+  --tui-clear-hover: rgba(0, 0, 0, 0.08);
+  --tui-text-primary: #1e293b;
+  --tui-text-secondary: #64748b;
+  --tui-border: #e2e8f0;
+  --tui-background: #f1f5f9;
+}
+
+.dark {
+  --tui-primary: #34d399;
+  --tui-primary-hover: #6ee7b7;
+  --tui-background-accent-1: #34d399;
+  --tui-background-accent-1-hover: #6ee7b7;
+  --tui-background-neutral-1: #1e293b;
+  --tui-background-neutral-2: #334155;
+  --tui-clear: rgba(255, 255, 255, 0.04);
+  --tui-clear-hover: rgba(255, 255, 255, 0.08);
+  --tui-text-primary: #f1f5f9;
+  --tui-text-secondary: #94a3b8;
+  --tui-border: #334155;
+  --tui-background: #0f172a;
+}
+
+/* ── Dialog background ─────────────────────────────── */
+tui-dialog {
+  background: var(--p-surface-0, #ffffff);
+  border-radius: 14px;
+}
+
+.dark tui-dialog {
+  background: var(--p-surface-800, #1e293b);
+}
 
 /* Base layout resets */
 html, body {
@@ -10,147 +83,399 @@ html, body {
   padding: 0;
   height: 100%;
   font-family: var(--p-font-family, 'Poppins', sans-serif);
-  background-color: var(--p-content-background);
-  color: var(--p-text-color);
+  background-color: var(--p-content-background, var(--tui-background));
+  color: var(--p-text-color, var(--tui-text-primary));
 }
 
 /* ─────────────────────────────────────────────
-   TABLE SYSTEM — card-row design
-   Mapeado a tokens Aura (sin tokens nuevos)
+   NATIVE TABLE — data-card design
    ───────────────────────────────────────────── */
-
-/* Separación entre filas */
-.p-datatable-table {
-  border-spacing: 0 6px !important;
-  border-collapse: separate !important;
-  width: 100% !important;
+.data-card {
+  background: var(--p-surface-0, white);
+  border-radius: 14px;
+  padding: 1.25rem;
+  position: relative;
+  min-height: 120px;
 }
 
-/* Header tipográfico */
-.p-datatable .p-datatable-thead > tr > th {
-  background: transparent !important;
-  padding: 0.75rem 1.25rem !important;
-  font-size: 0.7rem !important;
-  font-weight: 800 !important;
-  color: var(--p-text-muted-color) !important;
-  border: none !important;
-  border-bottom: 2px solid var(--p-surface-200) !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.06em !important;
+.dark .data-card {
+  background: var(--p-surface-900, #1e293b);
 }
 
-/* Cuerpo: cada fila es una tarjeta */
-.p-datatable .p-datatable-tbody > tr {
-  background: var(--p-surface-0) !important;
+.table-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 3rem 1.25rem;
+  color: var(--tui-text-secondary, #64748b);
+  font-size: 0.875rem;
 }
 
-.p-datatable .p-datatable-tbody > tr > td {
-  border: none !important;
-  border-top: 1px solid var(--p-surface-100) !important;
-  border-bottom: 1px solid var(--p-surface-100) !important;
-  padding: 1rem 1.25rem !important;
-  vertical-align: middle !important;
+.table-wrapper {
+  overflow-x: auto;
 }
 
-.p-datatable .p-datatable-tbody > tr > td:first-child {
-  border-left: 1px solid var(--p-surface-100) !important;
-  border-radius: 10px 0 0 10px !important;
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.p-datatable .p-datatable-tbody > tr > td:last-child {
-  border-right: 1px solid var(--p-surface-100) !important;
-  border-radius: 0 10px 10px 0 !important;
+.data-table thead th {
+  background: transparent;
+  padding: 0.75rem 1rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--tui-text-secondary, #64748b);
+  border: none;
+  border-bottom: 2px solid var(--tui-border, #e2e8f0);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: left;
+  white-space: nowrap;
 }
 
-/* Hover por fila */
-.p-datatable .p-datatable-tbody > tr:hover > td {
-  background: var(--p-surface-50) !important;
+.data-table thead th.col-actions {
+  text-align: center;
+  width: 8rem;
+}
+
+.data-table thead th.text-center {
+  text-align: center;
+}
+
+.dark .data-table thead th {
+  border-bottom-color: var(--tui-border, #334155);
+}
+
+.data-table tbody tr {
   transition: background 100ms ease;
 }
 
-/* Quitar rounded del wrapper — las filas son las cards */
-.p-datatable .p-datatable-wrapper {
-  border-radius: 0 !important;
-  background: transparent !important;
+.data-table tbody tr:hover {
+  background: var(--p-surface-50, #f8fafc);
 }
 
-/* Paginador integrado */
-.p-datatable .p-paginator {
-  background: transparent !important;
-  border: none !important;
-  padding: 1rem 0 0 !important;
-  font-size: 0.8125rem !important;
+.data-table tbody td {
+  padding: 0.875rem 1rem;
+  border: none;
+  border-top: 1px solid var(--tui-border, #e2e8f0);
+  vertical-align: middle;
+  font-size: 0.875rem;
+  color: var(--tui-text-primary, #1e293b);
 }
 
-/* ─── Dark mode (toggle .dark en <html>) ─── */
-.dark .p-datatable .p-datatable-thead > tr > th {
-  border-bottom-color: var(--p-surface-700) !important;
+.dark .data-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
 }
 
-.dark .p-datatable .p-datatable-tbody > tr {
-  background: var(--p-surface-900) !important;
+.dark .data-table tbody td {
+  border-top-color: var(--tui-border, #334155);
+  color: var(--tui-text-primary, #f1f5f9);
 }
 
-.dark .p-datatable .p-datatable-tbody > tr > td {
-  border-top-color: var(--p-surface-800) !important;
-  border-bottom-color: var(--p-surface-800) !important;
-}
-
-.dark .p-datatable .p-datatable-tbody > tr > td:first-child {
-  border-left-color: var(--p-surface-800) !important;
-}
-
-.dark .p-datatable .p-datatable-tbody > tr > td:last-child {
-  border-right-color: var(--p-surface-800) !important;
-}
-
-.dark .p-datatable .p-datatable-tbody > tr:hover > td {
-  background: var(--p-surface-800) !important;
+.table-footer {
+  padding: 0.75rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--tui-text-secondary, #64748b);
 }
 
 /* ─────────────────────────────────────────────
-   Tabla agrupada (has-group-rows)
-   Ej: menu-detail con rowGroupMode="subheader"
+   STATUS BADGE
    ───────────────────────────────────────────── */
-.p-datatable.has-group-rows .p-datatable-table {
-  border-spacing: 0 !important;
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
 }
 
-.p-datatable.has-group-rows .p-datatable-tbody > tr > td:first-child {
-  border-radius: 0 !important;
+.status-badge.success {
+  background: #d1fae5;
+  color: #065f46;
 }
 
-.p-datatable.has-group-rows .p-datatable-tbody > tr > td:last-child {
-  border-radius: 0 !important;
+.status-badge.secondary {
+  background: #f1f5f9;
+  color: #475569;
 }
 
-.p-datatable.has-group-rows .p-datatable-tbody > tr > td {
-  border-top: none !important;
-  border-left: none !important;
-  border-right: none !important;
-  border-bottom: 1px solid var(--p-surface-100) !important;
+.status-badge.info {
+  background: #dbeafe;
+  color: #1e40af;
 }
 
-.p-datatable.has-group-rows .p-datatable-rowgroup-header td {
-  background: var(--p-surface-50) !important;
-  border-bottom: 2px solid var(--p-primary-color) !important;
-  border-top: none !important;
-  border-left: none !important;
-  border-right: none !important;
-  border-radius: 0 !important;
-  padding: 0.75rem 1.25rem !important;
+.status-badge.warning {
+  background: #fef3c7;
+  color: #92400e;
 }
 
-.dark .p-datatable.has-group-rows .p-datatable-tbody > tr > td {
-  border-bottom-color: var(--p-surface-800) !important;
+.status-badge.danger {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
-.dark .p-datatable.has-group-rows .p-datatable-rowgroup-header td {
-  background: var(--p-surface-800) !important;
+.dark .status-badge.success {
+  background: rgba(5, 150, 105, 0.15);
+  color: #6ee7b7;
+}
+
+.dark .status-badge.secondary {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+}
+
+.dark .status-badge.info {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+}
+
+.dark .status-badge.warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+}
+
+.dark .status-badge.danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
 }
 
 /* ─────────────────────────────────────────────
-   BOTONES DE ACCIÓN DE FILA
+   BUTTONS
+   ───────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  background: var(--tui-background-accent-1, #059669);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  line-height: 1.25rem;
+  font-family: inherit;
+}
+
+.btn-primary:hover {
+  background: var(--tui-background-accent-1-hover, #047857);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--tui-text-primary, #1e293b);
+  background: var(--tui-background-neutral-2, #f1f5f9);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  line-height: 1.25rem;
+  font-family: inherit;
+}
+
+.btn-secondary:hover {
+  background: var(--tui-clear-hover, rgba(0,0,0,0.08));
+}
+
+/* tui-action-btn — for page-level primary actions (in migrated pages) */
+.tui-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  background: var(--tui-background-accent-1, #059669);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  line-height: 1.25rem;
+  font-family: inherit;
+}
+
+.tui-action-btn:hover {
+  background: var(--tui-background-accent-1-hover, #047857);
+}
+
+/* Icon buttons for row actions */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--tui-text-secondary, #64748b);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.btn-icon:hover {
+  background: var(--tui-clear, rgba(0,0,0,0.04));
+  color: var(--tui-primary, #059669);
+}
+
+.btn-icon--danger:hover {
+  color: #dc2626;
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.dark .btn-icon:hover {
+  background: var(--tui-clear, rgba(255,255,255,0.04));
+}
+
+/* icon-action — used in patients/staff pages for row icon links/buttons */
+.icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--tui-text-secondary, #64748b);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+  font-size: 0.875rem;
+}
+
+.icon-action:hover {
+  background: var(--tui-clear, rgba(0,0,0,0.04));
+  color: var(--tui-primary, #059669);
+}
+
+.icon-action.danger:hover {
+  color: #dc2626;
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.dark .icon-action:hover {
+  background: var(--tui-clear, rgba(255,255,255,0.04));
+}
+
+/* ─────────────────────────────────────────────
+   FORM INPUTS (native inputs styled with Tailwind)
+   ───────────────────────────────────────────── */
+.form-input {
+  display: block;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--tui-border, #e2e8f0);
+  background: var(--tui-background-neutral-1, #f8fafc);
+  color: var(--tui-text-primary, #1e293b);
+  font-size: 0.875rem;
+  font-family: inherit;
+  line-height: 1.25rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: var(--tui-primary, #059669);
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
+}
+
+.dark .form-input {
+  border-color: var(--tui-border, #334155);
+  background: var(--tui-background-neutral-1, #1e293b);
+  color: var(--tui-text-primary, #f1f5f9);
+}
+
+.dark .form-input:focus {
+  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.15);
+}
+
+/* ─────────────────────────────────────────────
+   TOGGLE SWITCH (native checkbox with role="switch")
+   ───────────────────────────────────────────── */
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.switch input[type="checkbox"] {
+  position: relative;
+  width: 2.5rem;
+  height: 1.5rem;
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--tui-border, #e2e8f0);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.switch input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  top: 0.175rem;
+  left: 0.175rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.switch input[type="checkbox"]:checked {
+  background: var(--tui-primary, #059669);
+}
+
+.switch input[type="checkbox"]:checked::before {
+  transform: translateX(1rem);
+}
+
+.switch input[type="checkbox"]:focus-visible {
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
+}
+
+.dark .switch input[type="checkbox"] {
+  background: var(--tui-border, #334155);
+}
+
+.dark .switch input[type="checkbox"]:checked {
+  background: var(--tui-primary, #34d399);
+}
+
+.switch-slider {
+  display: none;
+}
+
+/* ─────────────────────────────────────────────
+   ROW ACTIONS (for action button groups in tables)
    ───────────────────────────────────────────── */
 .row-actions {
   display: inline-flex;
@@ -160,10 +485,3 @@ html, body {
 }
 
 
-
-/* Empty state dentro de tabla */
-.p-datatable .table-empty-cell {
-  padding: 2rem 1.25rem !important;
-  border: none !important;
-  background: transparent !important;
-}

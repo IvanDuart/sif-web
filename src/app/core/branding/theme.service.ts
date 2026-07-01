@@ -1,6 +1,4 @@
 import { Injectable, signal } from '@angular/core';
-import { usePreset, palette } from '@primeuix/themes';
-import Aura from '@primeuix/themes/aura';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
@@ -15,13 +13,21 @@ export class ThemeService {
   }
 
   setPrimary(hex: string) {
-    usePreset({
-      ...Aura,
-      semantic: {
-        ...Aura.semantic,
-        primary: palette(hex)
-      }
-    });
+    document.documentElement.style.setProperty('--p-primary-500', hex);
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const darken = (factor: number) =>
+      `rgb(${Math.round(r * factor)}, ${Math.round(g * factor)}, ${Math.round(b * factor)})`;
+    document.documentElement.style.setProperty('--p-primary-50', `rgba(${r}, ${g}, ${b}, 0.1)`);
+    document.documentElement.style.setProperty('--p-primary-300', darken(0.7));
+    document.documentElement.style.setProperty('--p-primary-600', darken(0.8));
+    document.documentElement.style.setProperty('--p-primary-700', darken(0.6));
+
+    document.documentElement.style.setProperty('--tui-primary', hex);
+    document.documentElement.style.setProperty('--tui-primary-hover', darken(0.8));
+    document.documentElement.style.setProperty('--tui-background-accent-1', hex);
+    document.documentElement.style.setProperty('--tui-background-accent-1-hover', darken(0.8));
   }
 
   toggleColorScheme() {

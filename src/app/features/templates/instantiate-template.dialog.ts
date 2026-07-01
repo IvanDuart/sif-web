@@ -1,21 +1,22 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Button } from 'primeng/button';
-import { InputText } from 'primeng/inputtext';
-import { Select } from 'primeng/select';
-import { Checkbox } from 'primeng/checkbox';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { TuiTextfield } from '@taiga-ui/core';
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiDialogContext } from '@taiga-ui/core';
 import { MenuTemplateService, InstantiateMenuTemplateRequest } from '../../core/api/services/menu-template.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppUserDto } from '../../core/api/models/user.model';
 import { MenuTemplate } from '../../core/api/models/menu-template.model';
 
+export interface InstantiateTemplateDialogInput {
+  template: MenuTemplate;
+}
+
 @Component({
   selector: 'app-instantiate-template',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, Button, InputText, Select, Checkbox],
+  imports: [FormsModule, ReactiveFormsModule, TuiTextfield],
   templateUrl: './instantiate-template.dialog.html'
 })
 export class InstantiateTemplateDialog implements OnInit {
@@ -23,9 +24,7 @@ export class InstantiateTemplateDialog implements OnInit {
   private readonly templateService = inject(MenuTemplateService);
   private readonly userRoleService = inject(UserTenantRoleService);
   private readonly tenantCtx = inject(TenantContextService);
-  
-  ref = inject(DynamicDialogRef);
-  config = inject(DynamicDialogConfig);
+  readonly context = injectContext<TuiDialogContext<boolean, InstantiateTemplateDialogInput>>();
 
   template: MenuTemplate | null = null;
   users = signal<(AppUserDto & { fullName: string })[]>([]);
@@ -39,7 +38,7 @@ export class InstantiateTemplateDialog implements OnInit {
   });
 
   ngOnInit() {
-    this.template = this.config.data.template;
+    this.template = this.context.data.template;
     if (this.template) {
       this.form.patchValue({ name: this.template.name + ' - Copia' });
     }
@@ -64,6 +63,10 @@ export class InstantiateTemplateDialog implements OnInit {
     });
   }
 
+  cancel() {
+    this.context.$implicit.complete();
+  }
+
   submit() {
     if (this.form.invalid || !this.template) return;
     const tenantId = this.tenantCtx.currentTenantId();
@@ -71,9 +74,10 @@ export class InstantiateTemplateDialog implements OnInit {
 
     this.saving.set(true);
     this.templateService.instantiate(tenantId, this.template.id, this.form.value as InstantiateMenuTemplateRequest).subscribe({
-      next: (menu) => {
+      next: () => {
         this.saving.set(false);
-        this.ref.close(menu);
+        this.context.$implicit.next(true);
+        this.context.$implicit.complete();
       },
       error: () => this.saving.set(false)
     });

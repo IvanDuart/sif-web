@@ -1,19 +1,8 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { CardModule } from 'primeng/card';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { TableModule } from 'primeng/table';
-import { TabsModule } from 'primeng/tabs';
-import { Textarea } from 'primeng/textarea';
-import { TooltipModule } from 'primeng/tooltip';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService, MessageService, type LazyLoadMeta } from 'primeng/api';
-import { DialogService } from 'primeng/dynamicdialog';
-import { UIChart } from 'primeng/chart';
-import { SelectButton } from 'primeng/selectbutton';
+import { ModalService, NotificationService, ConfirmService } from '../../core/ui';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -52,8 +41,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-user-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, CardModule, ButtonModule, TagModule, TableModule, TabsModule, TooltipModule, ConfirmDialogModule, UIChart, SelectButton, IfPermissionDirective, TranslocoDirective, EmptyState, FullCalendarModule, Textarea],
-  providers: [ConfirmationService, DialogService],
+  imports: [CommonModule, FormsModule, RouterModule, IfPermissionDirective, TranslocoDirective, EmptyState, FullCalendarModule],
   templateUrl: './user-detail.page.html',
   styleUrls: ['./user-detail.page.scss']
 })
@@ -65,9 +53,9 @@ export default class UserDetailPage implements OnInit {
   private readonly appointmentService = inject(AppointmentService);
   private readonly patientEventService = inject(PatientEventService);
   private readonly tenantCtx = inject(TenantContextService);
-  private readonly confirmationService = inject(ConfirmationService);
-  private readonly messageService = inject(MessageService);
-  private readonly dialogService = inject(DialogService);
+  private readonly confirm = inject(ConfirmService);
+  private readonly notify = inject(NotificationService);
+  private readonly modal = inject(ModalService);
   private readonly transloco = inject(TranslocoService);
   private readonly permissionsService = inject(PermissionsService);
 
@@ -124,9 +112,18 @@ export default class UserDetailPage implements OnInit {
   private readonly COMPOSITION_FIELDS = new Set<string>(['weightKg', 'bmi', 'bodyFatPct', 'muscleMassKg', 'bodyWaterPct']);
   private readonly ANTHROPOMETRY_FIELDS = new Set<string>(['waistCm', 'chestCm', 'hipsCm', 'contourCm', 'armCm']);
 
+  private _chartCanvasEl?: ElementRef<HTMLCanvasElement>;
+
+  @ViewChild('chartCanvas') set chartCanvasEl(el: ElementRef<HTMLCanvasElement> | undefined) {
+    this._chartCanvasEl = el;
+    if (el) this.renderChartIfReady();
+  }
+
+  private chartInstance: Chart | null = null;
+
   // Table pagination
-  private page = 0;
-  private size = 20;
+  page = signal(0);
+  size = signal(25);
 
   protected readonly formatInstant = formatInstant;
   protected readonly formatInstantWithTime = formatInstantWithTime;
@@ -169,7 +166,7 @@ export default class UserDetailPage implements OnInit {
 
   private onUserLoaded() {
     if (this.isStaff()) return;
-    this.loadMeasurements(0, this.size);
+    this.loadMeasurements(0, this.size());
     this.loadEvolution();
     this.loadMenuHistory();
     this.loadAppointments();
@@ -199,8 +196,8 @@ export default class UserDetailPage implements OnInit {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
     this.loadingMeasurements.set(true);
-    this.page = page;
-    this.size = size;
+    this.page.set(page);
+    this.size.set(size);
     this.measurementService.list(tenantId, this.userId, page, size).subscribe({
       next: (res: Page<BodyMeasurementDto>) => {
         this.measurements.set(res.content || []);
@@ -211,8 +208,24 @@ export default class UserDetailPage implements OnInit {
     });
   }
 
-  onPage(event: LazyLoadMeta) {
-    this.loadMeasurements((event.first ?? 0) / (event.rows ?? 20), event.rows ?? 20);
+  onPageChange(page: number) {
+    this.page.set(page);
+    this.loadMeasurements(page, this.size());
+  }
+
+  onSizeChange(size: number) {
+    this.size.set(size);
+    this.page.set(0);
+    this.loadMeasurements(0, size);
+  }
+
+  getPageNumbers(): number[] {
+    const total = Math.ceil(this.totalRecords() / this.size());
+    const pages: number[] = [];
+    const start = Math.max(0, this.page() - 2);
+    const end = Math.min(total, this.page() + 3);
+    for (let i = start; i < end; i++) pages.push(i);
+    return pages;
   }
 
   private loadEvolution() {
@@ -259,6 +272,18 @@ export default class UserDetailPage implements OnInit {
     this.chartData = config.data;
     this.chartOptions = config.options;
     this.chartLoaded.set(true);
+    this.renderChartIfReady();
+  }
+
+  
+  private renderChartIfReady() {
+    if (!this.chartData || !this._chartCanvasEl) return;
+    if (this.chartInstance) this.chartInstance.destroy();
+    this.chartInstance = new Chart(this._chartCanvasEl.nativeElement, {
+      type: 'line',
+      data: this.chartData,
+      options: this.chartOptions ?? undefined,
+    });
   }
 
   setChartType(type: 'composition' | 'anthropometry') {
@@ -318,8 +343,8 @@ export default class UserDetailPage implements OnInit {
         title: e.title,
         start: e.startTime,
         allDay: true,
-        backgroundColor: 'var(--p-primary-500)',
-        borderColor: 'var(--p-primary-500)',
+        backgroundColor: '#2563eb',
+        borderColor: '#2563eb',
         textColor: '#ffffff',
         extendedProps: {
           description: e.description,
@@ -340,16 +365,17 @@ export default class UserDetailPage implements OnInit {
     if (!event) return;
 
     if (this.canManagePatientEvents()) {
-      this.confirmationService.confirm({
-        message: this.transloco.translate('patient_events.delete_confirm'),
-        header: event.title,
-        icon: 'fa-solid fa-calendar',
-        rejectLabel: this.transloco.translate('patient_events.edit_event'),
-        rejectButtonStyleClass: 'p-button-text',
-        acceptLabel: this.transloco.translate('common.delete'),
-        acceptButtonStyleClass: 'p-button-danger',
-        accept: () => this.deletePatientEvent(event),
-        reject: () => this.showEventFormDialog(event)
+      this.confirm.confirm({
+        content: this.transloco.translate('patient_events.delete_confirm'),
+        label: event.title,
+        yes: this.transloco.translate('common.delete'),
+        no: this.transloco.translate('patient_events.edit_event'),
+      }).subscribe((accepted) => {
+        if (accepted) {
+          this.deletePatientEvent(event);
+        } else {
+          this.showEventFormDialog(event);
+        }
       });
     }
   }
@@ -357,18 +383,13 @@ export default class UserDetailPage implements OnInit {
   showEventFormDialog(event?: PatientEventDto) {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
-    const ref = this.dialogService.open(PatientEventFormDialog, {
-      header: this.transloco.translate(event ? 'patient_events.edit_event' : 'patient_events.new_event'),
-      width: '500px',
-      modal: true,
-      data: { event, userId: this.userId },
-      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    this.modal.open(PatientEventFormDialog, {
+      label: this.transloco.translate(event ? 'patient_events.edit_event' : 'patient_events.new_event'),
+      size: 's',
+      data: { event, userId: this.userId }
+    }).subscribe(() => {
+      this.loadPatientEvents();
     });
-    if (ref) {
-      ref.onClose.subscribe((result) => {
-        if (result) this.loadPatientEvents();
-      });
-    }
   }
 
   private deletePatientEvent(event: PatientEventDto) {
@@ -376,19 +397,11 @@ export default class UserDetailPage implements OnInit {
     if (!tenantId) return;
     this.patientEventService.delete(tenantId, event.id).subscribe({
       next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: this.transloco.translate('common.success'),
-          detail: this.transloco.translate('patient_events.delete_success')
-        });
+        this.notify.success(this.transloco.translate('patient_events.delete_success'), this.transloco.translate('common.success'));
         this.loadPatientEvents();
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.transloco.translate('common.error'),
-          detail: this.transloco.translate('patient_events.delete_error')
-        });
+        this.notify.error(this.transloco.translate('patient_events.delete_error'), this.transloco.translate('common.error'));
       }
     });
   }
@@ -448,20 +461,12 @@ export default class UserDetailPage implements OnInit {
       next: () => {
         this.savingGuidelines.set(false);
         this.editingGuidelines.set(false);
-        this.messageService.add({
-          severity: 'success',
-          summary: this.transloco.translate('common.success'),
-          detail: 'Pautas guardadas correctamente'
-        });
+        this.notify.success('Pautas guardadas correctamente', this.transloco.translate('common.success'));
         this.loadPatientProfile();
       },
       error: () => {
         this.savingGuidelines.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.transloco.translate('common.error'),
-          detail: 'No se pudieron guardar las pautas'
-        });
+        this.notify.error('No se pudieron guardar las pautas', this.transloco.translate('common.error'));
       }
     });
   }
@@ -469,108 +474,76 @@ export default class UserDetailPage implements OnInit {
   showEditProfileDialog() {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
-    const ref = this.dialogService.open(PatientProfileFormDialog, {
-      header: this.transloco.translate('patient_profile.edit'),
-      width: '650px',
-      modal: true,
-      data: { profile: this.patientProfile(), userId: this.userId },
-      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    this.modal.open(PatientProfileFormDialog, {
+      label: this.transloco.translate('patient_profile.edit'),
+      size: 'm',
+      data: { profile: this.patientProfile(), userId: this.userId }
+    }).subscribe(() => {
+      this.loadPatientProfile();
     });
-    if (ref) {
-      ref.onClose.subscribe((result) => {
-        if (result) this.loadPatientProfile();
-      });
-    }
   }
 
   showRegisterDialog() {
-    const ref = this.dialogService.open(MeasurementFormDialog, {
-      header: this.transloco.translate('measurements.register'),
-      width: '50vw',
-      modal: true,
-      data: { userId: this.userId },
-      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    this.modal.open(MeasurementFormDialog, {
+      label: this.transloco.translate('measurements.register'),
+      size: 'l',
+      data: { userId: this.userId }
+    }).subscribe(() => {
+      this.notify.success('Medición registrada correctamente', this.transloco.translate('common.success'));
+      this.loadMeasurements(0, this.size());
+      this.loadEvolution();
     });
-    if (ref) {
-      ref.onClose.subscribe((result) => {
-        if (result) {
-          this.messageService.add({ severity: 'success', summary: this.transloco.translate('common.success'), detail: 'Medición registrada correctamente' });
-          this.loadMeasurements(0, this.size);
-          this.loadEvolution();
-        }
-      });
-    }
   }
 
   showCreateMenuDialog() {
-    const ref = this.dialogService.open(MenuFormDialog, {
-      header: 'Crear Menú',
-      width: '500px',
-      modal: true,
-      data: { userId: this.userId },
-      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    this.modal.open(MenuFormDialog, {
+      label: 'Crear Menú',
+      size: 's',
+      data: { userId: this.userId }
+    }).subscribe(() => {
+      this.notify.success('Menú asignado al paciente correctamente', 'Menú creado');
+      this.loadMenuHistory();
     });
-    if (ref) {
-      ref.onClose.subscribe((result) => {
-        if (result) {
-          this.messageService.add({ severity: 'success', summary: 'Menú creado', detail: 'Menú asignado al paciente correctamente' });
-          this.loadMenuHistory();
-        }
-      });
-    }
   }
 
   showAssignTemplateDialog() {
-    const ref = this.dialogService.open(AssignMenuTemplateDialog, {
-      header: 'Asignar desde Plantilla',
-      width: '500px',
-      modal: true,
-      data: { userId: this.userId },
-      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    this.modal.open(AssignMenuTemplateDialog, {
+      label: 'Asignar desde Plantilla',
+      size: 's',
+      data: { userId: this.userId }
+    }).subscribe(() => {
+      this.notify.success('Plantilla asignada al paciente correctamente', 'Menú asignado');
+      this.loadMenuHistory();
     });
-    if (ref) {
-      ref.onClose.subscribe((result) => {
-        if (result) {
-          this.messageService.add({ severity: 'success', summary: 'Menú asignado', detail: 'Plantilla asignada al paciente correctamente' });
-          this.loadMenuHistory();
-        }
-      });
-    }
   }
 
   showEditDialog() {
     const current = this.user();
     if (!current) return;
-    const ref = this.dialogService.open(EditUserDialog, {
-      header: this.transloco.translate('users.edit_user_title'),
-      width: '500px',
-      modal: true,
-      data: { user: current },
-      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    this.modal.open(EditUserDialog, {
+      label: this.transloco.translate('users.edit_user_title'),
+      size: 's',
+      data: { user: current }
+    }).subscribe(() => {
+      this.loadUser();
     });
-    if (ref) {
-      ref.onClose.subscribe((updated) => {
-        if (updated) this.loadUser();
-      });
-    }
   }
 
   deleteMeasurement(measurement: BodyMeasurementDto) {
     const date = formatInstant(measurement.measuredAt);
-    this.confirmationService.confirm({
-      message: this.transloco.translate('measurements.delete_confirm_msg', { date }),
-      header: this.transloco.translate('common.attention'),
-      icon: 'fa-solid fa-triangle-exclamation',
-      acceptLabel: this.transloco.translate('common.yes'),
-      rejectLabel: this.transloco.translate('common.cancel'),
-      acceptButtonStyleClass: 'p-button-danger',
-      accept: () => {
+    this.confirm.confirm({
+      content: this.transloco.translate('measurements.delete_confirm_msg', { date }),
+      label: this.transloco.translate('common.attention'),
+      yes: this.transloco.translate('common.yes'),
+      no: this.transloco.translate('common.cancel'),
+    }).subscribe((accepted) => {
+      if (accepted) {
         const tenantId = this.tenantCtx.currentTenantId();
         if (tenantId) {
           this.measurementService.delete(tenantId, this.userId, measurement.id).subscribe({
             next: () => {
-              this.messageService.add({ severity: 'success', summary: this.transloco.translate('common.success'), detail: 'Medición eliminada' });
-              this.loadMeasurements(this.page, this.size);
+              this.notify.success('Medición eliminada', this.transloco.translate('common.success'));
+              this.loadMeasurements(this.page(), this.size());
               this.loadEvolution();
             }
           });

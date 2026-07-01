@@ -1,18 +1,19 @@
 <div class="p-4 max-w-5xl mx-auto" *transloco="let t">
   <h1 class="text-2xl font-bold mb-6">{{ t('menu.settings') }}</h1>
 
-  <p-tabs [value]="activeTab">
-    <p-tablist>
-      <p-tab value="0">{{ t('settings.branding_tab') }}</p-tab>
-      <p-tab value="1">{{ t('appointment_types.title') }}</p-tab>
-    </p-tablist>
-    <p-tabpanels>
-      <p-tabpanel value="0">
-        <app-branding-settings />
-      </p-tabpanel>
-      <p-tabpanel value="1">
-        <app-appointment-types-settings />
-      </p-tabpanel>
-    </p-tabpanels>
-  </p-tabs>
+  <div class="border-b border-surface-200 dark:border-surface-700 mb-6">
+    <button
+      class="tab-btn px-4 py-2 text-sm font-medium text-surface-500 dark:text-surface-400 border-b-2 border-transparent -mb-px transition-colors duration-150 hover:text-surface-700 dark:hover:text-surface-200"
+      [class.!text-primary-600]="activeTab === '0'"
+      [class.!border-primary-500]="activeTab === '0'"
+      (click)="activeTab = '0'">{{ t('settings.branding_tab') }}</button>
+    <button
+      class="tab-btn px-4 py-2 text-sm font-medium text-surface-500 dark:text-surface-400 border-b-2 border-transparent -mb-px transition-colors duration-150 hover:text-surface-700 dark:hover:text-surface-200"
+      [class.!text-primary-600]="activeTab === '1'"
+      [class.!border-primary-500]="activeTab === '1'"
+      (click)="activeTab = '1'">{{ t('appointment_types.title') }}</button>
+  </div>
+
+  @if (activeTab === '0') { <app-branding-settings /> }
+  @if (activeTab === '1') { <app-appointment-types-settings /> }
 </div>

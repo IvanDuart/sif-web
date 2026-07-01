@@ -1,13 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { Textarea } from 'primeng/textarea';
-import { DatePickerModule } from 'primeng/datepicker';
-import { StepperModule } from 'primeng/stepper';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiDialogContext } from '@taiga-ui/core';
 import { BodyMeasurementService } from '../../core/api/services/body-measurement.api';
 import { CreateBodyMeasurementRequest } from '../../core/api/models/body-measurement.model';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -16,7 +11,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 @Component({
   selector: 'app-measurement-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ButtonModule, InputTextModule, InputNumberModule, Textarea, DatePickerModule, StepperModule, TranslocoDirective],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslocoDirective],
   templateUrl: './measurement-form.dialog.html'
 })
 export class MeasurementFormDialog {
@@ -24,13 +19,12 @@ export class MeasurementFormDialog {
   private readonly measurementService = inject(BodyMeasurementService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly transloco = inject(TranslocoService);
-  ref = inject(DynamicDialogRef);
-  config = inject(DynamicDialogConfig);
+  readonly context = injectContext<TuiDialogContext<boolean, { userId: string }>>();
+  ref = { close: () => this.context.$implicit.complete() };
 
-  saving = false;
-  userId = '';
-  today = new Date();
-  activeStep = 1;
+  saving = signal(false);
+  userId = this.context.data.userId;
+  activeStep = signal(1);
 
   form = this.fb.group({
     weightKg: [null as number | null],
@@ -42,20 +36,16 @@ export class MeasurementFormDialog {
     hipsCm: [null as number | null],
     contourCm: [null as number | null],
     armCm: [null as number | null],
-    measuredAt: [new Date() as Date | null],
+    measuredAt: [new Date().toISOString().slice(0, 16) as string | null],
     notes: ['']
   });
 
-  constructor() {
-    this.userId = this.config.data.userId;
-  }
-
   nextStep() {
-    this.activeStep = this.activeStep + 1;
+    this.activeStep.set(this.activeStep() + 1);
   }
 
   prevStep() {
-    this.activeStep = this.activeStep - 1;
+    this.activeStep.set(this.activeStep() - 1);
   }
 
   submit() {
@@ -82,16 +72,17 @@ export class MeasurementFormDialog {
     if (raw.hipsCm != null) request.hipsCm = raw.hipsCm;
     if (raw.contourCm != null) request.contourCm = raw.contourCm;
     if (raw.armCm != null) request.armCm = raw.armCm;
-    if (raw.measuredAt) request.measuredAt = raw.measuredAt.toISOString();
+    if (raw.measuredAt) request.measuredAt = new Date(raw.measuredAt).toISOString();
     if (raw.notes) request.notes = raw.notes;
 
-    this.saving = true;
+    this.saving.set(true);
     this.measurementService.create(tenantId, this.userId, request).subscribe({
       next: () => {
-        this.saving = false;
-        this.ref.close(true);
+        this.saving.set(false);
+        this.context.$implicit.next(true);
+        this.context.$implicit.complete();
       },
-      error: () => this.saving = false
+      error: () => this.saving.set(false)
     });
   }
 }

@@ -17,8 +17,8 @@
     "assign": "Asignar",
     "no_results": "Sin resultados",
     "status": "Estado",
-    "pagination_report": "Mostrando {first} a {last} de {totalRecords} elementos",
-    "total_records": "Total: {total} elementos"
+    "pagination_report": "Mostrando {{first}} a {{last}} de {{totalRecords}} elementos",
+    "total_records": "Total: {{total}} elementos"
   },
   "menu": {
     "dashboard": "Panel Principal",
@@ -43,7 +43,7 @@
     "role_admin": "Administrador",
     "role_nutritionist": "Nutricionista",
     "role_user": "Paciente",
-    "revoke_confirm_msg": "¿Estás seguro de que quieres remover a {name} de esta clínica?",
+    "revoke_confirm_msg": "¿Estás seguro de que quieres remover a {{name}} de esta clínica?",
     "revoke_confirm_title": "Confirmar Revocación",
     "change_role": "Cambiar rol",
     "revoke": "Revocar acceso",
@@ -77,7 +77,7 @@
     "measurements_register": "Registrar Medición",
     "measurements_empty_title": "Sin mediciones aún",
     "measurements_empty": "No hay mediciones registradas para este usuario.",
-    "measurements_delete_confirm": "¿Eliminar esta medición del {date}?",
+    "measurements_delete_confirm": "¿Eliminar esta medición del {{date}}?",
     "measurement_at_least_one": "Debe ingresar al menos una métrica (peso, % grasa o masa muscular).",
     "measurement_future_date": "La fecha de medición no puede ser futura.",
     "height_tooltip": "El IMC se calcula con la altura actual del usuario.",
@@ -139,7 +139,7 @@
     "chart_title": "Evolución de Mediciones",
     "empty_title": "Sin mediciones aún",
     "empty": "No hay mediciones registradas para este usuario. Registre la primera para comenzar el seguimiento.",
-    "delete_confirm_msg": "¿Estás seguro de que quieres eliminar la medición del {date}?",
+    "delete_confirm_msg": "¿Estás seguro de que quieres eliminar la medición del {{date}}?",
     "at_least_one_metric": "Debe ingresar al menos una métrica.",
     "future_date_invalid": "La fecha de medición no puede ser futura.",
     "series": {
@@ -228,7 +228,7 @@
     "view_detail": "Ver detalle",
     "empty": "No se encontraron plantillas. Creá una para reutilizarla en distintos pacientes.",
     "empty_title": "Sin plantillas aún",
-    "delete_confirm_msg": "¿Estás seguro de que quieres eliminar la plantilla '{name}'?"
+    "delete_confirm_msg": "¿Estás seguro de que quieres eliminar la plantilla '{{name}}'?"
   },
   "diet_detail": {
     "title": "Comidas de la Semana",
@@ -332,7 +332,7 @@
     "edit": "Editar Tipo de Cita",
     "create_success": "Tipo de cita creado",
     "update_success": "Tipo de cita actualizado",
-    "delete_confirm": "¿Desactivar el tipo de cita '{name}'?",
+    "delete_confirm": "¿Desactivar el tipo de cita '{{name}}'?",
     "delete_success": "Tipo de cita desactivado",
     "empty": "No hay tipos de cita configurados"
   },

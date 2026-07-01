@@ -1,14 +1,8 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { DatePipe, Location } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { CardModule } from 'primeng/card';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { DialogService } from 'primeng/dynamicdialog';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ToastModule } from 'primeng/toast';
+
 import { MenuService } from '../../core/api/services/menu.api';
 import { MealService } from '../../core/api/services/meal.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -16,7 +10,8 @@ import { Menu } from '../../core/api/models/menu.model';
 import { Meal } from '../../core/api/models/meal.model';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
 import { PermissionsService } from '../../core/permissions/permissions.service';
-import { MealFormDialog } from './meal-form.dialog';
+import { NotificationService, ModalService, ConfirmService } from '../../core/ui';
+import { MealFormDialog, MealFormDialogInput } from './meal-form.dialog';
 
 const ALL_DAYS = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'] as const;
 const MEAL_ORDER: Record<string, number> = { COMIDA: 0, CENA: 1 };
@@ -24,8 +19,7 @@ const MEAL_ORDER: Record<string, number> = { COMIDA: 0, CENA: 1 };
 @Component({
   selector: 'app-menu-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, CardModule, ButtonModule, TagModule, IfPermissionDirective, TranslocoDirective, ConfirmDialogModule, ToastModule],
-  providers: [DialogService, ConfirmationService, MessageService],
+  imports: [DatePipe, RouterModule, IfPermissionDirective, TranslocoDirective],
   templateUrl: './menu-detail.page.html',
   styleUrls: ['./menu-detail.page.scss'],
 })
@@ -34,10 +28,10 @@ export default class MenuDetailPage implements OnInit {
   private readonly menuService = inject(MenuService);
   private readonly mealService = inject(MealService);
   private readonly tenantCtx = inject(TenantContextService);
-  private readonly dialogService = inject(DialogService);
+  private readonly modal = inject(ModalService);
   private readonly transloco = inject(TranslocoService);
-  private readonly confirmationService = inject(ConfirmationService);
-  private readonly messageService = inject(MessageService);
+  private readonly confirm = inject(ConfirmService);
+  private readonly notify = inject(NotificationService);
   private readonly permissionsService = inject(PermissionsService);
   private readonly location = inject(Location);
 
@@ -112,48 +106,37 @@ export default class MenuDetailPage implements OnInit {
   }
 
   addMeal(day?: string) {
-    const ref = this.dialogService.open(MealFormDialog, {
-      header: this.transloco.translate('diet_detail.add_meal'),
-      width: '500px',
-      modal: true,
-      data: { menuId: this.menuId, prefillDay: day },
-      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    this.modal.open<Meal, MealFormDialogInput>(MealFormDialog, {
+      label: this.transloco.translate('diet_detail.add_meal'),
+      size: 'm',
+      data: { menuId: this.menuId, prefillDay: day }
+    }).subscribe(result => {
+      if (result) this.loadData();
     });
-    if (ref) {
-      ref.onClose.subscribe((result) => {
-        if (result) this.loadData();
-      });
-    }
   }
 
   editMeal(meal: Meal) {
-    const ref = this.dialogService.open(MealFormDialog, {
-      header: this.transloco.translate('common.edit'),
-      width: '500px',
-      modal: true,
-      data: { meal },
-      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    this.modal.open<Meal, MealFormDialogInput>(MealFormDialog, {
+      label: this.transloco.translate('common.edit'),
+      size: 'm',
+      data: { meal }
+    }).subscribe(result => {
+      if (result) this.loadData();
     });
-    if (ref) {
-      ref.onClose.subscribe((result) => {
-        if (result) this.loadData();
-      });
-    }
   }
 
   deleteMeal(meal: Meal) {
-    this.confirmationService.confirm({
-      message: this.transloco.translate('diet_detail.delete_confirm', { description: meal.description }) || '¿Eliminar este plato?',
-      header: this.transloco.translate('common.attention'),
-      icon: 'fa-solid fa-triangle-exclamation',
-      acceptLabel: this.transloco.translate('common.yes'),
-      rejectLabel: this.transloco.translate('common.cancel'),
-      acceptButtonStyleClass: 'p-button-danger',
-      accept: () => {
+    this.confirm.confirm({
+      label: this.transloco.translate('common.attention'),
+      content: this.transloco.translate('diet_detail.delete_confirm', { description: meal.description }) || '¿Eliminar este plato?',
+      yes: this.transloco.translate('common.yes'),
+      no: this.transloco.translate('common.cancel'),
+    }).subscribe(confirmed => {
+      if (confirmed) {
         const tenantId = this.tenantCtx.currentTenantId();
         if (!tenantId) return;
         this.mealService.delete(tenantId, meal.id).subscribe(() => {
-          this.messageService.add({ severity: 'success', summary: this.transloco.translate('common.success'), detail: 'Plato eliminado' });
+          this.notify.success('Plato eliminado');
           this.meals.set(this.meals().filter(m => m.id !== meal.id));
         });
       }

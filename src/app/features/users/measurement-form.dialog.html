@@ -1,170 +1,119 @@
 <form [formGroup]="form" (ngSubmit)="submit()" *transloco="let t">
-  <p-stepper [value]="activeStep" [linear]="true" class="basis-[50rem]">
-    <p-step-list>
-      <p-step [value]="1">{{ t('measurements.step_composition') }}</p-step>
-      <p-step [value]="2">{{ t('measurements.step_circumferences') }}</p-step>
-      <p-step [value]="3">{{ t('measurements.step_details') }}</p-step>
-    </p-step-list>
+  <!-- Step indicator -->
+  <div class="flex items-center gap-2 mb-6">
+    @for (step of [1, 2, 3]; track step) {
+      <button type="button" (click)="activeStep.set(step)" [class.bg-primary-500]="activeStep() >= step" [class.text-white]="activeStep() >= step" [class.bg-surface-200]="activeStep() < step" class="w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center transition-colors">{{ step }}</button>
+      @if (step < 3) {
+        <div class="flex-1 h-0.5 rounded" [class.bg-primary-500]="activeStep() > step" [class.bg-surface-200]="activeStep() <= step"></div>
+      }
+    }
+  </div>
+  <!-- Step labels -->
+  <div class="flex justify-between text-xs text-surface-500 mb-4">
+    <span [class.font-semibold]="activeStep() === 1">{{ t('measurements.step_composition') }}</span>
+    <span [class.font-semibold]="activeStep() === 2">{{ t('measurements.step_circumferences') }}</span>
+    <span [class.font-semibold]="activeStep() === 3">{{ t('measurements.step_details') }}</span>
+  </div>
 
-    <p-step-panels>
-      <p-step-panel [value]="1">
-        <ng-template pTemplate="content">
-          <div class="flex flex-col gap-4 pt-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div class="field flex flex-col gap-2">
-                <label for="weightKg" class="font-medium text-sm">{{ t('measurements.weight') }}</label>
-                <p-inputnumber
-                  id="weightKg"
-                  formControlName="weightKg"
-                  [min]="0"
-                  [max]="999.99"
-                  [maxFractionDigits]="2"
-                  suffix=" kg"
-                  class="w-full" />
-              </div>
-              <div class="field flex flex-col gap-2">
-                <label for="bodyFatPct" class="font-medium text-sm">{{ t('measurements.body_fat') }}</label>
-                <p-inputnumber
-                  id="bodyFatPct"
-                  formControlName="bodyFatPct"
-                  [min]="0"
-                  [max]="99.9"
-                  [maxFractionDigits]="1"
-                  suffix=" %"
-                  class="w-full" />
-              </div>
-              <div class="field flex flex-col gap-2">
-                <label for="muscleMassKg" class="font-medium text-sm">{{ t('measurements.muscle_mass') }}</label>
-                <p-inputnumber
-                  id="muscleMassKg"
-                  formControlName="muscleMassKg"
-                  [min]="0"
-                  [max]="999.99"
-                  [maxFractionDigits]="2"
-                  suffix=" kg"
-                  class="w-full" />
-              </div>
-              <div class="field flex flex-col gap-2">
-                <label for="bodyWaterPct" class="font-medium text-sm">{{ t('measurements.body_water') }}</label>
-                <p-inputnumber
-                  id="bodyWaterPct"
-                  formControlName="bodyWaterPct"
-                  [min]="0"
-                  [max]="99.9"
-                  [maxFractionDigits]="1"
-                  suffix=" %"
-                  class="w-full" />
-              </div>
-            </div>
-            <div class="flex justify-end gap-2 pt-4">
-              <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>
-              <p-button [label]="'Siguiente'" icon="fa-solid fa-arrow-right" iconPos="right" (onClick)="nextStep()"></p-button>
-            </div>
+  @if (activeStep() === 1) {
+    <div class="flex flex-col gap-4 pt-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="field flex flex-col gap-2">
+          <label for="weightKg" class="font-medium text-sm">{{ t('measurements.weight') }}</label>
+          <div class="relative">
+            <input type="number" formControlName="weightKg" id="weightKg" step="0.01" min="0" max="999.99" class="w-full rounded-lg border border-surface-300 px-3 py-2 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-surface-400 pointer-events-none">kg</span>
           </div>
-        </ng-template>
-      </p-step-panel>
+        </div>
+        <div class="field flex flex-col gap-2">
+          <label for="bodyFatPct" class="font-medium text-sm">{{ t('measurements.body_fat') }}</label>
+          <div class="relative">
+            <input type="number" formControlName="bodyFatPct" id="bodyFatPct" step="0.1" min="0" max="99.9" class="w-full rounded-lg border border-surface-300 px-3 py-2 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-surface-400 pointer-events-none">%</span>
+          </div>
+        </div>
+        <div class="field flex flex-col gap-2">
+          <label for="muscleMassKg" class="font-medium text-sm">{{ t('measurements.muscle_mass') }}</label>
+          <div class="relative">
+            <input type="number" formControlName="muscleMassKg" id="muscleMassKg" step="0.01" min="0" max="999.99" class="w-full rounded-lg border border-surface-300 px-3 py-2 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-surface-400 pointer-events-none">kg</span>
+          </div>
+        </div>
+        <div class="field flex flex-col gap-2">
+          <label for="bodyWaterPct" class="font-medium text-sm">{{ t('measurements.body_water') }}</label>
+          <div class="relative">
+            <input type="number" formControlName="bodyWaterPct" id="bodyWaterPct" step="0.1" min="0" max="99.9" class="w-full rounded-lg border border-surface-300 px-3 py-2 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-surface-400 pointer-events-none">%</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-4">
+        <button type="button" class="btn-secondary" (click)="ref.close()">{{ t('common.cancel') }}</button>
+        <button type="button" class="btn-primary" (click)="nextStep()">{{ 'Siguiente' }} <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+  }
 
-      <p-step-panel [value]="2">
-        <ng-template pTemplate="content">
-          <div class="flex flex-col gap-4 pt-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div class="field flex flex-col gap-2">
-                <label for="waistCm" class="font-medium text-sm">{{ t('measurements.waist') }}</label>
-                <p-inputnumber
-                  id="waistCm"
-                  formControlName="waistCm"
-                  [min]="0"
-                  [max]="999.9"
-                  [maxFractionDigits]="1"
-                  suffix=" cm"
-                  class="w-full" />
-              </div>
-              <div class="field flex flex-col gap-2">
-                <label for="chestCm" class="font-medium text-sm">{{ t('measurements.chest') }}</label>
-                <p-inputnumber
-                  id="chestCm"
-                  formControlName="chestCm"
-                  [min]="0"
-                  [max]="999.9"
-                  [maxFractionDigits]="1"
-                  suffix=" cm"
-                  class="w-full" />
-              </div>
-              <div class="field flex flex-col gap-2">
-                <label for="hipsCm" class="font-medium text-sm">{{ t('measurements.hips') }}</label>
-                <p-inputnumber
-                  id="hipsCm"
-                  formControlName="hipsCm"
-                  [min]="0"
-                  [max]="999.9"
-                  [maxFractionDigits]="1"
-                  suffix=" cm"
-                  class="w-full" />
-              </div>
-              <div class="field flex flex-col gap-2">
-                <label for="contourCm" class="font-medium text-sm">{{ t('measurements.contour') }}</label>
-                <p-inputnumber
-                  id="contourCm"
-                  formControlName="contourCm"
-                  [min]="0"
-                  [max]="999.9"
-                  [maxFractionDigits]="1"
-                  suffix=" cm"
-                  class="w-full" />
-              </div>
-              <div class="field flex flex-col gap-2">
-                <label for="armCm" class="font-medium text-sm">{{ t('measurements.arm') }}</label>
-                <p-inputnumber
-                  id="armCm"
-                  formControlName="armCm"
-                  [min]="0"
-                  [max]="999.9"
-                  [maxFractionDigits]="1"
-                  suffix=" cm"
-                  class="w-full" />
-              </div>
-            </div>
-            <div class="flex justify-between gap-2 pt-4">
-              <p-button [label]="'Anterior'" icon="fa-solid fa-arrow-left" severity="secondary" (onClick)="prevStep()"></p-button>
-              <p-button [label]="'Siguiente'" icon="fa-solid fa-arrow-right" iconPos="right" (onClick)="nextStep()"></p-button>
-            </div>
+  @if (activeStep() === 2) {
+    <div class="flex flex-col gap-4 pt-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="field flex flex-col gap-2">
+          <label for="waistCm" class="font-medium text-sm">{{ t('measurements.waist') }}</label>
+          <div class="relative">
+            <input type="number" formControlName="waistCm" id="waistCm" step="0.1" min="0" max="999.9" class="w-full rounded-lg border border-surface-300 px-3 py-2 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-surface-400 pointer-events-none">cm</span>
           </div>
-        </ng-template>
-      </p-step-panel>
+        </div>
+        <div class="field flex flex-col gap-2">
+          <label for="chestCm" class="font-medium text-sm">{{ t('measurements.chest') }}</label>
+          <div class="relative">
+            <input type="number" formControlName="chestCm" id="chestCm" step="0.1" min="0" max="999.9" class="w-full rounded-lg border border-surface-300 px-3 py-2 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-surface-400 pointer-events-none">cm</span>
+          </div>
+        </div>
+        <div class="field flex flex-col gap-2">
+          <label for="hipsCm" class="font-medium text-sm">{{ t('measurements.hips') }}</label>
+          <div class="relative">
+            <input type="number" formControlName="hipsCm" id="hipsCm" step="0.1" min="0" max="999.9" class="w-full rounded-lg border border-surface-300 px-3 py-2 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-surface-400 pointer-events-none">cm</span>
+          </div>
+        </div>
+        <div class="field flex flex-col gap-2">
+          <label for="contourCm" class="font-medium text-sm">{{ t('measurements.contour') }}</label>
+          <div class="relative">
+            <input type="number" formControlName="contourCm" id="contourCm" step="0.1" min="0" max="999.9" class="w-full rounded-lg border border-surface-300 px-3 py-2 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-surface-400 pointer-events-none">cm</span>
+          </div>
+        </div>
+        <div class="field flex flex-col gap-2">
+          <label for="armCm" class="font-medium text-sm">{{ t('measurements.arm') }}</label>
+          <div class="relative">
+            <input type="number" formControlName="armCm" id="armCm" step="0.1" min="0" max="999.9" class="w-full rounded-lg border border-surface-300 px-3 py-2 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-surface-400 pointer-events-none">cm</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-between gap-2 pt-4">
+        <button type="button" class="btn-secondary" (click)="prevStep()"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
+        <button type="button" class="btn-primary" (click)="nextStep()">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+  }
 
-      <p-step-panel [value]="3">
-        <ng-template pTemplate="content">
-          <div class="flex flex-col gap-4 pt-4">
-            <div class="field flex flex-col gap-2">
-              <label for="measuredAt" class="font-medium text-sm">{{ t('measurements.measured_at') }}</label>
-              <p-datepicker
-                id="measuredAt"
-                formControlName="measuredAt"
-                dateFormat="yy-mm-dd"
-                [showIcon]="true"
-                [showTime]="true"
-                [iconDisplay]="'input'"
-                [maxDate]="today"
-                class="w-full"
-                appendTo="body" />
-            </div>
-            <div class="field flex flex-col gap-2">
-              <label for="notes" class="font-medium text-sm">{{ t('measurements.notes') }}</label>
-              <textarea
-                id="notes"
-                pInputTextarea
-                formControlName="notes"
-                rows="3"
-                class="w-full"
-                [placeholder]="t('measurements.notes_placeholder')"></textarea>
-            </div>
-            <div class="flex justify-between gap-2 pt-4 border-t border-surface-200 dark:border-surface-700">
-              <p-button [label]="'Anterior'" icon="fa-solid fa-arrow-left" severity="secondary" (onClick)="prevStep()"></p-button>
-              <p-button [label]="t('measurements.register')" type="submit" icon="fa-solid fa-floppy-disk" [loading]="saving"></p-button>
-            </div>
-          </div>
-        </ng-template>
-      </p-step-panel>
-    </p-step-panels>
-  </p-stepper>
+  @if (activeStep() === 3) {
+    <div class="flex flex-col gap-4 pt-4">
+      <div class="field flex flex-col gap-2">
+        <label for="measuredAt" class="font-medium text-sm">{{ t('measurements.measured_at') }}</label>
+        <input type="datetime-local" id="measuredAt" formControlName="measuredAt" class="w-full rounded-lg border border-surface-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+      </div>
+      <div class="field flex flex-col gap-2">
+        <label for="notes" class="font-medium text-sm">{{ t('measurements.notes') }}</label>
+        <textarea id="notes" formControlName="notes" rows="3" class="w-full rounded-lg border border-surface-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" [placeholder]="t('measurements.notes_placeholder')"></textarea>
+      </div>
+      <div class="flex justify-between gap-2 pt-4 border-t border-surface-200 dark:border-surface-700">
+        <button type="button" class="btn-secondary" (click)="prevStep()"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
+        <button type="submit" class="btn-primary" [disabled]="form.invalid" [class.loading]="saving()">{{ t('measurements.register') }}</button>
+      </div>
+    </div>
+  }
 </form>

@@ -1,12 +1,5 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { CardModule } from 'primeng/card';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
-import { DialogService } from 'primeng/dynamicdialog';
-import { MessageService } from 'primeng/api';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -22,13 +15,13 @@ import { AppointmentDto, AppointmentStatus, UpdateAppointmentStatusRequest } fro
 import { AppointmentFormDialog } from '../../appointments/appointment-form.dialog';
 import { AppointmentActionDialog } from '../../appointments/appointment-action.dialog';
 import { formatInstant } from '../../../shared/utils/date';
+import { ModalService, NotificationService, ConfirmService } from '../../../core/ui';
 
 @Component({
   selector: 'app-tenant-dashboard',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [CommonModule, RouterModule, CardModule, ButtonModule, TagModule, TooltipModule, FullCalendarModule, TranslocoDirective],
-  providers: [DialogService, MessageService],
+  imports: [RouterModule, FullCalendarModule, TranslocoDirective],
   templateUrl: './tenant-dashboard.component.html',
   styles: [`
     :host ::ng-deep .fc .fc-button-primary {
@@ -67,8 +60,9 @@ export class TenantDashboardComponent implements OnInit {
   private readonly tenantCtx = inject(TenantContextService);
   private readonly authService = inject(AuthService);
   private readonly appointmentService = inject(AppointmentService);
-  private readonly dialogService = inject(DialogService);
-  private readonly messageService = inject(MessageService);
+  private readonly modal = inject(ModalService);
+  private readonly notify = inject(NotificationService);
+  private readonly confirm = inject(ConfirmService);
   private readonly transloco = inject(TranslocoService);
 
   tenantName = computed(() => this.tenantCtx.currentMembership()?.tenantName || 'la clínica');
@@ -222,45 +216,10 @@ export class TenantDashboardComponent implements OnInit {
     if (props['status'] === 'SCHEDULED' && isFuture) {
       const appointment = this.findAppointment(info.event.id);
       if (appointment) {
-        const ref = this.dialogService.open(AppointmentActionDialog, {
-          header: `${appointment.patientName} — ${this.getStatusLabel(appointment.status)}`,
-          width: '500px',
-          modal: true,
-          data: { appointment },
-          breakpoints: { '960px': '75vw', '640px': '90vw' }
-        });
-        if (ref) {
-          ref.onClose.subscribe((result) => {
-            if (result) {
-              this.loadTodayAppointments();
-              this.loadWeekAppointments();
-            }
-          });
-        }
-      }
-    } else {
-      this.messageService.add({
-        severity: 'info',
-        summary: props['patientName'] as string,
-        detail: `${(props['typeName'] as string) || 'Cita'} — ${this.getStatusLabel(props['status'] as string)}`,
-        life: 4000
-      });
-    }
-  }
-
-  handleTodayAppointmentClick(appt: AppointmentDto) {
-    const isFuture = new Date(appt.startTime) > new Date();
-
-    if (appt.status === 'SCHEDULED' && isFuture) {
-      const ref = this.dialogService.open(AppointmentActionDialog, {
-        header: `${appt.patientName} — ${this.getStatusLabel(appt.status)}`,
-        width: '500px',
-        modal: true,
-        data: { appointment: appt },
-        breakpoints: { '960px': '75vw', '640px': '90vw' }
-      });
-      if (ref) {
-        ref.onClose.subscribe((result) => {
+        this.modal.open<boolean, { appointment: AppointmentDto }>(
+          AppointmentActionDialog,
+          { label: `${appointment.patientName} — ${this.getStatusLabel(appointment.status)}`, size: 'm', data: { appointment } }
+        ).subscribe((result) => {
           if (result) {
             this.loadTodayAppointments();
             this.loadWeekAppointments();
@@ -268,12 +227,28 @@ export class TenantDashboardComponent implements OnInit {
         });
       }
     } else {
-      this.messageService.add({
-        severity: 'info',
-        summary: appt.patientName,
-        detail: `${appt.typeName || 'Cita'} — ${this.getStatusLabel(appt.status)}`,
-        life: 4000
+      this.notify.info(
+        `${(props['typeName'] as string) || 'Cita'} — ${this.getStatusLabel(props['status'] as string)}`,
+        props['patientName'] as string
+      );
+    }
+  }
+
+  handleTodayAppointmentClick(appt: AppointmentDto) {
+    const isFuture = new Date(appt.startTime) > new Date();
+
+    if (appt.status === 'SCHEDULED' && isFuture) {
+      this.modal.open<boolean, { appointment: AppointmentDto }>(
+        AppointmentActionDialog,
+        { label: `${appt.patientName} — ${this.getStatusLabel(appt.status)}`, size: 'm', data: { appointment: appt } }
+      ).subscribe((result) => {
+        if (result) {
+          this.loadTodayAppointments();
+          this.loadWeekAppointments();
+        }
       });
+    } else {
+      this.notify.info(`${appt.typeName || 'Cita'} — ${this.getStatusLabel(appt.status)}`, appt.patientName);
     }
   }
 
@@ -304,42 +279,28 @@ export class TenantDashboardComponent implements OnInit {
     this.updatingStatus.set(appointmentId);
     this.appointmentService.updateStatus(tenantId, appointmentId, { status: status as UpdateAppointmentStatusRequest['status'] }).subscribe({
       next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: this.transloco.translate('common.success'),
-          detail: this.transloco.translate('appointments.update_success')
-        });
+        this.notify.success(this.transloco.translate('appointments.update_success'), this.transloco.translate('common.success'));
         this.loadTodayAppointments();
         this.loadWeekAppointments();
         this.updatingStatus.set(null);
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.transloco.translate('common.error'),
-          detail: this.transloco.translate('appointments.update_error')
-        });
+        this.notify.error(this.transloco.translate('appointments.update_error'), this.transloco.translate('common.error'));
         this.updatingStatus.set(null);
       }
     });
   }
 
   showNewAppointmentDialog(prefilledDate?: Date) {
-    const ref = this.dialogService.open(AppointmentFormDialog, {
-      header: this.transloco.translate('appointments.schedule_new'),
-      width: '500px',
-      modal: true,
-      data: { nutritionistId: this.currentUserId(), startTime: prefilledDate },
-      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    this.modal.open<boolean, { nutritionistId: string; startTime?: Date }>(
+      AppointmentFormDialog,
+      { label: this.transloco.translate('appointments.schedule_new'), size: 'm', data: { nutritionistId: this.currentUserId(), startTime: prefilledDate } }
+    ).subscribe((result) => {
+      if (result) {
+        this.loadTodayAppointments();
+        this.loadWeekAppointments();
+      }
     });
-    if (ref) {
-      ref.onClose.subscribe((result) => {
-        if (result) {
-          this.loadTodayAppointments();
-          this.loadWeekAppointments();
-        }
-      });
-    }
   }
 
   getStatusLabel(status: string): string {
@@ -347,12 +308,12 @@ export class TenantDashboardComponent implements OnInit {
     return this.transloco.translate(key);
   }
 
-  getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'secondary' {
+  getStatusSeverity(status: string): string {
     switch (status) {
       case 'SCHEDULED': return 'info';
       case 'COMPLETED': return 'success';
       case 'CANCELLED': return 'secondary';
-      case 'NO_SHOW': return 'warn';
+      case 'NO_SHOW': return 'warning';
       default: return 'info';
     }
   }

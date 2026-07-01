@@ -1,33 +1,26 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
   <div class="field flex flex-col gap-2">
     <label for="templateId" class="font-medium">Plantilla de Menú</label>
-    <p-select
-      id="templateId"
-      formControlName="templateId"
-      [options]="templates()"
-      optionLabel="name"
-      optionValue="id"
-      placeholder="Seleccionar plantilla"
-      [filter]="true"
-      filterBy="name"
-      class="w-full"
-      appendTo="body"
-      [loading]="loadingTemplates()"
-      (onChange)="onTemplateChange($event)" />
+    <select id="templateId" formControlName="templateId" (change)="onTemplateChange($event)" class="w-full rounded-lg border border-surface-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+      <option value="" disabled>Seleccionar plantilla</option>
+      @for (t of templates(); track t.id) {
+        <option [value]="t.id">{{ t.name }}</option>
+      }
+    </select>
   </div>
 
   <div class="field flex flex-col gap-2">
     <label for="name" class="font-medium">Nombre del nuevo menú</label>
-    <input id="name" pInputText formControlName="name" class="w-full" placeholder="Nombre del menú" />
+    <input type="text" formControlName="name" id="name" class="w-full rounded-lg border border-surface-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" placeholder="Nombre del menú" />
   </div>
 
   <div class="field flex items-center gap-2 mt-2">
-    <p-checkbox formControlName="isActive" [binary]="true" inputId="isActive"></p-checkbox>
+    <input type="checkbox" id="isActive" formControlName="isActive" class="rounded border-surface-300 text-primary-500 focus:ring-primary-500" />
     <label for="isActive" class="font-medium">Establecer como menú activo</label>
   </div>
 
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-    <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>
-    <p-button label="Asignar al Paciente" type="submit" [disabled]="form.invalid" [loading]="saving()"></p-button>
+    <button type="button" class="btn-secondary" (click)="ref.close()">Cancelar</button>
+    <button type="submit" class="btn-primary" [disabled]="form.invalid" [class.loading]="saving()">Asignar al Paciente</button>
   </div>
 </form>

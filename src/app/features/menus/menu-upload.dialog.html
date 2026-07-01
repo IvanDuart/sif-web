@@ -1,47 +1,36 @@
 <div class="flex flex-col gap-4 mt-2">
-      <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg flex items-start gap-3 mb-2">
-        <i class="fa-solid fa-wand-magic-sparkles text-primary-500 text-xl mt-1"></i>
-        <div class="text-sm">
-          Sube un PDF o imagen de una dieta. Nuestra IA procesará el documento, extraerá todas las comidas y días, y creará el menú automáticamente para el paciente seleccionado.
-        </div>
-      </div>
-
-      <div class="field flex flex-col gap-2">
-        <label for="appUserId" class="font-medium">Paciente Destino</label>
-        <p-select 
-          id="appUserId" 
-          [options]="users()" 
-          [(ngModel)]="selectedUserId"
-          optionLabel="fullName" 
-          optionValue="id" 
-          placeholder="Seleccionar Paciente" 
-          [filter]="true" 
-          filterBy="fullName" 
-          class="w-full" 
-          appendTo="body"
-          [loading]="loadingUsers()">
-        </p-select>
-      </div>
-
-      @if (selectedUserId) {
-      <div class="field flex flex-col gap-2 mt-2">
-        <p class="font-medium">Documento (PDF o Imagen)</p>
-        <p-fileUpload 
-          #fileUpload
-          mode="advanced" 
-          chooseLabel="Seleccionar"
-          uploadLabel="Procesar y Crear"
-          cancelLabel="Cancelar"
-          [customUpload]="true"
-          (uploadHandler)="onUpload($event)"
-          accept="image/*,application/pdf"
-          maxFileSize="5000000"
-          [auto]="false">
-        </p-fileUpload>
-      </div>
-      }
-
-      <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="ref.close()"></p-button>
-      </div>
+  <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg flex items-start gap-3 mb-2">
+    <i class="fa-solid fa-wand-magic-sparkles text-primary-500 text-xl mt-1"></i>
+    <div class="text-sm">
+      Sube un PDF o imagen de una dieta. Nuestra IA procesará el documento, extraerá todas las comidas y días, y creará el menú automáticamente para el paciente seleccionado.
     </div>
+  </div>
+
+  <div class="field flex flex-col gap-1.5">
+    <label for="appUserId" class="text-sm font-medium text-surface-700 dark:text-surface-300">Paciente Destino</label>
+    <select id="appUserId" [(ngModel)]="selectedUserId" class="form-input" [class.loading]="loadingUsers()">
+      <option value="" disabled>Seleccionar Paciente</option>
+      @for (u of users(); track u.id) {
+        <option [value]="u.id">{{ u.fullName }}</option>
+      }
+    </select>
+  </div>
+
+  @if (selectedUserId) {
+  <div class="field flex flex-col gap-1.5 mt-2">
+    <p class="text-sm font-medium text-surface-700 dark:text-surface-300">Documento (PDF o Imagen)</p>
+    <input
+      type="file"
+      accept="image/*,application/pdf"
+      (change)="onFileChange($event)"
+      class="block w-full text-sm text-surface-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:file:bg-primary-900/20 dark:file:text-primary-300" />
+  </div>
+  }
+
+  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <button type="button" class="btn-secondary" (click)="cancel()">Cancelar</button>
+    @if (selectedUserId && selectedFile) {
+      <button type="button" class="btn-primary" (click)="upload()" [class.loading]="uploading()">Procesar y Crear</button>
+    }
+  </div>
+</div>

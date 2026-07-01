@@ -1,15 +1,11 @@
-import { Component, computed, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterOutlet, RouterModule } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { toSignal } from '@angular/core/rxjs-interop';
 
-import { MenubarModule } from 'primeng/menubar';
-import { ButtonModule } from 'primeng/button';
-import { AvatarModule } from 'primeng/avatar';
-import { PopoverModule } from 'primeng/popover';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { MenuItem } from 'primeng/api';
+import { TuiProgressBar } from '@taiga-ui/kit';
+import { TuiAvatar } from '@taiga-ui/kit';
+import { TuiDropdown } from '@taiga-ui/core';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/branding/theme.service';
@@ -17,19 +13,33 @@ import { PermissionsService } from '../../core/permissions/permissions.service';
 import { TenantMembershipDto } from '../../core/api/models/user.model';
 import { globalLoadingSignal } from '../../core/http/loading.interceptor';
 
+interface NavItem {
+  labelKey: string;
+  icon: string;
+  route: string;
+  permission?: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { labelKey: 'dashboard', icon: 'fa-solid fa-house', route: '/dashboard' },
+  { labelKey: 'patients', icon: 'fa-solid fa-user-injured', route: '/patients', permission: 'VIEW_USER' },
+  { labelKey: 'staff', icon: 'fa-solid fa-user-doctor', route: '/staff', permission: 'VIEW_USER' },
+  { labelKey: 'appointments', icon: 'fa-solid fa-calendar-days', route: '/appointments', permission: 'VIEW_APPOINTMENTS' },
+  { labelKey: 'diets', icon: 'fa-solid fa-utensils', route: '/menus', permission: 'VIEW_MENU' },
+  { labelKey: 'templates', icon: 'fa-solid fa-clipboard-list', route: '/templates', permission: 'MANAGE_TEMPLATE' },
+  { labelKey: 'settings', icon: 'fa-solid fa-gear', route: '/settings', permission: 'MANAGE_TENANT_BRANDING' },
+];
+
 @Component({
   selector: 'app-shell',
   standalone: true,
   imports: [
-    CommonModule,
     RouterOutlet,
     RouterModule,
     TranslocoModule,
-    MenubarModule,
-    ButtonModule,
-    AvatarModule,
-    PopoverModule,
-    ProgressBarModule
+    TuiProgressBar,
+    TuiAvatar,
+    ...TuiDropdown,
   ],
   templateUrl: './shell.html',
   styleUrls: ['./shell.scss']
@@ -46,7 +56,10 @@ export class Shell {
   activeTenant = this.authService.selectedTenant;
   tenants = computed(() => this.user()?.memberships ?? []);
 
-  // Select translations reactively
+  mobileMenuOpen = signal(false);
+  userMenuOpen = signal(false);
+  tenantMenuOpen = signal(false);
+
   readonly navTranslations = toSignal(
     this.transloco.selectTranslateObject('menu'),
     { initialValue: <Record<string, string>>{} }
@@ -57,77 +70,33 @@ export class Shell {
     { initialValue: <Record<string, string>>{} }
   );
 
-  menuItems = computed<MenuItem[]>(() => {
+  visibleNavItems = computed<NavItem[]>(() => {
     const nav = this.navTranslations();
-    if (!nav || Object.keys(nav).length === 0) return []; // Wait for translations
+    if (!nav || Object.keys(nav).length === 0) return [];
 
     const tenantId = this.activeTenant()?.tenantId;
     if (!tenantId) return [];
 
-    const items: MenuItem[] = [
-      {
-        label: 'MOBILE_SELECTOR'
-      },
-      {
-        label: nav['dashboard'] || 'Dashboard',
-        icon: 'fa-solid fa-house',
-        routerLink: ['/dashboard']
+    return NAV_ITEMS.filter(item => {
+      if (!item.permission) return true;
+      // VIEW_USER covers both patients and staff
+      if (item.permission === 'VIEW_USER') {
+        return this.permissionsService.has('VIEW_USER') || this.permissionsService.has('MANAGE_USER');
       }
-    ];
-
-    if (this.permissionsService.has('VIEW_USER') || this.permissionsService.has('MANAGE_USER')) {
-      items.push(
-        {
-          label: nav['patients'] || 'Pacientes',
-          icon: 'fa-solid fa-user-injured',
-          routerLink: ['/patients']
-        },
-        {
-          label: nav['staff'] || 'Equipo',
-          icon: 'fa-solid fa-user-doctor',
-          routerLink: ['/staff']
-        }
-      );
-    }
-
-    if (this.permissionsService.has('VIEW_APPOINTMENTS') || this.permissionsService.has('MANAGE_APPOINTMENTS')) {
-      items.push({
-        label: nav['appointments'] || 'Citas',
-        icon: 'fa-solid fa-calendar-days',
-        routerLink: ['/appointments']
-      });
-    }
-
-    if (this.permissionsService.has('VIEW_MENU') || this.permissionsService.has('MANAGE_MENU')) {
-      items.push({
-        label: nav['diets'] || 'Diets',
-        icon: 'fa-solid fa-utensils',
-        routerLink: ['/menus']
-      });
-    }
-
-    if (this.permissionsService.has('MANAGE_TEMPLATE')) {
-      items.push({
-        label: nav['templates'] || 'Templates',
-        icon: 'fa-solid fa-clipboard-list',
-        routerLink: ['/templates']
-      });
-    }
-
-    if (this.permissionsService.has('MANAGE_TENANT_BRANDING')) {
-      items.push({
-        label: nav['settings'] || 'Settings',
-        icon: 'fa-solid fa-gear',
-        routerLink: ['/settings']
-      });
-    }
-
-    items.push({
-      label: 'MOBILE_LOGOUT'
+      if (item.permission === 'VIEW_APPOINTMENTS') {
+        return this.permissionsService.has('VIEW_APPOINTMENTS') || this.permissionsService.has('MANAGE_APPOINTMENTS');
+      }
+      if (item.permission === 'VIEW_MENU') {
+        return this.permissionsService.has('VIEW_MENU') || this.permissionsService.has('MANAGE_MENU');
+      }
+      return this.permissionsService.has(item.permission);
     });
-
-    return items;
   });
+
+  navLabel(item: NavItem): string {
+    const nav = this.navTranslations();
+    return nav[item.labelKey] || item.labelKey;
+  }
 
   userInitials = computed(() => {
     const u = this.user();
@@ -144,15 +113,25 @@ export class Shell {
 
   userEmail = computed(() => this.user()?.email || '');
 
-  selectTenant(tenant: TenantMembershipDto) {
+  selectTenant(tenant: TenantMembershipDto): void {
     this.authService.selectTenant(tenant);
+    this.tenantMenuOpen.set(false);
   }
 
-  logout() {
+  logout(): void {
+    this.userMenuOpen.set(false);
     this.authService.logout();
   }
 
-  toggleTheme() {
+  toggleTheme(): void {
     this.themeService.toggleColorScheme();
+  }
+
+  toggleMobileMenu(): void {
+    this.mobileMenuOpen.update(v => !v);
+  }
+
+  closeMobileMenu(): void {
+    this.mobileMenuOpen.set(false);
   }
 }

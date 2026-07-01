@@ -1,161 +1,169 @@
 @if (loading() > 0) {
-<p-progressBar mode="indeterminate" [style]="{'height': '4px'}" class="absolute top-0 left-0 w-full z-[1001]"></p-progressBar>
+  <progress tuiProgressBar class="loading-bar" aria-label="Cargando..."></progress>
 }
 
 <a href="#main-content" class="skip-to-content">{{ 'common.back' | transloco }}</a>
-<div class="app-layout font-poppins text-surface-900 dark:text-surface-0 bg-surface-50 dark:bg-surface-950">
-  <nav class="top-nav dark:bg-surface-900/70 border-b border-surface-200 dark:border-surface-800">
+
+<div class="app-layout">
+  <nav class="top-nav">
     <div class="nav-container">
-      <!-- Logo Section -->
+
+      <!-- Logo -->
       <div class="nav-brand" routerLink="/">
-        <div class="font-semibold text-2xl text-primary-500">
-          <i class="fa-solid fa-apple-whole mr-2"></i>Tus Dietas
+        <div class="brand-text">
+          <i class="fa-solid fa-apple-whole"></i>Tus Dietas
         </div>
       </div>
 
-      <!-- Navigation Menu -->
-      <p-menubar [model]="menuItems()" class="dagr-menubar">
-        <ng-template #item let-item>
-          <!-- Special Case: Mobile Tenant Selector -->
-          @if (item.label === 'MOBILE_SELECTOR') {
-            <div class="mobile-menu-integrated-section mobile-only">
-              <div class="tenant-selector">
-                @if (tenants().length > 1) {
-                  <p-button styleClass="tenant-pill static dark:bg-surface-800 dark:border-surface-700 dark:text-surface-0" (onClick)="mobileTp.toggle($event)">
-                    <i class="fa-solid fa-building text-surface-500 dark:text-surface-400"></i>
-                    <span class="tenant-name dark:text-surface-0">{{ activeTenant()?.tenantName || authTranslations()['select_tenant'] }}</span>
-                    <i class="fa-solid fa-chevron-down text-xs opacity-60 dark:text-surface-400"></i>
-                  </p-button>
-                  <p-popover #mobileTp [appendTo]="'body'">
-                    <div class="dropdown-menu-content dark:bg-surface-800">
-                      <div class="menu-section-title dark:text-surface-400">{{ authTranslations()['change_tenant'] | uppercase }}</div>
-                      @for (tenant of tenants(); track tenant.tenantId) {
-                      <p-button styleClass="menu-item-action dark:hover:bg-surface-700" (onClick)="selectTenant(tenant); mobileTp.hide()">
-                        <span class="tenant-label dark:text-surface-0">{{ tenant.tenantName }}</span>
-                        @if (activeTenant()?.tenantId === tenant.tenantId) {
-                        <i class="fa-solid fa-check" [style.color]="'var(--primary-color)'"></i>
-                        }
-                      </p-button>
-                      }
-                    </div>
-                  </p-popover>
-                } @else if (activeTenant()) {
-                  <div class="tenant-pill static cursor-default dark:bg-surface-800 dark:border-surface-700 dark:text-surface-0">
-                    <i class="fa-solid fa-building text-surface-500 dark:text-surface-400"></i>
-                    <span class="tenant-name dark:text-surface-0">{{ activeTenant()?.tenantName }}</span>
-                  </div>
-                }
-              </div>
-            </div>
-          } 
-          <!-- Special Case: Mobile Logout -->
-          @else if (item.label === 'MOBILE_LOGOUT') {
-            <div class="mobile-menu-integrated-section mobile-only">
-              <div class="user-menu-divider dark:bg-surface-700"></div>
-              
-              <!-- Mobile Theme Toggle -->
-              <p-button styleClass="user-menu-item mb-2 dark:hover:bg-surface-700" (onClick)="toggleTheme()">
-                <i [class]="themeService.colorScheme() === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
-                <span>Cambiar Tema</span>
-              </p-button>
+      <!-- Desktop Navigation -->
+      <ul class="nav-menu desktop-only" role="menubar">
+        @for (item of visibleNavItems(); track item.route) {
+          <li role="none">
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="active-link"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="nav-link"
+              role="menuitem"
+            >
+              <i [class]="item.icon"></i>
+              <span>{{ navLabel(item) }}</span>
+            </a>
+          </li>
+        }
+      </ul>
 
-              <p-button styleClass="user-menu-item logout-btn" (onClick)="logout()">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span>{{ authTranslations()['logout'] }}</span>
-              </p-button>
-            </div>
-          }
-          <!-- Standard Menu Item -->
-          @else {
-            @if (item.routerLink) {
-              <a [routerLink]="item.routerLink" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: false }"
-                class="p-menubar-item-link dark:text-surface-300 dark:hover:text-primary-400" [class.desktop-only]="item.separator">
-                @if (item.icon) {
-                <i [class]="item.icon"></i>
-                }
-                <span class="p-menubar-item-label">{{ item.label }}</span>
-              </a>
-            } @else {
-              <a class="p-menubar-item-link dark:text-surface-300 dark:hover:text-primary-400" style="cursor: pointer;" [class.desktop-only]="item.separator">
-                @if (item.icon) {
-                <i [class]="item.icon"></i>
-                }
-                <span class="p-menubar-item-label">{{ item.label }}</span>
-                @if (item.items) {
-                <i class="fa-solid fa-angle-down ml-auto"></i>
-                }
-              </a>
-            }
-          }
-        </ng-template>
-      </p-menubar>
+      <!-- Desktop Tools -->
+      <div class="nav-tools desktop-only">
 
-      <!-- Identity & Tools -->
-      <div class="nav-tools">
-        <!-- Tenant Switcher -->
-        <div class="tenant-selector">
-          @if (tenants().length > 1) {
-            <p-button styleClass="tenant-pill dark:bg-surface-800 dark:border-surface-700 dark:text-surface-0 dark:hover:border-primary-500" (onClick)="tp.toggle($event)"
-              [attr.aria-label]="authTranslations()['select_tenant']">
-              <i class="fa-solid fa-building text-surface-500 dark:text-surface-400"></i>
-              <span class="tenant-name dark:text-surface-0">{{ activeTenant()?.tenantName || authTranslations()['select_tenant'] }}</span>
-              <i class="fa-solid fa-chevron-down text-xs opacity-60 dark:text-surface-400"></i>
-            </p-button>
+        <!-- Tenant Switcher (desktop) -->
+        @if (tenants().length > 1) {
+          <button
+            type="button"
+            class="tenant-pill"
+            [tuiDropdown]="tenantDropdown"
+            [(tuiDropdownOpen)]="tenantMenuOpen"
+            [attr.aria-label]="authTranslations()['select_tenant']"
+          >
+            <i class="fa-solid fa-building"></i>
+            <span class="tenant-name">{{ activeTenant()?.tenantName || authTranslations()['select_tenant'] }}</span>
+            <i class="fa-solid fa-chevron-down chevron"></i>
+          </button>
 
-            <p-popover #tp>
-              <div class="dropdown-menu-content dark:bg-surface-800">
-                <div class="menu-section-title dark:text-surface-400">{{ authTranslations()['change_tenant'] | uppercase }}</div>
-                @for (tenant of tenants(); track tenant.tenantId) {
-                <p-button styleClass="menu-item-action dark:hover:bg-surface-700" (onClick)="selectTenant(tenant); tp.hide()">
-                  <span class="tenant-label dark:text-surface-0">{{ tenant.tenantName }}</span>
+          <ng-template #tenantDropdown>
+            <div class="dropdown-menu-content" tuiDropdownContent>
+              <div class="menu-section-title">{{ authTranslations()['change_tenant'] }}</div>
+              @for (tenant of tenants(); track tenant.tenantId) {
+                <button type="button" class="menu-item-action" (click)="selectTenant(tenant)">
+                  <span class="tenant-label">{{ tenant.tenantName }}</span>
                   @if (activeTenant()?.tenantId === tenant.tenantId) {
-                  <i class="fa-solid fa-check" [style.color]="'var(--primary-color)'"></i>
+                    <i class="fa-solid fa-check check-icon"></i>
                   }
-                </p-button>
-                }
-              </div>
-            </p-popover>
-          } @else if (activeTenant()) {
-            <div class="tenant-pill static cursor-default dark:bg-surface-800 dark:border-surface-700 dark:text-surface-0">
-              <i class="fa-solid fa-building text-surface-500 dark:text-surface-400"></i>
-              <span class="tenant-name dark:text-surface-0">{{ activeTenant()?.tenantName }}</span>
+                </button>
+              }
             </div>
-          }
-        </div>
+          </ng-template>
+        } @else if (activeTenant()) {
+          <div class="tenant-pill static">
+            <i class="fa-solid fa-building"></i>
+            <span class="tenant-name">{{ activeTenant()?.tenantName }}</span>
+          </div>
+        }
 
-        <div class="separator dark:bg-surface-700"></div>
+        <div class="separator" aria-hidden="true"></div>
 
         <!-- Theme Toggle -->
-        <p-button styleClass="p-button-link w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors" (onClick)="toggleTheme()">
-          <i [class]="themeService.colorScheme() === 'dark' ? 'fa-solid fa-sun text-surface-0' : 'fa-solid fa-moon text-surface-600'"></i>
-        </p-button>
+        <button type="button" class="icon-btn" (click)="toggleTheme()" [attr.aria-label]="'Cambiar tema'">
+          <i [class]="themeService.colorScheme() === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
+        </button>
 
-        <!-- User Profile -->
-        <div class="user-profile">
-          <p-button styleClass="p-button-link user-pill" (onClick)="op.toggle($event)" [attr.aria-label]="'User Menu'">
-            <p-avatar [label]="userInitials()" class="identity-avatar-custom" shape="circle" size="large" />
-          </p-button>
+        <!-- User Avatar + Dropdown -->
+        <button
+          type="button"
+          class="avatar-btn"
+          [tuiDropdown]="userDropdown"
+          [(tuiDropdownOpen)]="userMenuOpen"
+          aria-label="Menú de usuario"
+        >
+          <span tuiAvatar [attr.data-initials]="userInitials()" size="m" [round]="true" class="user-avatar">
+            {{ userInitials() }}
+          </span>
+        </button>
 
-          <p-popover #op>
-            <div class="user-menu-popover dark:bg-surface-800">
-              <div class="user-menu-header">
-                <p-avatar [label]="userInitials()" shape="circle" size="large" />
-                <div class="user-menu-details">
-                  <div class="user-menu-name dark:text-surface-0">{{ userFullName() }}</div>
-                  <div class="user-menu-email dark:text-surface-400">{{ userEmail() }}</div>
-                </div>
+        <ng-template #userDropdown>
+          <div class="user-menu-popover" tuiDropdownContent>
+            <div class="user-menu-header">
+              <span tuiAvatar [attr.data-initials]="userInitials()" size="l" [round]="true" class="user-avatar">
+                {{ userInitials() }}
+              </span>
+              <div class="user-menu-details">
+                <div class="user-menu-name">{{ userFullName() }}</div>
+                <div class="user-menu-email">{{ userEmail() }}</div>
               </div>
-              <div class="user-menu-divider dark:bg-surface-700"></div>
-              <p-button styleClass="user-menu-item dark:hover:bg-red-900/20" (onClick)="logout(); op.hide()">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span>{{ authTranslations()['logout'] }}</span>
-              </p-button>
             </div>
-          </p-popover>
-        </div>
+            <div class="user-menu-divider"></div>
+            <button type="button" class="user-menu-item logout-item" (click)="logout()">
+              <i class="fa-solid fa-right-from-bracket"></i>
+              <span>{{ authTranslations()['logout'] }}</span>
+            </button>
+          </div>
+        </ng-template>
       </div>
+
+      <!-- Mobile Hamburger -->
+      <button type="button" class="hamburger mobile-only" (click)="toggleMobileMenu()" aria-label="Menú">
+        <i [class]="mobileMenuOpen() ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'"></i>
+      </button>
     </div>
   </nav>
+
+  <!-- Mobile Menu Overlay -->
+  @if (mobileMenuOpen()) {
+    <div class="mobile-overlay" (click)="closeMobileMenu()" aria-hidden="true"></div>
+    <div class="mobile-menu" role="dialog" aria-label="Navegación">
+      <ul class="mobile-nav-list">
+        @for (item of visibleNavItems(); track item.route) {
+          <li>
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="active-link"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="mobile-nav-link"
+              (click)="closeMobileMenu()"
+            >
+              <i [class]="item.icon"></i>
+              <span>{{ navLabel(item) }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+
+      <div class="mobile-footer">
+        @if (tenants().length > 1) {
+          <div class="mobile-section-title">{{ authTranslations()['change_tenant'] }}</div>
+          @for (tenant of tenants(); track tenant.tenantId) {
+            <button type="button" class="menu-item-action" (click)="selectTenant(tenant)">
+              <span class="tenant-label">{{ tenant.tenantName }}</span>
+              @if (activeTenant()?.tenantId === tenant.tenantId) {
+                <i class="fa-solid fa-check check-icon"></i>
+              }
+            </button>
+          }
+          <div class="user-menu-divider"></div>
+        }
+
+        <button type="button" class="mobile-action-btn" (click)="toggleTheme()">
+          <i [class]="themeService.colorScheme() === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
+          <span>Cambiar Tema</span>
+        </button>
+
+        <button type="button" class="mobile-action-btn logout-item" (click)="logout()">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>{{ authTranslations()['logout'] }}</span>
+        </button>
+      </div>
+    </div>
+  }
 
   <main id="main-content" class="content-viewport">
     <router-outlet></router-outlet>

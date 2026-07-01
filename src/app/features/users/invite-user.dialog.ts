@@ -1,21 +1,21 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { DatePickerModule } from 'primeng/datepicker';
-import { SelectModule } from 'primeng/select';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { TuiTextfield } from '@taiga-ui/core';
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiDialogContext } from '@taiga-ui/core';
 import { UserTenantRoleService, InviteUserRequest } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { UserType, Gender } from '../../core/api/models/user.model';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
+export interface InviteUserDialogInput {
+  lockedUserType?: UserType;
+}
+
 @Component({
   selector: 'app-invite-user',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ButtonModule, InputTextModule, InputNumberModule, DatePickerModule, SelectModule, TranslocoDirective],
+  imports: [FormsModule, ReactiveFormsModule, TuiTextfield, TranslocoDirective],
   templateUrl: './invite-user.dialog.html'
 })
 export class InviteUserDialog {
@@ -23,10 +23,9 @@ export class InviteUserDialog {
   private readonly userRoleService = inject(UserTenantRoleService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly transloco = inject(TranslocoService);
-  ref = inject(DynamicDialogRef);
-  config = inject(DynamicDialogConfig);
+  readonly context = injectContext<TuiDialogContext<boolean, InviteUserDialogInput>>();
 
-  lockedUserType = this.config.data?.lockedUserType as UserType | undefined;
+  lockedUserType = this.context.data?.lockedUserType;
 
   saving = signal(false);
 
@@ -65,7 +64,7 @@ export class InviteUserDialog {
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
     roleCode: [{ value: '', disabled: false }, Validators.required],
-    birthDate: [null as Date | null],
+    birthDate: [null as string | null],
     heightCm: [null as number | null],
     gender: [null as Gender | null]
   });
@@ -77,6 +76,10 @@ export class InviteUserDialog {
     } else if (this.lockedUserType === 'STAFF') {
       this.form.patchValue({ roleCode: 'NUTRITIONIST' });
     }
+  }
+
+  cancel() {
+    this.context.$implicit.complete();
   }
 
   submit() {
@@ -92,11 +95,7 @@ export class InviteUserDialog {
       roleCode: raw.roleCode!,
     };
     if (raw.birthDate) {
-      const d = raw.birthDate;
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      request.birthDate = `${y}-${m}-${day}`;
+      request.birthDate = raw.birthDate;
     }
     if (raw.heightCm != null) {
       request.heightCm = raw.heightCm;
@@ -109,7 +108,8 @@ export class InviteUserDialog {
     this.userRoleService.inviteUser(tenantId, request).subscribe({
       next: () => {
         this.saving.set(false);
-        this.ref.close(true);
+        this.context.$implicit.next(true);
+        this.context.$implicit.complete();
       },
       error: () => this.saving.set(false)
     });

@@ -1,75 +1,66 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CardModule } from 'primeng/card';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { ColorPickerModule } from 'primeng/colorpicker';
-import { FileUploadModule } from 'primeng/fileupload';
+import { TuiTextfield } from '@taiga-ui/core';
 import { TenantBrandingService } from '../../../core/api/services/tenant-branding.api';
 import { TenantService } from '../../../core/api/services/tenant.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
 import { TenantPreferences } from '../../../core/api/models/tenant.model';
-import { MessageService } from 'primeng/api';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { NotificationService } from '../../../core/ui';
 
 @Component({
   selector: 'app-branding-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, CardModule, ButtonModule, InputTextModule, ColorPickerModule, FileUploadModule, TranslocoDirective],
+  imports: [FormsModule, TuiTextfield, TranslocoDirective],
   template: `
     <div *transloco="let t" class="py-4">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <p-card [header]="t('settings.branding')">
+        <div class="data-card">
           <div class="flex flex-col gap-4">
             <div class="flex flex-col gap-1.5">
               <label for="primaryColor" class="text-sm font-medium text-surface-700">{{ t('settings.primary_color') }}</label>
-              <p-colorPicker
+              <input
+                type="color"
                 id="primaryColor"
                 [(ngModel)]="preferences().primary_color"
-                styleClass="w-full" />
+                class="h-10 w-full rounded-lg border border-surface-300 cursor-pointer bg-transparent" />
             </div>
 
             <div class="flex flex-col gap-1.5">
               <label for="fromEmail" class="text-sm font-medium text-surface-700">{{ t('settings.from_email') }}</label>
-              <input
-                id="fromEmail"
-                pInputText
-                [(ngModel)]="preferences().from_email"
-                class="w-full" />
+              <tui-textfield>
+                <input
+                  id="fromEmail"
+                  tuiTextfield
+                  [(ngModel)]="preferences().from_email" />
+              </tui-textfield>
             </div>
 
             <div class="flex flex-col gap-1.5">
               <label for="defaultLang" class="text-sm font-medium text-surface-700">{{ t('settings.default_language') }}</label>
-              <input
-                id="defaultLang"
-                pInputText
-                [(ngModel)]="preferences().default_language"
-                class="w-full" />
+              <tui-textfield>
+                <input
+                  id="defaultLang"
+                  tuiTextfield
+                  [(ngModel)]="preferences().default_language" />
+              </tui-textfield>
             </div>
 
-            <p-button
-              [label]="t('common.save')"
-              [loading]="saving()"
-              (onClick)="save()">
-            </p-button>
+            <button class="btn-primary" [disabled]="saving()" (click)="save()">
+              @if (saving()) {
+                <i class="fa-solid fa-spinner fa-spin"></i>
+              }
+              {{ t('common.save') }}
+            </button>
           </div>
-        </p-card>
+        </div>
 
-        <p-card [header]="t('settings.logo')">
+        <div class="data-card">
           <div class="flex flex-col gap-4">
-            <p-fileUpload
-              mode="basic"
-              accept="image/*"
-              [maxFileSize]="2097152"
-              [auto]="true"
-              chooseLabel="Subir logo"
-              [customUpload]="true"
-              (uploadHandler)="uploadLogo($event)">
-            </p-fileUpload>
+            <input type="file" accept="image/*" class="form-input" (change)="onFileSelected($event)" />
             <p class="text-sm text-surface-400">{{ t('settings.logo_hint') }}</p>
           </div>
-        </p-card>
+        </div>
       </div>
     </div>
   `
@@ -78,7 +69,7 @@ export class BrandingSettings implements OnInit {
   private readonly tenantBrandingService = inject(TenantBrandingService);
   private readonly tenantService = inject(TenantService);
   private readonly tenantCtx = inject(TenantContextService);
-  private readonly messageService = inject(MessageService);
+  private readonly notify = inject(NotificationService);
 
   preferences = signal<TenantPreferences>({
     enable_vacation_module: false,
@@ -126,19 +117,24 @@ export class BrandingSettings implements OnInit {
       next: (res) => {
         this.preferences.set(res);
         this.saving.set(false);
-        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Preferencias actualizadas' });
+        this.notify.success('Preferencias actualizadas', 'Éxito');
       },
       error: () => this.saving.set(false)
     });
   }
 
-  uploadLogo(event: { files: File[] }) {
+  onFileSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.uploadLogo(file);
+  }
+
+  private uploadLogo(file: File) {
     const tenantId = this.tenantCtx.currentTenantId();
-    const file = event.files[0];
-    if (!tenantId || !file) return;
+    if (!tenantId) return;
     this.tenantBrandingService.updateLogo(tenantId, file).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Logo actualizado' });
+        this.notify.success('Logo actualizado', 'Éxito');
       }
     });
   }

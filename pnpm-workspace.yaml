@@ -3,3 +3,10 @@ allowBuilds:
   esbuild: true
   lmdb: true
   msgpackr-extract: true
+minimumReleaseAgeExclude:
+  - '@taiga-ui/cdk@5.13.0'
+  - '@taiga-ui/core@5.13.0'
+  - '@taiga-ui/i18n@5.13.0'
+  - '@taiga-ui/icons@5.13.0'
+  - '@taiga-ui/kit@5.13.0'
+  - '@taiga-ui/styles@5.13.0'

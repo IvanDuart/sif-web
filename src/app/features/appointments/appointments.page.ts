@@ -1,12 +1,5 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { CardModule } from 'primeng/card';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
-import { DialogService } from 'primeng/dynamicdialog';
-import { MessageService } from 'primeng/api';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -22,13 +15,13 @@ import { AppointmentDto, AppointmentStatus, UpdateAppointmentStatusRequest } fro
 import { AppointmentFormDialog } from './appointment-form.dialog';
 import { AppointmentActionDialog } from './appointment-action.dialog';
 import { formatInstant } from '../../shared/utils/date';
+import { ModalService, NotificationService } from '../../core/ui';
 
 @Component({
   selector: 'app-appointments-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [CommonModule, RouterModule, CardModule, ButtonModule, TagModule, TooltipModule, FullCalendarModule, TranslocoDirective],
-  providers: [DialogService, MessageService],
+  imports: [RouterModule, FullCalendarModule, TranslocoDirective],
   templateUrl: './appointments.page.html',
   styleUrls: ['./appointments.page.scss'],
 })
@@ -36,8 +29,8 @@ export default class AppointmentsPage implements OnInit {
   private readonly tenantCtx = inject(TenantContextService);
   private readonly authService = inject(AuthService);
   private readonly appointmentService = inject(AppointmentService);
-  private readonly dialogService = inject(DialogService);
-  private readonly messageService = inject(MessageService);
+  private readonly modal = inject(ModalService);
+  private readonly notify = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
 
   canViewAppointments = computed(() => this.tenantCtx.hasPermission('VIEW_APPOINTMENTS'));
@@ -183,29 +176,25 @@ export default class AppointmentsPage implements OnInit {
     if (props['status'] === 'SCHEDULED' && isFuture) {
       const appointment = this.findAppointment(info.event.id as string);
       if (appointment) {
-        const ref = this.dialogService.open(AppointmentActionDialog, {
-          header: `${appointment.patientName} — ${this.getStatusLabel(appointment.status)}`,
-          width: '500px',
-          modal: true,
-          data: { appointment },
-          breakpoints: { '960px': '75vw', '640px': '90vw' }
+        this.modal.open<boolean, { appointment: AppointmentDto }>(
+          AppointmentActionDialog,
+          {
+            label: `${appointment.patientName} — ${this.getStatusLabel(appointment.status)}`,
+            size: 'm',
+            data: { appointment }
+          }
+        ).subscribe((result) => {
+          if (result) {
+            this.loadTodayAppointments();
+            this.loadWeekAppointments();
+          }
         });
-        if (ref) {
-          ref.onClose.subscribe((result) => {
-            if (result) {
-              this.loadTodayAppointments();
-              this.loadWeekAppointments();
-            }
-          });
-        }
       }
     } else {
-      this.messageService.add({
-        severity: 'info',
-        summary: props['patientName'] as string,
-        detail: `${(props['typeName'] as string) || 'Cita'} — ${this.getStatusLabel(props['status'] as string)}`,
-        life: 4000
-      });
+      this.notify.info(
+        `${(props['typeName'] as string) || 'Cita'} — ${this.getStatusLabel(props['status'] as string)}`,
+        props['patientName'] as string
+      );
     }
   }
 
@@ -238,57 +227,43 @@ export default class AppointmentsPage implements OnInit {
     this.updatingStatus.set(appointmentId);
     this.appointmentService.updateStatus(tenantId, appointmentId, { status: status as UpdateAppointmentStatusRequest['status'] }).subscribe({
       next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: this.transloco.translate('common.success'),
-          detail: this.transloco.translate('appointments.update_success')
-        });
+        this.notify.success(
+          this.transloco.translate('appointments.update_success'),
+          this.transloco.translate('common.success')
+        );
         this.loadTodayAppointments();
         this.loadWeekAppointments();
         this.updatingStatus.set(null);
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.transloco.translate('common.error'),
-          detail: this.transloco.translate('appointments.update_error')
-        });
+        this.notify.error(
+          this.transloco.translate('appointments.update_error'),
+          this.transloco.translate('common.error')
+        );
         this.updatingStatus.set(null);
       }
     });
   }
 
   showNewAppointmentDialog(prefilledDate?: Date) {
-    const ref = this.dialogService.open(AppointmentFormDialog, {
-      header: this.transloco.translate('appointments.schedule_new'),
-      width: '500px',
-      modal: true,
-      data: { nutritionistId: this.currentUserId(), startTime: prefilledDate },
-      breakpoints: { '960px': '75vw', '640px': '90vw' }
+    this.modal.open<boolean, { nutritionistId?: string; startTime?: Date }>(
+      AppointmentFormDialog,
+      {
+        label: this.transloco.translate('appointments.schedule_new'),
+        size: 'm',
+        data: { nutritionistId: this.currentUserId(), startTime: prefilledDate }
+      }
+    ).subscribe((result) => {
+      if (result) {
+        this.loadTodayAppointments();
+        this.loadWeekAppointments();
+      }
     });
-    if (ref) {
-      ref.onClose.subscribe((result) => {
-        if (result) {
-          this.loadTodayAppointments();
-          this.loadWeekAppointments();
-        }
-      });
-    }
   }
 
   getStatusLabel(status: string): string {
     const key = `appointments.status_${status.toLowerCase()}`;
     return this.transloco.translate(key);
-  }
-
-  getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'secondary' | 'contrast' {
-    switch (status) {
-      case 'SCHEDULED': return 'info';
-      case 'COMPLETED': return 'success';
-      case 'CANCELLED': return 'secondary';
-      case 'NO_SHOW': return 'warn';
-      default: return 'info';
-    }
   }
 
   getInitials(name: string): string {

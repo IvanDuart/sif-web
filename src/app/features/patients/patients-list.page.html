@@ -1,99 +1,82 @@
 <div class="p-4" *transloco="let t">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">{{ t('patients.title') }}</h1>
-    <p-button *appIfPermission="'INVITE_USER'"
-      [label]="t('patients.invite')"
-      icon="fa-solid fa-user-plus"
-      size="small"
-      (onClick)="showInviteDialog()">
-    </p-button>
+    <button *appIfPermission="'INVITE_USER'"
+      type="button"
+      class="tui-action-btn"
+      (click)="showInviteDialog()">
+      <i class="fa-solid fa-user-plus"></i>
+      {{ t('patients.invite') }}
+    </button>
   </div>
 
-  <p-card>
-    <p-table
-      [value]="users()"
-      [loading]="loading()"
-      [rows]="25"
-      [paginator]="true"
-      [rowHover]="true"
-      responsiveLayout="scroll"
-      styleClass="p-datatable-sm"
-      [rowsPerPageOptions]="[25, 50, 100]"
-      [showCurrentPageReport]="true"
-      [currentPageReportTemplate]="t('common.pagination_report', { first: '{first}', last: '{last}', totalRecords: '{totalRecords}' })">
-      <ng-template pTemplate="header">
-        <tr>
-          <th scope="col">{{ t('users.first_name') }}</th>
-          <th scope="col">{{ t('users.last_name') }}</th>
-          <th scope="col">{{ t('users.email') }}</th>
-          <th scope="col">{{ t('users.age') }}</th>
-          <th scope="col">{{ t('users.weight') }}</th>
-          <th scope="col">{{ t('users.bmi') }}</th>
-          <th scope="col" style="width: 8rem; text-align: center;">{{ t('common.actions') }}</th>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="body" let-user>
-        <tr>
-          <td class="font-medium">{{ user.firstName }}</td>
-          <td>{{ user.lastName }}</td>
-          <td class="text-surface-500 text-sm">{{ user.email }}</td>
-          <td>
-            <span class="text-sm">
-              {{ user.age ?? '—' }}
-              @if (user.age !== null) {
-                <span class="text-surface-400">años</span>
-              }
-            </span>
-          </td>
-          <td class="text-sm">{{ user.lastMeasurement?.weightKg ?? '—' }}</td>
-          <td class="text-sm">{{ user.lastMeasurement?.bmi ?? '—' }}</td>
-          <td style="text-align: center;">
-            <div class="row-actions">
-              <p-button
-                icon="fa-solid fa-eye"
-                [text]="true"
-                [rounded]="true"
-                severity="secondary"
-                [routerLink]="['/users', user.id]"
-                [title]="t('common.view')">
-              </p-button>
-              <p-button
-                *appIfPermission="'MANAGE_USER'"
-                icon="fa-solid fa-pen"
-                [text]="true"
-                [rounded]="true"
-                severity="secondary"
-                (onClick)="editUser(user)"
-                [title]="t('users.edit')">
-              </p-button>
-              <p-button
-                *appIfPermission="'MANAGE_USER'"
-                icon="fa-solid fa-user-xmark"
-                [text]="true"
-                [rounded]="true"
-                severity="danger"
-                (onClick)="revokeAccess(user)"
-                [title]="t('users.revoke')">
-              </p-button>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="7" class="table-empty-cell">
-            <app-empty-state
-              icon="fa-solid fa-user-injured"
-              [title]="t('patients.empty_title')"
-              [description]="t('patients.empty')"
-              [actionLabel]="t('patients.invite')"
-              (action)="showInviteDialog()">
-            </app-empty-state>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </p-card>
+  <div class="data-card">
+    @if (loading()) {
+      <div class="table-loading">
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        {{ t('common.loading') }}
+      </div>
+    } @else if (users().length === 0) {
+      <app-empty-state
+        icon="fa-solid fa-user-injured"
+        [title]="t('patients.empty_title')"
+        [description]="t('patients.empty')"
+        [actionLabel]="t('patients.invite')"
+        (action)="showInviteDialog()">
+      </app-empty-state>
+    } @else {
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">{{ t('users.first_name') }}</th>
+              <th scope="col">{{ t('users.last_name') }}</th>
+              <th scope="col">{{ t('users.email') }}</th>
+              <th scope="col">{{ t('users.age') }}</th>
+              <th scope="col">{{ t('users.weight') }}</th>
+              <th scope="col">{{ t('users.bmi') }}</th>
+              <th scope="col" class="text-center" style="width: 8rem;">{{ t('common.actions') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of users(); track user.id) {
+              <tr class="table-row">
+                <td class="font-medium">{{ user.firstName }}</td>
+                <td>{{ user.lastName }}</td>
+                <td class="text-sm text-surface-500">{{ user.email }}</td>
+                <td>
+                  <span class="text-sm">
+                    {{ user.age ?? '—' }}
+                    @if (user.age !== null) {
+                      <span class="text-surface-400"> años</span>
+                    }
+                  </span>
+                </td>
+                <td class="text-sm">{{ user.lastMeasurement?.weightKg ?? '—' }}</td>
+                <td class="text-sm">{{ user.lastMeasurement?.bmi ?? '—' }}</td>
+                <td class="text-center">
+                  <div class="row-actions">
+                    <a [routerLink]="['/users', user.id]" class="icon-action" [title]="t('common.view')">
+                      <i class="fa-solid fa-eye"></i>
+                    </a>
+                    <button *appIfPermission="'MANAGE_USER'" type="button" class="icon-action"
+                      (click)="editUser(user)" [title]="t('users.edit')">
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button *appIfPermission="'MANAGE_USER'" type="button" class="icon-action danger"
+                      (click)="revokeAccess(user)" [title]="t('users.revoke')">
+                      <i class="fa-solid fa-user-xmark"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        {{ t('common.pagination_report', { first: 1, last: users().length, totalRecords: users().length }) }}
+      </div>
+    }
+  </div>
 </div>
