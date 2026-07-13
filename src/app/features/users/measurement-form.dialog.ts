@@ -7,6 +7,7 @@ import { BodyMeasurementService } from '../../core/api/services/body-measurement
 import { CreateBodyMeasurementRequest } from '../../core/api/models/body-measurement.model';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { toLocalISOString } from '../../shared/utils/date';
 
 @Component({
   selector: 'app-measurement-form',
@@ -36,7 +37,7 @@ export class MeasurementFormDialog {
     hipsCm: [null as number | null],
     contourCm: [null as number | null],
     armCm: [null as number | null],
-    measuredAt: [new Date().toISOString().slice(0, 16) as string | null],
+    measuredAt: [toLocalISOString(new Date()) as string | null],
     notes: ['']
   });
 

@@ -1,5 +1,5 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { RouterOutlet, RouterModule } from '@angular/router';
+import { Component, computed, inject, signal, OnInit } from '@angular/core';
+import { RouterOutlet, RouterModule, Router } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { toSignal } from '@angular/core/rxjs-interop';
 
@@ -11,6 +11,8 @@ import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/branding/theme.service';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { TenantMembershipDto } from '../../core/api/models/user.model';
+import { AppointmentService } from '../../core/api/services/appointment.api';
+import { AppointmentDto } from '../../core/api/models/appointment.model';
 import { globalLoadingSignal } from '../../core/http/loading.interceptor';
 
 interface NavItem {
@@ -44,13 +46,18 @@ const NAV_ITEMS: NavItem[] = [
   templateUrl: './shell.html',
   styleUrls: ['./shell.scss']
 })
-export class Shell {
+export class Shell implements OnInit {
   loading = globalLoadingSignal;
 
   private readonly transloco = inject(TranslocoService);
   private readonly authService = inject(AuthService);
-  private readonly permissionsService = inject(PermissionsService);
+  readonly permissionsService = inject(PermissionsService);
+  private readonly appointmentService = inject(AppointmentService);
+  private readonly router = inject(Router);
   readonly themeService = inject(ThemeService);
+
+  proposedAppointments = signal<AppointmentDto[]>([]);
+  bellMenuOpen = signal(false);
 
   user = this.authService.user;
   activeTenant = this.authService.selectedTenant;
@@ -59,6 +66,39 @@ export class Shell {
   mobileMenuOpen = signal(false);
   userMenuOpen = signal(false);
   tenantMenuOpen = signal(false);
+
+  ngOnInit() {
+    this.loadProposals();
+  }
+
+  loadProposals() {
+    const tenantId = this.activeTenant()?.tenantId;
+    const userId = this.user()?.id;
+    const hasPermission = this.permissionsService.has('VIEW_APPOINTMENTS') || this.permissionsService.has('MANAGE_APPOINTMENTS');
+    if (!tenantId || !userId || !hasPermission) return;
+
+    this.appointmentService.getByNutritionist(tenantId, userId, undefined, undefined, 'PROPOSED').subscribe({
+      next: (res) => {
+        this.proposedAppointments.set(res || []);
+      }
+    });
+  }
+
+  goToProposedDate(appt: AppointmentDto) {
+    this.bellMenuOpen.set(false);
+    const dateOnly = appt.startTime.split('T')[0];
+    this.router.navigate(['/appointments'], { queryParams: { date: dateOnly } }).then(() => {
+      // If we are already on appointments, reload page to force date navigation
+      if (globalThis.location.pathname.includes('/appointments')) {
+        globalThis.location.search = `?date=${dateOnly}`;
+      }
+    });
+  }
+
+  formatDate(dateStr: string): string {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' hs';
+  }
 
   readonly navTranslations = toSignal(
     this.transloco.selectTranslateObject('menu'),

@@ -1,7 +1,7 @@
-import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy, ViewChild } from '@angular/core';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { FullCalendarModule } from '@fullcalendar/angular';
+import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
@@ -32,6 +32,9 @@ export default class AppointmentsPage implements OnInit {
   private readonly modal = inject(ModalService);
   private readonly notify = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
+  private readonly route = inject(ActivatedRoute);
+
+  @ViewChild('calendar') calendarComponent?: FullCalendarComponent;
 
   canViewAppointments = computed(() => this.tenantCtx.hasPermission('VIEW_APPOINTMENTS'));
   currentUserId = computed(() => this.authService.user()?.id || '');
@@ -57,6 +60,19 @@ export default class AppointmentsPage implements OnInit {
     if (this.canViewAppointments() && this.currentUserId()) {
       this.loadTodayAppointments();
     }
+
+    this.route.queryParams.subscribe(params => {
+      const dateParam = params['date'];
+      if (dateParam) {
+        setTimeout(() => {
+          if (this.calendarComponent) {
+            const api = this.calendarComponent.getApi();
+            api.gotoDate(dateParam);
+            api.changeView('timeGridDay');
+          }
+        }, 300);
+      }
+    });
 
     this.calendarOptions = {
       plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
@@ -137,7 +153,8 @@ export default class AppointmentsPage implements OnInit {
       SCHEDULED: '#3b82f6',
       COMPLETED: '#10b981',
       CANCELLED: '#6b7280',
-      NO_SHOW: '#f59e0b'
+      NO_SHOW: '#f59e0b',
+      PROPOSED: '#f97316'
     };
 
     this.calendarEvents.set(
@@ -173,7 +190,7 @@ export default class AppointmentsPage implements OnInit {
     const eventStart = info.event.start;
     const isFuture = eventStart ? eventStart > new Date() : false;
 
-    if (props['status'] === 'SCHEDULED' && isFuture) {
+    if ((props['status'] === 'SCHEDULED' || props['status'] === 'PROPOSED') && isFuture) {
       const appointment = this.findAppointment(info.event.id as string);
       if (appointment) {
         this.modal.open<boolean, { appointment: AppointmentDto }>(
@@ -192,8 +209,7 @@ export default class AppointmentsPage implements OnInit {
       }
     } else {
       this.notify.info(
-        `${(props['typeName'] as string) || 'Cita'} — ${this.getStatusLabel(props['status'] as string)}`,
-        props['patientName'] as string
+        `${props['patientName'] as string}: ${(props['typeName'] as string) || 'Cita'} — ${this.getStatusLabel(props['status'] as string)}`
       );
     }
   }

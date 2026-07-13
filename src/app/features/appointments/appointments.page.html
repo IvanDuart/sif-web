@@ -11,7 +11,7 @@
       </div>
 
       <div class="data-card">
-        <full-calendar
+        <full-calendar #calendar
           [options]="calendarOptions"
           [events]="calendarEvents()">
         </full-calendar>
@@ -41,6 +41,10 @@
           <div class="flex items-center gap-2">
             <span class="w-3 h-3 rounded-full" style="background: #f59e0b"></span>
             <span class="text-sm text-surface-700 dark:text-surface-200">{{ t('appointments.status_no_show') }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full" style="background: #f97316"></span>
+            <span class="text-sm text-surface-700 dark:text-surface-200">{{ t('appointments.status_proposed', { defaultValue: 'Propuesta' }) }}</span>
           </div>
         </div>
       </div>

@@ -17,6 +17,9 @@
     "assign": "Assign",
     "no_results": "No results",
     "status": "Status",
+    "add": "Add",
+    "from": "From",
+    "to": "To",
     "pagination_report": "Showing {{first}} to {{last}} of {{totalRecords}} entries",
     "total_records": "Total: {{total}} entries"
   },
@@ -71,6 +74,7 @@
     "tab_patient_profile": "Medical Profile",
     "tab_patient_events": "Events",
     "tab_fixed_guidelines": "Fixed Guidelines",
+    "tab_water": "Water",
     "measurements_register": "Register Measurement",
     "measurements_empty_title": "No measurements yet",
     "measurements_empty": "No measurements recorded for this user.",
@@ -230,7 +234,12 @@
     },
     "meal_types": {
       "lunch": "Lunch",
-      "dinner": "Dinner"
+      "dinner": "Dinner",
+      "comida": "Lunch",
+      "cena": "Dinner",
+      "desayuno": "Breakfast",
+      "merienda": "Afternoon Snack",
+      "media_manana": "Mid-morning Snack"
     }
   },
   "template_detail": {
@@ -277,6 +286,7 @@
     "status_completed": "Completed",
     "status_cancelled": "Cancelled",
     "status_no_show": "No Show",
+    "status_proposed": "Proposed",
     "today_empty": "No appointments scheduled for today",
     "week_empty": "No appointments this week",
     "create_success": "Appointment created successfully",
@@ -301,7 +311,10 @@
     "from_email": "From Email",
     "default_language": "Default Language",
     "logo": "Logo",
-    "logo_hint": "Max size: 2 MB. Formats: PNG, JPG, SVG."
+    "logo_hint": "Max size: 2 MB. Formats: PNG, JPG, SVG.",
+    "anamnesis_tab": "Anamnesis Fields",
+    "anamnesis_fields_title": "Configure Anamnesis Fields",
+    "anamnesis_fields_desc": "Select which anamnesis fields will be active for patient profiles in your center."
   },
   "appointment_types": {
     "title": "Appointment Types",
@@ -446,5 +459,21 @@
       "maximizeLabel": "Maximize",
       "minimizeLabel": "Minimize"
     }
+  },
+  "patient_dashboard": {
+    "next_appointment": "Next Appointment",
+    "no_next_appointment": "You have no scheduled appointments",
+    "today_meals": "Today's Meals",
+    "no_meals_today": "No meals planned for today",
+    "weight_evolution": "Weight Evolution",
+    "no_weight_history": "No weight history recorded"
+  },
+  "water_intake": {
+    "title": "Water Intake",
+    "goal_desc": "Goal: 2L per day",
+    "goal_reached": "Goal reached!",
+    "remaining": "{{amount}} ml remaining",
+    "history_title": "Last 7 days",
+    "no_history": "No records this week."
   }
 }

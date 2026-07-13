@@ -35,8 +35,8 @@
 }
 
 /* ─────────────────────────────────────────────
-   TAIGA UI THEME — Emerald + Slate palette
-   ───────────────────────────────────────────── */
+    TAIGA UI THEME — Emerald + Slate palette
+    ───────────────────────────────────────────── */
 :root {
   --tui-primary: #059669;
   --tui-primary-hover: #047857;
@@ -44,6 +44,7 @@
   --tui-background-accent-1-hover: #047857;
   --tui-background-neutral-1: #f8fafc;
   --tui-background-neutral-2: #f1f5f9;
+  --tui-background-elevation-3: #ffffff;
   --tui-clear: rgba(0, 0, 0, 0.04);
   --tui-clear-hover: rgba(0, 0, 0, 0.08);
   --tui-text-primary: #1e293b;
@@ -59,6 +60,7 @@
   --tui-background-accent-1-hover: #6ee7b7;
   --tui-background-neutral-1: #1e293b;
   --tui-background-neutral-2: #334155;
+  --tui-background-elevation-3: #1e293b;
   --tui-clear: rgba(255, 255, 255, 0.04);
   --tui-clear-hover: rgba(255, 255, 255, 0.08);
   --tui-text-primary: #f1f5f9;
@@ -489,5 +491,4 @@ html, body {
   gap: 4px;
   justify-content: center;
 }
-
 

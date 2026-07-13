@@ -13,6 +13,7 @@ import { PatientEventService } from '../../core/api/services/patient-event.api';
 import { BodyMeasurementService } from '../../core/api/services/body-measurement.api';
 import { MenuService } from '../../core/api/services/menu.api';
 import { AppointmentService } from '../../core/api/services/appointment.api';
+import { TenantService } from '../../core/api/services/tenant.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppUserDto, UserTenantProfileDto } from '../../core/api/models/user.model';
 import { PatientEventDto } from '../../core/api/models/patient-event.model';
@@ -25,6 +26,7 @@ import { IfPermissionDirective } from '../../core/permissions/if-permission.dire
 import { EmptyState } from '../../shared/ui/empty-state';
 import { MeasurementFormDialog } from './measurement-form.dialog';
 import { EditUserDialog } from './edit-user.dialog';
+import { WaterIntakeWidget } from '../tenant/dashboard/components/water-intake-widget';
 import { PatientProfileFormDialog } from './patient-profile-form.dialog';
 import { PatientEventFormDialog } from './patient-event-form.dialog';
 import { AssignMenuTemplateDialog } from './assign-menu-template.dialog';
@@ -41,7 +43,16 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-user-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, IfPermissionDirective, TranslocoDirective, EmptyState, FullCalendarModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    IfPermissionDirective,
+    TranslocoDirective,
+    EmptyState,
+    FullCalendarModule,
+    WaterIntakeWidget
+  ],
   templateUrl: './user-detail.page.html',
   styleUrls: ['./user-detail.page.scss']
 })
@@ -53,6 +64,7 @@ export default class UserDetailPage implements OnInit {
   private readonly appointmentService = inject(AppointmentService);
   private readonly patientEventService = inject(PatientEventService);
   private readonly tenantCtx = inject(TenantContextService);
+  private readonly tenantService = inject(TenantService);
   private readonly confirm = inject(ConfirmService);
   private readonly notify = inject(NotificationService);
   private readonly modal = inject(ModalService);
@@ -83,6 +95,11 @@ export default class UserDetailPage implements OnInit {
   canManagePatientEvents = computed(() => this.permissionsService.has('MANAGE_PATIENT_EVENTS'));
 
   patientProfile = signal<UserTenantProfileDto | null>(null);
+  activeAnamnesisFields = signal<string[]>([]);
+  isAnamnesisFieldActive(field: string): boolean {
+    const active = this.activeAnamnesisFields();
+    return active.length === 0 || active.includes(field);
+  }
   loadingProfile = signal(false);
   editingGuidelines = signal(false);
   savingGuidelines = signal(false);
@@ -139,6 +156,7 @@ export default class UserDetailPage implements OnInit {
     this.userId = this.route.snapshot.paramMap.get('id') || '';
     if (this.userId) {
       this.loadUser();
+      this.loadTenantPreferences();
     }
 
     this.calendarOptions = {
@@ -189,6 +207,16 @@ export default class UserDetailPage implements OnInit {
         this.onUserLoaded();
       },
       error: () => this.loadingUser.set(false)
+    });
+  }
+
+  private loadTenantPreferences() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    this.tenantService.getById(tenantId).subscribe({
+      next: (tenant) => {
+        this.activeAnamnesisFields.set(tenant.preferences?.active_anamnesis_fields || []);
+      }
     });
   }
 
@@ -430,6 +458,7 @@ export default class UserDetailPage implements OnInit {
       case 'COMPLETED': return 'success';
       case 'CANCELLED': return 'secondary';
       case 'NO_SHOW': return 'warn';
+      case 'PROPOSED': return 'warn';
       default: return 'info';
     }
   }
@@ -501,7 +530,7 @@ export default class UserDetailPage implements OnInit {
       size: 's',
       data: { userId: this.userId }
     }).subscribe(() => {
-      this.notify.success('Menú asignado al paciente correctamente', 'Menú creado');
+      this.notify.success('Éxito: Menú asignado al paciente correctamente');
       this.loadMenuHistory();
     });
   }
@@ -512,7 +541,7 @@ export default class UserDetailPage implements OnInit {
       size: 's',
       data: { userId: this.userId }
     }).subscribe(() => {
-      this.notify.success('Plantilla asignada al paciente correctamente', 'Menú asignado');
+      this.notify.success('Éxito: Plantilla asignada al paciente correctamente');
       this.loadMenuHistory();
     });
   }

@@ -4,7 +4,7 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideTaiga } from '@taiga-ui/core';
 import { NG_EVENT_PLUGINS } from '@taiga-ui/event-plugins';
-import { TuiConfirmService } from '@taiga-ui/kit';
+import { TuiConfirmService, tuiToastOptionsProvider } from '@taiga-ui/kit';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
@@ -36,6 +36,10 @@ export const appConfig: ApplicationConfig = {
     provideTaiga({
       fontScaling: true,
       scrollbars: 'native',
+    }),
+    tuiToastOptionsProvider({
+      block: 'start',
+      inline: 'end',
     }),
     getKeycloakProvider(),
     {

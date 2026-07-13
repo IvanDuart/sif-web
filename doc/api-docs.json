@@ -28,6 +28,10 @@
       "description": "Controller for appointments management"
     },
     {
+      "name": "WaterIntakeController",
+      "description": "Controller for patient daily water consumption tracking"
+    },
+    {
       "name": "MeController",
       "description": "Controller for currently logged in user context"
     },
@@ -409,6 +413,66 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/UserTenantProfileDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/user/{userId}/water-intake/{date}": {
+      "put": {
+        "tags": [
+          "WaterIntakeController"
+        ],
+        "description": "Record or update water intake (ml) for a patient on a specific date",
+        "operationId": "recordWaterIntake",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordWaterIntakeRequest_Public"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/WaterIntakeDto_Public"
                 }
               }
             }
@@ -2332,6 +2396,68 @@
         }
       }
     },
+    "/tenant/{tenantId}/user/{userId}/water-intake": {
+      "get": {
+        "tags": [
+          "WaterIntakeController"
+        ],
+        "description": "Get water intake history for a patient in a date range",
+        "operationId": "getWaterIntakeHistory",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WaterIntakeDto_Public"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/menu/{id}": {
       "get": {
         "tags": [
@@ -2652,7 +2778,8 @@
                 "SCHEDULED",
                 "COMPLETED",
                 "CANCELLED",
-                "NO_SHOW"
+                "NO_SHOW",
+                "PROPOSED"
               ]
             }
           }
@@ -2728,7 +2855,8 @@
                 "SCHEDULED",
                 "COMPLETED",
                 "CANCELLED",
-                "NO_SHOW"
+                "NO_SHOW",
+                "PROPOSED"
               ]
             }
           }
@@ -2836,6 +2964,49 @@
           }
         }
       }
+    },
+    "/tenant/{tenantId}/user/{userId}/water-intake/{intakeId}": {
+      "delete": {
+        "tags": [
+          "WaterIntakeController"
+        ],
+        "description": "Delete a water intake record",
+        "operationId": "deleteWaterIntake",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "intakeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2863,6 +3034,12 @@
           },
           "standard_vacation_days": {
             "type": "number"
+          },
+          "active_anamnesis_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -3163,6 +3340,47 @@
           }
         }
       },
+      "RecordWaterIntakeRequest_Public": {
+        "type": "object",
+        "properties": {
+          "amountMl": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "amountMl"
+        ]
+      },
+      "WaterIntakeDto_Public": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "recordDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "amountMl": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isGoalReached": {
+            "type": "boolean"
+          }
+        }
+      },
       "UpdatePatientEventRequest": {
         "type": "object",
         "properties": {
@@ -3315,6 +3533,12 @@
           },
           "standard_vacation_days": {
             "type": "number"
+          },
+          "active_anamnesis_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -3407,6 +3631,12 @@
           },
           "standard_vacation_days": {
             "type": "number"
+          },
+          "active_anamnesis_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -3805,7 +4035,8 @@
               "SCHEDULED",
               "COMPLETED",
               "CANCELLED",
-              "NO_SHOW"
+              "NO_SHOW",
+              "PROPOSED"
             ]
           },
           "notes": {
@@ -3865,7 +4096,8 @@
               "SCHEDULED",
               "COMPLETED",
               "CANCELLED",
-              "NO_SHOW"
+              "NO_SHOW",
+              "PROPOSED"
             ]
           }
         },

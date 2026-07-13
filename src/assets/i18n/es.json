@@ -17,6 +17,9 @@
     "assign": "Asignar",
     "no_results": "Sin resultados",
     "status": "Estado",
+    "add": "Añadir",
+    "from": "Desde",
+    "to": "Hasta",
     "pagination_report": "Mostrando {{first}} a {{last}} de {{totalRecords}} elementos",
     "total_records": "Total: {{total}} elementos"
   },
@@ -74,6 +77,7 @@
     "tab_patient_profile": "Perfil Médico",
     "tab_patient_events": "Eventos",
     "tab_fixed_guidelines": "Pautas fijas",
+    "tab_water": "Agua",
     "measurements_register": "Registrar Medición",
     "measurements_empty_title": "Sin mediciones aún",
     "measurements_empty": "No hay mediciones registradas para este usuario.",
@@ -249,7 +253,12 @@
     },
     "meal_types": {
       "lunch": "Comida",
-      "dinner": "Cena"
+      "dinner": "Cena",
+      "comida": "Comida",
+      "cena": "Cena",
+      "desayuno": "Desayuno",
+      "merienda": "Merienda",
+      "media_manana": "Media Mañana"
     }
   },
   "template_detail": {
@@ -296,6 +305,7 @@
     "status_completed": "Completada",
     "status_cancelled": "Cancelada",
     "status_no_show": "No Asistió",
+    "status_proposed": "Propuesta",
     "today_empty": "No hay citas programadas para hoy",
     "week_empty": "Sin citas esta semana",
     "create_success": "Cita agendada correctamente",
@@ -320,7 +330,10 @@
     "from_email": "Correo Remitente",
     "default_language": "Idioma por Defecto",
     "logo": "Logo",
-    "logo_hint": "Tamaño máximo: 2 MB. Formatos: PNG, JPG, SVG."
+    "logo_hint": "Tamaño máximo: 2 MB. Formatos: PNG, JPG, SVG.",
+    "anamnesis_tab": "Campos de Anamnesis",
+    "anamnesis_fields_title": "Configurar Campos de Anamnesis",
+    "anamnesis_fields_desc": "Selecciona los campos de anamnesis que estarán activos para los perfiles de pacientes en tu centro."
   },
   "appointment_types": {
     "title": "Tipos de Cita",
@@ -465,5 +478,21 @@
       "maximizeLabel": "Maximizar",
       "minimizeLabel": "Minimizar"
     }
+  },
+  "patient_dashboard": {
+    "next_appointment": "Próxima Cita",
+    "no_next_appointment": "No tienes citas programadas",
+    "today_meals": "Comidas de Hoy",
+    "no_meals_today": "No hay comidas planificadas para hoy",
+    "weight_evolution": "Evolución de Peso",
+    "no_weight_history": "No hay datos de evolución de peso registrados"
+  },
+  "water_intake": {
+    "title": "Consumo de Agua",
+    "goal_desc": "Objetivo: 2L al día",
+    "goal_reached": "¡Meta alcanzada!",
+    "remaining": "Restan {{amount}} ml",
+    "history_title": "Últimos 7 días",
+    "no_history": "Sin registros esta semana."
   }
 }

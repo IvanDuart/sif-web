@@ -17,11 +17,25 @@ import { AppointmentActionDialog } from '../../appointments/appointment-action.d
 import { formatInstant } from '../../../shared/utils/date';
 import { ModalService, NotificationService, ConfirmService } from '../../../core/ui';
 
+// Patient Dashboard Widgets
+import { WaterIntakeWidget } from './components/water-intake-widget';
+import { PatientNextAppointment } from './components/patient-next-appointment';
+import { PatientTodayMeals } from './components/patient-today-meals';
+import { PatientWeightChart } from './components/patient-weight-chart';
+
 @Component({
   selector: 'app-tenant-dashboard',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [RouterModule, FullCalendarModule, TranslocoDirective],
+  imports: [
+    RouterModule,
+    FullCalendarModule,
+    TranslocoDirective,
+    WaterIntakeWidget,
+    PatientNextAppointment,
+    PatientTodayMeals,
+    PatientWeightChart
+  ],
   templateUrl: './tenant-dashboard.component.html',
   styles: [`
     :host ::ng-deep .fc .fc-button-primary {
@@ -171,7 +185,8 @@ export class TenantDashboardComponent implements OnInit {
       SCHEDULED: '#3b82f6',
       COMPLETED: '#10b981',
       CANCELLED: '#6b7280',
-      NO_SHOW: '#f59e0b'
+      NO_SHOW: '#f59e0b',
+      PROPOSED: '#f97316'
     };
 
     this.calendarEvents.set(
@@ -213,7 +228,7 @@ export class TenantDashboardComponent implements OnInit {
     const eventStart = info.event.start;
     const isFuture = eventStart ? eventStart > new Date() : false;
 
-    if (props['status'] === 'SCHEDULED' && isFuture) {
+    if ((props['status'] === 'SCHEDULED' || props['status'] === 'PROPOSED') && isFuture) {
       const appointment = this.findAppointment(info.event.id);
       if (appointment) {
         this.modal.open<boolean, { appointment: AppointmentDto }>(
@@ -228,8 +243,7 @@ export class TenantDashboardComponent implements OnInit {
       }
     } else {
       this.notify.info(
-        `${(props['typeName'] as string) || 'Cita'} — ${this.getStatusLabel(props['status'] as string)}`,
-        props['patientName'] as string
+        `${props['patientName'] as string}: ${(props['typeName'] as string) || 'Cita'} — ${this.getStatusLabel(props['status'] as string)}`
       );
     }
   }
@@ -237,7 +251,7 @@ export class TenantDashboardComponent implements OnInit {
   handleTodayAppointmentClick(appt: AppointmentDto) {
     const isFuture = new Date(appt.startTime) > new Date();
 
-    if (appt.status === 'SCHEDULED' && isFuture) {
+    if ((appt.status === 'SCHEDULED' || appt.status === 'PROPOSED') && isFuture) {
       this.modal.open<boolean, { appointment: AppointmentDto }>(
         AppointmentActionDialog,
         { label: `${appt.patientName} — ${this.getStatusLabel(appt.status)}`, size: 'm', data: { appointment: appt } }
@@ -247,8 +261,8 @@ export class TenantDashboardComponent implements OnInit {
           this.loadWeekAppointments();
         }
       });
-    } else {
-      this.notify.info(`${appt.typeName || 'Cita'} — ${this.getStatusLabel(appt.status)}`, appt.patientName);
+     } else {
+      this.notify.info(`${appt.patientName}: ${appt.typeName || 'Cita'} — ${this.getStatusLabel(appt.status)}`);
     }
   }
 
@@ -314,6 +328,7 @@ export class TenantDashboardComponent implements OnInit {
       case 'COMPLETED': return 'success';
       case 'CANCELLED': return 'secondary';
       case 'NO_SHOW': return 'warning';
+      case 'PROPOSED': return 'warning';
       default: return 'info';
     }
   }

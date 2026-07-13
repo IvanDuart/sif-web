@@ -117,7 +117,7 @@ export class BrandingSettings implements OnInit {
       next: (res) => {
         this.preferences.set(res);
         this.saving.set(false);
-        this.notify.success('Preferencias actualizadas', 'Éxito');
+        this.notify.success('Éxito: Preferencias actualizadas');
       },
       error: () => this.saving.set(false)
     });
@@ -134,7 +134,7 @@ export class BrandingSettings implements OnInit {
     if (!tenantId) return;
     this.tenantBrandingService.updateLogo(tenantId, file).subscribe({
       next: () => {
-        this.notify.success('Logo actualizado', 'Éxito');
+        this.notify.success('Éxito: Logo actualizado');
       }
     });
   }

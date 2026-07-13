@@ -12,8 +12,14 @@
       [class.!text-primary-600]="activeTab === '1'"
       [class.!border-primary-500]="activeTab === '1'"
       (click)="activeTab = '1'">{{ t('appointment_types.title') }}</button>
+    <button
+      class="tab-btn px-4 py-2 text-sm font-medium text-surface-500 dark:text-surface-400 border-b-2 border-transparent -mb-px transition-colors duration-150 hover:text-surface-700 dark:hover:text-surface-200"
+      [class.!text-primary-600]="activeTab === '2'"
+      [class.!border-primary-500]="activeTab === '2'"
+      (click)="activeTab = '2'">{{ t('settings.anamnesis_tab', { defaultValue: 'Anamnesis' }) }}</button>
   </div>
 
   @if (activeTab === '0') { <app-branding-settings /> }
   @if (activeTab === '1') { <app-appointment-types-settings /> }
+  @if (activeTab === '2') { <app-anamnesis-settings /> }
 </div>

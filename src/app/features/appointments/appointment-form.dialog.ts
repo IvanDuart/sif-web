@@ -14,6 +14,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { AppointmentTypeDto } from '../../core/api/models/appointment-type.model';
 import { AppUserDto } from '../../core/api/models/user.model';
 import { NotificationService } from '../../core/ui';
+import { toLocalISOString } from '../../shared/utils/date';
 
 @Component({
   selector: 'app-appointment-form-dialog',
@@ -51,7 +52,7 @@ export class AppointmentFormDialog implements OnInit {
 
     if (this.context.data?.startTime) {
       const d = new Date(this.context.data.startTime);
-      this.form.patchValue({ startTime: d.toISOString().slice(0, 16) });
+      this.form.patchValue({ startTime: toLocalISOString(d) });
     }
   }
 

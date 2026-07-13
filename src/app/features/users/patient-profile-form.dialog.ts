@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -6,6 +6,7 @@ import { TuiDialogContext } from '@taiga-ui/core';
 import { NotificationService } from '../../core/ui/notification.service';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
+import { TenantService } from '../../core/api/services/tenant.api';
 import { UserTenantProfileDto } from '../../core/api/models/user.model';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
@@ -15,10 +16,11 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
   imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslocoDirective],
   templateUrl: './patient-profile-form.dialog.html'
 })
-export class PatientProfileFormDialog {
+export class PatientProfileFormDialog implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly userRoleService = inject(UserTenantRoleService);
   private readonly tenantCtx = inject(TenantContextService);
+  private readonly tenantService = inject(TenantService);
   private readonly notify = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
   readonly context = injectContext<TuiDialogContext<boolean, { profile: UserTenantProfileDto; userId: string }>>();
@@ -27,6 +29,23 @@ export class PatientProfileFormDialog {
   saving = false;
   profile: UserTenantProfileDto = this.context.data.profile;
   userId: string = this.context.data.userId;
+  activeFields = signal<string[]>([]);
+
+  ngOnInit() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (tenantId) {
+      this.tenantService.getById(tenantId).subscribe({
+        next: (tenant) => {
+          this.activeFields.set(tenant.preferences?.active_anamnesis_fields || []);
+        }
+      });
+    }
+  }
+
+  isFieldActive(field: string): boolean {
+    const active = this.activeFields();
+    return active.length === 0 || active.includes(field);
+  }
 
   form = this.fb.group({
     consultationReason: [this.profile.consultationReason ?? ''],

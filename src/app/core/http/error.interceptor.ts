@@ -17,13 +17,13 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           keycloak.login();
         });
       } else if (error.status === 403) {
-        notify.error('No tienes permisos para esta acción', 'Acceso Denegado');
+        notify.error('Acceso Denegado: No tienes permisos para esta acción');
         router.navigate(['/not-authorized']);
       } else if (error.status === 404) {
-        notify.show('El recurso solicitado no existe', { status: 'warning', label: 'No encontrado' });
+        notify.warning('No encontrado: El recurso solicitado no existe');
       } else {
         const msg = error.error?.error || 'Ocurrió un error inesperado';
-        notify.error(msg, 'Error');
+        notify.error(msg);
       }
       return throwError(() => error);
     })

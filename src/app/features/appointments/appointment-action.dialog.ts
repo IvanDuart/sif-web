@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TuiTextfield } from '@taiga-ui/core';
 import { TuiTextarea } from '@taiga-ui/kit';
@@ -11,6 +11,8 @@ import { AppointmentTypeService } from '../../core/api/services/appointment-type
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppointmentDto } from '../../core/api/models/appointment.model';
 import { NotificationService, ConfirmService } from '../../core/ui';
+import { PermissionsService } from '../../core/permissions/permissions.service';
+import { toLocalISOString } from '../../shared/utils/date';
 
 @Component({
   selector: 'app-appointment-action-dialog',
@@ -26,6 +28,9 @@ export class AppointmentActionDialog implements OnInit {
   private readonly confirm = inject(ConfirmService);
   private readonly notify = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
+  private readonly permissionsService = inject(PermissionsService);
+
+  canManage = computed(() => this.permissionsService.has('MANAGE_APPOINTMENTS'));
 
   readonly context = injectContext<TuiDialogContext<boolean, { appointment: AppointmentDto }>>();
 
@@ -62,7 +67,7 @@ export class AppointmentActionDialog implements OnInit {
 
   private prefillForm() {
     this.form.patchValue({
-      startTime: this.appointment.startTime ? new Date(this.appointment.startTime).toISOString().slice(0, 16) : '',
+      startTime: this.appointment.startTime ? toLocalISOString(new Date(this.appointment.startTime)) : '',
       typeId: this.appointment.typeId || '',
       notes: this.appointment.notes || ''
     });
@@ -104,6 +109,28 @@ export class AppointmentActionDialog implements OnInit {
             this.transloco.translate('common.error')
           );
         }
+      }
+    });
+  }
+
+  approveProposal() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+
+    this.saving.set(true);
+    this.appointmentService.reschedule(tenantId, this.appointment.id, {
+      startTime: new Date(this.appointment.startTime).toISOString(),
+      typeId: this.appointment.typeId || undefined,
+      notes: this.appointment.notes || undefined
+    }).subscribe({
+      next: () => {
+        this.notify.success('Cita aprobada y programada', this.transloco.translate('common.success'));
+        this.context.$implicit.next(true);
+        this.context.$implicit.complete();
+      },
+      error: () => {
+        this.saving.set(false);
+        this.notify.error('No se pudo aprobar la cita', this.transloco.translate('common.error'));
       }
     });
   }

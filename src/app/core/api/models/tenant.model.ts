@@ -6,6 +6,7 @@ export interface TenantPreferences {
   keycloak_sync_mode: string;
   from_email: string;
   standard_vacation_days: number;
+  active_anamnesis_fields?: string[];
 }
 
 export interface Tenant {
