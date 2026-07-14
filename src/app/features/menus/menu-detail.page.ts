@@ -42,6 +42,9 @@ export default class MenuDetailPage implements OnInit {
 
   allDays = ALL_DAYS;
   canManageMeal = computed(() => this.permissionsService.has('MANAGE_MEAL'));
+  canViewMenu = computed(() => this.permissionsService.has('VIEW_MENU'));
+  downloadingPdf = signal(false);
+  printingPdf = signal(false);
 
   groupedMeals = computed(() => {
     const mealMap = new Map<string, Meal[]>();
@@ -140,6 +143,48 @@ export default class MenuDetailPage implements OnInit {
           this.meals.set(this.meals().filter(m => m.id !== meal.id));
         });
       }
+    });
+  }
+
+  downloadPdf() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    this.downloadingPdf.set(true);
+    this.menuService.getPdf(tenantId, this.menuId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'menu.pdf';
+        anchor.click();
+        URL.revokeObjectURL(url);
+        this.downloadingPdf.set(false);
+      },
+      error: () => this.downloadingPdf.set(false)
+    });
+  }
+
+  printPdf() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    this.printingPdf.set(true);
+    this.menuService.getPdf(tenantId, this.menuId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = url;
+        document.body.appendChild(iframe);
+        iframe.addEventListener('load', () => {
+          iframe.contentWindow?.print();
+          setTimeout(() => {
+            document.body.removeChild(iframe);
+            URL.revokeObjectURL(url);
+          }, 1000);
+        });
+        this.printingPdf.set(false);
+      },
+      error: () => this.printingPdf.set(false)
     });
   }
 

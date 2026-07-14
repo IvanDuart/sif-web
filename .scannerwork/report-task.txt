@@ -1,0 +1,6 @@
+projectKey=com.carajillolabs:sif-web
+serverUrl=https://sonar.iduart.es
+serverVersion=26.6.0.123539
+dashboardUrl=https://sonar.iduart.es/dashboard?id=com.carajillolabs%3Asif-web
+ceTaskId=f04b9afc-ff89-4c34-904d-f61d57f9204d
+ceTaskUrl=https://sonar.iduart.es/api/ce/task?id=f04b9afc-ff89-4c34-904d-f61d57f9204d

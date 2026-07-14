@@ -902,6 +902,80 @@
         }
       }
     },
+    "/tenant/{tenantId}/branding/logo-pdf": {
+      "get": {
+        "tags": [
+          "TenantBrandingController"
+        ],
+        "description": "Get tenant logo for PDF (public)",
+        "operationId": "getLogoPdf",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "TenantBrandingController"
+        ],
+        "description": "Update tenant logo for PDF",
+        "operationId": "updateLogoPdf",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/appointment-types/{typeId}": {
       "put": {
         "tags": [
@@ -2531,6 +2605,48 @@
         }
       }
     },
+    "/tenant/{tenantId}/menu/{id}/pdf": {
+      "get": {
+        "tags": [
+          "MenuController"
+        ],
+        "description": "Generate PDF for menu",
+        "operationId": "generatePdf",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/menu/history": {
       "get": {
         "tags": [
@@ -3054,6 +3170,12 @@
           },
           "preferences": {
             "$ref": "#/components/schemas/TenantPreferences_Full"
+          },
+          "address": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
           }
         }
       },
@@ -3087,6 +3209,12 @@
           },
           "adminTenant": {
             "type": "boolean"
+          },
+          "address": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
           },
           "preferences": {
             "$ref": "#/components/schemas/TenantPreferences_Full"
@@ -3602,6 +3730,12 @@
           },
           "preferences": {
             "$ref": "#/components/schemas/TenantPreferences_Public"
+          },
+          "address": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
           }
         },
         "required": [
@@ -3653,6 +3787,12 @@
           "disabledAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "address": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
           },
           "preferences": {
             "$ref": "#/components/schemas/TenantPreferences_Public"
@@ -4167,15 +4307,15 @@
           "roleCode": {
             "type": "string"
           },
+          "tenantName": {
+            "type": "string"
+          },
           "userType": {
             "type": "string",
             "enum": [
               "STAFF",
               "PATIENT"
             ]
-          },
-          "tenantName": {
-            "type": "string"
           }
         }
       },
@@ -4244,6 +4384,12 @@
           },
           "adminTenant": {
             "type": "boolean"
+          },
+          "address": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
           },
           "preferences": {
             "$ref": "#/components/schemas/TenantPreferences"
@@ -4556,6 +4702,15 @@
             "type": "string"
           },
           "logoUrl": {
+            "type": "string"
+          },
+          "logoPdfUrl": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "phone": {
             "type": "string"
           }
         }

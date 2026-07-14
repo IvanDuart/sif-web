@@ -163,9 +163,8 @@ export default class AppointmentsPage implements OnInit {
         title: `${a.patientName}`,
         start: a.startTime,
         end: a.endTime,
-        backgroundColor: colors[a.status] || '#3b82f6',
+        backgroundColor: (colors[a.status] || '#3b82f6') + '20',
         borderColor: colors[a.status] || '#3b82f6',
-        textColor: '#ffffff',
         extendedProps: {
           status: a.status,
           patientName: a.patientName,

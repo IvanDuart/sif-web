@@ -37,38 +37,7 @@ import { PatientWeightChart } from './components/patient-weight-chart';
     PatientWeightChart
   ],
   templateUrl: './tenant-dashboard.component.html',
-  styles: [`
-    :host ::ng-deep .fc .fc-button-primary {
-      background-color: var(--p-primary-500);
-      border-color: var(--p-primary-500);
-      color: var(--p-primary-contrast-color);
-      transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
-    }
-    :host ::ng-deep .fc .fc-button-primary:hover {
-      background-color: var(--p-primary-600);
-      border-color: var(--p-primary-600);
-    }
-    :host ::ng-deep .fc .fc-button-primary:not(:disabled):active,
-    :host ::ng-deep .fc .fc-button-primary:not(:disabled).fc-button-active {
-      background-color: var(--p-primary-700);
-      border-color: var(--p-primary-700);
-    }
-    :host ::ng-deep .fc .fc-button-primary:focus {
-      box-shadow: 0 0 0 0.2rem var(--p-primary-200);
-    }
-    :host ::ng-deep .fc .fc-button-primary:disabled {
-      background-color: var(--p-primary-300);
-      border-color: var(--p-primary-300);
-      opacity: 0.6;
-    }
-    :host ::ng-deep .fc .fc-today-button {
-      font-weight: 500;
-    }
-    :host ::ng-deep .fc .fc-button {
-      font-weight: 500;
-      box-shadow: none;
-    }
-  `]
+  styleUrls: ['./tenant-dashboard.component.scss']
 })
 export class TenantDashboardComponent implements OnInit {
   private readonly tenantCtx = inject(TenantContextService);
@@ -195,9 +164,8 @@ export class TenantDashboardComponent implements OnInit {
         title: `${a.patientName}`,
         start: a.startTime,
         end: a.endTime,
-        backgroundColor: colors[a.status] || '#3b82f6',
+        backgroundColor: (colors[a.status] || '#3b82f6') + '20',
         borderColor: colors[a.status] || '#3b82f6',
-        textColor: '#ffffff',
         extendedProps: {
           status: a.status,
           patientName: a.patientName,

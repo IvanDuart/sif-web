@@ -1,0 +1,158 @@
+/* ═══════════════════════════════════════════════════════
+   FullCalendar — Global Theme Overrides
+   Applied to all calendar instances across the app.
+   ═══════════════════════════════════════════════════════ */
+
+.fc {
+  --fc-border-color: rgba(0, 0, 0, 0.06);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: transparent;
+  --fc-today-bg-color: rgba(5, 150, 105, 0.04);
+
+  --fc-button-text-color: var(--p-primary-700, #1e40af);
+  --fc-button-bg-color: var(--p-primary-50, #eff6ff);
+  --fc-button-border-color: var(--p-primary-200, #bfdbfe);
+  --fc-button-hover-bg-color: var(--p-primary-100, #dbeafe);
+  --fc-button-hover-border-color: var(--p-primary-300, #93c5fd);
+  --fc-button-active-bg-color: var(--p-primary-200, #bfdbfe);
+  --fc-button-active-border-color: var(--p-primary-400, #60a5fa);
+}
+
+/* ── Toolbar title (Poppins) ───────────────────────────── */
+.fc .fc-toolbar-title {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* ── Buttons (pastel style) ─────────────────────────────── */
+.fc .fc-button {
+  font-weight: 600;
+  box-shadow: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.fc .fc-button-primary:not(:disabled):active,
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: var(--fc-button-active-bg-color);
+  border-color: var(--fc-button-active-border-color);
+}
+
+.fc .fc-button-primary:disabled {
+  opacity: 0.5;
+}
+
+/* ── Events (ribbon style) ──────────────────────────────── */
+.fc .fc-event {
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  border-left-width: 3px !important;
+  border-left-style: solid !important;
+  border-radius: 4px !important;
+}
+
+.fc .fc-event .fc-event-main {
+  color: var(--p-surface-700, #334155) !important;
+  padding: 1px 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.fc .fc-event .fc-event-time {
+  font-weight: 600;
+  font-size: 0.7rem;
+}
+
+/* ── Day grid ────────────────────────────────────────────── */
+.fc .fc-daygrid-event-dot {
+  display: none;
+}
+
+.fc .fc-daygrid-day-frame {
+  min-height: 80px;
+}
+
+.fc .fc-daygrid-day-number {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--p-surface-600, #475569);
+  padding: 4px;
+  text-decoration: none;
+}
+
+/* Today circle */
+.fc .fc-day-today .fc-daygrid-day-number {
+  background: var(--p-primary-500, #3b82f6);
+  color: #fff;
+  border-radius: 50%;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 2px auto;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* ── Column headers ──────────────────────────────────────── */
+.fc .fc-col-header-cell {
+  padding: 0.5rem 0;
+  background: transparent;
+}
+
+.fc .fc-col-header-cell-cushion {
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--p-surface-400, #94a3b8);
+}
+
+/* ── Time labels (timegrid views) ────────────────────────── */
+.fc .fc-timegrid-axis-cushion,
+.fc .fc-timegrid-slot-label-cushion {
+  font-size: 0.7rem;
+  color: var(--p-surface-400, #94a3b8);
+  font-weight: 500;
+}
+
+.fc .fc-timegrid-slot {
+  height: 2rem;
+}
+
+/* ── Scrollgrid — remove outer borders ───────────────────── */
+.fc .fc-scrollgrid {
+  border: none;
+}
+
+.fc .fc-scrollgrid td:first-child {
+  border-left: none;
+}
+
+.fc .fc-scrollgrid td:last-child {
+  border-right: none;
+}
+
+.fc .fc-scrollgrid-section-header > td {
+  border-top: none;
+}
+
+.fc .fc-scrollgrid-section-body > td {
+  border-bottom: none;
+}
+
+/* ── Now indicator line (timegrid) ───────────────────────── */
+.fc .fc-timegrid-now-indicator-line {
+  border-color: var(--p-primary-500, #3b82f6);
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+  border-color: var(--p-primary-500, #3b82f6);
+  color: var(--p-primary-500, #3b82f6);
+}

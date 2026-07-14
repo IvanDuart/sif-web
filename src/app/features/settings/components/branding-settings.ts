@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TuiTextfield } from '@taiga-ui/core';
 import { TenantBrandingService } from '../../../core/api/services/tenant-branding.api';
@@ -57,15 +57,29 @@ import { NotificationService } from '../../../core/ui';
 
         <div class="data-card">
           <div class="flex flex-col gap-4">
+            @if (logoUrl(); as url) {
+              <img [src]="url" alt="Logo" class="max-h-24 w-fit rounded-lg border border-surface-200 dark:border-surface-700" />
+            }
             <input type="file" accept="image/*" class="form-input" (change)="onFileSelected($event)" />
             <p class="text-sm text-surface-400">{{ t('settings.logo_hint') }}</p>
+          </div>
+        </div>
+
+        <div class="data-card">
+          <div class="flex flex-col gap-4">
+            <h3 class="text-sm font-semibold text-surface-700">{{ t('settings.logo_pdf') }}</h3>
+            @if (logoPdfUrl(); as url) {
+              <img [src]="url" alt="Logo PDF" class="max-h-24 w-fit rounded-lg border border-surface-200 dark:border-surface-700" />
+            }
+            <input type="file" accept="image/*" class="form-input" (change)="onPdfFileSelected($event)" />
+            <p class="text-sm text-surface-400">{{ t('settings.logo_pdf_hint') }}</p>
           </div>
         </div>
       </div>
     </div>
   `
 })
-export class BrandingSettings implements OnInit {
+export class BrandingSettings implements OnInit, OnDestroy {
   private readonly tenantBrandingService = inject(TenantBrandingService);
   private readonly tenantService = inject(TenantService);
   private readonly tenantCtx = inject(TenantContextService);
@@ -82,9 +96,46 @@ export class BrandingSettings implements OnInit {
   });
   saving = signal(false);
   loading = signal(false);
+  logoUrl = signal<string | null>(null);
+  logoPdfUrl = signal<string | null>(null);
+  private currentLogoBlobUrl: string | null = null;
+  private currentLogoPdfBlobUrl: string | null = null;
+
+  private revokeLogo() {
+    if (this.currentLogoBlobUrl) {
+      URL.revokeObjectURL(this.currentLogoBlobUrl);
+      this.currentLogoBlobUrl = null;
+    }
+  }
+
+  private revokeLogoPdf() {
+    if (this.currentLogoPdfBlobUrl) {
+      URL.revokeObjectURL(this.currentLogoPdfBlobUrl);
+      this.currentLogoPdfBlobUrl = null;
+    }
+  }
+
+  private setLogoFromBlob(blob: Blob) {
+    this.revokeLogo();
+    const url = URL.createObjectURL(blob);
+    this.currentLogoBlobUrl = url;
+    this.logoUrl.set(url);
+  }
+
+  private setLogoPdfFromBlob(blob: Blob) {
+    this.revokeLogoPdf();
+    const url = URL.createObjectURL(blob);
+    this.currentLogoPdfBlobUrl = url;
+    this.logoPdfUrl.set(url);
+  }
 
   ngOnInit() {
     this.loadBranding();
+  }
+
+  ngOnDestroy() {
+    this.revokeLogo();
+    this.revokeLogoPdf();
   }
 
   loadBranding() {
@@ -106,6 +157,21 @@ export class BrandingSettings implements OnInit {
       },
       error: () => this.loading.set(false)
     });
+    this.tenantBrandingService.getLogo(tenantId).subscribe({
+      next: (blob) => {
+        if (blob.size > 0) {
+          this.setLogoFromBlob(blob);
+        }
+      }
+    });
+    this.tenantBrandingService.getLogoPdf(tenantId).subscribe({
+      next: (blob) => {
+        if (blob.size > 0) {
+          this.setLogoPdfFromBlob(blob);
+        }
+      },
+      error: () => {}
+    });
   }
 
   save() {
@@ -124,9 +190,11 @@ export class BrandingSettings implements OnInit {
   }
 
   onFileSelected(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (!file) return;
     this.uploadLogo(file);
+    input.value = '';
   }
 
   private uploadLogo(file: File) {
@@ -134,7 +202,27 @@ export class BrandingSettings implements OnInit {
     if (!tenantId) return;
     this.tenantBrandingService.updateLogo(tenantId, file).subscribe({
       next: () => {
+        this.setLogoFromBlob(file);
         this.notify.success('Éxito: Logo actualizado');
+      }
+    });
+  }
+
+  onPdfFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.uploadLogoPdf(file);
+    input.value = '';
+  }
+
+  private uploadLogoPdf(file: File) {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    this.tenantBrandingService.updateLogoPdf(tenantId, file).subscribe({
+      next: () => {
+        this.setLogoPdfFromBlob(file);
+        this.notify.success('Éxito: Logo PDF actualizado');
       }
     });
   }

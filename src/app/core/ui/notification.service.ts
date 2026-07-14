@@ -46,36 +46,68 @@ export class NotificationService {
   /**
    * Display a success notification
    * @param message - The notification message
-   * @param autoClose - Auto-close time in ms (default: 3000). Pass Infinity to disable auto-close.
+   * @param titleOrAutoClose - Optional title (string) or auto-close ms (number, default: 3000).
+   *                           Pass Infinity to disable auto-close.
    */
-  success(message: string, autoClose = 3000): void {
-    this.show(message, { status: 'success', autoClose });
+  success(message: string, titleOrAutoClose: string | number = 3000): void {
+    if (typeof titleOrAutoClose === 'string') {
+      this.show(`<strong>${titleOrAutoClose}</strong><br>${message}`, {
+        status: 'success',
+        autoClose: 3000,
+      });
+    } else {
+      this.show(message, { status: 'success', autoClose: titleOrAutoClose });
+    }
   }
 
   /**
    * Display an error notification
    * @param message - The error message
-   * @param autoClose - Auto-close time in ms (default: 5000). Pass Infinity to disable auto-close.
+   * @param titleOrAutoClose - Optional title (string) or auto-close ms (number, default: 5000).
+   *                           Pass Infinity to disable auto-close.
    */
-  error(message: string, autoClose = 5000): void {
-    this.show(message, { status: 'error', autoClose });
+  error(message: string, titleOrAutoClose: string | number = 5000): void {
+    if (typeof titleOrAutoClose === 'string') {
+      this.show(`<strong>${titleOrAutoClose}</strong><br>${message}`, {
+        status: 'error',
+        autoClose: 5000,
+      });
+    } else {
+      this.show(message, { status: 'error', autoClose: titleOrAutoClose });
+    }
   }
 
   /**
    * Display a warning notification
    * @param message - The warning message
-   * @param autoClose - Auto-close time in ms (default: 4000). Pass Infinity to disable auto-close.
+   * @param titleOrAutoClose - Optional title (string) or auto-close ms (number, default: 4000).
+   *                           Pass Infinity to disable auto-close.
    */
-  warning(message: string, autoClose = 4000): void {
-    this.show(message, { status: 'warning', autoClose });
+  warning(message: string, titleOrAutoClose: string | number = 4000): void {
+    if (typeof titleOrAutoClose === 'string') {
+      this.show(`<strong>${titleOrAutoClose}</strong><br>${message}`, {
+        status: 'warning',
+        autoClose: 4000,
+      });
+    } else {
+      this.show(message, { status: 'warning', autoClose: titleOrAutoClose });
+    }
   }
 
   /**
    * Display an info notification
    * @param message - The info message
-   * @param autoClose - Auto-close time in ms (default: 3000). Pass Infinity to disable auto-close.
+   * @param titleOrAutoClose - Optional title (string) or auto-close ms (number, default: 3000).
+   *                           Pass Infinity to disable auto-close.
    */
-  info(message: string, autoClose = 3000): void {
-    this.show(message, { status: 'info', autoClose });
+  info(message: string, titleOrAutoClose: string | number = 3000): void {
+    if (typeof titleOrAutoClose === 'string') {
+      this.show(`<strong>${titleOrAutoClose}</strong><br>${message}`, {
+        status: 'info',
+        autoClose: 3000,
+      });
+    } else {
+      this.show(message, { status: 'info', autoClose: titleOrAutoClose });
+    }
   }
 }

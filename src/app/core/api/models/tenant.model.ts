@@ -13,6 +13,8 @@ export interface Tenant {
   id: string;
   name: string;
   cif: string;
+  address?: string;
+  phone?: string;
   createdAt?: string;
   updatedAt?: string;
   disabledAt?: string;

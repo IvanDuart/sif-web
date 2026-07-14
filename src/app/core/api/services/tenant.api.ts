@@ -8,12 +8,16 @@ import { environment } from '../../../../environments/environment';
 export interface CreateTenantRequest {
   name: string;
   cif?: string;
+  address?: string;
+  phone?: string;
   preferences?: TenantPreferences;
 }
 
 export interface UpdateTenantRequest {
   name?: string;
   cif?: string;
+  address?: string;
+  phone?: string;
   preferences?: TenantPreferences;
 }
 

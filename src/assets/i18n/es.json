@@ -240,6 +240,8 @@
     "add_meal": "Agregar Comida",
     "add_meal_short": "Añadir",
     "free_day": "Día libre o sin comidas definidas",
+    "print_pdf": "Imprimir",
+    "download_pdf": "Descargar PDF",
     "empty_title": "Sin comidas asignadas",
     "empty_description": "Esta dieta aún no tiene comidas. Agregá la primera usando el botón superior.",
     "days": {
@@ -331,6 +333,8 @@
     "default_language": "Idioma por Defecto",
     "logo": "Logo",
     "logo_hint": "Tamaño máximo: 2 MB. Formatos: PNG, JPG, SVG.",
+    "logo_pdf": "Logo para PDF",
+    "logo_pdf_hint": "Logo específico para la cabecera de PDFs. Si no se sube, se usará el logo web como alternativa.",
     "anamnesis_tab": "Campos de Anamnesis",
     "anamnesis_fields_title": "Configurar Campos de Anamnesis",
     "anamnesis_fields_desc": "Selecciona los campos de anamnesis que estarán activos para los perfiles de pacientes en tu centro."

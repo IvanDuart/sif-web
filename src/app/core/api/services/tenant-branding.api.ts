@@ -26,7 +26,19 @@ export class TenantBrandingService {
 
   updateLogo(tenantId: string, file: File): Observable<void> {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', file, file.name);
     return this.http.put<void>(`${this.baseUrl}/tenant/${tenantId}/branding/logo`, formData);
+  }
+
+  getLogoPdf(tenantId: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/tenant/${tenantId}/branding/logo-pdf`, {
+      responseType: 'blob'
+    });
+  }
+
+  updateLogoPdf(tenantId: string, file: File): Observable<void> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    return this.http.put<void>(`${this.baseUrl}/tenant/${tenantId}/branding/logo-pdf`, formData);
   }
 }

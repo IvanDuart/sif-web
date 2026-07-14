@@ -55,4 +55,10 @@ export class MenuService {
       params: { userId }
     });
   }
+
+  getPdf(tenantId: string, id: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/tenant/${tenantId}/menu/${id}/pdf`, {
+      responseType: 'blob'
+    });
+  }
 }

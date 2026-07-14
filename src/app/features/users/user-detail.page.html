@@ -23,11 +23,11 @@
           <p class="text-surface-500 text-sm mb-0">{{ u.email }}</p>
         </div>
         <div class="flex items-center gap-2">
-          <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1">
+          <span class="status-badge info">
             <i class="fa-solid {{ isStaff() ? 'fa-user-doctor' : 'fa-user-injured' }}"></i>
             {{ isStaff() ? t('users.user_type_staff') : t('users.user_type_patient') }}
           </span>
-          <span [class.bg-green-100]="u.enabled !== false" [class.text-green-700]="u.enabled !== false" [class.bg-gray-100]="u.enabled === false" [class.text-gray-500]="u.enabled === false" class="px-2 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1">
+          <span class="status-badge" [class.success]="u.enabled !== false" [class.secondary]="u.enabled === false">
             {{ u.enabled !== false ? t('users.enabled') : t('users.disabled') }}
           </span>
           <button
@@ -42,23 +42,23 @@
       </div>
     </div>
 
-    <!-- Tab buttons -->
-    <div class="flex gap-1 border-b border-surface-200 dark:border-surface-700 mb-4">
-      <button [class.active]="activeTab() === '0'" (click)="onTabChange('0')" class="px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px text-surface-500 hover:text-surface-700 border-transparent [&.active]:text-primary-500 [&.active]:border-primary-500">{{ t('users.tab_profile') }}</button>
+    <!-- Tab buttons (Segmented Control) -->
+    <div class="flex gap-1 bg-surface-100 dark:bg-surface-800 p-1 rounded-lg mb-4 overflow-x-auto">
+      <button [class.active]="activeTab() === '0'" (click)="onTabChange('0')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_profile') }}</button>
       @if (!isStaff()) {
-      <button [class.active]="activeTab() === '1'" (click)="onTabChange('1')" class="px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px text-surface-500 hover:text-surface-700 border-transparent [&.active]:text-primary-500 [&.active]:border-primary-500">{{ t('users.tab_measurements') }}</button>
-      <button [class.active]="activeTab() === '2'" (click)="onTabChange('2')" class="px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px text-surface-500 hover:text-surface-700 border-transparent [&.active]:text-primary-500 [&.active]:border-primary-500">{{ t('users.tab_menus') }}</button>
-      <button [class.active]="activeTab() === '7'" (click)="onTabChange('7')" class="px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px text-surface-500 hover:text-surface-700 border-transparent [&.active]:text-primary-500 [&.active]:border-primary-500">{{ t('users.tab_water', { defaultValue: 'Agua' }) }}</button>
+      <button [class.active]="activeTab() === '1'" (click)="onTabChange('1')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_measurements') }}</button>
+      <button [class.active]="activeTab() === '2'" (click)="onTabChange('2')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_menus') }}</button>
+      <button [class.active]="activeTab() === '7'" (click)="onTabChange('7')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_water', { defaultValue: 'Agua' }) }}</button>
       }
       @if (!isStaff() && canViewPatientProfile()) {
-      <button [class.active]="activeTab() === '3'" (click)="onTabChange('3')" class="px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px text-surface-500 hover:text-surface-700 border-transparent [&.active]:text-primary-500 [&.active]:border-primary-500">{{ t('users.tab_patient_profile') }}</button>
-      <button [class.active]="activeTab() === '6'" (click)="onTabChange('6')" class="px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px text-surface-500 hover:text-surface-700 border-transparent [&.active]:text-primary-500 [&.active]:border-primary-500">{{ t('users.tab_fixed_guidelines') }}</button>
+      <button [class.active]="activeTab() === '3'" (click)="onTabChange('3')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_patient_profile') }}</button>
+      <button [class.active]="activeTab() === '6'" (click)="onTabChange('6')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_fixed_guidelines') }}</button>
       }
       @if (!isStaff() && canViewPatientEvents()) {
-      <button [class.active]="activeTab() === '5'" (click)="onTabChange('5')" class="px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px text-surface-500 hover:text-surface-700 border-transparent [&.active]:text-primary-500 [&.active]:border-primary-500">{{ t('users.tab_patient_events') }}</button>
+      <button [class.active]="activeTab() === '5'" (click)="onTabChange('5')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_patient_events') }}</button>
       }
       @if (!isStaff() && canViewAppointments()) {
-      <button [class.active]="activeTab() === '4'" (click)="onTabChange('4')" class="px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px text-surface-500 hover:text-surface-700 border-transparent [&.active]:text-primary-500 [&.active]:border-primary-500">{{ t('appointments.history_title') }}</button>
+      <button [class.active]="activeTab() === '4'" (click)="onTabChange('4')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('appointments.history_title') }}</button>
       }
     </div>
 
@@ -116,7 +116,12 @@
               </div>
               <div>
                 <span class="text-sm text-surface-400">{{ t('users.bmi') }}</span>
-                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.bmi ?? '—' }}</p>
+                <p class="text-lg font-bold mt-1"
+                  [class.text-green-600]="u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 18.5 && u.lastMeasurement.bmi < 25"
+                  [class.text-amber-600]="(u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 25 && u.lastMeasurement.bmi < 30) || (u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi < 18.5)"
+                  [class.text-red-600]="u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 30">
+                  {{ u.lastMeasurement.bmi ?? '—' }}
+                </p>
               </div>
               <div>
                 <span class="text-sm text-surface-400">{{ t('users.body_fat') }}</span>
@@ -407,11 +412,11 @@
               <div class="flex flex-col gap-4">
                 <div class="field flex flex-col gap-1">
                   <label for="breakfast" class="font-medium text-sm">{{ t('patient_profile.breakfast') }}</label>
-                  <textarea id="breakfast" class="w-full rounded-lg border border-surface-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" [ngModel]="editBreakfast()" (ngModelChange)="editBreakfast.set($event)" rows="3"></textarea>
+                  <textarea id="breakfast" class="form-input" [ngModel]="editBreakfast()" (ngModelChange)="editBreakfast.set($event)" rows="3"></textarea>
                 </div>
                 <div class="field flex flex-col gap-1">
                   <label for="snack" class="font-medium text-sm">{{ t('patient_profile.snack') }}</label>
-                  <textarea id="snack" class="w-full rounded-lg border border-surface-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" [ngModel]="editSnack()" (ngModelChange)="editSnack.set($event)" rows="3"></textarea>
+                  <textarea id="snack" class="form-input" [ngModel]="editSnack()" (ngModelChange)="editSnack.set($event)" rows="3"></textarea>
                 </div>
                 <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
                   <button type="button" class="btn-secondary" (click)="cancelEditGuidelines()">{{ t('common.cancel') }}</button>
@@ -528,7 +533,7 @@
                         </div>
                       </div>
                       <div class="flex items-center gap-3">
-                        <span [class.bg-green-100]="menu.isActive || menu.active" [class.text-green-700]="menu.isActive || menu.active" [class.bg-gray-100]="!(menu.isActive || menu.active)" [class.text-gray-500]="!(menu.isActive || menu.active)" class="px-2 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1">
+                        <span class="status-badge" [class.success]="menu.isActive || menu.active" [class.secondary]="!(menu.isActive || menu.active)">
                           {{ (menu.isActive || menu.active) ? t('menu_history.active') : t('menu_history.inactive') }}
                         </span>
                         <button
@@ -605,22 +610,22 @@
                       <td>
                         @switch (a.status) {
                           @case ('SCHEDULED') {
-                            <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1">{{ getStatusLabel(a.status) }}</span>
+                            <span class="status-badge info">{{ getStatusLabel(a.status) }}</span>
                           }
                           @case ('COMPLETED') {
-                            <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1">{{ getStatusLabel(a.status) }}</span>
+                            <span class="status-badge success">{{ getStatusLabel(a.status) }}</span>
                           }
                           @case ('CANCELLED') {
-                            <span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1">{{ getStatusLabel(a.status) }}</span>
+                            <span class="status-badge secondary">{{ getStatusLabel(a.status) }}</span>
                           }
                           @case ('NO_SHOW') {
-                            <span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1">{{ getStatusLabel(a.status) }}</span>
+                            <span class="status-badge warning">{{ getStatusLabel(a.status) }}</span>
                           }
                           @case ('PROPOSED') {
-                            <span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1">{{ getStatusLabel(a.status) }}</span>
+                            <span class="status-badge warning">{{ getStatusLabel(a.status) }}</span>
                           }
                           @default {
-                            <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1">{{ getStatusLabel(a.status) }}</span>
+                            <span class="status-badge info">{{ getStatusLabel(a.status) }}</span>
                           }
                         }
                       </td>

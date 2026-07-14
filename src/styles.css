@@ -30,7 +30,7 @@
   --p-primary-contrast-color: #ffffff;
   --p-content-background: var(--p-surface-0);
   --p-text-color: var(--p-surface-700);
-  --p-font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --p-font-family: 'system-ui', -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --p-text-muted-color: var(--p-surface-400);
 }
 
@@ -83,12 +83,19 @@ tui-dialog {
   border-color: var(--tui-border, #334155);
 }
 
+/* Headings — Poppins for visual hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
 /* Base layout resets */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: var(--p-font-family, 'Poppins', sans-serif);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background-color: var(--tui-background);
   color: var(--p-text-color, var(--tui-text-primary));
 }
@@ -304,6 +311,33 @@ html, body {
   background: var(--tui-clear-hover, rgba(0,0,0,0.08));
 }
 
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  background: #dc2626;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  line-height: 1.25rem;
+  font-family: inherit;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+.btn-danger:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 /* tui-action-btn — for page-level primary actions (in migrated pages) */
 .tui-action-btn {
   display: inline-flex;
@@ -386,6 +420,59 @@ html, body {
 
 .dark .icon-action:hover {
   background: var(--tui-clear, rgba(255,255,255,0.04));
+}
+
+/* ─────────────────────────────────────────────
+   TOAST NOTIFICATIONS — position & color
+   ───────────────────────────────────────────── */
+/* Forzar alineación a la derecha (inline:end funciona con justify-self pero
+   el margin:0 auto del componente lo anula) */
+tui-toast[data-inline="end"] {
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
+
+/* Colores de fondo suaves según el tipo (tonos pastel, mismo
+   esquema que los status-badge que ya usa la aplicación) */
+tui-toast[data-appearance="positive"] {
+  --tui-background-elevation-3: #d1fae5;
+  --tui-text-primary: #065f46;
+}
+
+tui-toast[data-appearance="negative"] {
+  --tui-background-elevation-3: #fee2e2;
+  --tui-text-primary: #991b1b;
+}
+
+tui-toast[data-appearance="warning"] {
+  --tui-background-elevation-3: #fef3c7;
+  --tui-text-primary: #92400e;
+}
+
+tui-toast[data-appearance="info"] {
+  --tui-background-elevation-3: #dbeafe;
+  --tui-text-primary: #1e40af;
+}
+
+/* Modo oscuro — fondos translúcidos para mantener contraste */
+.dark tui-toast[data-appearance="positive"] {
+  --tui-background-elevation-3: rgba(5, 150, 105, 0.2);
+  --tui-text-primary: #6ee7b7;
+}
+
+.dark tui-toast[data-appearance="negative"] {
+  --tui-background-elevation-3: rgba(239, 68, 68, 0.2);
+  --tui-text-primary: #fca5a5;
+}
+
+.dark tui-toast[data-appearance="warning"] {
+  --tui-background-elevation-3: rgba(245, 158, 11, 0.2);
+  --tui-text-primary: #fcd34d;
+}
+
+.dark tui-toast[data-appearance="info"] {
+  --tui-background-elevation-3: rgba(59, 130, 246, 0.2);
+  --tui-text-primary: #93c5fd;
 }
 
 /* ─────────────────────────────────────────────
@@ -490,5 +577,12 @@ html, body {
   align-items: center;
   gap: 4px;
   justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+tr:hover .row-actions,
+.row-actions:focus-within {
+  opacity: 1;
 }
 

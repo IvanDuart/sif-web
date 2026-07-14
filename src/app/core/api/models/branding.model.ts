@@ -3,4 +3,7 @@ export interface TenantBrandingDto {
   primaryColor: string;
   defaultLanguage: string;
   logoUrl: string;
+  logoPdfUrl?: string;
+  address?: string;
+  phone?: string;
 }

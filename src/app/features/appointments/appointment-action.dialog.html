@@ -57,7 +57,7 @@
 
     <div class="flex justify-between items-center mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
       @if (canManage()) {
-        <button class="btn-icon--danger" [disabled]="saving()" (click)="confirmCancel()">
+        <button type="button" class="btn-icon--danger" [disabled]="saving()" (click)="confirmCancel()">
           @if (saving()) {
             <i class="fa-solid fa-spinner fa-spin"></i>
           } @else {

@@ -17,6 +17,30 @@
       </div>
       <div class="flex gap-2">
         <button
+          *appIfPermission="'VIEW_MENU'"
+          class="btn-secondary"
+          [disabled]="printingPdf()"
+          (click)="printPdf()">
+          @if (printingPdf()) {
+            <i class="fa-solid fa-spinner fa-spin"></i>
+          } @else {
+            <i class="fa-solid fa-print"></i>
+          }
+          {{ t('diet_detail.print_pdf') }}
+        </button>
+        <button
+          *appIfPermission="'VIEW_MENU'"
+          class="btn-danger"
+          [disabled]="downloadingPdf()"
+          (click)="downloadPdf()">
+          @if (downloadingPdf()) {
+            <i class="fa-solid fa-spinner fa-spin"></i>
+          } @else {
+            <i class="fa-solid fa-file-pdf"></i>
+          }
+          {{ t('diet_detail.download_pdf') }}
+        </button>
+        <button
           *appIfPermission="'MANAGE_MEAL'"
           class="btn-primary"
           (click)="addMeal()">
