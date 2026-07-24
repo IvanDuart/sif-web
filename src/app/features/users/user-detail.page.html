@@ -10,668 +10,657 @@
     </button>
   </div>
 
-  @if (loadingUser()) {
-    <div class="flex justify-center py-8">
-      <i class="fa-solid fa-spinner fa-spin text-2xl text-surface-400"></i>
-    </div>
-  } @else if (user(); as u) {
-    <!-- Profile header card -->
-    <div class="data-card p-4 mb-4">
-      <div class="flex items-start justify-between">
-        <div>
-          <h1 class="text-2xl font-bold mb-1">{{ u.firstName }} {{ u.lastName }}</h1>
-          <p class="text-surface-500 text-sm mb-0">{{ u.email }}</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="status-badge info">
-            <i class="fa-solid {{ isStaff() ? 'fa-user-doctor' : 'fa-user-injured' }}"></i>
-            {{ isStaff() ? t('users.user_type_staff') : t('users.user_type_patient') }}
-          </span>
-          <span class="status-badge" [class.success]="u.enabled !== false" [class.secondary]="u.enabled === false">
-            {{ u.enabled !== false ? t('users.enabled') : t('users.disabled') }}
-          </span>
-          <button
-            *appIfPermission="'MANAGE_USER'"
-            type="button"
-            class="btn-secondary text-sm"
-            (click)="showEditDialog()">
-            <i class="fa-solid fa-pen-to-square"></i>
-            {{ t('users.edit') }}
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tab buttons (Segmented Control) -->
-    <div class="flex gap-1 bg-surface-100 dark:bg-surface-800 p-1 rounded-lg mb-4 overflow-x-auto">
-      <button [class.active]="activeTab() === '0'" (click)="onTabChange('0')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_profile') }}</button>
-      @if (!isStaff()) {
-      <button [class.active]="activeTab() === '1'" (click)="onTabChange('1')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_measurements') }}</button>
-      <button [class.active]="activeTab() === '2'" (click)="onTabChange('2')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_menus') }}</button>
-      <button [class.active]="activeTab() === '7'" (click)="onTabChange('7')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_water', { defaultValue: 'Agua' }) }}</button>
-      }
-      @if (!isStaff() && canViewPatientProfile()) {
-      <button [class.active]="activeTab() === '3'" (click)="onTabChange('3')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_patient_profile') }}</button>
-      <button [class.active]="activeTab() === '6'" (click)="onTabChange('6')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_fixed_guidelines') }}</button>
-      }
-      @if (!isStaff() && canViewPatientEvents()) {
-      <button [class.active]="activeTab() === '5'" (click)="onTabChange('5')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_patient_events') }}</button>
-      }
-      @if (!isStaff() && canViewAppointments()) {
-      <button [class.active]="activeTab() === '4'" (click)="onTabChange('4')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('appointments.history_title') }}</button>
-      }
-    </div>
-
-    <!-- TAB 1: Perfil -->
-    @if (activeTab() === '0') {
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-        <div class="flex flex-col gap-4">
+  <boneyard-skeleton name="user-detail-header" [loading]="loadingUser()">
+    @if (user(); as u) {
+      <!-- Profile header card -->
+      <div class="data-card p-4 mb-4">
+        <div class="flex items-start justify-between">
           <div>
-            <span class="text-sm text-surface-400 font-medium">{{ t('users.invited_at') }}</span>
-            <p class="font-medium mt-1">{{ formatInstant(u.createdAt) }}</p>
+            <h1 class="text-2xl font-bold mb-1">{{ u.firstName }} {{ u.lastName }}</h1>
+            <p class="text-surface-500 text-sm mb-0">{{ u.email }}</p>
           </div>
-        </div>
-        <div class="flex flex-col gap-4">
-          <div>
-            <span class="text-sm text-surface-400 font-medium">{{ t('users.birth_date') }}</span>
-            <p class="font-medium mt-1">{{ u.birthDate ?? '—' }}</p>
-          </div>
-          <div>
-            <span class="text-sm text-surface-400 font-medium">{{ t('users.age') }}</span>
-            <p class="font-medium mt-1">
-              @if (u.age !== null) {
-                {{ u.age }} años
-              } @else {
-                —
-              }
-            </p>
-          </div>
-          <div>
-            <span class="text-sm text-surface-400 font-medium">{{ t('users.gender') }}</span>
-            <p class="font-medium mt-1">
-              @if (u.gender === 'MALE') {
-                {{ t('users.gender_male') }}
-              } @else if (u.gender === 'FEMALE') {
-                {{ t('users.gender_female') }}
-              } @else {
-                —
-              }
-            </p>
-          </div>
-          <div>
-            <span class="text-sm text-surface-400 font-medium">{{ t('users.height_cm') }}</span>
-            <p class="font-medium mt-1">{{ u.heightCm !== null ? (u.heightCm + ' cm') : '—' }}</p>
-          </div>
-        </div>
-      </div>
-
-      @if (u.lastMeasurement) {
-        <div class="data-card mt-4">
-          <div class="px-4 pt-4"><h2 class="text-xl font-semibold m-0">{{ t('users.last_measurement') }}</h2></div>
-          <div class="p-4">
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-center">
-              <div>
-                <span class="text-sm text-surface-400">{{ t('users.weight') }}</span>
-                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.weightKg ?? '—' }}</p>
-              </div>
-              <div>
-                <span class="text-sm text-surface-400">{{ t('users.bmi') }}</span>
-                <p class="text-lg font-bold mt-1"
-                  [class.text-green-600]="u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 18.5 && u.lastMeasurement.bmi < 25"
-                  [class.text-amber-600]="(u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 25 && u.lastMeasurement.bmi < 30) || (u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi < 18.5)"
-                  [class.text-red-600]="u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 30">
-                  {{ u.lastMeasurement.bmi ?? '—' }}
-                </p>
-              </div>
-              <div>
-                <span class="text-sm text-surface-400">{{ t('users.body_fat') }}</span>
-                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.bodyFatPct ?? '—' }}</p>
-              </div>
-              <div>
-                <span class="text-sm text-surface-400">{{ t('users.muscle_mass') }}</span>
-                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.muscleMassKg ?? '—' }}</p>
-              </div>
-              <div>
-                <span class="text-sm text-surface-400">{{ t('measurements.body_water') }}</span>
-                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.bodyWaterPct ?? '—' }}</p>
-              </div>
-              <div>
-                <span class="text-sm text-surface-400">{{ t('measurements.waist') }}</span>
-                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.waistCm ?? '—' }}</p>
-              </div>
-              <div>
-                <span class="text-sm text-surface-400">{{ t('measurements.chest') }}</span>
-                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.chestCm ?? '—' }}</p>
-              </div>
-              <div>
-                <span class="text-sm text-surface-400">{{ t('measurements.hips') }}</span>
-                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.hipsCm ?? '—' }}</p>
-              </div>
-              <div>
-                <span class="text-sm text-surface-400">{{ t('measurements.contour') }}</span>
-                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.contourCm ?? '—' }}</p>
-              </div>
-              <div>
-                <span class="text-sm text-surface-400">{{ t('measurements.arm') }}</span>
-                <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.armCm ?? '—' }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      }
-    }
-
-    <!-- TAB 2: Mediciones -->
-    @if (!isStaff()) {
-      @if (activeTab() === '1') {
-        <div class="py-4">
-          <div class="flex justify-end mb-4" *appIfPermission="'MANAGE_USER'">
+          <div class="flex items-center gap-2">
+            <span class="status-badge info">
+              <i class="fa-solid {{ isStaff() ? 'fa-user-doctor' : 'fa-user-injured' }}"></i>
+              {{ isStaff() ? t('users.user_type_staff') : t('users.user_type_patient') }}
+            </span>
+            <span class="status-badge" [class.success]="u.enabled !== false" [class.secondary]="u.enabled === false">
+              {{ u.enabled !== false ? t('users.enabled') : t('users.disabled') }}
+            </span>
             <button
-              type="button"
-              class="btn-primary text-sm"
-              (click)="showRegisterDialog()">
-              <i class="fa-solid fa-plus"></i>
-              {{ t('measurements.register') }}
-            </button>
-          </div>
-
-          @if (chartLoaded() && chartData) {
-            <div class="data-card mb-4">
-              <div class="flex items-center justify-between px-4 pt-4">
-                <h2 class="text-xl font-semibold m-0">{{ t('measurements.chart_title') }}</h2>
-                <div class="flex gap-1 bg-surface-100 dark:bg-surface-800 p-1 rounded-lg">
-                  <button [class.active]="chartType() === 'composition'" (click)="setChartType('composition')" class="px-3 py-1 text-xs font-medium rounded-md transition-colors text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:text-surface-900 [&.active]:shadow-sm">Composición Corporal</button>
-                  <button [class.active]="chartType() === 'anthropometry'" (click)="setChartType('anthropometry')" class="px-3 py-1 text-xs font-medium rounded-md transition-colors text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:text-surface-900 [&.active]:shadow-sm">Antropometría</button>
-                </div>
-              </div>
-              <div class="relative" style="height: 300px">
-                <canvas #chartCanvas></canvas>
-              </div>
-              <p class="text-xs text-surface-400 mt-2 italic px-4 pb-4">
-                {{ t('measurements.bmi_disclaimer') }}
-              </p>
-            </div>
-          }
-
-          <div class="data-card">
-            @if (loadingMeasurements()) {
-              <div class="flex justify-center py-8">
-                <i class="fa-solid fa-spinner fa-spin text-2xl text-surface-400"></i>
-              </div>
-            } @else if (measurements().length === 0) {
-              <app-empty-state
-                icon="fa-solid fa-chart-line"
-                [title]="t('measurements.empty_title')"
-                [description]="t('measurements.empty')"
-                [actionLabel]="t('measurements.register')"
-                (action)="showRegisterDialog()">
-              </app-empty-state>
-            } @else {
-              <div class="overflow-x-auto">
-                <table class="data-table w-full">
-                  <thead>
-                    <tr>
-                      <th>{{ t('measurements.measured_at') }}</th>
-                      <th>{{ t('measurements.weight') }}</th>
-                      <th>{{ t('measurements.bmi') }}</th>
-                      <th>{{ t('measurements.body_fat') }}</th>
-                      <th>{{ t('measurements.muscle_mass') }}</th>
-                      <th>{{ t('measurements.body_water') }}</th>
-                      <th>{{ t('measurements.waist') }}</th>
-                      <th>{{ t('measurements.chest') }}</th>
-                      <th>{{ t('measurements.hips') }}</th>
-                      <th>{{ t('measurements.contour') }}</th>
-                      <th>{{ t('measurements.arm') }}</th>
-                      <th>{{ t('measurements.notes') }}</th>
-                      <th>{{ t('measurements.recorded_by') }}</th>
-                      <th class="text-center" style="width: 5rem;">{{ t('common.actions') }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (m of measurements(); track m.id) {
-                      <tr>
-                        <td class="text-sm">{{ formatInstantWithTime(m.measuredAt) }}</td>
-                        <td>{{ m.weightKg ?? '—' }}</td>
-                        <td>{{ m.bmi ?? '—' }}</td>
-                        <td>{{ m.bodyFatPct ?? '—' }}</td>
-                        <td>{{ m.muscleMassKg ?? '—' }}</td>
-                        <td>{{ m.bodyWaterPct ?? '—' }}</td>
-                        <td>{{ m.waistCm ?? '—' }}</td>
-                        <td>{{ m.chestCm ?? '—' }}</td>
-                        <td>{{ m.hipsCm ?? '—' }}</td>
-                        <td>{{ m.contourCm ?? '—' }}</td>
-                        <td>{{ m.armCm ?? '—' }}</td>
-                        <td class="text-surface-400 text-sm max-w-32 truncate">{{ m.notes ?? '—' }}</td>
-                        <td class="text-sm">{{ m.recordedBy ?? '—' }}</td>
-                        <td class="text-center">
-                          <button
-                            *appIfPermission="'MANAGE_USER'"
-                            type="button"
-                            class="text-red-500 hover:text-red-700 transition-colors p-1 rounded-full"
-                            (click)="deleteMeasurement(m)"
-                            [title]="t('common.delete')">
-                            <i class="fa-solid fa-trash"></i>
-                          </button>
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-              <!-- Simple paginator -->
-              <div class="flex items-center justify-between px-4 py-3 border-t border-surface-200 dark:border-surface-700">
-                <div class="flex items-center gap-2 text-sm text-surface-500">
-                  <span>{{ t('common.total_records', { total: totalRecords() }) }}</span>
-                  <select [ngModel]="size()" (ngModelChange)="onSizeChange($event)" class="border border-surface-300 rounded px-2 py-1 text-sm">
-                    <option [value]="25">25</option>
-                    <option [value]="50">50</option>
-                    <option [value]="100">100</option>
-                  </select>
-                </div>
-                <div class="flex items-center gap-1">
-                  <button (click)="onPageChange(page() - 1)" [disabled]="page() === 0" class="px-2 py-1 text-sm rounded border border-surface-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-100">&laquo;</button>
-                  @for (p of getPageNumbers(); track p) {
-                    <button (click)="onPageChange(p)" [class.bg-primary-500]="page() === p" [class.text-white]="page() === p" class="px-3 py-1 text-sm rounded border border-surface-300 hover:bg-surface-100">{{ p + 1 }}</button>
-                  }
-                  <button (click)="onPageChange(page() + 1)" [disabled]="(page() + 1) * size() >= totalRecords()" class="px-2 py-1 text-sm rounded border border-surface-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-100">&raquo;</button>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-      }
-    }
-
-    <!-- TAB 3: Perfil Médico -->
-    @if (!isStaff() && canViewPatientProfile()) {
-      @if (activeTab() === '3') {
-        <div class="py-4">
-          @if (loadingProfile()) {
-            <div class="flex justify-center py-8">
-              <i class="fa-solid fa-spinner fa-spin text-2xl text-surface-400"></i>
-            </div>
-          } @else if (patientProfile(); as profile) {
-            @if ((profile.consultationReason && isAnamnesisFieldActive('consultationReason')) ||
-                 (profile.diseases && isAnamnesisFieldActive('diseases')) ||
-                 (profile.medicalHistory && isAnamnesisFieldActive('medicalHistory')) ||
-                 (profile.habits && isAnamnesisFieldActive('habits')) ||
-                 (profile.lifestyle && isAnamnesisFieldActive('lifestyle')) ||
-                 (profile.exercise && isAnamnesisFieldActive('exercise')) ||
-                 (profile.psyche && isAnamnesisFieldActive('psyche')) ||
-                 (profile.allergiesIntolerances && isAnamnesisFieldActive('allergiesIntolerances')) ||
-                 (profile.foodPreferences && isAnamnesisFieldActive('foodPreferences')) ||
-                 (profile.medicationSupplements && isAnamnesisFieldActive('medicationSupplements')) ||
-                 (profile.gastrointestinalStatus && isAnamnesisFieldActive('gastrointestinalStatus')) ||
-                 (profile.hormonalCycle && isAnamnesisFieldActive('hormonalCycle'))) {
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @if (profile.consultationReason && isAnamnesisFieldActive('consultationReason')) {
-                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.consultation_reason') }}</span>
-                    <p class="mt-1 whitespace-pre-wrap">{{ profile.consultationReason }}</p>
-                  </div>
-                }
-                @if (profile.diseases && isAnamnesisFieldActive('diseases')) {
-                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.diseases') }}</span>
-                    <p class="mt-1 whitespace-pre-wrap">{{ profile.diseases }}</p>
-                  </div>
-                }
-                @if (profile.medicalHistory && isAnamnesisFieldActive('medicalHistory')) {
-                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.medical_history') }}</span>
-                    <p class="mt-1 whitespace-pre-wrap">{{ profile.medicalHistory }}</p>
-                  </div>
-                }
-                @if (profile.habits && isAnamnesisFieldActive('habits')) {
-                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.habits') }}</span>
-                    <p class="mt-1 whitespace-pre-wrap">{{ profile.habits }}</p>
-                  </div>
-                }
-                @if (profile.lifestyle && isAnamnesisFieldActive('lifestyle')) {
-                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.lifestyle') }}</span>
-                    <p class="mt-1 whitespace-pre-wrap">{{ profile.lifestyle }}</p>
-                  </div>
-                }
-                @if (profile.exercise && isAnamnesisFieldActive('exercise')) {
-                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.exercise') }}</span>
-                    <p class="mt-1 whitespace-pre-wrap">{{ profile.exercise }}</p>
-                  </div>
-                }
-                @if (profile.psyche && isAnamnesisFieldActive('psyche')) {
-                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.psyche') }}</span>
-                    <p class="mt-1 whitespace-pre-wrap">{{ profile.psyche }}</p>
-                  </div>
-                }
-                @if (profile.allergiesIntolerances && isAnamnesisFieldActive('allergiesIntolerances')) {
-                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.allergies_intolerances') }}</span>
-                    <p class="mt-1 whitespace-pre-wrap">{{ profile.allergiesIntolerances }}</p>
-                  </div>
-                }
-                @if (profile.foodPreferences && isAnamnesisFieldActive('foodPreferences')) {
-                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.food_preferences') }}</span>
-                    <p class="mt-1 whitespace-pre-wrap">{{ profile.foodPreferences }}</p>
-                  </div>
-                }
-                @if (profile.medicationSupplements && isAnamnesisFieldActive('medicationSupplements')) {
-                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.medication_supplements') }}</span>
-                    <p class="mt-1 whitespace-pre-wrap">{{ profile.medicationSupplements }}</p>
-                  </div>
-                }
-                @if (profile.gastrointestinalStatus && isAnamnesisFieldActive('gastrointestinalStatus')) {
-                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.gastrointestinal_status') }}</span>
-                    <p class="mt-1 whitespace-pre-wrap">{{ profile.gastrointestinalStatus }}</p>
-                  </div>
-                }
-                @if (profile.hormonalCycle && isAnamnesisFieldActive('hormonalCycle')) {
-                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                    <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.hormonal_cycle') }}</span>
-                    <p class="mt-1 whitespace-pre-wrap">{{ profile.hormonalCycle }}</p>
-                  </div>
-                }
-              </div>
-            } @else {
-              <app-empty-state
-                icon="fa-solid fa-notes-medical"
-                [title]="t('patient_profile.empty_title')"
-                [description]="t('patient_profile.empty')"
-                [actionLabel]="canManagePatientProfile() ? t('patient_profile.fill_profile') : undefined"
-                (action)="showEditProfileDialog()">
-              </app-empty-state>
-            }
-
-            @if (canManagePatientProfile()) {
-              <div class="flex justify-end mt-4">
-                <button
-                  type="button"
-                  class="btn-secondary text-sm"
-                  (click)="showEditProfileDialog()">
-                  <i class="fa-solid fa-pen-to-square"></i>
-                  {{ t('patient_profile.edit') }}
-                </button>
-              </div>
-            }
-          }
-        </div>
-      }
-    }
-
-    <!-- TAB 6: Pautas fijas -->
-    @if (!isStaff() && canViewPatientProfile()) {
-      @if (activeTab() === '6') {
-        <div class="py-4">
-          @if (patientProfile(); as profile) {
-            @if (editingGuidelines()) {
-              <div class="flex flex-col gap-4">
-                <div class="field flex flex-col gap-1">
-                  <label for="breakfast" class="font-medium text-sm">{{ t('patient_profile.breakfast') }}</label>
-                  <textarea id="breakfast" class="form-input" [ngModel]="editBreakfast()" (ngModelChange)="editBreakfast.set($event)" rows="3"></textarea>
-                </div>
-                <div class="field flex flex-col gap-1">
-                  <label for="snack" class="font-medium text-sm">{{ t('patient_profile.snack') }}</label>
-                  <textarea id="snack" class="form-input" [ngModel]="editSnack()" (ngModelChange)="editSnack.set($event)" rows="3"></textarea>
-                </div>
-                <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-                  <button type="button" class="btn-secondary" (click)="cancelEditGuidelines()">{{ t('common.cancel') }}</button>
-                  <button type="button" class="btn-primary" (click)="saveGuidelines()" [class.loading]="savingGuidelines()">{{ t('common.save') }}</button>
-                </div>
-              </div>
-            } @else {
-              @if (profile.breakfast || profile.snack) {
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  @if (profile.breakfast) {
-                    <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                      <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.breakfast') }}</span>
-                      <p class="mt-1 whitespace-pre-wrap">{{ profile.breakfast }}</p>
-                    </div>
-                  }
-                  @if (profile.snack) {
-                    <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                      <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.snack') }}</span>
-                      <p class="mt-1 whitespace-pre-wrap">{{ profile.snack }}</p>
-                    </div>
-                  }
-                </div>
-              } @else {
-                <app-empty-state
-                  icon="fa-solid fa-apple-whole"
-                  title="Sin pautas fijas"
-                  description="No se han definido pautas de desayuno y merienda para este paciente."
-                  [actionLabel]="canManagePatientProfile() ? 'Definir pautas' : undefined"
-                  (action)="startEditGuidelines()">
-                </app-empty-state>
-              }
-              @if (canManagePatientProfile()) {
-                <div class="flex justify-end mt-4">
-                  <button
-                    type="button"
-                    class="btn-secondary text-sm"
-                    (click)="startEditGuidelines()">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                    Editar pautas
-                  </button>
-                </div>
-              }
-            }
-          }
-        </div>
-      }
-    }
-
-    <!-- TAB 3: Menús -->
-    @if (!isStaff()) {
-      @if (activeTab() === '2') {
-        <div class="py-4 flex flex-col gap-4">
-          <div class="flex justify-end gap-2 mb-2">
-            @if (canManageMenu()) {
-            <button
+              *appIfPermission="'MANAGE_USER'"
               type="button"
               class="btn-secondary text-sm"
-              (click)="showAssignTemplateDialog()">
-              <i class="fa-solid fa-copy"></i>
-              {{ t('menu_history.assign_template') }}
+              (click)="showEditDialog()">
+              <i class="fa-solid fa-pen-to-square"></i>
+              {{ t('users.edit') }}
             </button>
-            <button
-              type="button"
-              class="btn-primary text-sm"
-              (click)="showCreateMenuDialog()">
-              <i class="fa-solid fa-plus"></i>
-              {{ t('menu_history.create_menu') }}
-            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab buttons (Segmented Control) -->
+      <div class="flex gap-1 bg-surface-100 dark:bg-surface-800 p-1 rounded-lg mb-4 overflow-x-auto">
+        <button [class.active]="activeTab() === '0'" (click)="onTabChange('0')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_profile') }}</button>
+        @if (!isStaff()) {
+        <button [class.active]="activeTab() === '1'" (click)="onTabChange('1')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_measurements') }}</button>
+        <button [class.active]="activeTab() === '2'" (click)="onTabChange('2')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_menus') }}</button>
+        <button [class.active]="activeTab() === '7'" (click)="onTabChange('7')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_water', { defaultValue: 'Agua' }) }}</button>
+        }
+        @if (!isStaff() && canViewPatientProfile()) {
+        <button [class.active]="activeTab() === '3'" (click)="onTabChange('3')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_patient_profile') }}</button>
+        <button [class.active]="activeTab() === '6'" (click)="onTabChange('6')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_fixed_guidelines') }}</button>
+        }
+        @if (!isStaff() && canViewPatientEvents()) {
+        <button [class.active]="activeTab() === '5'" (click)="onTabChange('5')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_patient_events') }}</button>
+        }
+        @if (!isStaff() && canViewAppointments()) {
+        <button [class.active]="activeTab() === '4'" (click)="onTabChange('4')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('appointments.history_title') }}</button>
+        }
+      </div>
+
+      <!-- TAB 1: Perfil -->
+      @if (activeTab() === '0') {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+          <div class="flex flex-col gap-4">
+            <div>
+              <span class="text-sm text-surface-400 font-medium">{{ t('users.invited_at') }}</span>
+              <p class="font-medium mt-1">{{ formatInstant(u.createdAt) }}</p>
+            </div>
+          </div>
+          <div class="flex flex-col gap-4">
+            <div>
+              <span class="text-sm text-surface-400 font-medium">{{ t('users.birth_date') }}</span>
+              <p class="font-medium mt-1">{{ u.birthDate ?? '—' }}</p>
+            </div>
+            <div>
+              <span class="text-sm text-surface-400 font-medium">{{ t('users.age') }}</span>
+              <p class="font-medium mt-1">
+                @if (u.age !== null) {
+                  {{ u.age }} años
+                } @else {
+                  —
+                }
+              </p>
+            </div>
+            <div>
+              <span class="text-sm text-surface-400 font-medium">{{ t('users.gender') }}</span>
+              <p class="font-medium mt-1">
+                @if (u.gender === 'MALE') {
+                  {{ t('users.gender_male') }}
+                } @else if (u.gender === 'FEMALE') {
+                  {{ t('users.gender_female') }}
+                } @else {
+                  —
+                }
+              </p>
+            </div>
+            <div>
+              <span class="text-sm text-surface-400 font-medium">{{ t('users.height_cm') }}</span>
+              <p class="font-medium mt-1">{{ u.heightCm !== null ? (u.heightCm + ' cm') : '—' }}</p>
+            </div>
+          </div>
+        </div>
+
+        @if (u.lastMeasurement) {
+          <div class="data-card mt-4">
+            <div class="px-4 pt-4"><h2 class="text-xl font-semibold m-0">{{ t('users.last_measurement') }}</h2></div>
+            <div class="p-4">
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-center">
+                <div>
+                  <span class="text-sm text-surface-400">{{ t('users.weight') }}</span>
+                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.weightKg ?? '—' }}</p>
+                </div>
+                <div>
+                  <span class="text-sm text-surface-400">{{ t('users.bmi') }}</span>
+                  <p class="text-lg font-bold mt-1"
+                    [class.text-green-600]="u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 18.5 && u.lastMeasurement.bmi < 25"
+                    [class.text-amber-600]="(u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 25 && u.lastMeasurement.bmi < 30) || (u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi < 18.5)"
+                    [class.text-red-600]="u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 30">
+                    {{ u.lastMeasurement.bmi ?? '—' }}
+                  </p>
+                </div>
+                <div>
+                  <span class="text-sm text-surface-400">{{ t('users.body_fat') }}</span>
+                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.bodyFatPct ?? '—' }}</p>
+                </div>
+                <div>
+                  <span class="text-sm text-surface-400">{{ t('users.muscle_mass') }}</span>
+                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.muscleMassKg ?? '—' }}</p>
+                </div>
+                <div>
+                  <span class="text-sm text-surface-400">{{ t('measurements.body_water') }}</span>
+                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.bodyWaterPct ?? '—' }}</p>
+                </div>
+                <div>
+                  <span class="text-sm text-surface-400">{{ t('measurements.waist') }}</span>
+                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.waistCm ?? '—' }}</p>
+                </div>
+                <div>
+                  <span class="text-sm text-surface-400">{{ t('measurements.chest') }}</span>
+                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.chestCm ?? '—' }}</p>
+                </div>
+                <div>
+                  <span class="text-sm text-surface-400">{{ t('measurements.hips') }}</span>
+                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.hipsCm ?? '—' }}</p>
+                </div>
+                <div>
+                  <span class="text-sm text-surface-400">{{ t('measurements.contour') }}</span>
+                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.contourCm ?? '—' }}</p>
+                </div>
+                <div>
+                  <span class="text-sm text-surface-400">{{ t('measurements.arm') }}</span>
+                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.armCm ?? '—' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      }
+
+      <!-- TAB 2: Mediciones -->
+      @if (!isStaff()) {
+        @if (activeTab() === '1') {
+          <div class="py-4">
+            <div class="flex justify-end mb-4" *appIfPermission="'MANAGE_USER'">
+              <button
+                type="button"
+                class="btn-primary text-sm"
+                (click)="showRegisterDialog()">
+                <i class="fa-solid fa-plus"></i>
+                {{ t('measurements.register') }}
+              </button>
+            </div>
+
+            @if (chartLoaded() && chartData) {
+              <div class="data-card mb-4">
+                <div class="flex items-center justify-between px-4 pt-4">
+                  <h2 class="text-xl font-semibold m-0">{{ t('measurements.chart_title') }}</h2>
+                  <div class="flex gap-1 bg-surface-100 dark:bg-surface-800 p-1 rounded-lg">
+                    <button [class.active]="chartType() === 'composition'" (click)="setChartType('composition')" class="px-3 py-1 text-xs font-medium rounded-md transition-colors text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:text-surface-900 [&.active]:shadow-sm">Composición Corporal</button>
+                    <button [class.active]="chartType() === 'anthropometry'" (click)="setChartType('anthropometry')" class="px-3 py-1 text-xs font-medium rounded-md transition-colors text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:text-surface-900 [&.active]:shadow-sm">Antropometría</button>
+                  </div>
+                </div>
+                <div class="relative" style="height: 300px">
+                  <canvas #chartCanvas></canvas>
+                </div>
+                <p class="text-xs text-surface-400 mt-2 italic px-4 pb-4">
+                  {{ t('measurements.bmi_disclaimer') }}
+                </p>
+              </div>
+            }
+
+            <div class="data-card">
+              <boneyard-skeleton name="user-measurements-list" [loading]="loadingMeasurements()">
+                @if (measurements().length === 0 && !loadingMeasurements()) {
+                  <app-empty-state
+                    icon="fa-solid fa-chart-line"
+                    [title]="t('measurements.empty_title')"
+                    [description]="t('measurements.empty')"
+                    [actionLabel]="t('measurements.register')"
+                    (action)="showRegisterDialog()">
+                  </app-empty-state>
+                } @else {
+                  <div class="overflow-x-auto">
+                    <table class="data-table w-full">
+                      <thead>
+                        <tr>
+                          <th>{{ t('measurements.measured_at') }}</th>
+                          <th>{{ t('measurements.weight') }}</th>
+                          <th>{{ t('measurements.bmi') }}</th>
+                          <th>{{ t('measurements.body_fat') }}</th>
+                          <th>{{ t('measurements.muscle_mass') }}</th>
+                          <th>{{ t('measurements.body_water') }}</th>
+                          <th>{{ t('measurements.waist') }}</th>
+                          <th>{{ t('measurements.chest') }}</th>
+                          <th>{{ t('measurements.hips') }}</th>
+                          <th>{{ t('measurements.contour') }}</th>
+                          <th>{{ t('measurements.arm') }}</th>
+                          <th>{{ t('measurements.notes') }}</th>
+                          <th>{{ t('measurements.recorded_by') }}</th>
+                          <th class="text-center" style="width: 5rem;">{{ t('common.actions') }}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (m of measurements(); track m.id) {
+                          <tr>
+                            <td class="text-sm">{{ formatInstantWithTime(m.measuredAt) }}</td>
+                            <td>{{ m.weightKg ?? '—' }}</td>
+                            <td>{{ m.bmi ?? '—' }}</td>
+                            <td>{{ m.bodyFatPct ?? '—' }}</td>
+                            <td>{{ m.muscleMassKg ?? '—' }}</td>
+                            <td>{{ m.bodyWaterPct ?? '—' }}</td>
+                            <td>{{ m.waistCm ?? '—' }}</td>
+                            <td>{{ m.chestCm ?? '—' }}</td>
+                            <td>{{ m.hipsCm ?? '—' }}</td>
+                            <td>{{ m.contourCm ?? '—' }}</td>
+                            <td>{{ m.armCm ?? '—' }}</td>
+                            <td class="text-surface-400 text-sm max-w-32 truncate">{{ m.notes ?? '—' }}</td>
+                            <td class="text-sm">{{ m.recordedBy ?? '—' }}</td>
+                            <td class="text-center">
+                              <button
+                                *appIfPermission="'MANAGE_USER'"
+                                type="button"
+                                class="text-red-500 hover:text-red-700 transition-colors p-1 rounded-full"
+                                (click)="deleteMeasurement(m)"
+                                [title]="t('common.delete')">
+                                <i class="fa-solid fa-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                  <!-- Simple paginator -->
+                  <div class="flex items-center justify-between px-4 py-3 border-t border-surface-200 dark:border-surface-700">
+                    <div class="flex items-center gap-2 text-sm text-surface-500">
+                      <span>{{ t('common.total_records', { total: totalRecords() }) }}</span>
+                      <select [ngModel]="size()" (ngModelChange)="onSizeChange($event)" class="border border-surface-300 rounded px-2 py-1 text-sm">
+                        <option [value]="25">25</option>
+                        <option [value]="50">50</option>
+                        <option [value]="100">100</option>
+                      </select>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <button (click)="onPageChange(page() - 1)" [disabled]="page() === 0" class="px-2 py-1 text-sm rounded border border-surface-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-100">&laquo;</button>
+                      @for (p of getPageNumbers(); track p) {
+                        <button (click)="onPageChange(p)" [class.bg-primary-500]="page() === p" [class.text-white]="page() === p" class="px-3 py-1 text-sm rounded border border-surface-300 hover:bg-surface-100">{{ p + 1 }}</button>
+                      }
+                      <button (click)="onPageChange(page() + 1)" [disabled]="(page() + 1) * size() >= totalRecords()" class="px-2 py-1 text-sm rounded border border-surface-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-100">&raquo;</button>
+                    </div>
+                  </div>
+                }
+              </boneyard-skeleton>
+            </div>
+          </div>
+        }
+      }
+
+      <!-- TAB 3: Perfil Médico -->
+      @if (!isStaff() && canViewPatientProfile()) {
+        @if (activeTab() === '3') {
+          <div class="py-4">
+            <boneyard-skeleton name="user-medical-profile" [loading]="loadingProfile()">
+              @if (patientProfile(); as profile) {
+                @if ((profile.consultationReason && isAnamnesisFieldActive('consultationReason')) ||
+                     (profile.diseases && isAnamnesisFieldActive('diseases')) ||
+                     (profile.medicalHistory && isAnamnesisFieldActive('medicalHistory')) ||
+                     (profile.habits && isAnamnesisFieldActive('habits')) ||
+                     (profile.lifestyle && isAnamnesisFieldActive('lifestyle')) ||
+                     (profile.exercise && isAnamnesisFieldActive('exercise')) ||
+                     (profile.psyche && isAnamnesisFieldActive('psyche')) ||
+                     (profile.allergiesIntolerances && isAnamnesisFieldActive('allergiesIntolerances')) ||
+                     (profile.foodPreferences && isAnamnesisFieldActive('foodPreferences')) ||
+                     (profile.medicationSupplements && isAnamnesisFieldActive('medicationSupplements')) ||
+                     (profile.gastrointestinalStatus && isAnamnesisFieldActive('gastrointestinalStatus')) ||
+                     (profile.hormonalCycle && isAnamnesisFieldActive('hormonalCycle'))) {
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @if (profile.consultationReason && isAnamnesisFieldActive('consultationReason')) {
+                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.consultation_reason') }}</span>
+                        <p class="mt-1 whitespace-pre-wrap">{{ profile.consultationReason }}</p>
+                      </div>
+                    }
+                    @if (profile.diseases && isAnamnesisFieldActive('diseases')) {
+                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.diseases') }}</span>
+                        <p class="mt-1 whitespace-pre-wrap">{{ profile.diseases }}</p>
+                      </div>
+                    }
+                    @if (profile.medicalHistory && isAnamnesisFieldActive('medicalHistory')) {
+                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.medical_history') }}</span>
+                        <p class="mt-1 whitespace-pre-wrap">{{ profile.medicalHistory }}</p>
+                      </div>
+                    }
+                    @if (profile.habits && isAnamnesisFieldActive('habits')) {
+                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.habits') }}</span>
+                        <p class="mt-1 whitespace-pre-wrap">{{ profile.habits }}</p>
+                      </div>
+                    }
+                    @if (profile.lifestyle && isAnamnesisFieldActive('lifestyle')) {
+                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.lifestyle') }}</span>
+                        <p class="mt-1 whitespace-pre-wrap">{{ profile.lifestyle }}</p>
+                      </div>
+                    }
+                    @if (profile.exercise && isAnamnesisFieldActive('exercise')) {
+                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.exercise') }}</span>
+                        <p class="mt-1 whitespace-pre-wrap">{{ profile.exercise }}</p>
+                      </div>
+                    }
+                    @if (profile.psyche && isAnamnesisFieldActive('psyche')) {
+                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.psyche') }}</span>
+                        <p class="mt-1 whitespace-pre-wrap">{{ profile.psyche }}</p>
+                      </div>
+                    }
+                    @if (profile.allergiesIntolerances && isAnamnesisFieldActive('allergiesIntolerances')) {
+                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.allergies_intolerances') }}</span>
+                        <p class="mt-1 whitespace-pre-wrap">{{ profile.allergiesIntolerances }}</p>
+                      </div>
+                    }
+                    @if (profile.foodPreferences && isAnamnesisFieldActive('foodPreferences')) {
+                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.food_preferences') }}</span>
+                        <p class="mt-1 whitespace-pre-wrap">{{ profile.foodPreferences }}</p>
+                      </div>
+                    }
+                    @if (profile.medicationSupplements && isAnamnesisFieldActive('medicationSupplements')) {
+                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.medication_supplements') }}</span>
+                        <p class="mt-1 whitespace-pre-wrap">{{ profile.medicationSupplements }}</p>
+                      </div>
+                    }
+                    @if (profile.gastrointestinalStatus && isAnamnesisFieldActive('gastrointestinalStatus')) {
+                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.gastrointestinal_status') }}</span>
+                        <p class="mt-1 whitespace-pre-wrap">{{ profile.gastrointestinalStatus }}</p>
+                      </div>
+                    }
+                    @if (profile.hormonalCycle && isAnamnesisFieldActive('hormonalCycle')) {
+                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.hormonal_cycle') }}</span>
+                        <p class="mt-1 whitespace-pre-wrap">{{ profile.hormonalCycle }}</p>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <app-empty-state
+                    icon="fa-solid fa-notes-medical"
+                    [title]="t('patient_profile.empty_title')"
+                    [description]="t('patient_profile.empty')"
+                    [actionLabel]="canManagePatientProfile() ? t('patient_profile.fill_profile') : undefined"
+                    (action)="showEditProfileDialog()">
+                  </app-empty-state>
+                }
+
+                @if (canManagePatientProfile()) {
+                  <div class="flex justify-end mt-4">
+                    <button
+                      type="button"
+                      class="btn-secondary text-sm"
+                      (click)="showEditProfileDialog()">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                      {{ t('patient_profile.edit') }}
+                    </button>
+                  </div>
+                }
+              }
+            </boneyard-skeleton>
+          </div>
+        }
+      }
+
+      <!-- TAB 6: Pautas fijas -->
+      @if (!isStaff() && canViewPatientProfile()) {
+        @if (activeTab() === '6') {
+          <div class="py-4">
+            @if (patientProfile(); as profile) {
+              @if (editingGuidelines()) {
+                <div class="flex flex-col gap-4">
+                  <div class="field flex flex-col gap-1">
+                    <label for="breakfast" class="font-medium text-sm">{{ t('patient_profile.breakfast') }}</label>
+                    <textarea id="breakfast" class="form-input" [ngModel]="editBreakfast()" (ngModelChange)="editBreakfast.set($event)" rows="3"></textarea>
+                  </div>
+                  <div class="field flex flex-col gap-1">
+                    <label for="snack" class="font-medium text-sm">{{ t('patient_profile.snack') }}</label>
+                    <textarea id="snack" class="form-input" [ngModel]="editSnack()" (ngModelChange)="editSnack.set($event)" rows="3"></textarea>
+                  </div>
+                  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+                    <button type="button" class="btn-secondary" (click)="cancelEditGuidelines()">{{ t('common.cancel') }}</button>
+                    <button type="button" class="btn-primary" (click)="saveGuidelines()" [class.loading]="savingGuidelines()">{{ t('common.save') }}</button>
+                  </div>
+                </div>
+              } @else {
+                @if (profile.breakfast || profile.snack) {
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @if (profile.breakfast) {
+                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.breakfast') }}</span>
+                        <p class="mt-1 whitespace-pre-wrap">{{ profile.breakfast }}</p>
+                      </div>
+                    }
+                    @if (profile.snack) {
+                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
+                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.snack') }}</span>
+                        <p class="mt-1 whitespace-pre-wrap">{{ profile.snack }}</p>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <app-empty-state
+                    icon="fa-solid fa-apple-whole"
+                    title="Sin pautas fijas"
+                    description="No se han definido pautas de desayuno y merienda para este paciente."
+                    [actionLabel]="canManagePatientProfile() ? 'Definir pautas' : undefined"
+                    (action)="startEditGuidelines()">
+                  </app-empty-state>
+                }
+                @if (canManagePatientProfile()) {
+                  <div class="flex justify-end mt-4">
+                    <button
+                      type="button"
+                      class="btn-secondary text-sm"
+                      (click)="startEditGuidelines()">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                      Editar pautas
+                    </button>
+                  </div>
+                }
+              }
             }
           </div>
-          @if (activeMenu(); as menu) {
-            <div class="data-card">
-              <div class="px-4 pt-4"><h2 class="text-xl font-semibold m-0">{{ t('menu_history.active_menu') }}</h2></div>
-              <div class="p-4">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="font-medium text-lg">{{ menu.name }}</p>
-                    <p class="text-sm text-surface-400 mt-1">
-                      {{ t('menu_history.assigned_at') }}: {{ formatInstantWithTime(menu.assignedAt) }}
-                      @if (menu.assignedBy) {
-                        · {{ t('menu_history.assigned_by') }}: {{ menu.assignedBy }}
-                      }
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    class="btn-secondary text-sm"
-                    [routerLink]="['/menus', menu.id]">
-                    <i class="fa-solid fa-eye"></i>
-                    {{ t('menu_history.view_detail') }}
-                  </button>
-                </div>
-              </div>
-            </div>
-          }
+        }
+      }
 
-          @if (menus().length > 0) {
-            <div class="data-card">
-              <div class="px-4 pt-4"><h2 class="text-xl font-semibold m-0">{{ t('menu_history.history') }}</h2></div>
-              <div class="p-4">
-                <div class="flex flex-col gap-2">
-                  @for (menu of menus(); track menu.id) {
-                    <div class="flex items-center justify-between p-3 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors">
-                      <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-utensils text-surface-400"></i>
-                        <div>
-                          <p class="font-medium">{{ menu.name }}</p>
-                          <p class="text-xs text-surface-400">
-                            {{ formatInstantWithTime(menu.assignedAt) }}
-                            @if (menu.assignedBy) {
-                              · {{ t('menu_history.assigned_by') }}: {{ menu.assignedBy }}
-                            }
-                          </p>
-                        </div>
+      <!-- TAB 3: Menús -->
+      @if (!isStaff()) {
+        @if (activeTab() === '2') {
+          <div class="py-4 flex flex-col gap-4">
+            <div class="flex justify-end gap-2 mb-2">
+              @if (canManageMenu()) {
+              <button
+                type="button"
+                class="btn-secondary text-sm"
+                (click)="showAssignTemplateDialog()">
+                <i class="fa-solid fa-copy"></i>
+                {{ t('menu_history.assign_template') }}
+              </button>
+              <button
+                type="button"
+                class="btn-primary text-sm"
+                (click)="showCreateMenuDialog()">
+                <i class="fa-solid fa-plus"></i>
+                {{ t('menu_history.create_menu') }}
+              </button>
+              }
+            </div>
+            
+            <boneyard-skeleton name="user-menus-history" [loading]="loadingMenus()">
+              @if (activeMenu(); as menu) {
+                <div class="data-card">
+                  <div class="px-4 pt-4"><h2 class="text-xl font-semibold m-0">{{ t('menu_history.active_menu') }}</h2></div>
+                  <div class="p-4">
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="font-medium text-lg">{{ menu.name }}</p>
+                        <p class="text-sm text-surface-400 mt-1">
+                          {{ t('menu_history.assigned_at') }}: {{ formatInstantWithTime(menu.assignedAt) }}
+                          @if (menu.assignedBy) {
+                            · {{ t('menu_history.assigned_by') }}: {{ menu.assignedBy }}
+                          }
+                        </p>
                       </div>
-                      <div class="flex items-center gap-3">
-                        <span class="status-badge" [class.success]="menu.isActive || menu.active" [class.secondary]="!(menu.isActive || menu.active)">
-                          {{ (menu.isActive || menu.active) ? t('menu_history.active') : t('menu_history.inactive') }}
-                        </span>
-                        <button
-                          type="button"
-                          class="text-surface-500 hover:text-surface-700 transition-colors p-1 rounded-full"
-                          [routerLink]="['/menus', menu.id]"
-                          [title]="t('menu_history.view_detail')">
-                          <i class="fa-solid fa-eye"></i>
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        class="btn-secondary text-sm"
+                        [routerLink]="['/menus', menu.id]">
+                        <i class="fa-solid fa-eye"></i>
+                        {{ t('menu_history.view_detail') }}
+                      </button>
                     </div>
-                  }
+                  </div>
                 </div>
-              </div>
-            </div>
-          }
+              }
 
-          @if (menus().length === 0 && !loadingMenus()) {
-            <app-empty-state
-              icon="fa-solid fa-utensils"
-              [title]="t('menu_history.empty_title')"
-              [description]="t('menu_history.empty')">
-            </app-empty-state>
-          }
+              @if (menus().length > 0) {
+                <div class="data-card">
+                  <div class="px-4 pt-4"><h2 class="text-xl font-semibold m-0">{{ t('menu_history.history') }}</h2></div>
+                  <div class="p-4">
+                    <div class="flex flex-col gap-2">
+                      @for (menu of menus(); track menu.id) {
+                        <div class="flex items-center justify-between p-3 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors">
+                          <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-utensils text-surface-400"></i>
+                            <div>
+                              <p class="font-medium">{{ menu.name }}</p>
+                              <p class="text-xs text-surface-400">
+                                {{ formatInstantWithTime(menu.assignedAt) }}
+                                @if (menu.assignedBy) {
+                                  · {{ t('menu_history.assigned_by') }}: {{ menu.assignedBy }}
+                                }
+                              </p>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-3">
+                            <span class="status-badge" [class.success]="menu.isActive || menu.active" [class.secondary]="!(menu.isActive || menu.active)">
+                              {{ (menu.isActive || menu.active) ? t('menu_history.active') : t('menu_history.inactive') }}
+                            </span>
+                            <button
+                              type="button"
+                              class="text-surface-500 hover:text-surface-700 transition-colors p-1 rounded-full"
+                              [routerLink]="['/menus', menu.id]"
+                              [title]="t('menu_history.view_detail')">
+                              <i class="fa-solid fa-eye"></i>
+                            </button>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
 
-          @if (loadingMenus()) {
-            <div class="flex justify-center py-8">
-              <i class="fa-solid fa-spinner fa-spin text-2xl text-surface-400"></i>
-            </div>
-          }
-        </div>
-      }
-    }
-
-    <!-- TAB 4: Citas -->
-    @if (!isStaff() && canViewAppointments()) {
-      @if (activeTab() === '4') {
-        <div class="py-4">
-          @if (loadingAppointments()) {
-            <div class="flex justify-center py-8">
-              <i class="fa-solid fa-spinner fa-spin text-2xl text-surface-400"></i>
-            </div>
-          } @else if (appointments().length === 0) {
-            <app-empty-state
-              icon="fa-solid fa-calendar"
-              [title]="'Sin citas'"
-              [description]="'No hay citas registradas para este paciente.'">
-            </app-empty-state>
-          } @else {
-            <div class="overflow-x-auto">
-              <table class="data-table w-full">
-                <caption class="text-sm font-normal text-surface-500 px-4 py-2 text-left border-b border-surface-200 dark:border-surface-700">
-                  {{ t('common.total_records', { total: appointments().length }) }}
-                </caption>
-                <thead>
-                  <tr>
-                    <th>{{ t('appointments.date') }}</th>
-                    <th>{{ t('appointments.nutritionist') }}</th>
-                    <th>{{ t('appointments.type') }}</th>
-                    <th>{{ t('appointments.start_time') }}</th>
-                    <th>{{ t('appointments.end_time') }}</th>
-                    <th>{{ t('common.status') }}</th>
-                    <th>{{ t('appointments.notes') }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (a of appointments(); track a.id) {
-                    <tr>
-                      <td class="text-sm">{{ formatInstant(a.startTime) }}</td>
-                      <td class="font-medium">{{ a.nutritionistName }}</td>
-                      <td class="text-sm">{{ a.typeName || '—' }}</td>
-                      <td class="text-sm">{{ a.startTime | date:'HH:mm' }}</td>
-                      <td class="text-sm">{{ a.endTime | date:'HH:mm' }}</td>
-                      <td>
-                        @switch (a.status) {
-                          @case ('SCHEDULED') {
-                            <span class="status-badge info">{{ getStatusLabel(a.status) }}</span>
-                          }
-                          @case ('COMPLETED') {
-                            <span class="status-badge success">{{ getStatusLabel(a.status) }}</span>
-                          }
-                          @case ('CANCELLED') {
-                            <span class="status-badge secondary">{{ getStatusLabel(a.status) }}</span>
-                          }
-                          @case ('NO_SHOW') {
-                            <span class="status-badge warning">{{ getStatusLabel(a.status) }}</span>
-                          }
-                          @case ('PROPOSED') {
-                            <span class="status-badge warning">{{ getStatusLabel(a.status) }}</span>
-                          }
-                          @default {
-                            <span class="status-badge info">{{ getStatusLabel(a.status) }}</span>
-                          }
-                        }
-                      </td>
-                      <td class="text-surface-400 text-sm max-w-40 truncate">{{ a.notes || '—' }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          }
-        </div>
-      }
-    }
-
-    <!-- TAB 5: Eventos del Paciente -->
-    @if (!isStaff() && canViewPatientEvents()) {
-      @if (activeTab() === '5') {
-        <div class="py-4">
-          @if (canManagePatientEvents()) {
-          <div class="flex justify-end mb-4">
-            <button
-              type="button"
-              class="btn-primary text-sm"
-              (click)="showEventFormDialog()">
-              <i class="fa-solid fa-plus"></i>
-              {{ t('patient_events.new_event') }}
-            </button>
+              @if (menus().length === 0 && !loadingMenus()) {
+                <app-empty-state
+                  icon="fa-solid fa-utensils"
+                  [title]="t('menu_history.empty_title')"
+                  [description]="t('menu_history.empty')">
+                </app-empty-state>
+              }
+            </boneyard-skeleton>
           </div>
-          }
-          <div class="data-card border border-surface-200 dark:border-surface-700 shadow-sm rounded-xl overflow-hidden p-4">
-            <full-calendar
-              [options]="calendarOptions"
-              [events]="calendarEvents()">
-            </full-calendar>
-          </div>
-        </div>
+        }
       }
-    }
 
-    <!-- TAB 7: Consumo de Agua -->
-    @if (!isStaff()) {
-      @if (activeTab() === '7') {
-        <div class="py-4 max-w-xl">
-          <app-water-intake-widget [patientId]="userId" />
-        </div>
+      <!-- TAB 4: Citas -->
+      @if (!isStaff() && canViewAppointments()) {
+        @if (activeTab() === '4') {
+          <div class="py-4">
+            <boneyard-skeleton name="user-appointments" [loading]="loadingAppointments()">
+              @if (appointments().length === 0 && !loadingAppointments()) {
+                <app-empty-state
+                  icon="fa-solid fa-calendar"
+                  [title]="'Sin citas'"
+                  [description]="'No hay citas registradas para este paciente.'">
+                </app-empty-state>
+              } @else {
+                <div class="overflow-x-auto">
+                  <table class="data-table w-full">
+                    <caption class="text-sm font-normal text-surface-500 px-4 py-2 text-left border-b border-surface-200 dark:border-surface-700">
+                      {{ t('common.total_records', { total: appointments().length }) }}
+                    </caption>
+                    <thead>
+                      <tr>
+                        <th>{{ t('appointments.date') }}</th>
+                        <th>{{ t('appointments.nutritionist') }}</th>
+                        <th>{{ t('appointments.type') }}</th>
+                        <th>{{ t('appointments.start_time') }}</th>
+                        <th>{{ t('appointments.end_time') }}</th>
+                        <th>{{ t('common.status') }}</th>
+                        <th>{{ t('appointments.notes') }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (a of appointments(); track a.id) {
+                        <tr>
+                          <td class="text-sm">{{ formatInstant(a.startTime) }}</td>
+                          <td class="font-medium">{{ a.nutritionistName }}</td>
+                          <td class="text-sm">{{ a.typeName || '—' }}</td>
+                          <td class="text-sm">{{ a.startTime | date:'HH:mm' }}</td>
+                          <td class="text-sm">{{ a.endTime | date:'HH:mm' }}</td>
+                          <td>
+                            @switch (a.status) {
+                              @case ('SCHEDULED') {
+                                <span class="status-badge info">{{ getStatusLabel(a.status) }}</span>
+                              }
+                              @case ('COMPLETED') {
+                                <span class="status-badge success">{{ getStatusLabel(a.status) }}</span>
+                              }
+                              @case ('CANCELLED') {
+                                <span class="status-badge secondary">{{ getStatusLabel(a.status) }}</span>
+                              }
+                              @case ('NO_SHOW') {
+                                <span class="status-badge warning">{{ getStatusLabel(a.status) }}</span>
+                              }
+                              @case ('PROPOSED') {
+                                <span class="status-badge warning">{{ getStatusLabel(a.status) }}</span>
+                              }
+                              @default {
+                                <span class="status-badge info">{{ getStatusLabel(a.status) }}</span>
+                              }
+                            }
+                          </td>
+                          <td class="text-surface-400 text-sm max-w-40 truncate">{{ a.notes || '—' }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </boneyard-skeleton>
+          </div>
+        }
+      }
+
+      <!-- TAB 5: Eventos del Paciente -->
+      @if (!isStaff() && canViewPatientEvents()) {
+        @if (activeTab() === '5') {
+          <div class="py-4">
+            @if (canManagePatientEvents()) {
+            <div class="flex justify-end mb-4">
+              <button
+                type="button"
+                class="btn-primary text-sm"
+                (click)="showEventFormDialog()">
+                <i class="fa-solid fa-plus"></i>
+                {{ t('patient_events.new_event') }}
+              </button>
+            </div>
+            }
+            <div class="data-card border border-surface-200 dark:border-surface-700 shadow-sm rounded-xl overflow-hidden p-4">
+              <full-calendar
+                [options]="calendarOptions"
+                [events]="calendarEvents()">
+              </full-calendar>
+            </div>
+          </div>
+        }
+      }
+
+      <!-- TAB 7: Consumo de Agua -->
+      @if (!isStaff()) {
+        @if (activeTab() === '7') {
+          <div class="py-4 max-w-xl">
+            <app-water-intake-widget [patientId]="userId" />
+          </div>
+        }
       }
     }
-  }
+  </boneyard-skeleton>
 </div>

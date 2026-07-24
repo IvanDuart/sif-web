@@ -1,47 +1,54 @@
 <div *transloco="let t">
   <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
 
-    <div class="flex flex-col gap-1.5">
-      <label for="patientId" class="text-sm font-medium text-surface-700">{{ t('appointments.patient') }}</label>
-      <select class="form-input" id="patientId" formControlName="patientId">
-        <option value="" disabled selected>{{ t('appointments.patient') }}</option>
-        @for (p of patients(); track p.value) {
-          <option [value]="p.value">{{ p.label }}</option>
-        }
-      </select>
-    </div>
+    <tui-textfield class="w-full">
+      <label tuiLabel for="patientId">{{ t('appointments.patient') }}</label>
+      <input
+        id="patientId"
+        tuiSelect
+        formControlName="patientId"
+      />
+      <tui-data-list-wrapper
+        *tuiDropdown
+        [items]="patientValues()"
+        [itemContent]="patientStringify | tuiStringifyContent"
+      />
+    </tui-textfield>
 
-    <div class="flex flex-col gap-1.5">
-      <label for="typeId" class="text-sm font-medium text-surface-700">{{ t('appointments.type') }}</label>
-      <select class="form-input" id="typeId" formControlName="typeId">
-        <option value="" disabled selected>{{ t('appointments.type') }}</option>
-        @for (t of appointmentTypes(); track t.value) {
-          <option [value]="t.value">{{ t.label }}</option>
-        }
-      </select>
-    </div>
+    <tui-textfield class="w-full">
+      <label tuiLabel for="typeId">{{ t('appointments.type') }}</label>
+      <input
+        id="typeId"
+        tuiSelect
+        formControlName="typeId"
+      />
+      <tui-data-list-wrapper
+        *tuiDropdown
+        [items]="typeValues()"
+        [itemContent]="typeStringify | tuiStringifyContent"
+      />
+    </tui-textfield>
 
-    <div class="flex flex-col gap-1.5">
-      <label for="startTime" class="text-sm font-medium text-surface-700">{{ t('appointments.start_time') }}</label>
-      <input type="datetime-local" class="form-input" id="startTime" formControlName="startTime">
-    </div>
+    <tui-textfield class="w-full">
+      <label tuiLabel for="startTime">{{ t('appointments.start_time') }}</label>
+      <input id="startTime" tuiInputDateTime formControlName="startTime" />
+    </tui-textfield>
 
-    <div class="flex flex-col gap-1.5">
-      <label for="notes" class="text-sm font-medium text-surface-700">{{ t('appointments.notes') }}</label>
+    <tui-textfield class="w-full">
+      <label tuiLabel for="notes">{{ t('appointments.notes') }}</label>
       <textarea
         id="notes"
-        class="form-input w-full rounded-lg border border-surface-300 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 px-3 py-2 text-sm"
+        tuiTextarea
         formControlName="notes"
-        rows="3"
-        placeholder="Observaciones opcionales...">
+        rows="3">
       </textarea>
-    </div>
+    </tui-textfield>
 
     <div class="flex justify-end gap-2 mt-2">
       <button class="btn-secondary" type="button" (click)="context.$implicit.complete()">{{ t('common.cancel') }}</button>
       <button type="submit" class="btn-primary" [disabled]="form.invalid || saving()">
         @if (saving()) {
-          <i class="fa-solid fa-spinner fa-spin"></i>
+          <i class="fa-solid fa-spinner fa-spin animate-spin mr-1"></i>
         }
         {{ t('appointments.schedule_new') }}
       </button>

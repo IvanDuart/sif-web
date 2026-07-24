@@ -127,7 +127,7 @@ export class Shell implements OnInit {
         return this.permissionsService.has('VIEW_APPOINTMENTS') || this.permissionsService.has('MANAGE_APPOINTMENTS');
       }
       if (item.permission === 'VIEW_MENU') {
-        return this.permissionsService.has('VIEW_MENU') || this.permissionsService.has('MANAGE_MENU');
+        return this.activeTenant()?.userType === 'PATIENT';
       }
       return this.permissionsService.has(item.permission);
     });

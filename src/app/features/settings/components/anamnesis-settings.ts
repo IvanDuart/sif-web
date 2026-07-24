@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TuiCheckbox } from '@taiga-ui/core';
 import { TenantService } from '../../../core/api/services/tenant.api';
 import { TenantBrandingService } from '../../../core/api/services/tenant-branding.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
@@ -26,51 +27,8 @@ const ALL_ANAMNESIS_FIELDS = [
 @Component({
   selector: 'app-anamnesis-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslocoDirective],
-  template: `
-    <div *transloco="let t" class="py-4">
-      <div class="data-card max-w-2xl border border-surface-200 dark:border-surface-700">
-        <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-2">
-          {{ t('settings.anamnesis_fields_title', { defaultValue: 'Configurar Campos de Anamnesis' }) }}
-        </h3>
-        <p class="text-sm text-surface-500 mb-6">
-          {{ t('settings.anamnesis_fields_desc', { defaultValue: 'Selecciona los campos de anamnesis que estarán activos para los perfiles de pacientes en tu centro.' }) }}
-        </p>
-
-        @if (loading()) {
-          <div class="flex items-center justify-center py-8">
-            <i class="fa-solid fa-spinner fa-spin text-primary-500 text-2xl"></i>
-          </div>
-        } @else {
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            @for (field of fields; track field) {
-              <label class="flex items-start gap-3 p-3 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 cursor-pointer transition-colors">
-                <input
-                  type="checkbox"
-                  [checked]="isFieldActive(field)"
-                  (change)="toggleField(field)"
-                  class="mt-1 rounded border-surface-300 text-primary-600 focus:ring-primary-500 h-4 w-4" />
-                <div>
-                  <p class="text-sm font-medium text-surface-900 dark:text-surface-0">
-                    {{ t('patient_profile.' + camelToSnake(field)) }}
-                  </p>
-                </div>
-              </label>
-            }
-          </div>
-
-          <div class="flex justify-end pt-4 border-t border-surface-200 dark:border-surface-700">
-            <button class="btn-primary" [disabled]="saving()" (click)="save()">
-              @if (saving()) {
-                <i class="fa-solid fa-spinner fa-spin mr-2"></i>
-              }
-              {{ t('common.save') }}
-            </button>
-          </div>
-        }
-      </div>
-    </div>
-  `
+  imports: [CommonModule, FormsModule, TranslocoDirective, TuiCheckbox],
+  templateUrl: './anamnesis-settings.html'
 })
 export class AnamnesisSettings implements OnInit {
   private readonly tenantService = inject(TenantService);
@@ -81,7 +39,7 @@ export class AnamnesisSettings implements OnInit {
   fields = ALL_ANAMNESIS_FIELDS;
   loading = signal(false);
   saving = signal(false);
-  
+
   preferences = signal<TenantPreferences | null>(null);
   activeFields = signal<string[]>([]);
 

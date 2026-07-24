@@ -37,6 +37,7 @@ import type { ChartConfiguration } from 'chart.js/auto';
 
 import { Chart, registerables } from 'chart.js';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { SkeletonComponent } from 'boneyard-js/angular';
 
 Chart.register(...registerables);
 
@@ -51,7 +52,8 @@ Chart.register(...registerables);
     TranslocoDirective,
     EmptyState,
     FullCalendarModule,
-    WaterIntakeWidget
+    WaterIntakeWidget,
+    SkeletonComponent
   ],
   templateUrl: './user-detail.page.html',
   styleUrls: ['./user-detail.page.scss']

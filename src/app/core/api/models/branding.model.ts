@@ -6,4 +6,5 @@ export interface TenantBrandingDto {
   logoPdfUrl?: string;
   address?: string;
   phone?: string;
+  aiEnabled?: boolean;
 }

@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoService, TranslocoDirective } from '@jsverse/transloco';
+import { SkeletonComponent } from 'boneyard-js/angular';
 
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -15,7 +16,7 @@ import { InstantiateTemplateDialog, InstantiateTemplateDialogInput } from './ins
 @Component({
   selector: 'app-templates-list',
   standalone: true,
-  imports: [IfPermissionDirective, TranslocoDirective, EmptyState],
+  imports: [IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent],
   templateUrl: './templates-list.page.html'
 })
 export default class TemplatesListPage implements OnInit {

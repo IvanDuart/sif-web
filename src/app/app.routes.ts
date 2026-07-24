@@ -11,6 +11,10 @@ export const routes: Routes = [
     redirectTo: 'dashboard'
   },
   {
+    path: 'sandbox',
+    loadComponent: () => import('./features/sandbox/sandbox.component').then(m => m.SandboxComponent)
+  },
+  {
     path: '',
     component: Shell,
     canActivate: [authGuard],

@@ -1,7 +1,9 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext } from '@taiga-ui/core';
+import { TuiDialogContext, TuiDropdown, TuiCalendar, TuiTextfield, TuiLabel } from '@taiga-ui/core';
+import { TuiSelect, TuiDataListWrapper, TuiStringifyContentPipe, TuiInputDate } from '@taiga-ui/kit';
+import { TuiDay } from '@taiga-ui/cdk';
 import { UserTenantRoleService, InviteUserRequest } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { UserType, Gender } from '../../core/api/models/user.model';
@@ -14,7 +16,19 @@ export interface InviteUserDialogInput {
 @Component({
   selector: 'app-invite-user',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective],
+  imports: [
+    FormsModule,
+    ReactiveFormsModule,
+    TranslocoDirective,
+    TuiDropdown,
+    TuiSelect,
+    TuiDataListWrapper,
+    TuiStringifyContentPipe,
+    TuiInputDate,
+    TuiCalendar,
+    TuiTextfield,
+    TuiLabel
+  ],
   templateUrl: './invite-user.dialog.html'
 })
 export class InviteUserDialog {
@@ -47,10 +61,24 @@ export class InviteUserDialog {
     ];
   });
 
+  roleValues = computed(() => this.roles().map(r => r.value));
+
+  roleStringify = (value: string): string => {
+    const found = this.roles().find(r => r.value === value);
+    return found ? found.label : value;
+  };
+
   genderOptions = [
     { label: this.transloco.translate('users.gender_male'), value: 'MALE' as Gender },
     { label: this.transloco.translate('users.gender_female'), value: 'FEMALE' as Gender }
   ];
+
+  genderValues = ['MALE', 'FEMALE'];
+
+  genderStringify = (value: string): string => {
+    const found = this.genderOptions.find(g => g.value === value);
+    return found ? found.label : value;
+  };
 
   showClinicalFields = computed(() => {
     if (this.lockedUserType === 'STAFF') return false;
@@ -63,7 +91,7 @@ export class InviteUserDialog {
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
     roleCode: [{ value: '', disabled: false }, Validators.required],
-    birthDate: [null as string | null],
+    birthDate: [null as TuiDay | null],
     heightCm: [null as number | null],
     gender: [null as Gender | null]
   });
@@ -94,7 +122,7 @@ export class InviteUserDialog {
       roleCode: raw.roleCode!,
     };
     if (raw.birthDate) {
-      request.birthDate = raw.birthDate;
+      request.birthDate = raw.birthDate.toJSON();
     }
     if (raw.heightCm != null) {
       request.heightCm = raw.heightCm;

@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TuiTextfield } from '@taiga-ui/core';
+import { TuiInput } from '@taiga-ui/core';
+import { TuiSwitch } from '@taiga-ui/kit';
 import { TenantBrandingService } from '../../../core/api/services/tenant-branding.api';
 import { TenantService } from '../../../core/api/services/tenant.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
@@ -11,73 +12,8 @@ import { NotificationService } from '../../../core/ui';
 @Component({
   selector: 'app-branding-settings',
   standalone: true,
-  imports: [FormsModule, TuiTextfield, TranslocoDirective],
-  template: `
-    <div *transloco="let t" class="py-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="data-card">
-          <div class="flex flex-col gap-4">
-            <div class="flex flex-col gap-1.5">
-              <label for="primaryColor" class="text-sm font-medium text-surface-700">{{ t('settings.primary_color') }}</label>
-              <input
-                type="color"
-                id="primaryColor"
-                [(ngModel)]="preferences().primary_color"
-                class="h-10 w-full rounded-lg border border-surface-300 cursor-pointer bg-transparent" />
-            </div>
-
-            <div class="flex flex-col gap-1.5">
-              <label for="fromEmail" class="text-sm font-medium text-surface-700">{{ t('settings.from_email') }}</label>
-              <tui-textfield>
-                <input
-                  id="fromEmail"
-                  tuiTextfield
-                  [(ngModel)]="preferences().from_email" />
-              </tui-textfield>
-            </div>
-
-            <div class="flex flex-col gap-1.5">
-              <label for="defaultLang" class="text-sm font-medium text-surface-700">{{ t('settings.default_language') }}</label>
-              <tui-textfield>
-                <input
-                  id="defaultLang"
-                  tuiTextfield
-                  [(ngModel)]="preferences().default_language" />
-              </tui-textfield>
-            </div>
-
-            <button class="btn-primary" [disabled]="saving()" (click)="save()">
-              @if (saving()) {
-                <i class="fa-solid fa-spinner fa-spin"></i>
-              }
-              {{ t('common.save') }}
-            </button>
-          </div>
-        </div>
-
-        <div class="data-card">
-          <div class="flex flex-col gap-4">
-            @if (logoUrl(); as url) {
-              <img [src]="url" alt="Logo" class="max-h-24 w-fit rounded-lg border border-surface-200 dark:border-surface-700" />
-            }
-            <input type="file" accept="image/*" class="form-input" (change)="onFileSelected($event)" />
-            <p class="text-sm text-surface-400">{{ t('settings.logo_hint') }}</p>
-          </div>
-        </div>
-
-        <div class="data-card">
-          <div class="flex flex-col gap-4">
-            <h3 class="text-sm font-semibold text-surface-700">{{ t('settings.logo_pdf') }}</h3>
-            @if (logoPdfUrl(); as url) {
-              <img [src]="url" alt="Logo PDF" class="max-h-24 w-fit rounded-lg border border-surface-200 dark:border-surface-700" />
-            }
-            <input type="file" accept="image/*" class="form-input" (change)="onPdfFileSelected($event)" />
-            <p class="text-sm text-surface-400">{{ t('settings.logo_pdf_hint') }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  `
+  imports: [FormsModule, TuiInput, TuiSwitch, TranslocoDirective],
+  templateUrl: `branding-settings.html`
 })
 export class BrandingSettings implements OnInit, OnDestroy {
   private readonly tenantBrandingService = inject(TenantBrandingService);
@@ -88,6 +24,8 @@ export class BrandingSettings implements OnInit, OnDestroy {
   preferences = signal<TenantPreferences>({
     enable_vacation_module: false,
     enable_clock_in_module: false,
+    ai_enabled: false,
+    gemini_api_key: '',
     default_language: 'es',
     primary_color: '#000000',
     keycloak_sync_mode: '',
@@ -147,6 +85,8 @@ export class BrandingSettings implements OnInit, OnDestroy {
         this.preferences.set(tenant.preferences ?? {
           enable_vacation_module: false,
           enable_clock_in_module: false,
+          ai_enabled: false,
+          gemini_api_key: '',
           default_language: 'es',
           primary_color: '#000000',
           keycloak_sync_mode: '',

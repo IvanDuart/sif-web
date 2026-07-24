@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TuiTextfield } from '@taiga-ui/core';
+import { TuiTextfield, TuiLabel } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext } from '@taiga-ui/core';
 import { AppointmentTypeService } from '../../../core/api/services/appointment-type.api';
@@ -15,16 +15,14 @@ export interface AppointmentTypeFormDialogInput {
 @Component({
   selector: 'app-appointment-type-form-dialog',
   standalone: true,
-  imports: [FormsModule, TuiTextfield],
+  imports: [FormsModule, TuiTextfield, TuiLabel],
   template: `
     <div class="flex flex-col gap-4">
       <div class="flex flex-col gap-1.5">
-        <tui-textfield>
+       <tui-textfield>
           <label tuiLabel>Nombre</label>
           <input
-            tuiTextfield
-            [(ngModel)]="name"
-            placeholder="Ej: Primera consulta" />
+            [(ngModel)]="name" />
         </tui-textfield>
       </div>
 

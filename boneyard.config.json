@@ -1,0 +1,5 @@
+{
+  "routes": ["/sandbox"],
+  "wait": 800,
+  "out": "./src/bones"
+}

@@ -2,6 +2,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { DatePipe, Location } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { SkeletonComponent } from 'boneyard-js/angular';
 
 import { MenuService } from '../../core/api/services/menu.api';
 import { MealService } from '../../core/api/services/meal.api';
@@ -12,6 +13,9 @@ import { IfPermissionDirective } from '../../core/permissions/if-permission.dire
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { NotificationService, ModalService, ConfirmService } from '../../core/ui';
 import { MealFormDialog, MealFormDialogInput } from './meal-form.dialog';
+import { TenantBrandingService } from '../../core/api/services/tenant-branding.api';
+import { ShoppingListService } from '../../core/api/services/shopping-list.api';
+import { ShoppingListDialog, ShoppingListDialogInput } from './shopping-list.dialog';
 
 const ALL_DAYS = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'] as const;
 const MEAL_ORDER: Record<string, number> = { COMIDA: 0, CENA: 1 };
@@ -19,7 +23,7 @@ const MEAL_ORDER: Record<string, number> = { COMIDA: 0, CENA: 1 };
 @Component({
   selector: 'app-menu-detail',
   standalone: true,
-  imports: [DatePipe, RouterModule, IfPermissionDirective, TranslocoDirective],
+  imports: [DatePipe, RouterModule, IfPermissionDirective, TranslocoDirective, SkeletonComponent],
   templateUrl: './menu-detail.page.html',
   styleUrls: ['./menu-detail.page.scss'],
 })
@@ -34,6 +38,8 @@ export default class MenuDetailPage implements OnInit {
   private readonly notify = inject(NotificationService);
   private readonly permissionsService = inject(PermissionsService);
   private readonly location = inject(Location);
+  private readonly tenantBrandingService = inject(TenantBrandingService);
+  private readonly shoppingListService = inject(ShoppingListService);
 
   menu = signal<Menu | null>(null);
   meals = signal<Meal[]>([]);
@@ -45,6 +51,8 @@ export default class MenuDetailPage implements OnInit {
   canViewMenu = computed(() => this.permissionsService.has('VIEW_MENU'));
   downloadingPdf = signal(false);
   printingPdf = signal(false);
+  isAiEnabled = signal(false);
+  generatingList = signal(false);
 
   groupedMeals = computed(() => {
     const mealMap = new Map<string, Meal[]>();
@@ -79,6 +87,12 @@ export default class MenuDetailPage implements OnInit {
     if (!tenantId) return;
 
     this.loading.set(true);
+
+    this.tenantBrandingService.getBranding(tenantId).subscribe({
+      next: (branding) => this.isAiEnabled.set(branding.aiEnabled === true),
+      error: () => {}
+    });
+
     this.menuService.getById(tenantId, this.menuId).subscribe({
       next: (m) => {
         this.menu.set(m);
@@ -185,6 +199,30 @@ export default class MenuDetailPage implements OnInit {
         this.printingPdf.set(false);
       },
       error: () => this.printingPdf.set(false)
+    });
+  }
+
+  generateShoppingList(supermarket: string): void {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+
+    this.generatingList.set(true);
+    this.shoppingListService.generateFromMenu(tenantId, this.menuId, { supermarket }).subscribe({
+      next: (result) => {
+        this.generatingList.set(false);
+        this.modal.open<void, ShoppingListDialogInput>(ShoppingListDialog, {
+          label: 'Lista de la Compra',
+          size: 'l',
+          data: { shoppingList: result },
+        }).subscribe();
+      },
+      error: (err) => {
+        this.generatingList.set(false);
+        const msg = err.status === 403
+          ? 'La generación por IA no está habilitada para este cliente. Verifica la configuración del tenant.'
+          : 'Error al generar la lista de la compra. Intenta de nuevo.';
+        this.notify.error(msg);
+      },
     });
   }
 

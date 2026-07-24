@@ -2,81 +2,80 @@
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">{{ t('patients.title') }}</h1>
     <button *appIfPermission="'INVITE_USER'"
+      tuiButton
       type="button"
-      class="tui-action-btn"
+      size="m"
       (click)="showInviteDialog()">
-      <i class="fa-solid fa-user-plus"></i>
+      <i class="fa-solid fa-user-plus mr-1"></i>
       {{ t('patients.invite') }}
     </button>
   </div>
 
   <div class="data-card">
-    @if (loading()) {
-      <div class="table-loading">
-        <i class="fa-solid fa-circle-notch fa-spin"></i>
-        {{ t('common.loading') }}
-      </div>
-    } @else if (users().length === 0) {
-      <app-empty-state
-        icon="fa-solid fa-user-injured"
-        [title]="t('patients.empty_title')"
-        [description]="t('patients.empty')"
-        [actionLabel]="t('patients.invite')"
-        (action)="showInviteDialog()">
-      </app-empty-state>
-    } @else {
-      <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th scope="col">{{ t('users.first_name') }}</th>
-              <th scope="col">{{ t('users.last_name') }}</th>
-              <th scope="col">{{ t('users.email') }}</th>
-              <th scope="col">{{ t('users.age') }}</th>
-              <th scope="col">{{ t('users.weight') }}</th>
-              <th scope="col">{{ t('users.bmi') }}</th>
-              <th scope="col" class="text-center" style="width: 8rem;">{{ t('common.actions') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (user of users(); track user.id) {
-              <tr class="table-row">
-                <td class="font-medium">{{ user.firstName }}</td>
-                <td>{{ user.lastName }}</td>
-                <td class="text-sm text-surface-500">{{ user.email }}</td>
-                <td>
-                  <span class="text-sm">
-                    {{ user.age ?? '—' }}
-                    @if (user.age !== null) {
-                      <span class="text-surface-400"> años</span>
-                    }
-                  </span>
-                </td>
-                <td class="text-sm">{{ user.lastMeasurement?.weightKg ?? '—' }}</td>
-                <td class="text-sm">{{ user.lastMeasurement?.bmi ?? '—' }}</td>
-                <td class="text-center">
-                  <div class="row-actions">
-                    <a [routerLink]="['/users', user.id]" class="icon-action" [title]="t('common.view')">
-                      <i class="fa-solid fa-eye"></i>
-                    </a>
-                    <button *appIfPermission="'MANAGE_USER'" type="button" class="icon-action"
-                      (click)="editUser(user)" [title]="t('users.edit')">
-                      <i class="fa-solid fa-pen"></i>
-                    </button>
-                    <button *appIfPermission="'MANAGE_USER'" type="button" class="icon-action danger"
-                      (click)="revokeAccess(user)" [title]="t('users.revoke')">
-                      <i class="fa-solid fa-user-xmark"></i>
-                    </button>
-                  </div>
-                </td>
+    <boneyard-skeleton name="patients-list" [loading]="loading()">
+      @if (users().length === 0 && !loading()) {
+        <app-empty-state
+          icon="fa-solid fa-user-injured"
+          [title]="t('patients.empty_title')"
+          [description]="t('patients.empty')"
+          [actionLabel]="t('patients.invite')"
+          (action)="showInviteDialog()">
+        </app-empty-state>
+      } @else {
+        <div class="table-wrapper">
+          <table tuiTable class="w-full">
+            <thead>
+              <tr>
+                <th tuiTh scope="col">{{ t('users.first_name') }}</th>
+                <th tuiTh scope="col">{{ t('users.last_name') }}</th>
+                <th tuiTh scope="col">{{ t('users.email') }}</th>
+                <th tuiTh scope="col">{{ t('users.age') }}</th>
+                <th tuiTh scope="col">{{ t('users.weight') }}</th>
+                <th tuiTh scope="col">{{ t('users.bmi') }}</th>
+                <th tuiTh scope="col" class="text-center" style="width: 8rem;">{{ t('common.actions') }}</th>
               </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-      <div class="table-footer">
-        {{ t('common.pagination_report', { first: 1, last: users().length, totalRecords: users().length }) }}
-      </div>
-    }
+            </thead>
+            <tbody tuiTbody>
+              @for (user of users(); track user.id) {
+                <tr tuiTr class="table-row">
+                  <td tuiTd class="font-medium">{{ user.firstName }}</td>
+                  <td tuiTd>{{ user.lastName }}</td>
+                  <td tuiTd class="text-sm text-surface-500">{{ user.email }}</td>
+                  <td tuiTd>
+                    <span class="text-sm">
+                      {{ user.age ?? '—' }}
+                      @if (user.age !== null) {
+                        <span class="text-surface-400"> años</span>
+                      }
+                    </span>
+                  </td>
+                  <td tuiTd class="text-sm">{{ user.lastMeasurement?.weightKg ?? '—' }}</td>
+                  <td tuiTd class="text-sm">{{ user.lastMeasurement?.bmi ?? '—' }}</td>
+                  <td tuiTd class="text-center">
+                    <div class="row-actions flex justify-center gap-1">
+                      <a tuiButton appearance="flat" size="s" [routerLink]="['/users', user.id]" [title]="t('common.view')">
+                        <i class="fa-solid fa-eye"></i>
+                      </a>
+                      <button *appIfPermission="'MANAGE_USER'" tuiButton appearance="flat" size="s" type="button"
+                        (click)="editUser(user)" [title]="t('users.edit')">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button *appIfPermission="'MANAGE_USER'" tuiButton appearance="flat" size="s" type="button"
+                        class="text-red-500 hover:text-red-700"
+                        (click)="revokeAccess(user)" [title]="t('users.revoke')">
+                        <i class="fa-solid fa-user-xmark"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          {{ t('common.pagination_report', { first: 1, last: users().length, totalRecords: users().length }) }}
+        </div>
+      }
+    </boneyard-skeleton>
   </div>
 </div>

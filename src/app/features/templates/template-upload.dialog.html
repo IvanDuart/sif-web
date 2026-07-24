@@ -6,25 +6,26 @@
     </div>
   </div>
 
-  <div class="field flex flex-col gap-1.5">
-    <label for="name" class="text-sm font-medium text-surface-700 dark:text-surface-300">Nombre de la Plantilla (opcional)</label>
-    <input id="name" [(ngModel)]="name" class="form-input" placeholder="Ej: Plantilla Semana 1" />
-  </div>
+  <tui-textfield class="w-full">
+    <label tuiLabel for="name">Nombre de la Plantilla (opcional)</label>
+    <input id="name" [(ngModel)]="name" tuiInput placeholder="Ej: Plantilla Semana 1" />
+  </tui-textfield>
 
-  <div class="field flex flex-col gap-1.5">
-    <label for="description" class="text-sm font-medium text-surface-700 dark:text-surface-300">Descripción (opcional)</label>
-    <textarea id="description" [(ngModel)]="description" class="form-input" rows="4" placeholder="Descripción (opcional)"></textarea>
-  </div>
+  <tui-textfield class="w-full">
+    <label tuiLabel for="description">Descripción (opcional)</label>
+    <textarea id="description" [(ngModel)]="description" tuiTextarea rows="4" placeholder="Describí brevemente esta plantilla..."></textarea>
+  </tui-textfield>
 
-  <div class="field flex flex-col gap-2 mt-2">
+  <div class="flex flex-col gap-2 mt-2">
     <p class="font-medium text-sm text-surface-700 dark:text-surface-300">Documento (PDF o Imagen)</p>
-    <div class="flex items-center justify-center w-full">
-      <label class="flex flex-col items-center justify-center w-full border-2 border-dashed border-surface-300 rounded-lg cursor-pointer bg-surface-50 hover:bg-surface-100 dark:border-surface-600 dark:bg-surface-800 dark:hover:bg-surface-700 py-8 px-4 transition-colors">
-        <i class="fa-solid fa-cloud-arrow-up text-3xl text-surface-400 mb-2"></i>
-        <span class="text-sm text-surface-500">Click para seleccionar o arrastrar archivo</span>
-        <input type="file" class="hidden" (change)="onFileSelected($event)" accept="image/*,application/pdf" />
-      </label>
-    </div>
+    <label tuiInputFiles class="w-full">
+      <input
+        type="file"
+        tuiInputFiles
+        accept="image/*,application/pdf"
+        (change)="onFileSelected($event)"
+      />
+    </label>
   </div>
 
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">

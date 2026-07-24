@@ -1555,6 +1555,57 @@
         }
       }
     },
+    "/tenant/{tenantId}/menu/{id}/shopping-list/generate": {
+      "post": {
+        "tags": [
+          "MenuController"
+        ],
+        "description": "Generate AI shopping list for a menu",
+        "operationId": "generateShoppingList",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateShoppingListRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShoppingListDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/menu/upload": {
       "post": {
         "tags": [
@@ -2647,6 +2698,84 @@
         }
       }
     },
+    "/tenant/{tenantId}/menu/user/{userId}": {
+      "get": {
+        "tags": [
+          "MenuController"
+        ],
+        "description": "Get menus assigned to a specific user",
+        "operationId": "getUserMenus",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Zero-based page index (0..N)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "The size of the page to be returned",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sorting criteria in the format: property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "default": [
+                "assignedAt,DESC"
+              ],
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedModelMenu"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/menu/history": {
       "get": {
         "tags": [
@@ -3156,6 +3285,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "ai_enabled": {
+            "type": "boolean"
+          },
+          "gemini_api_key": {
+            "type": "string"
           }
         }
       },
@@ -3667,6 +3802,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "ai_enabled": {
+            "type": "boolean"
+          },
+          "gemini_api_key": {
+            "type": "string"
           }
         }
       },
@@ -3771,6 +3912,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "ai_enabled": {
+            "type": "boolean"
+          },
+          "gemini_api_key": {
+            "type": "string"
           }
         }
       },
@@ -3982,6 +4129,103 @@
           },
           "active": {
             "type": "boolean"
+          }
+        }
+      },
+      "GenerateShoppingListRequest": {
+        "type": "object",
+        "properties": {
+          "supermarket": {
+            "type": "string",
+            "enum": [
+              "MERCADONA",
+              "CARREFOUR",
+              "LIDL",
+              "ALCAMPO",
+              "DIA",
+              "EL_CORTE_INGLES",
+              "ALDI",
+              "EROSKI",
+              "CONSUM",
+              "HIPERCOR",
+              "MASYMAS"
+            ]
+          }
+        },
+        "required": [
+          "supermarket"
+        ]
+      },
+      "ShoppingListDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "menuId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "appUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "supermarket": {
+            "type": "string"
+          },
+          "totalEstimatedPrice": {
+            "type": "number"
+          },
+          "aiModel": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShoppingListItemDto"
+            }
+          }
+        }
+      },
+      "ShoppingListItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "estimatedPrice": {
+            "type": "number"
+          },
+          "checked": {
+            "type": "boolean"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -4307,15 +4551,15 @@
           "roleCode": {
             "type": "string"
           },
-          "tenantName": {
-            "type": "string"
-          },
           "userType": {
             "type": "string",
             "enum": [
               "STAFF",
               "PATIENT"
             ]
+          },
+          "tenantName": {
+            "type": "string"
           }
         }
       },
@@ -4712,6 +4956,9 @@
           },
           "phone": {
             "type": "string"
+          },
+          "aiEnabled": {
+            "type": "boolean"
           }
         }
       },

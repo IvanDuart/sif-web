@@ -20,63 +20,60 @@
   </div>
 
   <div class="data-card">
-    @if (loading()) {
-      <div class="table-loading">
-        <i class="fa-solid fa-circle-notch fa-spin"></i>
-        {{ t('common.loading') }}
-      </div>
-    } @else if (templates().length === 0) {
-      <app-empty-state
-        icon="fa-solid fa-clipboard-list"
-        [title]="t('templates.empty_title')"
-        [description]="t('templates.empty')"
-        [actionLabel]="t('templates.create')"
-        (action)="createTemplate()">
-      </app-empty-state>
-    } @else {
-      <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th scope="col">{{ t('diets.name') }}</th>
-              <th scope="col">{{ t('templates.description') }}</th>
-              <th scope="col" class="text-center" style="width: 7rem;">{{ t('common.actions') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (template of templates(); track template.id) {
-              <tr class="table-row">
-                <td class="font-medium">{{ template.name }}</td>
-                <td class="text-surface-500 text-sm">{{ template.description }}</td>
-                <td class="text-center">
-                  <div class="row-actions">
-                    <button type="button" class="icon-action"
-                      (click)="viewTemplate(template)"
-                      [title]="t('templates.view_detail')">
-                      <i class="fa-solid fa-eye"></i>
-                    </button>
-                    <button *appIfPermission="'INSTANTIATE_TEMPLATE'"
-                      type="button" class="icon-action"
-                      (click)="instantiateTemplate(template)"
-                      [title]="t('templates.assign')">
-                      <i class="fa-solid fa-user-plus"></i>
-                    </button>
-                    <button *appIfPermission="'MANAGE_TEMPLATE'"
-                      type="button" class="icon-action danger"
-                      (click)="deleteTemplate(template)"
-                      [title]="t('common.delete')">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
-                  </div>
-                </td>
+    <boneyard-skeleton name="templates-list" [loading]="loading()">
+      @if (templates().length === 0 && !loading()) {
+        <app-empty-state
+          icon="fa-solid fa-clipboard-list"
+          [title]="t('templates.empty_title')"
+          [description]="t('templates.empty')"
+          [actionLabel]="t('templates.create')"
+          (action)="createTemplate()">
+        </app-empty-state>
+      } @else {
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">{{ t('diets.name') }}</th>
+                <th scope="col">{{ t('templates.description') }}</th>
+                <th scope="col" class="text-center" style="width: 7rem;">{{ t('common.actions') }}</th>
               </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-      <div class="table-footer">
-        {{ t('common.pagination_report', { first: 1, last: templates().length, totalRecords: totalRecords() }) }}
-      </div>
-    }
+            </thead>
+            <tbody>
+              @for (template of templates(); track template.id) {
+                <tr class="table-row">
+                  <td class="font-medium">{{ template.name }}</td>
+                  <td class="text-surface-500 text-sm">{{ template.description }}</td>
+                  <td class="text-center">
+                    <div class="row-actions">
+                      <button type="button" class="icon-action"
+                        (click)="viewTemplate(template)"
+                        [title]="t('templates.view_detail')">
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
+                      <button *appIfPermission="'INSTANTIATE_TEMPLATE'"
+                        type="button" class="icon-action"
+                        (click)="instantiateTemplate(template)"
+                        [title]="t('templates.assign')">
+                        <i class="fa-solid fa-user-plus"></i>
+                      </button>
+                      <button *appIfPermission="'MANAGE_TEMPLATE'"
+                        type="button" class="icon-action danger"
+                        (click)="deleteTemplate(template)"
+                        [title]="t('common.delete')">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          {{ t('common.pagination_report', { first: 1, last: templates().length, totalRecords: totalRecords() }) }}
+        </div>
+      }
+    </boneyard-skeleton>
   </div>
 </div>

@@ -1,49 +1,60 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2" *transloco="let t">
-  <div class="field flex flex-col gap-1.5">
-    <label for="email" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('users.email') }}</label>
-    <input id="email" type="email" formControlName="email" class="form-input" placeholder="ejemplo@correo.com" />
-  </div>
+  <tui-textfield class="w-full">
+    <label tuiLabel for="email">{{ t('users.email') }}</label>
+    <input id="email" type="email" formControlName="email" />
+  </tui-textfield>
 
   <div class="grid grid-cols-2 gap-4">
-    <div class="field flex flex-col gap-1.5">
-      <label for="firstName" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('users.first_name') }}</label>
-      <input id="firstName" formControlName="firstName" class="form-input" />
-    </div>
-    <div class="field flex flex-col gap-1.5">
-      <label for="lastName" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('users.last_name') }}</label>
-      <input id="lastName" formControlName="lastName" class="form-input" />
-    </div>
+    <tui-textfield class="w-full">
+      <label tuiLabel for="firstName">{{ t('users.first_name') }}</label>
+      <input id="firstName" formControlName="firstName" />
+    </tui-textfield>
+    <tui-textfield class="w-full">
+      <label tuiLabel for="lastName">{{ t('users.last_name') }}</label>
+      <input id="lastName" formControlName="lastName" />
+    </tui-textfield>
   </div>
 
-  <div class="field flex flex-col gap-1.5">
-    <label for="roleCode" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('users.role') }}</label>
-    <select id="roleCode" formControlName="roleCode" class="form-input">
-      <option value="" disabled>Seleccionar Rol</option>
-      @for (role of roles(); track role.value) {
-        <option [value]="role.value">{{ role.label }}</option>
-      }
-    </select>
-  </div>
+  @if (lockedUserType !== 'PATIENT') {
+    <tui-textfield class="w-full">
+      <label tuiLabel for="roleCode">{{ t('users.role') }}</label>
+      <input
+        id="roleCode"
+        tuiSelect
+        formControlName="roleCode"
+      />
+      <tui-data-list-wrapper
+        *tuiDropdown
+        [items]="roleValues()"
+        [itemContent]="roleStringify | tuiStringifyContent"
+      />
+    </tui-textfield>
+  }
 
   @if (showClinicalFields()) {
     <div class="grid grid-cols-3 gap-4">
-      <div class="field flex flex-col gap-1.5">
-        <label for="birthDate" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('users.birth_date') }}</label>
-        <input id="birthDate" type="date" formControlName="birthDate" class="form-input" />
-      </div>
-      <div class="field flex flex-col gap-1.5">
-        <label for="heightCm" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('users.height_cm') }}</label>
-        <input id="heightCm" type="number" formControlName="heightCm" min="50" max="250" step="0.1" class="form-input" />
-      </div>
-      <div class="field flex flex-col gap-1.5">
-        <label for="gender" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('users.gender') }}</label>
-        <select id="gender" formControlName="gender" class="form-input">
-          <option value="" disabled>Seleccionar...</option>
-          @for (opt of genderOptions; track opt.value) {
-            <option [value]="opt.value">{{ opt.label }}</option>
-          }
-        </select>
-      </div>
+      <tui-textfield class="w-full">
+        <label tuiLabel for="birthDate">{{ t('users.birth_date') }}</label>
+        <input id="birthDate" tuiInputDate formControlName="birthDate" />
+        <tui-calendar *tuiDropdown />
+      </tui-textfield>
+      <tui-textfield class="w-full">
+        <label tuiLabel for="heightCm">{{ t('users.height_cm') }}</label>
+        <input id="heightCm" type="number" formControlName="heightCm" min="50" max="250" step="0.1" />
+      </tui-textfield>
+       <tui-textfield class="w-full">
+         <label tuiLabel for="gender">{{ t('users.gender') }}</label>
+           <input
+             id="gender"
+             tuiSelect
+             formControlName="gender"
+           />
+         <tui-data-list-wrapper
+           *tuiDropdown
+           [items]="genderValues"
+           [itemContent]="genderStringify | tuiStringifyContent"
+         />
+       </tui-textfield>
     </div>
   }
 

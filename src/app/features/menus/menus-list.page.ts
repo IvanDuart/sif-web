@@ -1,10 +1,13 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { SkeletonComponent } from 'boneyard-js/angular';
 
 import { MenuService } from '../../core/api/services/menu.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
+import { AuthService } from '../../core/auth/auth.service';
+import { PermissionsService } from '../../core/permissions/permissions.service';
 import { Menu } from '../../core/api/models/menu.model';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
 import { NotificationService, ModalService, ConfirmService } from '../../core/ui';
@@ -15,17 +18,21 @@ import { EmptyState } from '../../shared/ui/empty-state';
 @Component({
   selector: 'app-menus-list',
   standalone: true,
-  imports: [DatePipe, IfPermissionDirective, TranslocoDirective, EmptyState],
+  imports: [DatePipe, IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent],
   templateUrl: './menus-list.page.html'
 })
 export default class MenusListPage implements OnInit {
   private readonly menuService = inject(MenuService);
   private readonly tenantCtx = inject(TenantContextService);
+  private readonly authService = inject(AuthService);
+  private readonly permissionsService = inject(PermissionsService);
   private readonly notify = inject(NotificationService);
   private readonly modal = inject(ModalService);
   private readonly confirm = inject(ConfirmService);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
+
+  canManageMenu = computed(() => this.permissionsService.has('MANAGE_MENU'));
 
   menus = signal<Menu[]>([]);
   loading = signal(false);
@@ -59,10 +66,11 @@ export default class MenusListPage implements OnInit {
 
   loadMenus(page: number, size: number) {
     const tenantId = this.tenantCtx.currentTenantId();
-    if (!tenantId) return;
+    const userId = this.authService.user()?.id;
+    if (!tenantId || !userId) return;
 
     this.loading.set(true);
-    this.menuService.search(tenantId, page, size).subscribe({
+    this.menuService.searchByUser(tenantId, userId, page, size).subscribe({
       next: (res) => {
         this.menus.set(res.content || []);
         this.totalRecords.set(res.page?.totalElements || 0);

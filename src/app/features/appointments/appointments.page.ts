@@ -7,6 +7,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
 import type { CalendarOptions, EventSourceInput, EventClickArg, DatesSetArg } from '@fullcalendar/core';
+import { SkeletonComponent } from 'boneyard-js/angular';
 
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AuthService } from '../../core/auth/auth.service';
@@ -21,7 +22,7 @@ import { ModalService, NotificationService } from '../../core/ui';
   selector: 'app-appointments-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [RouterModule, FullCalendarModule, TranslocoDirective],
+  imports: [RouterModule, FullCalendarModule, TranslocoDirective, SkeletonComponent],
   templateUrl: './appointments.page.html',
   styleUrls: ['./appointments.page.scss'],
 })

@@ -11,10 +11,12 @@
       </div>
 
       <div class="data-card">
-        <full-calendar #calendar
-          [options]="calendarOptions"
-          [events]="calendarEvents()">
-        </full-calendar>
+        <boneyard-skeleton name="appointments-calendar" [loading]="loadingWeek()">
+          <full-calendar #calendar
+            [options]="calendarOptions"
+            [events]="calendarEvents()">
+          </full-calendar>
+        </boneyard-skeleton>
       </div>
     </div>
 
@@ -61,80 +63,78 @@
           </span>
         </div>
 
-        @if (loadingToday()) {
-          <div class="flex items-center justify-center py-8">
-            <i class="fa-solid fa-spinner fa-spin text-surface-400 text-xl"></i>
-          </div>
-        } @else if (todayAppointments().length === 0) {
-          <div class="text-center py-8 text-surface-400">
-            <i class="fa-solid fa-calendar-check text-3xl mb-2"></i>
-            <p class="text-sm">{{ t('appointments.today_empty') }}</p>
-          </div>
-        } @else {
-          <div class="space-y-2 max-h-[500px] overflow-y-auto">
-            @for (appt of todayAppointments(); track appt.id) {
-              <div
-                class="p-4 rounded-lg bg-surface-50 dark:bg-surface-800 border border-transparent hover:border-primary-300 dark:hover:border-primary-600 cursor-pointer transition-all duration-200"
-                (click)="handleEventClick({ event: { extendedProps: { patientName: appt.patientName, typeName: appt.typeName, status: appt.status } } })"
-                (keydown.enter)="handleEventClick({ event: { extendedProps: { patientName: appt.patientName, typeName: appt.typeName, status: appt.status } } })"
-                tabindex="0"
-                role="button">
-                <div class="flex justify-between items-start mb-2">
-                  <div class="flex items-center gap-3">
-                    <div
-                      class="w-10 h-10 rounded-full bg-surface-200 dark:bg-surface-600 flex items-center justify-center text-sm font-bold text-primary-600 dark:text-primary-300">
-                      {{ getInitials(appt.patientName) }}
+        <boneyard-skeleton name="appointments-today-list" [loading]="loadingToday()">
+          @if (todayAppointments().length === 0 && !loadingToday()) {
+            <div class="text-center py-8 text-surface-400">
+              <i class="fa-solid fa-calendar-check text-3xl mb-2"></i>
+              <p class="text-sm">{{ t('appointments.today_empty') }}</p>
+            </div>
+          } @else {
+            <div class="space-y-2 max-h-[500px] overflow-y-auto">
+              @for (appt of todayAppointments(); track appt.id) {
+                <div
+                  class="p-4 rounded-lg bg-surface-50 dark:bg-surface-800 border border-transparent hover:border-primary-300 dark:hover:border-primary-600 cursor-pointer transition-all duration-200"
+                  (click)="handleEventClick({ event: { extendedProps: { patientName: appt.patientName, typeName: appt.typeName, status: appt.status } } })"
+                  (keydown.enter)="handleEventClick({ event: { extendedProps: { patientName: appt.patientName, typeName: appt.typeName, status: appt.status } } })"
+                  tabindex="0"
+                  role="button">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="w-10 h-10 rounded-full bg-surface-200 dark:bg-surface-600 flex items-center justify-center text-sm font-bold text-primary-600 dark:text-primary-300">
+                        {{ getInitials(appt.patientName) }}
+                      </div>
+                      <div>
+                        <p class="text-sm font-medium text-surface-900 dark:text-surface-0">{{ appt.patientName }}</p>
+                        <p class="text-xs text-surface-500 dark:text-surface-400">{{ appt.typeName || '—' }}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p class="text-sm font-medium text-surface-900 dark:text-surface-0">{{ appt.patientName }}</p>
-                      <p class="text-xs text-surface-500 dark:text-surface-400">{{ appt.typeName || '—' }}</p>
+                    <span class="text-sm font-semibold text-primary-600 dark:text-primary-300 whitespace-nowrap">
+                      {{ formatTime(appt.startTime) }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between mt-2 pt-2 border-t border-surface-200 dark:border-surface-700">
+                    <span class="status-badge info">{{ getStatusLabel(appt.status) }}</span>
+                    <div class="flex gap-1">
+                      @if (appt.status === 'SCHEDULED') {
+                        <button class="btn-icon"
+                          [title]="t('appointments.attended')"
+                          [disabled]="updatingStatus() === appt.id"
+                          (click)="$event.stopPropagation(); markAttended(appt)">
+                          @if (updatingStatus() === appt.id) {
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                          } @else {
+                            <i class="fa-solid fa-check"></i>
+                          }
+                        </button>
+                        <button class="btn-icon"
+                          [title]="t('appointments.no_show')"
+                          [disabled]="updatingStatus() === appt.id"
+                          (click)="$event.stopPropagation(); markNoShow(appt)">
+                          @if (updatingStatus() === appt.id) {
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                          } @else {
+                            <i class="fa-solid fa-user-slash"></i>
+                          }
+                        </button>
+                        <button class="btn-icon"
+                          [title]="t('appointments.cancel')"
+                          [disabled]="updatingStatus() === appt.id"
+                          (click)="$event.stopPropagation(); cancelAppointment(appt)">
+                          @if (updatingStatus() === appt.id) {
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                          } @else {
+                            <i class="fa-solid fa-ban"></i>
+                          }
+                        </button>
+                      }
                     </div>
                   </div>
-                  <span class="text-sm font-semibold text-primary-600 dark:text-primary-300 whitespace-nowrap">
-                    {{ formatTime(appt.startTime) }}
-                  </span>
                 </div>
-                <div class="flex items-center justify-between mt-2 pt-2 border-t border-surface-200 dark:border-surface-700">
-                  <span class="status-badge info">{{ getStatusLabel(appt.status) }}</span>
-                  <div class="flex gap-1">
-                    @if (appt.status === 'SCHEDULED') {
-                      <button class="btn-icon"
-                        [title]="t('appointments.attended')"
-                        [disabled]="updatingStatus() === appt.id"
-                        (click)="$event.stopPropagation(); markAttended(appt)">
-                        @if (updatingStatus() === appt.id) {
-                          <i class="fa-solid fa-spinner fa-spin"></i>
-                        } @else {
-                          <i class="fa-solid fa-check"></i>
-                        }
-                      </button>
-                      <button class="btn-icon"
-                        [title]="t('appointments.no_show')"
-                        [disabled]="updatingStatus() === appt.id"
-                        (click)="$event.stopPropagation(); markNoShow(appt)">
-                        @if (updatingStatus() === appt.id) {
-                          <i class="fa-solid fa-spinner fa-spin"></i>
-                        } @else {
-                          <i class="fa-solid fa-user-slash"></i>
-                        }
-                      </button>
-                      <button class="btn-icon"
-                        [title]="t('appointments.cancel')"
-                        [disabled]="updatingStatus() === appt.id"
-                        (click)="$event.stopPropagation(); cancelAppointment(appt)">
-                        @if (updatingStatus() === appt.id) {
-                          <i class="fa-solid fa-spinner fa-spin"></i>
-                        } @else {
-                          <i class="fa-solid fa-ban"></i>
-                        }
-                      </button>
-                    }
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-        }
+              }
+            </div>
+          }
+        </boneyard-skeleton>
       </div>
     </div>
   </div>

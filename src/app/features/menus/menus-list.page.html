@@ -20,72 +20,68 @@
   </div>
 
   <div class="data-card">
-    <div class="table-wrapper">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th scope="col">{{ t('diets.name') }}</th>
-            <th scope="col">{{ t('diets.status') }}</th>
-            <th scope="col">{{ t('diets.created_at') }}</th>
-            <th scope="col" class="text-center w-28">{{ t('common.actions') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          @if (loading()) {
+    <boneyard-skeleton name="menus-list" [loading]="loading()">
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
             <tr>
-              <td colspan="4" class="text-center py-12">
-                <i class="fa-solid fa-circle-notch fa-spin text-2xl text-surface-300"></i>
-              </td>
+              <th scope="col">{{ t('diets.name') }}</th>
+              <th scope="col">{{ t('diets.status') }}</th>
+              <th scope="col">{{ t('diets.created_at') }}</th>
+              <th scope="col" class="text-center w-28">{{ t('common.actions') }}</th>
             </tr>
-          } @else if (menus().length === 0) {
-            <tr>
-              <td colspan="4" class="table-empty-cell">
-                <app-empty-state
-                  icon="fa-solid fa-utensils"
-                  [title]="t('diets.empty_title')"
-                  [description]="t('diets.empty')"
-                  [actionLabel]="t('diets.create')"
-                  (action)="createMenu()">
-                </app-empty-state>
-              </td>
-            </tr>
-          } @else {
-            @for (menu of menus(); track menu.id) {
+          </thead>
+          <tbody>
+            @if (menus().length === 0 && !loading()) {
               <tr>
-                <td class="font-medium">{{ menu.name }}</td>
-                <td>
-                  <span class="status-badge" [class.success]="menu.isActive || menu.active" [class.secondary]="!(menu.isActive || menu.active)">
-                    {{ menu.isActive || menu.active ? t('diets.active') : t('diets.inactive') }}
-                  </span>
-                </td>
-                <td class="text-surface-500 text-sm">{{ menu.createdAt | date:'mediumDate' }}</td>
-                <td class="text-center">
-                  <div class="row-actions">
-                    <button class="btn-icon" (click)="viewMenu(menu)" [title]="t('diets.view')">
-                      <i class="fa-solid fa-eye"></i>
-                    </button>
-                    <button
-                      *appIfPermission="'MANAGE_MENU'"
-                      class="btn-icon btn-icon--danger"
-                      (click)="deleteMenu(menu)"
-                      [title]="t('common.delete')">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
-                  </div>
+                <td colspan="4" class="table-empty-cell">
+                  <app-empty-state
+                    icon="fa-solid fa-utensils"
+                    [title]="t('diets.empty_title')"
+                    [description]="t('diets.empty')"
+                    [actionLabel]="canManageMenu() ? t('diets.create') : undefined"
+                    (action)="createMenu()">
+                  </app-empty-state>
                 </td>
               </tr>
+            } @else {
+              @for (menu of menus(); track menu.id) {
+                <tr>
+                  <td class="font-medium">{{ menu.name }}</td>
+                  <td>
+                    <span class="status-badge" [class.success]="menu.isActive || menu.active" [class.secondary]="!(menu.isActive || menu.active)">
+                      {{ menu.isActive || menu.active ? t('diets.active') : t('diets.inactive') }}
+                    </span>
+                  </td>
+                  <td class="text-surface-500 text-sm">{{ menu.createdAt | date:'mediumDate' }}</td>
+                  <td class="text-center">
+                    <div class="row-actions">
+                      <button class="btn-icon" (click)="viewMenu(menu)" [title]="t('diets.view')">
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
+                      <button
+                        *appIfPermission="'MANAGE_MENU'"
+                        class="btn-icon btn-icon--danger"
+                        (click)="deleteMenu(menu)"
+                        [title]="t('common.delete')">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
             }
-          }
-        </tbody>
-      </table>
-    </div>
-    <div class="table-footer flex justify-between items-center">
-      <span class="text-sm text-surface-500">Total: {{ totalRecords() }}</span>
-      <div class="flex gap-1">
-        <button class="btn-icon" (click)="prevPage()" [disabled]="lastPage === 0"><i class="fa-solid fa-chevron-left"></i></button>
-        <span class="text-sm text-surface-500 px-2">Página {{ lastPage + 1 }}</span>
-        <button class="btn-icon" (click)="nextPage()" [disabled]="(lastPage + 1) * lastSize >= totalRecords()"><i class="fa-solid fa-chevron-right"></i></button>
+          </tbody>
+        </table>
       </div>
-    </div>
+      <div class="table-footer flex justify-between items-center">
+        <span class="text-sm text-surface-500">Total: {{ totalRecords() }}</span>
+        <div class="flex gap-1">
+          <button class="btn-icon" (click)="prevPage()" [disabled]="lastPage === 0"><i class="fa-solid fa-chevron-left"></i></button>
+          <span class="text-sm text-surface-500 px-2">Página {{ lastPage + 1 }}</span>
+          <button class="btn-icon" (click)="nextPage()" [disabled]="(lastPage + 1) * lastSize >= totalRecords()"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+      </div>
+    </boneyard-skeleton>
   </div>
 </div>

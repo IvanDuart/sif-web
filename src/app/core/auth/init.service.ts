@@ -29,7 +29,7 @@ export class InitService {
         const isAuthenticated = typeEventArgs<ReadyArgs>(event.args);
         if (isAuthenticated) {
           await this.postLoginActions();
-        } else {
+        } else if (!globalThis.location.pathname.startsWith('/sandbox')) {
           this.#keycloak.login();
         }
       } else if (event.type === KeycloakEventType.AuthSuccess) {

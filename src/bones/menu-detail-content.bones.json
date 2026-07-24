@@ -1,0 +1,47 @@
+{
+  "breakpoints": {
+    "375": {
+      "name": "menu-detail-content",
+      "viewportWidth": 275,
+      "width": 275,
+      "height": 0,
+      "bones": []
+    },
+    "640": {
+      "name": "menu-detail-content",
+      "viewportWidth": 540,
+      "width": 540,
+      "height": 0,
+      "bones": []
+    },
+    "768": {
+      "name": "menu-detail-content",
+      "viewportWidth": 668,
+      "width": 668,
+      "height": 0,
+      "bones": []
+    },
+    "1024": {
+      "name": "menu-detail-content",
+      "viewportWidth": 924,
+      "width": 924,
+      "height": 0,
+      "bones": []
+    },
+    "1280": {
+      "name": "menu-detail-content",
+      "viewportWidth": 1180,
+      "width": 1180,
+      "height": 0,
+      "bones": []
+    },
+    "1536": {
+      "name": "menu-detail-content",
+      "viewportWidth": 1436,
+      "width": 1436,
+      "height": 0,
+      "bones": []
+    }
+  },
+  "_hash": "49a433dc191085b86b8455332c8a9c1b"
+}

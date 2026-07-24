@@ -1,65 +1,88 @@
-@if (menu()) {
-<div class="p-4" *transloco="let t">
-  <div class="mb-6">
-    <a (click)="goBack()" class="inline-flex items-center gap-1 text-sm font-semibold text-surface-500 hover:text-primary-600 mb-4 transition-colors cursor-pointer">
-      <i class="fa-solid fa-arrow-left text-xs"></i> {{ t('diet_detail.back') }}
-    </a>
+<boneyard-skeleton name="menu-detail-content" [loading]="loading() && !menu()">
+  @if (menu()) {
+  <div class="p-4" *transloco="let t">
+    <div class="mb-6">
+      <a (click)="goBack()" class="inline-flex items-center gap-1 text-sm font-semibold text-surface-500 hover:text-primary-600 mb-4 transition-colors cursor-pointer">
+        <i class="fa-solid fa-arrow-left text-xs"></i> {{ t('diet_detail.back') }}
+      </a>
 
-    <div class="flex justify-between items-start">
-      <div>
-        <h1 class="text-3xl font-bold mb-2">{{ menu()?.name }}</h1>
-        <div class="flex gap-2 items-center">
-          <span class="status-badge" [class.success]="menu()?.isActive" [class.secondary]="!menu()?.isActive">
-            {{ menu()?.isActive ? 'Activa' : 'Inactiva' }}
-          </span>
-          <span class="text-surface-500 text-sm">Creada: {{ menu()?.createdAt | date:'longDate' }}</span>
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-3xl font-bold mb-2">{{ menu()?.name }}</h1>
+          <div class="flex gap-2 items-center">
+            <span class="status-badge" [class.success]="menu()?.isActive" [class.secondary]="!menu()?.isActive">
+              {{ menu()?.isActive ? 'Activa' : 'Inactiva' }}
+            </span>
+            <span class="text-surface-500 text-sm">Creada: {{ menu()?.createdAt | date:'longDate' }}</span>
+          </div>
         </div>
-      </div>
-      <div class="flex gap-2">
-        <button
-          *appIfPermission="'VIEW_MENU'"
-          class="btn-secondary"
-          [disabled]="printingPdf()"
-          (click)="printPdf()">
-          @if (printingPdf()) {
-            <i class="fa-solid fa-spinner fa-spin"></i>
-          } @else {
-            <i class="fa-solid fa-print"></i>
+        <div class="flex gap-2">
+          <button
+            *appIfPermission="'VIEW_MENU'"
+            class="btn-secondary"
+            [disabled]="printingPdf()"
+            (click)="printPdf()">
+            @if (printingPdf()) {
+              <i class="fa-solid fa-spinner fa-spin"></i>
+            } @else {
+              <i class="fa-solid fa-print"></i>
+            }
+            {{ t('diet_detail.print_pdf') }}
+          </button>
+          <button
+            *appIfPermission="'VIEW_MENU'"
+            class="btn-danger"
+            [disabled]="downloadingPdf()"
+            (click)="downloadPdf()">
+            @if (downloadingPdf()) {
+              <i class="fa-solid fa-spinner fa-spin"></i>
+            } @else {
+              <i class="fa-solid fa-file-pdf"></i>
+            }
+            {{ t('diet_detail.download_pdf') }}
+          </button>
+          <button
+            *appIfPermission="'MANAGE_MEAL'"
+            class="btn-primary"
+            (click)="addMeal()">
+            <i class="fa-solid fa-plus"></i>
+            {{ t('diet_detail.add_meal') }}
+          </button>
+          @if (isAiEnabled()) {
+            <select #supermarket class="form-input !w-auto !inline-flex" style="width: auto !important;">
+              <option value="MERCADONA">Mercadona</option>
+              <option value="CARREFOUR">Carrefour</option>
+              <option value="LIDL">Lidl</option>
+              <option value="ALCAMPO">Alcampo</option>
+              <option value="DIA">Dia</option>
+              <option value="EL_CORTE_INGLES">El Corte Inglés</option>
+              <option value="ALDI">Aldi</option>
+              <option value="EROSKI">Eroski</option>
+              <option value="CONSUM">Consum</option>
+              <option value="HIPERCOR">Hipercor</option>
+              <option value="MASYMAS">Mas y Mas</option>
+            </select>
+            <button
+              *appIfPermission="'VIEW_MENU'"
+              class="btn-primary"
+              [disabled]="generatingList()"
+              (click)="generateShoppingList(supermarket.value)">
+              @if (generatingList()) {
+                <i class="fa-solid fa-spinner fa-spin"></i>
+              } @else {
+                <i class="fa-solid fa-cart-shopping"></i>
+              }
+              {{ generatingList() ? 'Generando...' : 'Lista IA' }}
+            </button>
           }
-          {{ t('diet_detail.print_pdf') }}
-        </button>
-        <button
-          *appIfPermission="'VIEW_MENU'"
-          class="btn-danger"
-          [disabled]="downloadingPdf()"
-          (click)="downloadPdf()">
-          @if (downloadingPdf()) {
-            <i class="fa-solid fa-spinner fa-spin"></i>
-          } @else {
-            <i class="fa-solid fa-file-pdf"></i>
-          }
-          {{ t('diet_detail.download_pdf') }}
-        </button>
-        <button
-          *appIfPermission="'MANAGE_MEAL'"
-          class="btn-primary"
-          (click)="addMeal()">
-          <i class="fa-solid fa-plus"></i>
-          {{ t('diet_detail.add_meal') }}
-        </button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="data-card mt-6">
-    <div class="p-6">
-      <h2 class="text-base font-bold mb-4 uppercase tracking-widest text-surface-400">{{ t('diet_detail.title') }}</h2>
+    <div class="data-card mt-6">
+      <div class="p-6">
+        <h2 class="text-base font-bold mb-4 uppercase tracking-widest text-surface-400">{{ t('diet_detail.title') }}</h2>
 
-      @if (loading()) {
-        <div class="flex items-center justify-center py-12">
-          <i class="fa-solid fa-circle-notch fa-spin text-2xl text-surface-300"></i>
-        </div>
-      } @else {
         <div class="weekly-grid">
           @for (day of allDays; track day) {
             <div class="day-column">
@@ -110,12 +133,12 @@
             </div>
           }
         </div>
-      }
+      </div>
     </div>
   </div>
-</div>
-} @else if (!loading()) {
-  <div class="p-8 text-center text-surface-500">
-    Cargando o no encontrado...
-  </div>
-}
+  } @else if (!loading()) {
+    <div class="p-8 text-center text-surface-500">
+      Cargando o no encontrado...
+    </div>
+  }
+</boneyard-skeleton>

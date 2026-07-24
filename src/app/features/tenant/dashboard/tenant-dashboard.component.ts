@@ -7,6 +7,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
 import type { CalendarOptions, EventSourceInput, EventClickArg, DatesSetArg } from '@fullcalendar/core';
+import { SkeletonComponent } from 'boneyard-js/angular';
 
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -34,7 +35,8 @@ import { PatientWeightChart } from './components/patient-weight-chart';
     WaterIntakeWidget,
     PatientNextAppointment,
     PatientTodayMeals,
-    PatientWeightChart
+    PatientWeightChart,
+    SkeletonComponent
   ],
   templateUrl: './tenant-dashboard.component.html',
   styleUrls: ['./tenant-dashboard.component.scss']

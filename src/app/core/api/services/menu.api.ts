@@ -50,6 +50,22 @@ export class MenuService {
     return this.http.delete<void>(`${this.baseUrl}/tenant/${tenantId}/menu/${id}`);
   }
 
+  searchByUser(
+    tenantId: string,
+    userId: string,
+    page = 0,
+    size = 10,
+    sort: string[] = ['createdAt,DESC']
+  ): Observable<Page<Menu>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    sort.forEach(s => params = params.append('sort', s));
+
+    return this.http.get<Page<Menu>>(`${this.baseUrl}/tenant/${tenantId}/menu/user/${userId}`, { params });
+  }
+
   history(tenantId: string, userId: string): Observable<Menu[]> {
     return this.http.get<Menu[]>(`${this.baseUrl}/tenant/${tenantId}/menu/history`, {
       params: { userId }

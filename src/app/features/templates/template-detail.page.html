@@ -1,53 +1,49 @@
-@if (template()) {
-<div class="p-4" *transloco="let t">
-  <div class="mb-6">
-    <a routerLink="/templates" class="inline-flex items-center gap-1 text-sm font-semibold text-surface-500 hover:text-primary-600 mb-4 transition-colors">
-      <i class="fa-solid fa-arrow-left text-xs"></i> {{ t('template_detail.back') }}
-    </a>
+<boneyard-skeleton name="template-detail-content" [loading]="loading() && !template()">
+  @if (template()) {
+  <div class="p-4" *transloco="let t">
+    <div class="mb-6">
+      <a routerLink="/templates" class="inline-flex items-center gap-1 text-sm font-semibold text-surface-500 hover:text-primary-600 mb-4 transition-colors">
+        <i class="fa-solid fa-arrow-left text-xs"></i> {{ t('template_detail.back') }}
+      </a>
 
-    <div class="flex justify-between items-start">
-      <div>
-        <h1 class="text-3xl font-bold mb-2">{{ template()?.name }}</h1>
-        @if (template()?.description) {
-        <p class="text-surface-500 text-sm mb-2">{{ template()?.description }}</p>
-        }
-        <div class="flex gap-3 items-center text-xs text-surface-400">
-          @if (template()?.createdAt) {
-          <span>Creada: {{ template()?.createdAt | date:'longDate' }}</span>
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-3xl font-bold mb-2">{{ template()?.name }}</h1>
+          @if (template()?.description) {
+          <p class="text-surface-500 text-sm mb-2">{{ template()?.description }}</p>
           }
-          @if (template()?.updatedAt) {
-          <span>Actualizada: {{ template()?.updatedAt | date:'longDate' }}</span>
-          }
+          <div class="flex gap-3 items-center text-xs text-surface-400">
+            @if (template()?.createdAt) {
+            <span>Creada: {{ template()?.createdAt | date:'longDate' }}</span>
+            }
+            @if (template()?.updatedAt) {
+            <span>Actualizada: {{ template()?.updatedAt | date:'longDate' }}</span>
+            }
+          </div>
         </div>
-      </div>
-      <div class="flex gap-2">
-        <button
-          *appIfPermission="'INSTANTIATE_TEMPLATE'"
-          class="btn-secondary"
-          (click)="instantiateTemplate()">
-          <i class="fa-solid fa-user-plus"></i>
-          {{ t('templates.assign') }}
-        </button>
-        <button
-          *appIfPermission="'MANAGE_TEMPLATE'"
-          class="btn-primary"
-          (click)="addMeal()">
-          <i class="fa-solid fa-plus"></i>
-          {{ t('template_detail.add_meal') }}
-        </button>
+        <div class="flex gap-2">
+          <button
+            *appIfPermission="'INSTANTIATE_TEMPLATE'"
+            class="btn-secondary"
+            (click)="instantiateTemplate()">
+            <i class="fa-solid fa-user-plus"></i>
+            {{ t('templates.assign') }}
+          </button>
+          <button
+            *appIfPermission="'MANAGE_TEMPLATE'"
+            class="btn-primary"
+            (click)="addMeal()">
+            <i class="fa-solid fa-plus"></i>
+            {{ t('template_detail.add_meal') }}
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="data-card mt-6">
-    <div class="p-6">
-      <h2 class="text-base font-bold mb-4 uppercase tracking-widest text-surface-400">{{ t('template_detail.title') }}</h2>
+    <div class="data-card mt-6">
+      <div class="p-6">
+        <h2 class="text-base font-bold mb-4 uppercase tracking-widest text-surface-400">{{ t('template_detail.title') }}</h2>
 
-      @if (loading()) {
-        <div class="flex items-center justify-center py-12">
-          <i class="fa-solid fa-circle-notch fa-spin text-2xl text-surface-300"></i>
-        </div>
-      } @else {
         <div class="weekly-grid">
           @for (day of allDays; track day) {
             <div class="day-column">
@@ -98,12 +94,12 @@
             </div>
           }
         </div>
-      }
+      </div>
     </div>
   </div>
-</div>
-} @else if (!loading()) {
-  <div class="p-8 text-center text-surface-500">
-    Plantilla no encontrada...
-  </div>
-}
+  } @else if (!loading()) {
+    <div class="p-8 text-center text-surface-500">
+      Plantilla no encontrada...
+    </div>
+  }
+</boneyard-skeleton>
