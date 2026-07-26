@@ -2,7 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext } from '@taiga-ui/core';
-import { TranslocoService } from '@jsverse/transloco';
+import { TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { MealService, CreateMealRequest } from '../../core/api/services/meal.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { Meal } from '../../core/api/models/meal.model';
@@ -19,7 +19,7 @@ export interface MealFormDialogInput {
 @Component({
   selector: 'app-meal-form',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule],
+  imports: [FormsModule, ReactiveFormsModule, TranslocoPipe],
   templateUrl: './meal-form.dialog.html'
 })
 export class MealFormDialog implements OnInit {

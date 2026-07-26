@@ -6,18 +6,22 @@ import { AppointmentTypeDto } from '../../../core/api/models/appointment-type.mo
 import { NotificationService, ModalService, ConfirmService } from '../../../core/ui';
 import { AppointmentTypeFormDialog } from './appointment-type-form.dialog';
 import type { AppointmentTypeFormDialogInput } from './appointment-type-form.dialog';
+import { TuiTable } from '@taiga-ui/addon-table';
+import { TuiButton } from '@taiga-ui/core';
+import { TuiBadge } from '@taiga-ui/kit';
 
 @Component({
   selector: 'app-appointment-types-settings',
   standalone: true,
-  imports: [TranslocoDirective],
+  imports: [TranslocoDirective, TuiTable, TuiButton, TuiBadge],
   template: `
     <div *transloco="let t">
       <div class="flex justify-end mb-4">
         <button
-          class="btn-primary"
+          tuiButton
+          size="m"
           (click)="showFormDialog()">
-          <i class="fa-solid fa-plus"></i>
+          <i class="fa-solid fa-plus mr-1"></i>
           {{ t('appointment_types.create') }}
         </button>
       </div>
@@ -30,41 +34,46 @@ import type { AppointmentTypeFormDialogInput } from './appointment-type-form.dia
         }
 
         <div class="table-wrapper">
-          <table class="data-table">
+          <table tuiTable class="w-full">
             <thead>
               <tr>
-                <th scope="col">{{ t('appointment_types.name') }}</th>
-                <th scope="col">{{ t('appointment_types.duration') }}</th>
-                <th scope="col">{{ t('appointment_types.is_default') }}</th>
-                <th scope="col">{{ t('appointment_types.is_active') }}</th>
-                <th scope="col" class="col-actions">{{ t('common.actions') }}</th>
+                <th tuiTh scope="col">{{ t('appointment_types.name') }}</th>
+                <th tuiTh scope="col">{{ t('appointment_types.duration') }}</th>
+                <th tuiTh scope="col">{{ t('appointment_types.is_default') }}</th>
+                <th tuiTh scope="col">{{ t('appointment_types.is_active') }}</th>
+                <th tuiTh scope="col" class="text-center" style="width: 8rem;">{{ t('common.actions') }}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody tuiTbody>
               @for (type of types(); track type.id) {
-                <tr>
-                  <td class="font-medium">{{ type.name }}</td>
-                  <td>{{ type.durationMinutes }} min</td>
-                  <td>
+                <tr tuiTr>
+                  <td tuiTd class="font-medium">{{ type.name }}</td>
+                  <td tuiTd>{{ type.durationMinutes }} min</td>
+                  <td tuiTd>
                     @if (type.isDefault) {
                       <i class="fa-solid fa-check text-green-500"></i>
                     }
                   </td>
-                  <td>
-                    <span [class]="type.isActive ? 'status-badge success' : 'status-badge secondary'">
+                  <td tuiTd>
+                    <span tuiBadge [appearance]="type.isActive ? 'positive' : 'neutral'">
                       {{ type.isActive ? 'Activo' : 'Inactivo' }}
                     </span>
                   </td>
-                  <td>
-                    <div class="row-actions">
+                  <td tuiTd class="text-center">
+                    <div class="flex items-center gap-1 justify-center">
                       <button
-                        class="btn-icon"
+                        tuiIconButton
+                        appearance="flat"
+                        size="s"
                         [title]="t('common.edit')"
                         (click)="showFormDialog(type)">
-                        <i class="fa-solid fa-pen-to-square"></i>
+                        <i class="fa-solid fa-pen"></i>
                       </button>
                       <button
-                        class="btn-icon btn-icon--danger"
+                        tuiIconButton
+                        appearance="flat"
+                        size="s"
+                        class="text-red-500 hover:text-red-700"
                         [title]="t('common.delete')"
                         (click)="confirmDelete(type)">
                         <i class="fa-solid fa-trash"></i>
@@ -73,8 +82,8 @@ import type { AppointmentTypeFormDialogInput } from './appointment-type-form.dia
                   </td>
                 </tr>
               } @empty {
-                <tr>
-                  <td colspan="5" class="text-center text-surface-400 py-8">
+                <tr tuiTr>
+                  <td tuiTd colspan="5" class="text-center text-surface-400 py-8">
                     {{ t('appointment_types.empty') }}
                   </td>
                 </tr>

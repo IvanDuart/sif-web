@@ -20,17 +20,17 @@
             <p class="text-surface-500 text-sm mb-0">{{ u.email }}</p>
           </div>
           <div class="flex items-center gap-2">
-            <span class="status-badge info">
+            <span tuiBadge appearance="info">
               <i class="fa-solid {{ isStaff() ? 'fa-user-doctor' : 'fa-user-injured' }}"></i>
               {{ isStaff() ? t('users.user_type_staff') : t('users.user_type_patient') }}
             </span>
-            <span class="status-badge" [class.success]="u.enabled !== false" [class.secondary]="u.enabled === false">
+            <span tuiBadge [appearance]="u.enabled !== false ? 'positive' : 'neutral'">
               {{ u.enabled !== false ? t('users.enabled') : t('users.disabled') }}
             </span>
             <button
               *appIfPermission="'MANAGE_USER'"
               type="button"
-              class="btn-secondary text-sm"
+              tuiButton appearance="secondary" size="m"
               (click)="showEditDialog()">
               <i class="fa-solid fa-pen-to-square"></i>
               {{ t('users.edit') }}
@@ -39,28 +39,21 @@
         </div>
       </div>
 
-      <!-- Tab buttons (Segmented Control) -->
-      <div class="flex gap-1 bg-surface-100 dark:bg-surface-800 p-1 rounded-lg mb-4 overflow-x-auto">
-        <button [class.active]="activeTab() === '0'" (click)="onTabChange('0')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_profile') }}</button>
-        @if (!isStaff()) {
-        <button [class.active]="activeTab() === '1'" (click)="onTabChange('1')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_measurements') }}</button>
-        <button [class.active]="activeTab() === '2'" (click)="onTabChange('2')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_menus') }}</button>
-        <button [class.active]="activeTab() === '7'" (click)="onTabChange('7')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_water', { defaultValue: 'Agua' }) }}</button>
+      <!-- Tabs nativas Taiga UI -->
+      <tui-tabs [(activeItemIndex)]="activeTabIndex" class="mb-4">
+        @for (tab of tabs(); track tab.id) {
+          <button tuiTab type="button">
+            @if (tab.defaultValue) {
+              {{ t(tab.label, { defaultValue: tab.defaultValue }) }}
+            } @else {
+              {{ t(tab.label) }}
+            }
+          </button>
         }
-        @if (!isStaff() && canViewPatientProfile()) {
-        <button [class.active]="activeTab() === '3'" (click)="onTabChange('3')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_patient_profile') }}</button>
-        <button [class.active]="activeTab() === '6'" (click)="onTabChange('6')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_fixed_guidelines') }}</button>
-        }
-        @if (!isStaff() && canViewPatientEvents()) {
-        <button [class.active]="activeTab() === '5'" (click)="onTabChange('5')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('users.tab_patient_events') }}</button>
-        }
-        @if (!isStaff() && canViewAppointments()) {
-        <button [class.active]="activeTab() === '4'" (click)="onTabChange('4')" class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:dark:bg-surface-700 [&.active]:shadow-sm [&.active]:text-surface-900 [&.active]:dark:text-surface-0">{{ t('appointments.history_title') }}</button>
-        }
-      </div>
+      </tui-tabs>
 
       <!-- TAB 1: Perfil -->
-      @if (activeTab() === '0') {
+      @if (activeTabId() === 'profile') {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
           <div class="flex flex-col gap-4">
             <div>
@@ -77,7 +70,7 @@
               <span class="text-sm text-surface-400 font-medium">{{ t('users.age') }}</span>
               <p class="font-medium mt-1">
                 @if (u.age !== null) {
-                  {{ u.age }} años
+                  {{ u.age }} {{ t('common.years') }}
                 } @else {
                   —
                 }
@@ -160,12 +153,12 @@
 
       <!-- TAB 2: Mediciones -->
       @if (!isStaff()) {
-        @if (activeTab() === '1') {
+        @if (activeTabId() === 'measurements') {
           <div class="py-4">
             <div class="flex justify-end mb-4" *appIfPermission="'MANAGE_USER'">
               <button
                 type="button"
-                class="btn-primary text-sm"
+                tuiButton size="m"
                 (click)="showRegisterDialog()">
                 <i class="fa-solid fa-plus"></i>
                 {{ t('measurements.register') }}
@@ -177,8 +170,8 @@
                 <div class="flex items-center justify-between px-4 pt-4">
                   <h2 class="text-xl font-semibold m-0">{{ t('measurements.chart_title') }}</h2>
                   <div class="flex gap-1 bg-surface-100 dark:bg-surface-800 p-1 rounded-lg">
-                    <button [class.active]="chartType() === 'composition'" (click)="setChartType('composition')" class="px-3 py-1 text-xs font-medium rounded-md transition-colors text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:text-surface-900 [&.active]:shadow-sm">Composición Corporal</button>
-                    <button [class.active]="chartType() === 'anthropometry'" (click)="setChartType('anthropometry')" class="px-3 py-1 text-xs font-medium rounded-md transition-colors text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:text-surface-900 [&.active]:shadow-sm">Antropometría</button>
+                    <button [class.active]="chartType() === 'composition'" (click)="setChartType('composition')" class="px-3 py-1 text-xs font-medium rounded-md transition-colors text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:text-surface-900 [&.active]:shadow-sm">{{ t('measurements.chart_composition') }}</button>
+                    <button [class.active]="chartType() === 'anthropometry'" (click)="setChartType('anthropometry')" class="px-3 py-1 text-xs font-medium rounded-md transition-colors text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:text-surface-900 [&.active]:shadow-sm">{{ t('measurements.chart_anthropometry') }}</button>
                   </div>
                 </div>
                 <div class="relative" style="height: 300px">
@@ -202,46 +195,49 @@
                   </app-empty-state>
                 } @else {
                   <div class="overflow-x-auto">
-                    <table class="data-table w-full">
+                    <table tuiTable class="w-full">
                       <thead>
                         <tr>
-                          <th>{{ t('measurements.measured_at') }}</th>
-                          <th>{{ t('measurements.weight') }}</th>
-                          <th>{{ t('measurements.bmi') }}</th>
-                          <th>{{ t('measurements.body_fat') }}</th>
-                          <th>{{ t('measurements.muscle_mass') }}</th>
-                          <th>{{ t('measurements.body_water') }}</th>
-                          <th>{{ t('measurements.waist') }}</th>
-                          <th>{{ t('measurements.chest') }}</th>
-                          <th>{{ t('measurements.hips') }}</th>
-                          <th>{{ t('measurements.contour') }}</th>
-                          <th>{{ t('measurements.arm') }}</th>
-                          <th>{{ t('measurements.notes') }}</th>
-                          <th>{{ t('measurements.recorded_by') }}</th>
-                          <th class="text-center" style="width: 5rem;">{{ t('common.actions') }}</th>
+                          <th tuiTh>{{ t('measurements.measured_at') }}</th>
+                          <th tuiTh>{{ t('measurements.weight') }}</th>
+                          <th tuiTh>{{ t('measurements.bmi') }}</th>
+                          <th tuiTh>{{ t('measurements.body_fat') }}</th>
+                          <th tuiTh>{{ t('measurements.muscle_mass') }}</th>
+                          <th tuiTh>{{ t('measurements.body_water') }}</th>
+                          <th tuiTh>{{ t('measurements.waist') }}</th>
+                          <th tuiTh>{{ t('measurements.chest') }}</th>
+                          <th tuiTh>{{ t('measurements.hips') }}</th>
+                          <th tuiTh>{{ t('measurements.contour') }}</th>
+                          <th tuiTh>{{ t('measurements.arm') }}</th>
+                          <th tuiTh>{{ t('measurements.notes') }}</th>
+                          <th tuiTh>{{ t('measurements.recorded_by') }}</th>
+                          <th tuiTh class="text-center" style="width: 5rem;">{{ t('common.actions') }}</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody tuiTbody>
                         @for (m of measurements(); track m.id) {
-                          <tr>
-                            <td class="text-sm">{{ formatInstantWithTime(m.measuredAt) }}</td>
-                            <td>{{ m.weightKg ?? '—' }}</td>
-                            <td>{{ m.bmi ?? '—' }}</td>
-                            <td>{{ m.bodyFatPct ?? '—' }}</td>
-                            <td>{{ m.muscleMassKg ?? '—' }}</td>
-                            <td>{{ m.bodyWaterPct ?? '—' }}</td>
-                            <td>{{ m.waistCm ?? '—' }}</td>
-                            <td>{{ m.chestCm ?? '—' }}</td>
-                            <td>{{ m.hipsCm ?? '—' }}</td>
-                            <td>{{ m.contourCm ?? '—' }}</td>
-                            <td>{{ m.armCm ?? '—' }}</td>
-                            <td class="text-surface-400 text-sm max-w-32 truncate">{{ m.notes ?? '—' }}</td>
-                            <td class="text-sm">{{ m.recordedBy ?? '—' }}</td>
-                            <td class="text-center">
+                          <tr tuiTr>
+                            <td tuiTd class="text-sm">{{ formatInstantWithTime(m.measuredAt) }}</td>
+                            <td tuiTd>{{ m.weightKg ?? '—' }}</td>
+                            <td tuiTd>{{ m.bmi ?? '—' }}</td>
+                            <td tuiTd>{{ m.bodyFatPct ?? '—' }}</td>
+                            <td tuiTd>{{ m.muscleMassKg ?? '—' }}</td>
+                            <td tuiTd>{{ m.bodyWaterPct ?? '—' }}</td>
+                            <td tuiTd>{{ m.waistCm ?? '—' }}</td>
+                            <td tuiTd>{{ m.chestCm ?? '—' }}</td>
+                            <td tuiTd>{{ m.hipsCm ?? '—' }}</td>
+                            <td tuiTd>{{ m.contourCm ?? '—' }}</td>
+                            <td tuiTd>{{ m.armCm ?? '—' }}</td>
+                            <td tuiTd class="text-surface-400 text-sm max-w-32 truncate">{{ m.notes ?? '—' }}</td>
+                            <td tuiTd class="text-sm">{{ m.recordedBy ?? '—' }}</td>
+                            <td tuiTd class="text-center">
                               <button
                                 *appIfPermission="'MANAGE_USER'"
                                 type="button"
-                                class="text-red-500 hover:text-red-700 transition-colors p-1 rounded-full"
+                                tuiIconButton
+                                appearance="flat"
+                                size="s"
+                                class="text-red-500 hover:text-red-700"
                                 (click)="deleteMeasurement(m)"
                                 [title]="t('common.delete')">
                                 <i class="fa-solid fa-trash"></i>
@@ -279,7 +275,7 @@
 
       <!-- TAB 3: Perfil Médico -->
       @if (!isStaff() && canViewPatientProfile()) {
-        @if (activeTab() === '3') {
+        @if (activeTabId() === 'patient_profile') {
           <div class="py-4">
             <boneyard-skeleton name="user-medical-profile" [loading]="loadingProfile()">
               @if (patientProfile(); as profile) {
@@ -383,7 +379,7 @@
                   <div class="flex justify-end mt-4">
                     <button
                       type="button"
-                      class="btn-secondary text-sm"
+                      tuiButton appearance="secondary" size="m"
                       (click)="showEditProfileDialog()">
                       <i class="fa-solid fa-pen-to-square"></i>
                       {{ t('patient_profile.edit') }}
@@ -398,7 +394,7 @@
 
       <!-- TAB 6: Pautas fijas -->
       @if (!isStaff() && canViewPatientProfile()) {
-        @if (activeTab() === '6') {
+        @if (activeTabId() === 'fixed_guidelines') {
           <div class="py-4">
             @if (patientProfile(); as profile) {
               @if (editingGuidelines()) {
@@ -412,8 +408,8 @@
                     <textarea id="snack" class="form-input" [ngModel]="editSnack()" (ngModelChange)="editSnack.set($event)" rows="3"></textarea>
                   </div>
                   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-                    <button type="button" class="btn-secondary" (click)="cancelEditGuidelines()">{{ t('common.cancel') }}</button>
-                    <button type="button" class="btn-primary" (click)="saveGuidelines()" [class.loading]="savingGuidelines()">{{ t('common.save') }}</button>
+                    <button type="button" tuiButton appearance="secondary" size="m" (click)="cancelEditGuidelines()">{{ t('common.cancel') }}</button>
+                    <button type="button" tuiButton size="m" (click)="saveGuidelines()" [class.loading]="savingGuidelines()">{{ t('common.save') }}</button>
                   </div>
                 </div>
               } @else {
@@ -435,9 +431,9 @@
                 } @else {
                   <app-empty-state
                     icon="fa-solid fa-apple-whole"
-                    title="Sin pautas fijas"
-                    description="No se han definido pautas de desayuno y merienda para este paciente."
-                    [actionLabel]="canManagePatientProfile() ? 'Definir pautas' : undefined"
+                    [title]="t('patient_profile.fixed_guidelines_empty_title')"
+                    [description]="t('patient_profile.fixed_guidelines_empty')"
+                    [actionLabel]="canManagePatientProfile() ? t('patient_profile.define_guidelines') : undefined"
                     (action)="startEditGuidelines()">
                   </app-empty-state>
                 }
@@ -445,10 +441,10 @@
                   <div class="flex justify-end mt-4">
                     <button
                       type="button"
-                      class="btn-secondary text-sm"
+                      tuiButton appearance="secondary" size="m"
                       (click)="startEditGuidelines()">
                       <i class="fa-solid fa-pen-to-square"></i>
-                      Editar pautas
+                      {{ t('patient_profile.edit_guidelines') }}
                     </button>
                   </div>
                 }
@@ -460,20 +456,20 @@
 
       <!-- TAB 3: Menús -->
       @if (!isStaff()) {
-        @if (activeTab() === '2') {
+        @if (activeTabId() === 'menus') {
           <div class="py-4 flex flex-col gap-4">
             <div class="flex justify-end gap-2 mb-2">
               @if (canManageMenu()) {
               <button
                 type="button"
-                class="btn-secondary text-sm"
+                tuiButton appearance="secondary" size="m"
                 (click)="showAssignTemplateDialog()">
                 <i class="fa-solid fa-copy"></i>
                 {{ t('menu_history.assign_template') }}
               </button>
               <button
                 type="button"
-                class="btn-primary text-sm"
+                tuiButton size="m"
                 (click)="showCreateMenuDialog()">
                 <i class="fa-solid fa-plus"></i>
                 {{ t('menu_history.create_menu') }}
@@ -498,7 +494,7 @@
                       </div>
                       <button
                         type="button"
-                        class="btn-secondary text-sm"
+                        tuiButton appearance="secondary" size="m"
                         [routerLink]="['/menus', menu.id]">
                         <i class="fa-solid fa-eye"></i>
                         {{ t('menu_history.view_detail') }}
@@ -528,7 +524,7 @@
                             </div>
                           </div>
                           <div class="flex items-center gap-3">
-                            <span class="status-badge" [class.success]="menu.isActive || menu.active" [class.secondary]="!(menu.isActive || menu.active)">
+                            <span tuiBadge [appearance]="(menu.isActive || menu.active) ? 'positive' : 'neutral'">
                               {{ (menu.isActive || menu.active) ? t('menu_history.active') : t('menu_history.inactive') }}
                             </span>
                             <button
@@ -560,63 +556,63 @@
 
       <!-- TAB 4: Citas -->
       @if (!isStaff() && canViewAppointments()) {
-        @if (activeTab() === '4') {
+        @if (activeTabId() === 'appointments') {
           <div class="py-4">
             <boneyard-skeleton name="user-appointments" [loading]="loadingAppointments()">
               @if (appointments().length === 0 && !loadingAppointments()) {
                 <app-empty-state
                   icon="fa-solid fa-calendar"
-                  [title]="'Sin citas'"
-                  [description]="'No hay citas registradas para este paciente.'">
+                  [title]="t('appointments.empty_title_patient')"
+                  [description]="t('appointments.empty_patient')">
                 </app-empty-state>
               } @else {
                 <div class="overflow-x-auto">
-                  <table class="data-table w-full">
+                  <table tuiTable class="w-full">
                     <caption class="text-sm font-normal text-surface-500 px-4 py-2 text-left border-b border-surface-200 dark:border-surface-700">
                       {{ t('common.total_records', { total: appointments().length }) }}
                     </caption>
                     <thead>
                       <tr>
-                        <th>{{ t('appointments.date') }}</th>
-                        <th>{{ t('appointments.nutritionist') }}</th>
-                        <th>{{ t('appointments.type') }}</th>
-                        <th>{{ t('appointments.start_time') }}</th>
-                        <th>{{ t('appointments.end_time') }}</th>
-                        <th>{{ t('common.status') }}</th>
-                        <th>{{ t('appointments.notes') }}</th>
+                        <th tuiTh>{{ t('appointments.date') }}</th>
+                        <th tuiTh>{{ t('appointments.nutritionist') }}</th>
+                        <th tuiTh>{{ t('appointments.type') }}</th>
+                        <th tuiTh>{{ t('appointments.start_time') }}</th>
+                        <th tuiTh>{{ t('appointments.end_time') }}</th>
+                        <th tuiTh>{{ t('common.status') }}</th>
+                        <th tuiTh>{{ t('appointments.notes') }}</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody tuiTbody>
                       @for (a of appointments(); track a.id) {
-                        <tr>
-                          <td class="text-sm">{{ formatInstant(a.startTime) }}</td>
-                          <td class="font-medium">{{ a.nutritionistName }}</td>
-                          <td class="text-sm">{{ a.typeName || '—' }}</td>
-                          <td class="text-sm">{{ a.startTime | date:'HH:mm' }}</td>
-                          <td class="text-sm">{{ a.endTime | date:'HH:mm' }}</td>
-                          <td>
+                        <tr tuiTr>
+                          <td tuiTd class="text-sm">{{ formatInstant(a.startTime) }}</td>
+                          <td tuiTd class="font-medium">{{ a.nutritionistName }}</td>
+                          <td tuiTd class="text-sm">{{ a.typeName || '—' }}</td>
+                          <td tuiTd class="text-sm">{{ a.startTime | date:'HH:mm' }}</td>
+                          <td tuiTd class="text-sm">{{ a.endTime | date:'HH:mm' }}</td>
+                          <td tuiTd>
                             @switch (a.status) {
                               @case ('SCHEDULED') {
-                                <span class="status-badge info">{{ getStatusLabel(a.status) }}</span>
+                                <span tuiBadge appearance="info">{{ getStatusLabel(a.status) }}</span>
                               }
                               @case ('COMPLETED') {
-                                <span class="status-badge success">{{ getStatusLabel(a.status) }}</span>
+                                <span tuiBadge appearance="positive">{{ getStatusLabel(a.status) }}</span>
                               }
                               @case ('CANCELLED') {
-                                <span class="status-badge secondary">{{ getStatusLabel(a.status) }}</span>
+                                <span tuiBadge appearance="neutral">{{ getStatusLabel(a.status) }}</span>
                               }
                               @case ('NO_SHOW') {
-                                <span class="status-badge warning">{{ getStatusLabel(a.status) }}</span>
+                                <span tuiBadge appearance="warning">{{ getStatusLabel(a.status) }}</span>
                               }
                               @case ('PROPOSED') {
-                                <span class="status-badge warning">{{ getStatusLabel(a.status) }}</span>
+                                <span tuiBadge appearance="warning">{{ getStatusLabel(a.status) }}</span>
                               }
                               @default {
-                                <span class="status-badge info">{{ getStatusLabel(a.status) }}</span>
+                                <span tuiBadge appearance="info">{{ getStatusLabel(a.status) }}</span>
                               }
                             }
                           </td>
-                          <td class="text-surface-400 text-sm max-w-40 truncate">{{ a.notes || '—' }}</td>
+                          <td tuiTd class="text-surface-400 text-sm max-w-40 truncate">{{ a.notes || '—' }}</td>
                         </tr>
                       }
                     </tbody>
@@ -630,13 +626,13 @@
 
       <!-- TAB 5: Eventos del Paciente -->
       @if (!isStaff() && canViewPatientEvents()) {
-        @if (activeTab() === '5') {
+        @if (activeTabId() === 'patient_events') {
           <div class="py-4">
             @if (canManagePatientEvents()) {
             <div class="flex justify-end mb-4">
               <button
                 type="button"
-                class="btn-primary text-sm"
+                tuiButton size="m"
                 (click)="showEventFormDialog()">
                 <i class="fa-solid fa-plus"></i>
                 {{ t('patient_events.new_event') }}
@@ -655,7 +651,7 @@
 
       <!-- TAB 7: Consumo de Agua -->
       @if (!isStaff()) {
-        @if (activeTab() === '7') {
+        @if (activeTabId() === 'water') {
           <div class="py-4 max-w-xl">
             <app-water-intake-widget [patientId]="userId" />
           </div>

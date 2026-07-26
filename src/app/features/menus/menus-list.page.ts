@@ -3,6 +3,9 @@ import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
+import { TuiButton } from '@taiga-ui/core';
+import { TuiBadge } from '@taiga-ui/kit';
+import { TuiTable } from '@taiga-ui/addon-table';
 
 import { MenuService } from '../../core/api/services/menu.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -18,7 +21,7 @@ import { EmptyState } from '../../shared/ui/empty-state';
 @Component({
   selector: 'app-menus-list',
   standalone: true,
-  imports: [DatePipe, IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent],
+  imports: [DatePipe, IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent, TuiButton, TuiBadge, TuiTable],
   templateUrl: './menus-list.page.html'
 })
 export default class MenusListPage implements OnInit {

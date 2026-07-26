@@ -1,26 +1,28 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
-  <div class="field flex flex-col gap-2">
-    <label for="templateId" class="font-medium">Plantilla de Menú</label>
-    <select id="templateId" formControlName="templateId" (change)="onTemplateChange($event)" class="w-full rounded-lg border border-surface-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-      <option value="" disabled>Seleccionar plantilla</option>
+  <tui-textfield class="w-full">
+    <label tuiLabel for="templateId">{{ 'menu_history.template_label' | transloco }}</label>
+    <select id="templateId" formControlName="templateId" (change)="onTemplateChange($event)" tuiInput>
+      <option value="" disabled>{{ 'menu_history.select_template' | transloco }}</option>
       @for (t of templates(); track t.id) {
         <option [value]="t.id">{{ t.name }}</option>
       }
     </select>
-  </div>
+  </tui-textfield>
 
-  <div class="field flex flex-col gap-2">
-    <label for="name" class="font-medium">Nombre del nuevo menú</label>
-    <input type="text" formControlName="name" id="name" class="w-full rounded-lg border border-surface-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" placeholder="Nombre del menú" />
-  </div>
+  <tui-textfield class="w-full">
+    <label tuiLabel for="name">{{ 'menu_history.new_menu_name' | transloco }}</label>
+    <input type="text" formControlName="name" id="name" tuiInput [placeholder]="'menu_history.menu_name_placeholder' | transloco" />
+  </tui-textfield>
 
-  <div class="field flex items-center gap-2 mt-2">
-    <input type="checkbox" id="isActive" formControlName="isActive" class="rounded border-surface-300 text-primary-500 focus:ring-primary-500" />
-    <label for="isActive" class="font-medium">Establecer como menú activo</label>
+  <div class="flex items-center gap-3 py-1 mt-1">
+    <input type="checkbox" id="isActive" formControlName="isActive" tuiSwitch />
+    <label for="isActive" class="text-sm font-medium text-surface-700 dark:text-surface-300 cursor-pointer">
+      {{ 'menu_history.set_active' | transloco }}
+    </label>
   </div>
 
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-    <button type="button" class="btn-secondary" (click)="ref.close()">Cancelar</button>
-    <button type="submit" class="btn-primary" [disabled]="form.invalid" [class.loading]="saving()">Asignar al Paciente</button>
+    <button type="button" tuiButton appearance="secondary" size="m" (click)="ref.close()">{{ 'common.cancel' | transloco }}</button>
+    <button type="submit" tuiButton size="m" [disabled]="form.invalid" [class.loading]="saving()">{{ 'menu_history.assign_to_patient' | transloco }}</button>
   </div>
 </form>

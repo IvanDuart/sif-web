@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext } from '@taiga-ui/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { MenuService, CreateMenuRequest } from '../../core/api/services/menu.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -10,7 +11,7 @@ import { AppUserDto } from '../../core/api/models/user.model';
 @Component({
   selector: 'app-menu-form',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule],
+  imports: [FormsModule, ReactiveFormsModule, TranslocoPipe],
   templateUrl: './menu-form.dialog.html'
 })
 export class MenuFormDialog implements OnInit {

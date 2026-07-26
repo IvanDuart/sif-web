@@ -3,9 +3,8 @@ import { RouterOutlet, RouterModule, Router } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { toSignal } from '@angular/core/rxjs-interop';
 
-import { TuiProgressBar } from '@taiga-ui/kit';
-import { TuiAvatar } from '@taiga-ui/kit';
-import { TuiDropdown } from '@taiga-ui/core';
+import { TuiAvatar, TuiProgressBar } from '@taiga-ui/kit';
+import { TuiDropdown, TuiHint } from '@taiga-ui/core';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/branding/theme.service';
@@ -42,6 +41,7 @@ const NAV_ITEMS: NavItem[] = [
     TuiProgressBar,
     TuiAvatar,
     ...TuiDropdown,
+    TuiHint,
   ],
   templateUrl: './shell.html',
   styleUrls: ['./shell.scss']

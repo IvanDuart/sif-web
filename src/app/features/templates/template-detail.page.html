@@ -14,24 +14,24 @@
           }
           <div class="flex gap-3 items-center text-xs text-surface-400">
             @if (template()?.createdAt) {
-            <span>Creada: {{ template()?.createdAt | date:'longDate' }}</span>
+            <span>{{ t('templates.created') }} {{ template()?.createdAt | date:'longDate' }}</span>
             }
             @if (template()?.updatedAt) {
-            <span>Actualizada: {{ template()?.updatedAt | date:'longDate' }}</span>
+            <span>{{ t('templates.updated') }} {{ template()?.updatedAt | date:'longDate' }}</span>
             }
           </div>
         </div>
         <div class="flex gap-2">
           <button
             *appIfPermission="'INSTANTIATE_TEMPLATE'"
-            class="btn-secondary"
+            tuiButton appearance="secondary" size="m"
             (click)="instantiateTemplate()">
             <i class="fa-solid fa-user-plus"></i>
             {{ t('templates.assign') }}
           </button>
           <button
             *appIfPermission="'MANAGE_TEMPLATE'"
-            class="btn-primary"
+            tuiButton size="m"
             (click)="addMeal()">
             <i class="fa-solid fa-plus"></i>
             {{ t('template_detail.add_meal') }}
@@ -99,7 +99,7 @@
   </div>
   } @else if (!loading()) {
     <div class="p-8 text-center text-surface-500">
-      Plantilla no encontrada...
+      {{ 'templates.not_found' | transloco }}
     </div>
   }
 </boneyard-skeleton>

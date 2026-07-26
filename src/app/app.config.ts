@@ -2,7 +2,7 @@ import { ApplicationConfig, provideZoneChangeDetection, APP_INITIALIZER } from '
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { provideTaiga } from '@taiga-ui/core';
+import {provideTaiga, tuiAssetsPathProvider} from '@taiga-ui/core';
 import { NG_EVENT_PLUGINS } from '@taiga-ui/event-plugins';
 import { TuiConfirmService, tuiToastOptionsProvider } from '@taiga-ui/kit';
 
@@ -31,6 +31,7 @@ export const appConfig: ApplicationConfig = {
       withFetch(),
       withInterceptors([authInterceptor, errorInterceptor, loadingInterceptor])
     ),
+    tuiAssetsPathProvider('https://taiga-ui.dev/assets/taiga-ui/icons'),
     provideAnimationsAsync(),
     NG_EVENT_PLUGINS,
     provideTaiga({

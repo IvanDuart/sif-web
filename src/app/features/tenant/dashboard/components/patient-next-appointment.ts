@@ -7,11 +7,12 @@ import { AuthService } from '../../../../core/auth/auth.service';
 import { AppointmentDto } from '../../../../core/api/models/appointment.model';
 import { ModalService } from '../../../../core/ui';
 import { AppointmentActionDialog } from '../../../appointments/appointment-action.dialog';
+import { TuiButton } from '@taiga-ui/core';
 
 @Component({
   selector: 'app-patient-next-appointment',
   standalone: true,
-  imports: [CommonModule, TranslocoDirective],
+  imports: [CommonModule, TranslocoDirective, TuiButton],
   template: `
     <div *transloco="let t" class="data-card border border-surface-200 dark:border-surface-700 flex flex-col h-full justify-between">
       <div class="flex items-center gap-2 mb-4">
@@ -34,7 +35,7 @@ import { AppointmentActionDialog } from '../../../appointments/appointment-actio
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-semibold text-surface-900 dark:text-surface-0 truncate">
-                {{ appt.typeName || 'Consulta Nutricional' }}
+                {{ appt.typeName || t('patient_dashboard.default_appointment_type') }}
               </p>
               <p class="text-xs text-surface-500 dark:text-surface-400 mt-1 flex items-center gap-1.5">
                 <i class="fa-regular fa-clock"></i>
@@ -53,7 +54,7 @@ import { AppointmentActionDialog } from '../../../appointments/appointment-actio
               }
             </div>
           </div>
-          <button (click)="reschedule(appt)" class="btn-secondary py-1.5 px-3 text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap self-center">
+          <button tuiButton appearance="secondary" size="s" (click)="reschedule(appt)" class="self-center flex items-center gap-1.5 whitespace-nowrap">
             <i class="fa-solid fa-calendar-check text-xs"></i>
             {{ t('appointments.reschedule') }}
           </button>
@@ -74,6 +75,7 @@ export class PatientNextAppointment implements OnInit {
   private readonly tenantCtx = inject(TenantContextService);
   private readonly authService = inject(AuthService);
   private readonly modal = inject(ModalService);
+  private readonly transloco = inject(TranslocoService);
 
   loading = signal(false);
   nextAppointment = signal<AppointmentDto | null>(null);
@@ -105,7 +107,7 @@ export class PatientNextAppointment implements OnInit {
   reschedule(appt: AppointmentDto) {
     this.modal.open<boolean, { appointment: AppointmentDto }>(
       AppointmentActionDialog,
-      { label: 'Reagendar Cita', size: 'm', data: { appointment: appt } }
+      {       label: this.transloco.translate('appointments.reschedule_title'), size: 'm', data: { appointment: appt } }
     ).subscribe((result) => {
       if (result) {
         this.loadNextAppointment();

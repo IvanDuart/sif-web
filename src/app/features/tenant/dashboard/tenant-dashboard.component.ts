@@ -1,12 +1,6 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { FullCalendarModule } from '@fullcalendar/angular';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
-import esLocale from '@fullcalendar/core/locales/es';
-import type { CalendarOptions, EventSourceInput, EventClickArg, DatesSetArg } from '@fullcalendar/core';
 import { SkeletonComponent } from 'boneyard-js/angular';
 
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
@@ -17,6 +11,8 @@ import { AppointmentFormDialog } from '../../appointments/appointment-form.dialo
 import { AppointmentActionDialog } from '../../appointments/appointment-action.dialog';
 import { formatInstant } from '../../../shared/utils/date';
 import { ModalService, NotificationService, ConfirmService } from '../../../core/ui';
+import { TuiButton } from '@taiga-ui/core';
+import { TuiBadge } from '@taiga-ui/kit';
 
 // Patient Dashboard Widgets
 import { WaterIntakeWidget } from './components/water-intake-widget';
@@ -30,13 +26,14 @@ import { PatientWeightChart } from './components/patient-weight-chart';
   standalone: true,
   imports: [
     RouterModule,
-    FullCalendarModule,
     TranslocoDirective,
     WaterIntakeWidget,
     PatientNextAppointment,
     PatientTodayMeals,
     PatientWeightChart,
-    SkeletonComponent
+    SkeletonComponent,
+    TuiButton,
+    TuiBadge
   ],
   templateUrl: './tenant-dashboard.component.html',
   styleUrls: ['./tenant-dashboard.component.scss']
@@ -56,54 +53,19 @@ export class TenantDashboardComponent implements OnInit {
   currentUserId = computed(() => this.authService.user()?.id || '');
 
   todayAppointments = signal<AppointmentDto[]>([]);
-  weekAppointments = signal<AppointmentDto[]>([]);
   loadingToday = signal(false);
-  loadingWeek = signal(false);
   updatingStatus = signal<string | null>(null);
 
   todayStart = '';
   todayEnd = '';
-  weekStart = '';
-  weekEnd = '';
 
   protected readonly formatInstant = formatInstant;
-
-  calendarOptions: CalendarOptions = {};
-  calendarEvents = signal<EventSourceInput>([]);
 
   ngOnInit() {
     this.computeDateRanges();
     if (this.canViewAppointments() && this.currentUserId()) {
       this.loadTodayAppointments();
     }
-
-    this.calendarOptions = {
-      plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-      initialView: 'timeGridWeek',
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'timeGridWeek,timeGridDay'
-      },
-      locales: [esLocale],
-      locale: 'es',
-      allDaySlot: false,
-      slotMinTime: '06:00:00',
-      slotMaxTime: '22:00:00',
-      height: 'auto',
-      firstDay: 1,
-      editable: false,
-      selectable: false,
-      dateClick: (info: DateClickArg) => {
-        this.handleDateClick(info);
-      },
-      eventClick: (info: EventClickArg) => {
-        this.handleEventClick(info);
-      },
-      datesSet: (info: DatesSetArg) => {
-        this.onDatesSet(info);
-      }
-    };
   }
 
   private computeDateRanges() {
@@ -112,15 +74,6 @@ export class TenantDashboardComponent implements OnInit {
     const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
     this.todayStart = startOfDay.toISOString();
     this.todayEnd = endOfDay.toISOString();
-
-    const dayOfWeek = now.getDay();
-    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() + mondayOffset, 0, 0, 0);
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59);
-    this.weekStart = startOfWeek.toISOString();
-    this.weekEnd = endOfWeek.toISOString();
   }
 
   private loadTodayAppointments() {
@@ -135,112 +88,6 @@ export class TenantDashboardComponent implements OnInit {
       error: () => this.loadingToday.set(false)
     });
   }
-
-  private loadWeekAppointments() {
-    const tenantId = this.tenantCtx.currentTenantId();
-    const userId = this.currentUserId();
-    if (!tenantId || !userId || !this.weekStart || !this.weekEnd) return;
-    this.loadingWeek.set(true);
-    this.appointmentService.getByNutritionist(tenantId, userId, this.weekStart, this.weekEnd).subscribe({
-      next: (res) => {
-        this.weekAppointments.set(res || []);
-        this.buildCalendarEvents(res || []);
-        this.loadingWeek.set(false);
-      },
-      error: () => this.loadingWeek.set(false)
-    });
-  }
-
-  private buildCalendarEvents(appointments: AppointmentDto[]) {
-    const colors: Record<string, string> = {
-      SCHEDULED: '#3b82f6',
-      COMPLETED: '#10b981',
-      CANCELLED: '#6b7280',
-      NO_SHOW: '#f59e0b',
-      PROPOSED: '#f97316'
-    };
-
-    this.calendarEvents.set(
-      (appointments || []).map(a => ({
-        id: a.id,
-        title: `${a.patientName}`,
-        start: a.startTime,
-        end: a.endTime,
-        backgroundColor: (colors[a.status] || '#3b82f6') + '20',
-        borderColor: colors[a.status] || '#3b82f6',
-        extendedProps: {
-          status: a.status,
-          patientName: a.patientName,
-          patientId: a.patientId,
-          typeName: a.typeName,
-          notes: a.notes
-        }
-      }))
-    );
-  }
-
-  private onDatesSet(info: DatesSetArg) {
-    const start = info.start;
-    const end = info.end;
-    this.weekStart = start.toISOString();
-    this.weekEnd = end.toISOString();
-    this.loadWeekAppointments();
-  }
-
-  handleDateClick(info: DateClickArg) {
-    if (info.date > new Date()) {
-      this.showNewAppointmentDialog(info.date);
-    }
-  }
-
-  handleEventClick(info: EventClickArg) {
-    const props = info.event.extendedProps;
-    const eventStart = info.event.start;
-    const isFuture = eventStart ? eventStart > new Date() : false;
-
-    if ((props['status'] === 'SCHEDULED' || props['status'] === 'PROPOSED') && isFuture) {
-      const appointment = this.findAppointment(info.event.id);
-      if (appointment) {
-        this.modal.open<boolean, { appointment: AppointmentDto }>(
-          AppointmentActionDialog,
-          { label: `${appointment.patientName} — ${this.getStatusLabel(appointment.status)}`, size: 'm', data: { appointment } }
-        ).subscribe((result) => {
-          if (result) {
-            this.loadTodayAppointments();
-            this.loadWeekAppointments();
-          }
-        });
-      }
-    } else {
-      this.notify.info(
-        `${props['patientName'] as string}: ${(props['typeName'] as string) || 'Cita'} — ${this.getStatusLabel(props['status'] as string)}`
-      );
-    }
-  }
-
-  handleTodayAppointmentClick(appt: AppointmentDto) {
-    const isFuture = new Date(appt.startTime) > new Date();
-
-    if ((appt.status === 'SCHEDULED' || appt.status === 'PROPOSED') && isFuture) {
-      this.modal.open<boolean, { appointment: AppointmentDto }>(
-        AppointmentActionDialog,
-        { label: `${appt.patientName} — ${this.getStatusLabel(appt.status)}`, size: 'm', data: { appointment: appt } }
-      ).subscribe((result) => {
-        if (result) {
-          this.loadTodayAppointments();
-          this.loadWeekAppointments();
-        }
-      });
-     } else {
-      this.notify.info(`${appt.patientName}: ${appt.typeName || 'Cita'} — ${this.getStatusLabel(appt.status)}`);
-    }
-  }
-
-  private findAppointment(id: string): AppointmentDto | undefined {
-    return this.weekAppointments().find(a => a.id === id)
-      || this.todayAppointments().find(a => a.id === id);
-  }
-
   attendanceRate = computed(() => {
     const today = this.todayAppointments();
     const total = today.filter(a => a.status !== 'CANCELLED').length;
@@ -265,7 +112,6 @@ export class TenantDashboardComponent implements OnInit {
       next: () => {
         this.notify.success(this.transloco.translate('appointments.update_success'), this.transloco.translate('common.success'));
         this.loadTodayAppointments();
-        this.loadWeekAppointments();
         this.updatingStatus.set(null);
       },
       error: () => {
@@ -282,7 +128,6 @@ export class TenantDashboardComponent implements OnInit {
     ).subscribe((result) => {
       if (result) {
         this.loadTodayAppointments();
-        this.loadWeekAppointments();
       }
     });
   }
@@ -295,8 +140,8 @@ export class TenantDashboardComponent implements OnInit {
   getStatusSeverity(status: string): string {
     switch (status) {
       case 'SCHEDULED': return 'info';
-      case 'COMPLETED': return 'success';
-      case 'CANCELLED': return 'secondary';
+      case 'COMPLETED': return 'positive';
+      case 'CANCELLED': return 'neutral';
       case 'NO_SHOW': return 'warning';
       case 'PROPOSED': return 'warning';
       default: return 'info';

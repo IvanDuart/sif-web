@@ -17,12 +17,14 @@ import { AppointmentFormDialog } from './appointment-form.dialog';
 import { AppointmentActionDialog } from './appointment-action.dialog';
 import { formatInstant } from '../../shared/utils/date';
 import { ModalService, NotificationService } from '../../core/ui';
+import { TuiButton } from '@taiga-ui/core';
+import { TuiBadge } from '@taiga-ui/kit';
 
 @Component({
   selector: 'app-appointments-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [RouterModule, FullCalendarModule, TranslocoDirective, SkeletonComponent],
+  imports: [RouterModule, FullCalendarModule, TranslocoDirective, SkeletonComponent, TuiButton, TuiBadge],
   templateUrl: './appointments.page.html',
   styleUrls: ['./appointments.page.scss'],
 })

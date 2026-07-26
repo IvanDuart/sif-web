@@ -1,12 +1,12 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
   <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg text-sm mb-2">
-    Creando menú a partir de: <strong>{{ template?.name }}</strong>
+    {{ 'templates.creating_from' | transloco }} <strong>{{ template?.name }}</strong>
   </div>
 
   <div class="field flex flex-col gap-1.5">
-    <label for="appUserId" class="text-sm font-medium text-surface-700 dark:text-surface-300">Paciente Destino</label>
+    <label for="appUserId" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'menu_history.target_patient' | transloco }}</label>
     <select id="appUserId" formControlName="appUserId" required class="form-input">
-      <option value="" disabled>Seleccionar Paciente</option>
+      <option value="" disabled>{{ 'menu_history.select_patient' | transloco }}</option>
       @for (u of users(); track u.id) {
         <option [value]="u.id">{{ u.fullName }}</option>
       }
@@ -14,17 +14,17 @@
   </div>
 
   <div class="field flex flex-col gap-1.5">
-    <label for="name" class="text-sm font-medium text-surface-700 dark:text-surface-300">Nombre del nuevo menú</label>
+    <label for="name" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'menu_history.new_menu_name' | transloco }}</label>
     <input id="name" formControlName="name" class="form-input" />
   </div>
 
   <div class="flex items-center gap-2 mt-2">
     <input type="checkbox" id="isActive" formControlName="isActive" class="h-4 w-4 rounded border-surface-300 text-primary-500 focus:ring-primary-300" />
-    <label for="isActive" class="text-sm font-medium text-surface-700 dark:text-surface-300">Establecer como menú activo</label>
+    <label for="isActive" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'menu_history.set_active' | transloco }}</label>
   </div>
 
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-    <button type="button" class="btn-secondary" (click)="cancel()">Cancelar</button>
-    <button type="submit" class="btn-primary" [disabled]="form.invalid">Asignar al Paciente</button>
+    <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
+    <button type="submit" tuiButton size="m" [disabled]="form.invalid">{{ 'menu_history.assign_to_patient' | transloco }}</button>
   </div>
 </form>

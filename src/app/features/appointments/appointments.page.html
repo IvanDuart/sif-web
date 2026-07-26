@@ -3,8 +3,8 @@
     <!-- Left: Calendar -->
     <div class="flex-1 space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 class="text-xl font-bold text-surface-900 dark:text-surface-0">Gesti&oacute;n de Citas</h2>
-        <button class="btn-primary" (click)="showNewAppointmentDialog()">
+        <h2 class="text-xl font-bold text-surface-900 dark:text-surface-0">{{ t('appointments.title_management') }}</h2>
+        <button tuiButton size="m" (click)="showNewAppointmentDialog()">
           <i class="fa-solid fa-plus"></i>
           {{ t('appointments.new_appointment') }}
         </button>
@@ -59,7 +59,7 @@
           </h3>
           <span
             class="bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 text-xs font-bold px-2 py-0.5 rounded">
-            HOY
+            {{ t('appointments.today_badge') }}
           </span>
         </div>
 
@@ -94,10 +94,10 @@
                     </span>
                   </div>
                   <div class="flex items-center justify-between mt-2 pt-2 border-t border-surface-200 dark:border-surface-700">
-                    <span class="status-badge info">{{ getStatusLabel(appt.status) }}</span>
+                    <span tuiBadge appearance="info">{{ getStatusLabel(appt.status) }}</span>
                     <div class="flex gap-1">
                       @if (appt.status === 'SCHEDULED') {
-                        <button class="btn-icon"
+                        <button tuiIconButton appearance="flat" size="s"
                           [title]="t('appointments.attended')"
                           [disabled]="updatingStatus() === appt.id"
                           (click)="$event.stopPropagation(); markAttended(appt)">
@@ -107,7 +107,7 @@
                             <i class="fa-solid fa-check"></i>
                           }
                         </button>
-                        <button class="btn-icon"
+                        <button tuiIconButton appearance="flat" size="s"
                           [title]="t('appointments.no_show')"
                           [disabled]="updatingStatus() === appt.id"
                           (click)="$event.stopPropagation(); markNoShow(appt)">
@@ -117,7 +117,7 @@
                             <i class="fa-solid fa-user-slash"></i>
                           }
                         </button>
-                        <button class="btn-icon"
+                        <button tuiIconButton appearance="flat" size="s"
                           [title]="t('appointments.cancel')"
                           [disabled]="updatingStatus() === appt.id"
                           (click)="$event.stopPropagation(); cancelAppointment(appt)">

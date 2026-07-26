@@ -1,8 +1,9 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
+import { TuiButton } from '@taiga-ui/core';
 
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -19,7 +20,7 @@ const MEAL_ORDER: Record<string, number> = { COMIDA: 0, CENA: 1 };
 @Component({
   selector: 'app-template-detail',
   standalone: true,
-  imports: [DatePipe, RouterModule, IfPermissionDirective, TranslocoDirective, SkeletonComponent],
+  imports: [DatePipe, RouterModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, TuiButton],
   templateUrl: './template-detail.page.html',
   styles: [`
     .weekly-grid {

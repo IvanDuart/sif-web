@@ -1,58 +1,62 @@
-<div *transloco="let t">
+<div *transloco="let t" xmlns="http://www.w3.org/1999/html">
   <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
 
-    <tui-textfield class="w-full">
-      <label tuiLabel for="patientId">{{ t('appointments.patient') }}</label>
+    <tui-textfield tuiChevron>
+      <label tuiLabel>{{ t('appointments.patient') }}</label>
       <input
         id="patientId"
-        tuiSelect
-        formControlName="patientId"
-      />
+        tuiComboBox
+        formControlName="patientId">
       <tui-data-list-wrapper
         *tuiDropdown
-        [items]="patientValues()"
-        [itemContent]="patientStringify | tuiStringifyContent"
-      />
+        [items]="patientLabels() | tuiFilterByInput" />
     </tui-textfield>
 
-    <tui-textfield class="w-full">
-      <label tuiLabel for="typeId">{{ t('appointments.type') }}</label>
+    <tui-textfield tuiChevron>
+      <label tuiLabel>{{ t('appointments.type') }}</label>
       <input
         id="typeId"
-        tuiSelect
-        formControlName="typeId"
-      />
+        tuiComboBox
+        formControlName="typeId">
       <tui-data-list-wrapper
         *tuiDropdown
-        [items]="typeValues()"
-        [itemContent]="typeStringify | tuiStringifyContent"
-      />
+        [items]="typeLabels() | tuiFilterByInput" />
     </tui-textfield>
 
-    <tui-textfield class="w-full">
-      <label tuiLabel for="startTime">{{ t('appointments.start_time') }}</label>
-      <input id="startTime" tuiInputDateTime formControlName="startTime" />
+    <tui-textfield>
+      <label tuiLabel>{{ t('appointments.start_time') }}</label>
+      <input
+        tuiInput
+        type="datetime-local"
+        id="startTime"
+        formControlName="startTime" />
     </tui-textfield>
 
-    <tui-textfield class="w-full">
-      <label tuiLabel for="notes">{{ t('appointments.notes') }}</label>
+
+    <tui-textfield>
+      <label tuiLabel>
+        {{ t('appointments.notes') }}
+      </label>
       <textarea
-        id="notes"
-        tuiTextarea
-        formControlName="notes"
-        rows="3">
-      </textarea>
+                tuiTextarea
+                formControlName="notes"
+                ></textarea>
+
     </tui-textfield>
 
-    <div class="flex justify-end gap-2 mt-2">
-      <button class="btn-secondary" type="button" (click)="context.$implicit.complete()">{{ t('common.cancel') }}</button>
-      <button type="submit" class="btn-primary" [disabled]="form.invalid || saving()">
-        @if (saving()) {
-          <i class="fa-solid fa-spinner fa-spin animate-spin mr-1"></i>
-        }
-        {{ t('appointments.schedule_new') }}
-      </button>
-    </div>
+
+    <button
+      tuiButton
+      type="submit"
+      [disabled]="form.invalid || saving()"
+      class="w-full">
+      @if (saving()) {
+        {{ t('common.loading') }}
+      } @else {
+        {{ t('common.save') }}
+      }
+    </button>
+
   </form>
 
   @if (error()) {

@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TuiInput } from '@taiga-ui/core';
+import { TuiButton, TuiInput } from '@taiga-ui/core';
 import { TuiTextarea } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import type { TuiDialogContext } from '@taiga-ui/core';
@@ -17,7 +17,7 @@ import { toLocalISOString } from '../../shared/utils/date';
 @Component({
   selector: 'app-appointment-action-dialog',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective, TuiInput, TuiTextarea],
+  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton, TuiInput, TuiTextarea],
   templateUrl: './appointment-action.dialog.html'
 })
 export class AppointmentActionDialog implements OnInit {

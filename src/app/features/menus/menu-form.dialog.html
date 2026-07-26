@@ -1,13 +1,13 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
   <div class="field flex flex-col gap-1.5">
-    <label for="name" class="text-sm font-medium text-surface-700 dark:text-surface-300">Nombre de la Dieta / Menú</label>
-    <input id="name" formControlName="name" class="form-input" placeholder="Ej: Dieta de Volumen 3000kcal" />
+    <label for="name" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.form_name_label' | transloco }}</label>
+    <input id="name" formControlName="name" class="form-input" [placeholder]="'diets.form_name_placeholder' | transloco" />
   </div>
 
   <div class="field flex flex-col gap-1.5">
-    <label for="appUserId" class="text-sm font-medium text-surface-700 dark:text-surface-300">Paciente Asociado</label>
+    <label for="appUserId" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.form_patient_label' | transloco }}</label>
     <select id="appUserId" formControlName="appUserId" class="form-input" [class.loading]="loadingUsers()">
-      <option value="" disabled>Seleccionar Paciente</option>
+      <option value="" disabled>{{ 'diets.form_select_patient' | transloco }}</option>
       @for (u of users(); track u.id) {
         <option [value]="u.id">{{ u.fullName }}</option>
       }
@@ -16,11 +16,11 @@
 
   <div class="flex items-center gap-2 mt-2">
     <input type="checkbox" id="isActive" formControlName="isActive" class="h-4 w-4 rounded border-surface-300 text-emerald-600 focus:ring-emerald-500" />
-    <label for="isActive" class="text-sm font-medium text-surface-700 dark:text-surface-300">Establecer como activo para este paciente</label>
+    <label for="isActive" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.form_set_active' | transloco }}</label>
   </div>
 
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-    <button type="button" class="btn-secondary" (click)="cancel()">Cancelar</button>
-    <button type="submit" class="btn-primary" [disabled]="form.invalid" [class.loading]="saving()">Crear Menú</button>
+    <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
+    <button type="submit" tuiButton size="m" [disabled]="form.invalid" [class.loading]="saving()">{{ 'diets.form_create' | transloco }}</button>
   </div>
 </form>

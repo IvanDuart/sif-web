@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext } from '@taiga-ui/core';
+import { TuiButton } from '@taiga-ui/core';
 import { NotificationService } from '../../core/ui/notification.service';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -13,7 +14,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 @Component({
   selector: 'app-patient-profile-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslocoDirective],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton],
   templateUrl: './patient-profile-form.dialog.html'
 })
 export class PatientProfileFormDialog implements OnInit {

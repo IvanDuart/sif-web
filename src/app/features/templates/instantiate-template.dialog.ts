@@ -2,6 +2,8 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext } from '@taiga-ui/core';
+import { TuiButton } from '@taiga-ui/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { MenuTemplateService, InstantiateMenuTemplateRequest } from '../../core/api/services/menu-template.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -15,7 +17,7 @@ export interface InstantiateTemplateDialogInput {
 @Component({
   selector: 'app-instantiate-template',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule],
+  imports: [FormsModule, ReactiveFormsModule, TuiButton, TranslocoPipe],
   templateUrl: './instantiate-template.dialog.html'
 })
 export class InstantiateTemplateDialog implements OnInit {

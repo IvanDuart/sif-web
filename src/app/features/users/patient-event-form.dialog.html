@@ -38,8 +38,8 @@
     </div>
 
     <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-      <button type="button" class="btn-secondary" (click)="ref.close()">Cancelar</button>
-      <button type="submit" class="btn-primary" [disabled]="form.invalid" [class.loading]="saving">{{ existingEvent ? 'Guardar' : 'Nuevo Evento' }}</button>
+      <button type="button" tuiButton appearance="secondary" size="m" (click)="ref.close()">{{ t('common.cancel') }}</button>
+      <button type="submit" tuiButton size="m" [disabled]="form.invalid" [class.loading]="saving">{{ existingEvent ? t('common.save') : t('patient_events.new_event') }}</button>
     </div>
   </form>
 </div>

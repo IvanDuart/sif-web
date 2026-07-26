@@ -4,14 +4,14 @@
     <h2 class="text-xl font-display font-bold text-surface-900 dark:text-surface-0">
       {{ t('settings.branding_tab') }}
     </h2>
-    <p class="text-sm text-surface-500 mt-1">Personaliza la apariencia visual de tu centro</p>
+    <p class="text-sm text-surface-500 mt-1">{{ t('settings.branding_subtitle') }}</p>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
     <div class="lg:col-span-2">
       <div class="data-card">
-        <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0 mb-5">Ajustes Generales</h3>
+        <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0 mb-5">{{ t('settings.general_settings') }}</h3>
 
         <div class="space-y-5">
           <div class="flex flex-col gap-1.5">
@@ -50,19 +50,19 @@
             <tui-textfield>
               <input id="defaultLang" tuiInput [(ngModel)]="preferences().default_language" aria-describedby="defaultLangHelp" />
             </tui-textfield>
-            <p id="defaultLangHelp" class="text-xs text-surface-400">C\u00f3digo ISO, ej. &quot;es&quot;, &quot;en&quot;</p>
+            <p id="defaultLangHelp" class="text-xs text-surface-400">{{ t('settings.iso_code_hint') }}</p>
           </div>
         </div>
 
       </div>
 
       <div class="data-card mt-6">
-        <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0 mb-5">Inteligencia Artificial</h3>
+        <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0 mb-5">{{ t('settings.ai_section') }}</h3>
         <div class="space-y-5">
           <div class="flex items-center gap-3">
             <input id="aiEnabled" type="checkbox" tuiSwitch [(ngModel)]="preferences().ai_enabled" />
             <label for="aiEnabled" class="text-sm font-medium text-surface-700 dark:text-surface-200 cursor-pointer">
-              Habilitar módulo de IA
+              {{ t('settings.ai_enable') }}
             </label>
           </div>
           @if (preferences().ai_enabled) {
@@ -83,7 +83,7 @@
       </div>
 
       <div class="flex justify-end pt-5 mt-6 border-t border-surface-200 dark:border-surface-700">
-        <button class="btn-primary inline-flex items-center gap-2" [disabled]="saving()" (click)="save()">
+        <button tuiButton size="m" [disabled]="saving()" (click)="save()">
           @if (saving()) {
             <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
           }
@@ -96,14 +96,14 @@
 
   <div class="space-y-6">
     <div class="data-card">
-      <h3 class="text-sm font-semibold text-surface-900 dark:text-surface-0 mb-3">Logo Principal</h3>
+      <h3 class="text-sm font-semibold text-surface-900 dark:text-surface-0 mb-3">{{ t('settings.main_logo') }}</h3>
 
       @if (logoUrl(); as url) {
         <div class="relative group mb-3">
           <img [src]="url" alt="Logo principal" class="w-full h-32 object-contain rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 p-3" />
           <div class="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <button type="button" class="inline-flex items-center gap-1.5 text-white text-xs font-medium bg-black/70 px-3 py-1.5 rounded-md hover:bg-black/80 transition-colors" (click)="logoInput.click()">
-              <i class="fa-solid fa-camera" aria-hidden="true"></i>Cambiar
+              <i class="fa-solid fa-camera" aria-hidden="true"></i>{{ t('settings.change') }}
             </button>
           </div>
         </div>
@@ -124,7 +124,7 @@
           <img [src]="url" alt="Logo para PDF" class="w-full h-32 object-contain rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 p-3" />
           <div class="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <button type="button" class="inline-flex items-center gap-1.5 text-white text-xs font-medium bg-black/70 px-3 py-1.5 rounded-md hover:bg-black/80 transition-colors" (click)="logoPdfInput.click()">
-              <i class="fa-solid fa-camera" aria-hidden="true"></i>Cambiar
+              <i class="fa-solid fa-camera" aria-hidden="true"></i>{{ t('settings.change') }}
             </button>
           </div>
         </div>

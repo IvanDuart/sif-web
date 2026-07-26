@@ -15,6 +15,7 @@ const surface = {
 };
 
 module.exports = {
+  darkMode: 'class',
   content: [
     "./src/**/*.{html,ts}",
   ],

@@ -7,11 +7,12 @@ import { TenantContextService } from '../../../../core/tenant/tenant-context.ser
 import { AuthService } from '../../../../core/auth/auth.service';
 import { WaterIntakeDto } from '../../../../core/api/models/water-intake.model';
 import { NotificationService } from '../../../../core/ui';
+import { TuiButton } from '@taiga-ui/core';
 
 @Component({
   selector: 'app-water-intake-widget',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslocoDirective],
+  imports: [CommonModule, FormsModule, TranslocoDirective, TuiButton],
   template: `
     <div *transloco="let t" class="data-card border border-surface-200 dark:border-surface-700 flex flex-col h-full">
       <div class="flex items-center justify-between mb-6">
@@ -84,13 +85,13 @@ import { NotificationService } from '../../../../core/ui';
         @if (canManage()) {
           <div class="flex flex-col gap-3 mb-6">
             <div class="flex gap-2">
-              <button (click)="addWater(250)" class="flex-1 py-2 px-3 border border-surface-200 dark:border-surface-700 rounded-lg text-sm font-medium hover:bg-surface-50 dark:hover:bg-surface-800 active:bg-surface-100 transition-all flex items-center justify-center gap-1">
+              <button tuiButton appearance="outline" size="s" (click)="addWater(250)" class="flex-1">
                 <i class="fa-solid fa-plus text-xs"></i> 250ml
               </button>
-              <button (click)="addWater(500)" class="flex-1 py-2 px-3 border border-surface-200 dark:border-surface-700 rounded-lg text-sm font-medium hover:bg-surface-50 dark:hover:bg-surface-800 active:bg-surface-100 transition-all flex items-center justify-center gap-1">
+              <button tuiButton appearance="outline" size="s" (click)="addWater(500)" class="flex-1">
                 <i class="fa-solid fa-plus text-xs"></i> 500ml
               </button>
-              <button (click)="addWater(1000)" class="flex-1 py-2 px-3 border border-surface-200 dark:border-surface-700 rounded-lg text-sm font-medium hover:bg-surface-50 dark:hover:bg-surface-800 active:bg-surface-100 transition-all flex items-center justify-center gap-1">
+              <button tuiButton appearance="outline" size="s" (click)="addWater(1000)" class="flex-1">
                 <i class="fa-solid fa-plus text-xs"></i> 1L
               </button>
             </div>
@@ -98,12 +99,12 @@ import { NotificationService } from '../../../../core/ui';
             <div class="flex gap-2 items-center">
               <input
                 type="number"
-                placeholder="Personalizado (ml)"
+                [placeholder]="t('water_intake.custom_placeholder')"
                 [(ngModel)]="customAmount"
                 min="0"
                 class="flex-1 rounded-lg border border-surface-300 dark:border-surface-700 bg-transparent px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
-              <button (click)="logCustomWater()" class="btn-primary py-1.5 px-4 text-sm font-medium">
+              <button tuiButton size="s" (click)="logCustomWater()" class="text-sm font-medium">
                 {{ t('common.add', { defaultValue: 'Añadir' }) }}
               </button>
             </div>
@@ -153,6 +154,7 @@ export class WaterIntakeWidget implements OnInit {
   private readonly tenantCtx = inject(TenantContextService);
   private readonly authService = inject(AuthService);
   private readonly notify = inject(NotificationService);
+  private readonly transloco = inject(TranslocoService);
 
   readonly circumference = 2 * Math.PI * 64; // r=64 -> 402.12
   
@@ -228,7 +230,7 @@ export class WaterIntakeWidget implements OnInit {
         this.loadData();
       },
       error: () => {
-        this.notify.error('Error: No se pudo registrar el agua');
+        this.notify.error(this.transloco.translate('water_intake.log_error'));
       }
     });
   }
@@ -243,7 +245,7 @@ export class WaterIntakeWidget implements OnInit {
         this.loadData();
       },
       error: () => {
-        this.notify.error('Error: No se pudo eliminar el registro');
+        this.notify.error(this.transloco.translate('water_intake.delete_error'));
       }
     });
   }
@@ -256,9 +258,9 @@ export class WaterIntakeWidget implements OnInit {
     yesterday.setDate(today.getDate() - 1);
 
     if (d.getTime() === today.getTime()) {
-      return 'Hoy';
+      return this.transloco.translate('water_intake.today');
     } else if (d.getTime() === yesterday.getTime()) {
-      return 'Ayer';
+      return this.transloco.translate('water_intake.yesterday');
     }
 
     return d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric' });

@@ -2,7 +2,9 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext } from '@taiga-ui/core';
+import { TuiDialogContext, TuiButton, TuiInput, TuiTextfield, TuiLabel } from '@taiga-ui/core';
+import { TuiSwitch } from '@taiga-ui/kit';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { MenuTemplate } from '../../core/api/models/menu-template.model';
@@ -11,7 +13,7 @@ import { Menu } from '../../core/api/models/menu.model';
 @Component({
   selector: 'app-assign-menu-template',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TuiButton, TuiInput, TuiTextfield, TuiLabel, TuiSwitch, TranslocoPipe],
   templateUrl: './assign-menu-template.dialog.html'
 })
 export class AssignMenuTemplateDialog implements OnInit {

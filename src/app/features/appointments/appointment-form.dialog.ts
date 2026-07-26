@@ -1,10 +1,15 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import {Component, inject, signal, OnInit, computed, ChangeDetectionStrategy} from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TuiDropdown, TuiTextfield, TuiLabel } from '@taiga-ui/core';
-import { TuiTextarea, TuiSelect, TuiDataListWrapper, TuiStringifyContentPipe, TuiInputDateTime } from '@taiga-ui/kit';
+import { TuiDropdown, TuiTextfield, TuiLabel, TuiFilterByInputPipe, TuiInput, TuiButton } from '@taiga-ui/core';
+import {
+  TuiTextarea,
+  TuiComboBox,
+  TuiDataListWrapper,
+  TuiChevron
+} from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import type { TuiDialogContext } from '@taiga-ui/core';
-import { TuiDay, TuiTime } from '@taiga-ui/cdk';
+
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
 import { AppointmentService } from '../../core/api/services/appointment.api';
@@ -25,14 +30,24 @@ import { NotificationService } from '../../core/ui';
     TranslocoDirective,
     TuiTextarea,
     TuiDropdown,
-    TuiSelect,
+    TuiComboBox,
     TuiDataListWrapper,
-    TuiStringifyContentPipe,
-    TuiInputDateTime,
     TuiTextfield,
-    TuiLabel
+    TuiInput,
+    TuiFilterByInputPipe,
+    TuiLabel,
+    TuiButton,
+    TuiChevron
   ],
-  templateUrl: './appointment-form.dialog.html'
+  templateUrl: './appointment-form.dialog.html',
+  styles: [`
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+      transform: translateY(-2px);
+      cursor: pointer;
+    }
+  `],
+  styleUrls: ['./appointment-form.dialog.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppointmentFormDialog implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -51,6 +66,9 @@ export class AppointmentFormDialog implements OnInit {
   saving = signal(false);
   error = signal('');
 
+  patientLabels = computed(() => this.patients().map(p => p.label));
+  typeLabels = computed(() => this.appointmentTypes().map(t => t.label));
+
   patientValues = computed(() => this.patients().map(p => p.value));
   patientStringify = (value: string): string => {
     const found = this.patients().find(p => p.value === value);
@@ -66,7 +84,7 @@ export class AppointmentFormDialog implements OnInit {
   form = this.fb.group({
     patientId: ['', Validators.required],
     typeId: ['', Validators.required],
-    startTime: [null as [TuiDay, TuiTime] | null, Validators.required],
+    startTime: ['', Validators.required],
     notes: ['']
   });
 
@@ -76,12 +94,9 @@ export class AppointmentFormDialog implements OnInit {
 
     if (this.context.data?.startTime) {
       const d = new Date(this.context.data.startTime);
-      this.form.patchValue({
-        startTime: [
-          TuiDay.fromLocalNativeDate(d),
-          TuiTime.fromLocalNativeDate(d)
-        ]
-      });
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const local = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      this.form.patchValue({ startTime: local });
     }
   }
 
@@ -122,20 +137,26 @@ export class AppointmentFormDialog implements OnInit {
     const user = this.authService.user();
     if (!tenantId || !user) return;
 
-    const nutritionistId = this.context.data?.nutritionistId || user.id;
     const raw = this.form.value;
+
+    const selectedPatient = this.patients().find(p => p.label === raw.patientId);
+    const selectedType = this.appointmentTypes().find(t => t.label === raw.typeId);
+
+    if (!selectedPatient || !selectedType) {
+      this.error.set('Por favor, selecciona un paciente y tipo válidos de la lista.');
+      return;
+    }
+
+    const nutritionistId = this.context.data?.nutritionistId || user.id;
 
     this.saving.set(true);
     this.error.set('');
 
     this.appointmentService.create(tenantId, {
       nutritionistId,
-      patientId: raw.patientId!,
-      typeId: raw.typeId!,
-      startTime: (() => {
-        const [day, time] = raw.startTime as unknown as [TuiDay, TuiTime];
-        return new Date(day.year, day.month, day.day, time.hours, time.minutes, time.seconds || 0, time.ms || 0).toISOString();
-      })(),
+      patientId: selectedPatient.value,
+      typeId: selectedType.value,
+      startTime: new Date(raw.startTime as string).toISOString(),
       notes: raw.notes || undefined
     }).subscribe({
       next: () => {

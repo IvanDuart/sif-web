@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TuiTextfield, TuiLabel } from '@taiga-ui/core';
+import { TuiInput, TuiTextfield, TuiLabel, TuiButton, TuiDialogContext } from '@taiga-ui/core';
+import { TuiSwitch } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext } from '@taiga-ui/core';
 import { AppointmentTypeService } from '../../../core/api/services/appointment-type.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
 import { NotificationService } from '../../../core/ui';
@@ -15,45 +15,49 @@ export interface AppointmentTypeFormDialogInput {
 @Component({
   selector: 'app-appointment-type-form-dialog',
   standalone: true,
-  imports: [FormsModule, TuiTextfield, TuiLabel],
+  imports: [FormsModule, TuiInput, TuiTextfield, TuiLabel, TuiButton, TuiSwitch],
   template: `
-    <div class="flex flex-col gap-4">
-      <div class="flex flex-col gap-1.5">
-       <tui-textfield>
-          <label tuiLabel>Nombre</label>
-          <input
-            [(ngModel)]="name" />
-        </tui-textfield>
-      </div>
-
-      <div class="flex flex-col gap-1.5">
-        <label for="duration" class="text-sm font-medium text-surface-700">Duración (minutos)</label>
+    <div class="flex flex-col gap-4 mt-2">
+      <tui-textfield class="w-full">
+        <label tuiLabel>Nombre</label>
         <input
-          id="duration"
+          tuiInput
+          [(ngModel)]="name" />
+      </tui-textfield>
+
+      <tui-textfield class="w-full">
+        <label tuiLabel>Duración (minutos)</label>
+        <input
+          tuiInput
           type="number"
           [(ngModel)]="durationMinutes"
           min="1"
           max="480"
-          step="5"
-          class="form-input" />
-      </div>
+          step="5" />
+      </tui-textfield>
 
-      <div class="flex items-center gap-2 mt-1">
-        <label class="switch">
-          <input type="checkbox" [(ngModel)]="isDefault" role="switch" />
-          <span class="switch-slider"></span>
+      <div class="flex items-center gap-3 py-1">
+        <input
+          id="isDefault"
+          type="checkbox"
+          tuiSwitch
+          [(ngModel)]="isDefault" />
+        <label for="isDefault" class="text-sm font-medium text-surface-700 dark:text-surface-300 cursor-pointer">
+          Tipo predeterminado
         </label>
-        <label class="text-sm font-medium text-surface-700 cursor-pointer">Tipo predeterminado</label>
       </div>
 
-      <div class="flex justify-end gap-2 mt-2">
+      <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
         <button
-          class="btn-secondary"
+          tuiButton
+          appearance="secondary"
+          size="m"
           (click)="context.$implicit.complete()">
           Cancelar
         </button>
         <button
-          class="btn-primary"
+          tuiButton
+          size="m"
           [disabled]="!name || !durationMinutes"
           (click)="save()">
           {{ editing ? 'Actualizar' : 'Crear' }}

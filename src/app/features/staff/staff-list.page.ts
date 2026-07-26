@@ -4,6 +4,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
 import { TuiTable } from '@taiga-ui/addon-table';
 import { TuiButton } from '@taiga-ui/core';
+import { TuiBadge } from '@taiga-ui/kit';
 
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -17,7 +18,7 @@ import { EditUserDialog, EditUserDialogInput } from '../users/edit-user.dialog';
 @Component({
   selector: 'app-staff-list',
   standalone: true,
-  imports: [RouterModule, IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent, TuiTable, TuiButton],
+  imports: [RouterModule, IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent, TuiTable, TuiButton, TuiBadge],
   templateUrl: './staff-list.page.html'
 })
 export default class StaffListPage implements OnInit {

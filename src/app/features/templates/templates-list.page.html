@@ -4,14 +4,14 @@
     <div class="flex gap-2">
       <button *appIfPermission="'MANAGE_TEMPLATE'"
         type="button"
-        class="tui-action-btn secondary"
+        tuiButton appearance="secondary" size="m"
         (click)="uploadTemplate()">
         <i class="fa-solid fa-file-arrow-up"></i>
         {{ t('templates.upload_ocr') }}
       </button>
       <button *appIfPermission="'MANAGE_TEMPLATE'"
         type="button"
-        class="tui-action-btn"
+        tuiButton size="m"
         (click)="createTemplate()">
         <i class="fa-solid fa-plus"></i>
         {{ t('templates.create') }}
@@ -31,34 +31,35 @@
         </app-empty-state>
       } @else {
         <div class="table-wrapper">
-          <table class="data-table">
+          <table tuiTable class="w-full">
             <thead>
               <tr>
-                <th scope="col">{{ t('diets.name') }}</th>
-                <th scope="col">{{ t('templates.description') }}</th>
-                <th scope="col" class="text-center" style="width: 7rem;">{{ t('common.actions') }}</th>
+                <th tuiTh scope="col">{{ t('diets.name') }}</th>
+                <th tuiTh scope="col">{{ t('templates.description') }}</th>
+                <th tuiTh scope="col" class="text-center" style="width: 8rem;">{{ t('common.actions') }}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody tuiTbody>
               @for (template of templates(); track template.id) {
-                <tr class="table-row">
-                  <td class="font-medium">{{ template.name }}</td>
-                  <td class="text-surface-500 text-sm">{{ template.description }}</td>
-                  <td class="text-center">
-                    <div class="row-actions">
-                      <button type="button" class="icon-action"
+                <tr tuiTr>
+                  <td tuiTd class="font-medium">{{ template.name }}</td>
+                  <td tuiTd class="text-surface-500 text-sm">{{ template.description }}</td>
+                  <td tuiTd class="text-center">
+                    <div class="flex items-center gap-1 justify-center">
+                      <button type="button" tuiIconButton appearance="flat" size="s"
                         (click)="viewTemplate(template)"
                         [title]="t('templates.view_detail')">
                         <i class="fa-solid fa-eye"></i>
                       </button>
                       <button *appIfPermission="'INSTANTIATE_TEMPLATE'"
-                        type="button" class="icon-action"
+                        type="button" tuiIconButton appearance="flat" size="s"
                         (click)="instantiateTemplate(template)"
                         [title]="t('templates.assign')">
                         <i class="fa-solid fa-user-plus"></i>
                       </button>
                       <button *appIfPermission="'MANAGE_TEMPLATE'"
-                        type="button" class="icon-action danger"
+                        type="button" tuiIconButton appearance="flat" size="s"
+                        class="text-red-500 hover:text-red-700"
                         (click)="deleteTemplate(template)"
                         [title]="t('common.delete')">
                         <i class="fa-solid fa-trash"></i>

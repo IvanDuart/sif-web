@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TuiCheckbox } from '@taiga-ui/core';
+import { TuiButton, TuiCheckbox } from '@taiga-ui/core';
 import { TenantService } from '../../../core/api/services/tenant.api';
 import { TenantBrandingService } from '../../../core/api/services/tenant-branding.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
@@ -27,7 +27,7 @@ const ALL_ANAMNESIS_FIELDS = [
 @Component({
   selector: 'app-anamnesis-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslocoDirective, TuiCheckbox],
+  imports: [CommonModule, FormsModule, TranslocoDirective, TuiCheckbox, TuiButton],
   templateUrl: './anamnesis-settings.html'
 })
 export class AnamnesisSettings implements OnInit {

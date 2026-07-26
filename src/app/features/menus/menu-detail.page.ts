@@ -1,8 +1,10 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { DatePipe, Location } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
+import { TuiButton } from '@taiga-ui/core';
+import { TuiBadge } from '@taiga-ui/kit';
 
 import { MenuService } from '../../core/api/services/menu.api';
 import { MealService } from '../../core/api/services/meal.api';
@@ -23,7 +25,7 @@ const MEAL_ORDER: Record<string, number> = { COMIDA: 0, CENA: 1 };
 @Component({
   selector: 'app-menu-detail',
   standalone: true,
-  imports: [DatePipe, RouterModule, IfPermissionDirective, TranslocoDirective, SkeletonComponent],
+  imports: [DatePipe, RouterModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, TuiButton, TuiBadge],
   templateUrl: './menu-detail.page.html',
   styleUrls: ['./menu-detail.page.scss'],
 })
@@ -153,7 +155,7 @@ export default class MenuDetailPage implements OnInit {
         const tenantId = this.tenantCtx.currentTenantId();
         if (!tenantId) return;
         this.mealService.delete(tenantId, meal.id).subscribe(() => {
-          this.notify.success('Plato eliminado');
+          this.notify.success(this.transloco.translate('notifications.meal_deleted'));
           this.meals.set(this.meals().filter(m => m.id !== meal.id));
         });
       }
@@ -211,7 +213,7 @@ export default class MenuDetailPage implements OnInit {
       next: (result) => {
         this.generatingList.set(false);
         this.modal.open<void, ShoppingListDialogInput>(ShoppingListDialog, {
-          label: 'Lista de la Compra',
+          label: this.transloco.translate('shopping_list.title'),
           size: 'l',
           data: { shoppingList: result },
         }).subscribe();
@@ -219,8 +221,8 @@ export default class MenuDetailPage implements OnInit {
       error: (err) => {
         this.generatingList.set(false);
         const msg = err.status === 403
-          ? 'La generación por IA no está habilitada para este cliente. Verifica la configuración del tenant.'
-          : 'Error al generar la lista de la compra. Intenta de nuevo.';
+          ? this.transloco.translate('shopping_list.ai_not_enabled')
+          : this.transloco.translate('shopping_list.generation_error');
         this.notify.error(msg);
       },
     });

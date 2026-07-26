@@ -52,7 +52,7 @@
                   <td tuiTd class="text-sm">{{ user.lastMeasurement?.weightKg ?? '—' }}</td>
                   <td tuiTd class="text-sm">{{ user.lastMeasurement?.bmi ?? '—' }}</td>
                   <td tuiTd class="text-center">
-                    <div class="row-actions flex justify-center gap-1">
+                    <div class="flex items-center gap-1 justify-center">
                       <a tuiButton appearance="flat" size="s" [routerLink]="['/users', user.id]" [title]="t('common.view')">
                         <i class="fa-solid fa-eye"></i>
                       </a>

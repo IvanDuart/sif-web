@@ -1,7 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext } from '@taiga-ui/core';
+import { TuiButton, TuiDialogContext } from '@taiga-ui/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { MenuUploadService } from '../../core/api/services/menu-upload.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -11,7 +12,7 @@ import { NotificationService } from '../../core/ui';
 @Component({
   selector: 'app-menu-upload',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, TuiButton, TranslocoPipe],
   templateUrl: './menu-upload.dialog.html'
 })
 export class MenuUploadDialog implements OnInit {

@@ -33,15 +33,15 @@
               <td tuiTd>{{ user.lastName }}</td>
               <td tuiTd class="text-sm text-surface-500">{{ user.email }}</td>
               <td tuiTd>
-                <span class="status-badge info">{{ getRole(user) }}</span>
+                <span tuiBadge appearance="info">{{ getRole(user) }}</span>
               </td>
               <td tuiTd>
-                <span [class]="user.enabled !== false ? 'status-badge success' : 'status-badge secondary'">
+                <span tuiBadge [appearance]="user.enabled !== false ? 'positive' : 'neutral'">
                   {{ user.enabled !== false ? t('users.enabled') : t('users.disabled') }}
                 </span>
               </td>
               <td tuiTd class="text-center">
-                <div class="row-actions flex justify-center gap-1">
+                <div class="flex items-center gap-1 justify-center">
                   <a tuiButton appearance="flat" size="s" [routerLink]="['/users', user.id]" [title]="t('common.view')">
                     <i class="fa-solid fa-eye"></i>
                   </a>

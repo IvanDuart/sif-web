@@ -2,7 +2,8 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext } from '@taiga-ui/core';
+import { TuiDialogContext, TuiButton, TuiInput, TuiTextfield, TuiLabel } from '@taiga-ui/core';
+import { TuiTextarea } from '@taiga-ui/kit';
 import { BodyMeasurementService } from '../../core/api/services/body-measurement.api';
 import { CreateBodyMeasurementRequest } from '../../core/api/models/body-measurement.model';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -12,7 +13,17 @@ import { toLocalISOString } from '../../shared/utils/date';
 @Component({
   selector: 'app-measurement-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslocoDirective],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    TranslocoDirective,
+    TuiButton,
+    TuiInput,
+    TuiTextfield,
+    TuiLabel,
+    TuiTextarea
+  ],
   templateUrl: './measurement-form.dialog.html'
 })
 export class MeasurementFormDialog {

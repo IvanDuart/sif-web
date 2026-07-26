@@ -1,9 +1,8 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext, TuiDropdown, TuiCalendar, TuiTextfield, TuiLabel } from '@taiga-ui/core';
-import { TuiSelect, TuiDataListWrapper, TuiStringifyContentPipe, TuiInputDate } from '@taiga-ui/kit';
-import { TuiDay } from '@taiga-ui/cdk';
+import { TuiDialogContext } from '@taiga-ui/core';
+import { TuiButton } from '@taiga-ui/core';
 import { UserTenantRoleService, InviteUserRequest } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { UserType, Gender } from '../../core/api/models/user.model';
@@ -20,14 +19,7 @@ export interface InviteUserDialogInput {
     FormsModule,
     ReactiveFormsModule,
     TranslocoDirective,
-    TuiDropdown,
-    TuiSelect,
-    TuiDataListWrapper,
-    TuiStringifyContentPipe,
-    TuiInputDate,
-    TuiCalendar,
-    TuiTextfield,
-    TuiLabel
+    TuiButton
   ],
   templateUrl: './invite-user.dialog.html'
 })
@@ -91,9 +83,9 @@ export class InviteUserDialog {
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
     roleCode: [{ value: '', disabled: false }, Validators.required],
-    birthDate: [null as TuiDay | null],
+    birthDate: [''],
     heightCm: [null as number | null],
-    gender: [null as Gender | null]
+    gender: ['']
   });
 
   constructor() {
@@ -122,7 +114,7 @@ export class InviteUserDialog {
       roleCode: raw.roleCode!,
     };
     if (raw.birthDate) {
-      request.birthDate = raw.birthDate.toJSON();
+      request.birthDate = raw.birthDate;
     }
     if (raw.heightCm != null) {
       request.heightCm = raw.heightCm;

@@ -1,16 +1,16 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
   <tui-textfield class="w-full">
-    <label tuiLabel for="name">Nombre de la Plantilla</label>
-    <input id="name" formControlName="name" />
+    <label tuiLabel for="name">{{ 'templates.form_name_label' | transloco }}</label>
+    <input id="name" tuiInput formControlName="name" />
   </tui-textfield>
 
   <tui-textfield class="w-full">
-    <label tuiLabel for="description">Descripción</label>
-    <textarea id="description" formControlName="description" tuiTextarea rows="4"></textarea>
+    <label tuiLabel for="description">{{ 'templates.form_description_label' | transloco }}</label>
+    <textarea id="description" tuiTextarea formControlName="description" rows="4"></textarea>
   </tui-textfield>
 
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-    <button type="button" class="btn-secondary" (click)="cancel()">Cancelar</button>
-    <button type="submit" class="btn-primary" [disabled]="form.invalid">Guardar Plantilla</button>
+    <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
+    <button type="submit" tuiButton size="m" [disabled]="form.invalid">{{ 'templates.form_save' | transloco }}</button>
   </div>
 </form>

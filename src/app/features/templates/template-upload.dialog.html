@@ -2,22 +2,22 @@
   <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg flex items-start gap-3 mb-2">
     <i class="fa-solid fa-wand-magic-sparkles text-primary-500 text-xl mt-1"></i>
     <div class="text-sm">
-      Subí un PDF o imagen de una dieta. La IA extraerá los platos y creará la plantilla automáticamente.
+      {{ 'templates.upload_description' | transloco }}
     </div>
   </div>
 
   <tui-textfield class="w-full">
-    <label tuiLabel for="name">Nombre de la Plantilla (opcional)</label>
-    <input id="name" [(ngModel)]="name" tuiInput placeholder="Ej: Plantilla Semana 1" />
+    <label tuiLabel for="name">{{ 'templates.form_name_optional' | transloco }}</label>
+    <input id="name" [(ngModel)]="name" tuiInput [placeholder]="'templates.form_name_placeholder' | transloco" />
   </tui-textfield>
 
   <tui-textfield class="w-full">
-    <label tuiLabel for="description">Descripción (opcional)</label>
-    <textarea id="description" [(ngModel)]="description" tuiTextarea rows="4" placeholder="Describí brevemente esta plantilla..."></textarea>
+    <label tuiLabel for="description">{{ 'templates.form_description_optional' | transloco }}</label>
+    <textarea id="description" [(ngModel)]="description" tuiTextarea rows="4" [placeholder]="'templates.form_description_placeholder' | transloco"></textarea>
   </tui-textfield>
 
   <div class="flex flex-col gap-2 mt-2">
-    <p class="font-medium text-sm text-surface-700 dark:text-surface-300">Documento (PDF o Imagen)</p>
+    <p class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ 'diets.document_label' | transloco }}</p>
     <label tuiInputFiles class="w-full">
       <input
         type="file"
@@ -29,6 +29,6 @@
   </div>
 
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-    <button type="button" class="btn-secondary" (click)="cancel()">Cancelar</button>
+    <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
   </div>
 </div>

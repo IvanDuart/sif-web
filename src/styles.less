@@ -1,6 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import '@taiga-ui/styles/taiga-ui-theme.less';
+@import '@taiga-ui/styles/taiga-ui-fonts.less';
 
 /* ─────────────────────────────────────────────
    PRIME FALLBACK — surface/primary tokens
@@ -64,7 +66,7 @@
   --tui-clear: rgba(255, 255, 255, 0.04);
   --tui-clear-hover: rgba(255, 255, 255, 0.08);
   --tui-text-primary: #f1f5f9;
-  --tui-text-secondary: #94a3b8;
+  --tui-text-secondary: #cbd5e1;
   --tui-border: #334155;
   --tui-background: #0f172a;
 }
@@ -72,14 +74,13 @@
 /* ── Dialog background ─────────────────────────────── */
 tui-dialog {
   display: block;
-  background: var(--p-surface-0, #ffffff) !important;
+  background: var(--tui-background-elevation-3, #ffffff) !important;
   border-radius: 14px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
   border: 1px solid var(--tui-border, #e2e8f0);
 }
 
 .dark tui-dialog {
-  background: var(--p-surface-800, #1e293b) !important;
   border-color: var(--tui-border, #334155);
 }
 
@@ -91,20 +92,20 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Base layout resets */
-html, body {
+html, body, tui-root {
   margin: 0;
   padding: 0;
   height: 100%;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: var(--tui-background);
-  color: var(--p-text-color, var(--tui-text-primary));
+  background-color: var(--tui-background) !important;
+  color: var(--tui-text-primary);
 }
 
 /* ─────────────────────────────────────────────
    NATIVE TABLE — data-card design
    ───────────────────────────────────────────── */
 .data-card {
-  background: var(--p-surface-0, white);
+  background: var(--tui-background-elevation-3, white);
   border-radius: 14px;
   padding: 1.25rem;
   position: relative;
@@ -114,7 +115,7 @@ html, body {
 }
 
 .dark .data-card {
-  background: var(--p-surface-900, #1e293b);
+  background: var(--tui-background-neutral-1, #1e293b);
 }
 
 .table-loading {
@@ -168,7 +169,7 @@ html, body {
 }
 
 .data-table tbody tr:hover {
-  background: var(--p-surface-50, #f8fafc);
+  background: var(--tui-background-neutral-1, #f8fafc);
 }
 
 .data-table tbody td {
@@ -196,231 +197,65 @@ html, body {
 }
 
 /* ─────────────────────────────────────────────
-   STATUS BADGE
+   UNIFIED TABLE — table[tuiTable] overrides
    ───────────────────────────────────────────── */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.125rem 0.625rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1.5;
-  white-space: nowrap;
+table[tuiTable] {
+  width: 100% !important;
+  border-collapse: collapse !important;
+
+  thead th[tuiTh] {
+    background: transparent !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.7rem !important;
+    font-weight: 800 !important;
+    color: var(--tui-text-secondary, #64748b) !important;
+    border: none !important;
+    border-bottom: 2px solid var(--tui-border, #e2e8f0) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  thead th[tuiTh].text-center {
+    text-align: center !important;
+  }
+
+  tbody tr[tuiTr] {
+    transition: background 100ms ease !important;
+    background: transparent !important;
+    
+    &:hover {
+      background: var(--tui-background-neutral-1, #f8fafc) !important;
+    }
+  }
+
+  tbody td[tuiTd] {
+    padding: 0.875rem 1rem !important;
+    border: none !important;
+    border-top: 1px solid var(--tui-border, #e2e8f0) !important;
+    vertical-align: middle !important;
+    font-size: 0.875rem !important;
+    color: var(--tui-text-primary, #1e293b) !important;
+  }
 }
 
-.status-badge.success {
-  background: #d1fae5;
-  color: #065f46;
+.dark table[tuiTable] {
+  thead th[tuiTh] {
+    border-bottom-color: var(--tui-border, #334155) !important;
+    color: var(--tui-text-secondary, #94a3b8) !important;
+  }
+
+  tbody tr[tuiTr]:hover {
+    background: rgba(255, 255, 255, 0.03) !important;
+  }
+
+  tbody td[tuiTd] {
+    border-top-color: var(--tui-border, #334155) !important;
+    color: var(--tui-text-primary, #f1f5f9) !important;
+  }
 }
 
-.status-badge.secondary {
-  background: #f1f5f9;
-  color: #475569;
-}
-
-.status-badge.info {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.status-badge.warning {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.status-badge.danger {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.dark .status-badge.success {
-  background: rgba(5, 150, 105, 0.15);
-  color: #6ee7b7;
-}
-
-.dark .status-badge.secondary {
-  background: rgba(148, 163, 184, 0.15);
-  color: #cbd5e1;
-}
-
-.dark .status-badge.info {
-  background: rgba(59, 130, 246, 0.15);
-  color: #93c5fd;
-}
-
-.dark .status-badge.warning {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fcd34d;
-}
-
-.dark .status-badge.danger {
-  background: rgba(239, 68, 68, 0.15);
-  color: #fca5a5;
-}
-
-/* ─────────────────────────────────────────────
-   BUTTONS
-   ───────────────────────────────────────────── */
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: white;
-  background: var(--tui-background-accent-1, #059669);
-  border: none;
-  cursor: pointer;
-  transition: background 0.15s ease;
-  line-height: 1.25rem;
-  font-family: inherit;
-}
-
-.btn-primary:hover {
-  background: var(--tui-background-accent-1-hover, #047857);
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--tui-text-primary, #1e293b);
-  background: var(--tui-background-neutral-2, #f1f5f9);
-  border: none;
-  cursor: pointer;
-  transition: background 0.15s ease;
-  line-height: 1.25rem;
-  font-family: inherit;
-}
-
-.btn-secondary:hover {
-  background: var(--tui-clear-hover, rgba(0,0,0,0.08));
-}
-
-.btn-danger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: white;
-  background: #dc2626;
-  border: none;
-  cursor: pointer;
-  transition: background 0.15s ease;
-  line-height: 1.25rem;
-  font-family: inherit;
-}
-
-.btn-danger:hover {
-  background: #b91c1c;
-}
-
-.btn-danger:disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-/* tui-action-btn — for page-level primary actions (in migrated pages) */
-.tui-action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: white;
-  background: var(--tui-background-accent-1, #059669);
-  border: none;
-  cursor: pointer;
-  transition: background 0.15s ease;
-  line-height: 1.25rem;
-  font-family: inherit;
-}
-
-.tui-action-btn:hover {
-  background: var(--tui-background-accent-1-hover, #047857);
-}
-
-/* Icon buttons for row actions */
-.btn-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.5rem;
-  border: none;
-  background: transparent;
-  color: var(--tui-text-secondary, #64748b);
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-  font-family: inherit;
-  font-size: 0.875rem;
-}
-
-.btn-icon:hover {
-  background: var(--tui-clear, rgba(0,0,0,0.04));
-  color: var(--tui-primary, #059669);
-}
-
-.btn-icon--danger:hover {
-  color: #dc2626;
-  background: rgba(239, 68, 68, 0.06);
-}
-
-.dark .btn-icon:hover {
-  background: var(--tui-clear, rgba(255,255,255,0.04));
-}
-
-/* icon-action — used in patients/staff pages for row icon links/buttons */
-.icon-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.5rem;
-  border: none;
-  background: transparent;
-  color: var(--tui-text-secondary, #64748b);
-  cursor: pointer;
-  text-decoration: none;
-  transition: background 0.15s ease, color 0.15s ease;
-  font-size: 0.875rem;
-}
-
-.icon-action:hover {
-  background: var(--tui-clear, rgba(0,0,0,0.04));
-  color: var(--tui-primary, #059669);
-}
-
-.icon-action.danger:hover {
-  color: #dc2626;
-  background: rgba(239, 68, 68, 0.06);
-}
-
-.dark .icon-action:hover {
-  background: var(--tui-clear, rgba(255,255,255,0.04));
-}
 
 /* ─────────────────────────────────────────────
    TOAST NOTIFICATIONS — position & color
@@ -506,83 +341,5 @@ tui-toast[data-appearance="info"] {
 
 .dark .form-input:focus {
   box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.15);
-}
-
-/* ─────────────────────────────────────────────
-   TOGGLE SWITCH (native checkbox with role="switch")
-   ───────────────────────────────────────────── */
-.switch {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.switch input[type="checkbox"] {
-  position: relative;
-  width: 2.5rem;
-  height: 1.5rem;
-  appearance: none;
-  -webkit-appearance: none;
-  background: var(--tui-border, #e2e8f0);
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  outline: none;
-  flex-shrink: 0;
-}
-
-.switch input[type="checkbox"]::before {
-  content: '';
-  position: absolute;
-  top: 0.175rem;
-  left: 0.175rem;
-  width: 1.125rem;
-  height: 1.125rem;
-  background: white;
-  border-radius: 50%;
-  transition: transform 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-}
-
-.switch input[type="checkbox"]:checked {
-  background: var(--tui-primary, #059669);
-}
-
-.switch input[type="checkbox"]:checked::before {
-  transform: translateX(1rem);
-}
-
-.switch input[type="checkbox"]:focus-visible {
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
-}
-
-.dark .switch input[type="checkbox"] {
-  background: var(--tui-border, #334155);
-}
-
-.dark .switch input[type="checkbox"]:checked {
-  background: var(--tui-primary, #34d399);
-}
-
-.switch-slider {
-  display: none;
-}
-
-/* ─────────────────────────────────────────────
-   ROW ACTIONS (for action button groups in tables)
-   ───────────────────────────────────────────── */
-.row-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-tr:hover .row-actions,
-.row-actions:focus-within {
-  opacity: 1;
 }
 

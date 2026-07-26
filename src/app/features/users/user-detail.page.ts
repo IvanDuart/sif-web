@@ -38,6 +38,9 @@ import type { ChartConfiguration } from 'chart.js/auto';
 import { Chart, registerables } from 'chart.js';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
+import { TuiButton } from '@taiga-ui/core';
+import { TuiBadge, TuiTabs } from '@taiga-ui/kit';
+import { TuiTable } from '@taiga-ui/addon-table';
 
 Chart.register(...registerables);
 
@@ -53,7 +56,11 @@ Chart.register(...registerables);
     EmptyState,
     FullCalendarModule,
     WaterIntakeWidget,
-    SkeletonComponent
+    SkeletonComponent,
+    TuiButton,
+    TuiBadge,
+    TuiTable,
+    TuiTabs
   ],
   templateUrl: './user-detail.page.html',
   styleUrls: ['./user-detail.page.scss']
@@ -113,11 +120,37 @@ export default class UserDetailPage implements OnInit {
   calendarEvents = signal<EventSourceInput>([]);
   calendarOptions: CalendarOptions = {};
 
-  activeTab = signal('0');
+  activeTabIndex = signal(0);
 
-  onTabChange(value: string | number | undefined) {
-    this.activeTab.set(String(value ?? '0'));
-  }
+  protected readonly tabs = computed(() => {
+    const items: { id: string; label: string; defaultValue?: string }[] = [];
+    const isStaff = this.isStaff();
+
+    items.push({ id: 'profile', label: 'users.tab_profile' });
+
+    if (!isStaff) {
+      items.push({ id: 'measurements', label: 'users.tab_measurements' });
+      items.push({ id: 'menus', label: 'users.tab_menus' });
+      items.push({ id: 'water', label: 'users.tab_water', defaultValue: 'Agua' });
+    }
+
+    if (!isStaff && this.canViewPatientProfile()) {
+      items.push({ id: 'patient_profile', label: 'users.tab_patient_profile' });
+      items.push({ id: 'fixed_guidelines', label: 'users.tab_fixed_guidelines' });
+    }
+
+    if (!isStaff && this.canViewPatientEvents()) {
+      items.push({ id: 'patient_events', label: 'users.tab_patient_events' });
+    }
+
+    if (!isStaff && this.canViewAppointments()) {
+      items.push({ id: 'appointments', label: 'appointments.history_title' });
+    }
+
+    return items;
+  });
+
+  activeTabId = computed(() => this.tabs()[this.activeTabIndex()]?.id ?? 'profile');
 
   // Chart
   chartData: ChartConfiguration<'line'>['data'] | null = null;
@@ -492,12 +525,12 @@ export default class UserDetailPage implements OnInit {
       next: () => {
         this.savingGuidelines.set(false);
         this.editingGuidelines.set(false);
-        this.notify.success('Pautas guardadas correctamente', this.transloco.translate('common.success'));
+        this.notify.success(this.transloco.translate('notifications.guidelines_saved'), this.transloco.translate('common.success'));
         this.loadPatientProfile();
       },
       error: () => {
         this.savingGuidelines.set(false);
-        this.notify.error('No se pudieron guardar las pautas', this.transloco.translate('common.error'));
+        this.notify.error(this.transloco.translate('notifications.guidelines_error'), this.transloco.translate('common.error'));
       }
     });
   }
@@ -520,7 +553,7 @@ export default class UserDetailPage implements OnInit {
       size: 'l',
       data: { userId: this.userId }
     }).subscribe(() => {
-      this.notify.success('Medición registrada correctamente', this.transloco.translate('common.success'));
+      this.notify.success(this.transloco.translate('notifications.measurement_registered'), this.transloco.translate('common.success'));
       this.loadMeasurements(0, this.size());
       this.loadEvolution();
     });
@@ -528,22 +561,22 @@ export default class UserDetailPage implements OnInit {
 
   showCreateMenuDialog() {
     this.modal.open(MenuFormDialog, {
-      label: 'Crear Menú',
+      label: this.transloco.translate('menu_history.create_menu_dialog'),
       size: 's',
       data: { userId: this.userId }
     }).subscribe(() => {
-      this.notify.success('Éxito: Menú asignado al paciente correctamente');
+      this.notify.success(this.transloco.translate('notifications.menu_created'));
       this.loadMenuHistory();
     });
   }
 
   showAssignTemplateDialog() {
     this.modal.open(AssignMenuTemplateDialog, {
-      label: 'Asignar desde Plantilla',
+      label: this.transloco.translate('menu_history.assign_template_dialog'),
       size: 's',
       data: { userId: this.userId }
     }).subscribe(() => {
-      this.notify.success('Éxito: Plantilla asignada al paciente correctamente');
+      this.notify.success(this.transloco.translate('notifications.template_assigned'));
       this.loadMenuHistory();
     });
   }
@@ -573,7 +606,7 @@ export default class UserDetailPage implements OnInit {
         if (tenantId) {
           this.measurementService.delete(tenantId, this.userId, measurement.id).subscribe({
             next: () => {
-              this.notify.success('Medición eliminada', this.transloco.translate('common.success'));
+              this.notify.success(this.transloco.translate('notifications.measurement_deleted'), this.transloco.translate('common.success'));
               this.loadMeasurements(this.page(), this.size());
               this.loadEvolution();
             }

@@ -10,16 +10,16 @@
         <div>
           <h1 class="text-3xl font-bold mb-2">{{ menu()?.name }}</h1>
           <div class="flex gap-2 items-center">
-            <span class="status-badge" [class.success]="menu()?.isActive" [class.secondary]="!menu()?.isActive">
-              {{ menu()?.isActive ? 'Activa' : 'Inactiva' }}
+            <span tuiBadge [appearance]="menu()?.isActive ? 'positive' : 'neutral'">
+              {{ menu()?.isActive ? t('diets.active_badge') : t('diets.inactive_badge') }}
             </span>
-            <span class="text-surface-500 text-sm">Creada: {{ menu()?.createdAt | date:'longDate' }}</span>
+            <span class="text-surface-500 text-sm">{{ t('diets.created') }} {{ menu()?.createdAt | date:'longDate' }}</span>
           </div>
         </div>
         <div class="flex gap-2">
           <button
             *appIfPermission="'VIEW_MENU'"
-            class="btn-secondary"
+            tuiButton appearance="secondary" size="m"
             [disabled]="printingPdf()"
             (click)="printPdf()">
             @if (printingPdf()) {
@@ -31,7 +31,7 @@
           </button>
           <button
             *appIfPermission="'VIEW_MENU'"
-            class="btn-danger"
+            tuiButton appearance="secondary" size="m"
             [disabled]="downloadingPdf()"
             (click)="downloadPdf()">
             @if (downloadingPdf()) {
@@ -43,7 +43,7 @@
           </button>
           <button
             *appIfPermission="'MANAGE_MEAL'"
-            class="btn-primary"
+            tuiButton size="m"
             (click)="addMeal()">
             <i class="fa-solid fa-plus"></i>
             {{ t('diet_detail.add_meal') }}
@@ -64,7 +64,7 @@
             </select>
             <button
               *appIfPermission="'VIEW_MENU'"
-              class="btn-primary"
+              tuiButton size="m"
               [disabled]="generatingList()"
               (click)="generateShoppingList(supermarket.value)">
               @if (generatingList()) {
@@ -72,7 +72,7 @@
               } @else {
                 <i class="fa-solid fa-cart-shopping"></i>
               }
-              {{ generatingList() ? 'Generando...' : 'Lista IA' }}
+              {{ generatingList() ? t('diets.generating') : t('diets.shopping_list_ai') }}
             </button>
           }
         </div>
@@ -138,7 +138,7 @@
   </div>
   } @else if (!loading()) {
     <div class="p-8 text-center text-surface-500">
-      Cargando o no encontrado...
+      {{ 'diets.loading_or_not_found' | transloco }}
     </div>
   }
 </boneyard-skeleton>

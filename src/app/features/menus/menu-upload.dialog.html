@@ -2,14 +2,14 @@
   <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg flex items-start gap-3 mb-2">
     <i class="fa-solid fa-wand-magic-sparkles text-primary-500 text-xl mt-1"></i>
     <div class="text-sm">
-      Sube un PDF o imagen de una dieta. Nuestra IA procesará el documento, extraerá todas las comidas y días, y creará el menú automáticamente para el paciente seleccionado.
+      {{ 'diets.upload_description' | transloco }}
     </div>
   </div>
 
   <div class="field flex flex-col gap-1.5">
-    <label for="appUserId" class="text-sm font-medium text-surface-700 dark:text-surface-300">Paciente Destino</label>
+    <label for="appUserId" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.target_patient' | transloco }}</label>
     <select id="appUserId" [(ngModel)]="selectedUserId" class="form-input" [class.loading]="loadingUsers()">
-      <option value="" disabled>Seleccionar Paciente</option>
+      <option value="" disabled>{{ 'diets.form_select_patient' | transloco }}</option>
       @for (u of users(); track u.id) {
         <option [value]="u.id">{{ u.fullName }}</option>
       }
@@ -18,7 +18,7 @@
 
   @if (selectedUserId) {
   <div class="field flex flex-col gap-1.5 mt-2">
-    <p class="text-sm font-medium text-surface-700 dark:text-surface-300">Documento (PDF o Imagen)</p>
+    <p class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.document_label' | transloco }}</p>
     <input
       type="file"
       accept="image/*,application/pdf"
@@ -28,9 +28,9 @@
   }
 
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-    <button type="button" class="btn-secondary" (click)="cancel()">Cancelar</button>
+    <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
     @if (selectedUserId && selectedFile) {
-      <button type="button" class="btn-primary" (click)="upload()" [class.loading]="uploading()">Procesar y Crear</button>
+      <button type="button" tuiButton size="m" (click)="upload()" [class.loading]="uploading()">{{ 'diets.process_and_create' | transloco }}</button>
     }
   </div>
 </div>

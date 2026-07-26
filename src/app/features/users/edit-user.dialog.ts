@@ -1,7 +1,7 @@
 import { Component, inject, computed } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext } from '@taiga-ui/core';
+import { TuiDialogContext, TuiButton, TuiInput, TuiTextfield, TuiLabel } from '@taiga-ui/core';
 import { NotificationService } from '../../core/ui/notification.service';
 import { UserTenantRoleService, UpdateUserRequest } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -17,7 +17,7 @@ export interface EditUserDialogInput {
 @Component({
   selector: 'app-edit-user',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective],
+  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton, TuiInput, TuiTextfield, TuiLabel],
   templateUrl: './edit-user.dialog.html'
 })
 export class EditUserDialog {

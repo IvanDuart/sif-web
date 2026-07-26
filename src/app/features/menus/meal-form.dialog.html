@@ -1,8 +1,8 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
   <div class="field flex flex-col gap-1.5">
-    <label for="dayOfWeek" class="text-sm font-medium text-surface-700 dark:text-surface-300">Día de la semana</label>
+    <label for="dayOfWeek" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.day_of_week' | transloco }}</label>
     <select id="dayOfWeek" formControlName="dayOfWeek" class="form-input">
-      <option value="" disabled>Seleccionar día</option>
+      <option value="" disabled>{{ 'diets.select_day' | transloco }}</option>
       @for (d of days; track d.value) {
         <option [value]="d.value">{{ d.label }}</option>
       }
@@ -10,9 +10,9 @@
   </div>
 
   <div class="field flex flex-col gap-1.5">
-    <label for="mealType" class="text-sm font-medium text-surface-700 dark:text-surface-300">Tipo de comida</label>
+    <label for="mealType" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.meal_type' | transloco }}</label>
     <select id="mealType" formControlName="mealType" class="form-input">
-      <option value="" disabled>Seleccionar tipo</option>
+      <option value="" disabled>{{ 'diets.select_type' | transloco }}</option>
       @for (m of mealTypes; track m.value) {
         <option [value]="m.value">{{ m.label }}</option>
       }
@@ -20,12 +20,12 @@
   </div>
 
   <div class="field flex flex-col gap-1.5">
-    <label for="description" class="text-sm font-medium text-surface-700 dark:text-surface-300">Descripción</label>
-    <textarea id="description" formControlName="description" class="form-input" rows="6" placeholder="Descripción del plato..."></textarea>
+    <label for="description" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.description' | transloco }}</label>
+    <textarea id="description" formControlName="description" class="form-input" rows="6" [placeholder]="'diets.description_placeholder' | transloco"></textarea>
   </div>
 
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-    <button type="button" class="btn-secondary" (click)="cancel()">Cancelar</button>
-    <button type="submit" class="btn-primary" [disabled]="form.invalid" [class.loading]="saving()">{{ isEdit ? 'Guardar Cambios' : 'Añadir Plato' }}</button>
+    <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
+    <button type="submit" tuiButton size="m" [disabled]="form.invalid" [class.loading]="saving()">{{ isEdit ? ('diets.save_changes' | transloco) : ('diets.add_dish' | transloco) }}</button>
   </div>
 </form>

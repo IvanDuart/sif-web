@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TuiInput } from '@taiga-ui/core';
+import { TuiButton, TuiInput } from '@taiga-ui/core';
 import { TuiSwitch } from '@taiga-ui/kit';
 import { TenantBrandingService } from '../../../core/api/services/tenant-branding.api';
 import { TenantService } from '../../../core/api/services/tenant.api';
@@ -12,7 +12,7 @@ import { NotificationService } from '../../../core/ui';
 @Component({
   selector: 'app-branding-settings',
   standalone: true,
-  imports: [FormsModule, TuiInput, TuiSwitch, TranslocoDirective],
+  imports: [FormsModule, TuiButton, TuiInput, TuiSwitch, TranslocoDirective],
   templateUrl: `branding-settings.html`
 })
 export class BrandingSettings implements OnInit, OnDestroy {

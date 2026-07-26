@@ -1,7 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext } from '@taiga-ui/core';
+import { TuiButton, TuiDialogContext } from '@taiga-ui/core';
+import { TuiTable } from '@taiga-ui/addon-table';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ShoppingListDto, ShoppingListItemDto } from '../../core/api/models/shopping-list.model';
 import { NotificationService } from '../../core/ui/notification.service';
 
@@ -26,7 +28,7 @@ const SUPERMARKET_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-shopping-list-dialog',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, TuiButton, TuiTable, TranslocoPipe],
   templateUrl: './shopping-list.dialog.html',
 })
 export class ShoppingListDialog {

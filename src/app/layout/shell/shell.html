@@ -1,5 +1,5 @@
 @if (loading() > 0) {
-  <progress tuiProgressBar class="loading-bar" aria-label="Cargando..."></progress>
+  <progress tuiProgressBar class="loading-bar" [attr.aria-label]="'shell.loading' | transloco"></progress>
 }
 
 <a href="#main-content" class="skip-to-content">{{ 'common.back' | transloco }}</a>
@@ -11,7 +11,7 @@
       <!-- Logo -->
       <div class="nav-brand" routerLink="/">
         <div class="brand-text">
-          <i class="fa-solid fa-apple-whole"></i>Tus Dietas
+          <i class="fa-solid fa-apple-whole"></i>{{ 'shell.app_name' | transloco }}
         </div>
       </div>
 
@@ -73,8 +73,14 @@
         <div class="separator" aria-hidden="true"></div>
 
         <!-- Theme Toggle -->
-        <button type="button" class="icon-btn" (click)="toggleTheme()" [attr.aria-label]="'Cambiar tema'">
-          <i [class]="themeService.colorScheme() === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
+        <button
+          type="button"
+          class="icon-btn"
+          (click)="toggleTheme()"
+          [tuiHint]="themeService.colorScheme() === 'dark' ? ('shell.theme_light' | transloco) : ('shell.theme_dark' | transloco)"
+          [attr.aria-label]="'shell.change_theme' | transloco"
+        >
+          <i [class]="themeService.colorScheme() === 'dark' ? 'fa-solid fa-sun text-amber-500' : 'fa-solid fa-moon text-slate-500'"></i>
         </button>
 
         <!-- Notification Bell (Staff Only) -->
@@ -84,7 +90,7 @@
             class="icon-btn relative"
             [tuiDropdown]="bellDropdown"
             [(tuiDropdownOpen)]="bellMenuOpen"
-            aria-label="Notificaciones"
+            [attr.aria-label]="'shell.notifications' | transloco"
           >
             <i class="fa-solid fa-bell"></i>
             @if (proposedAppointments().length > 0) {
@@ -97,7 +103,7 @@
           <ng-template #bellDropdown>
             <div class="dropdown-menu-content p-2 w-72" tuiDropdownContent>
               <div class="menu-section-title px-2 py-1 font-bold text-xs uppercase text-surface-400 tracking-wider">
-                Propuestas de Reagendamiento
+                {{ 'shell.reschedule_proposals' | transloco }}
               </div>
               <div class="user-menu-divider my-1.5"></div>
               
@@ -109,7 +115,7 @@
                         {{ appt.patientName }}
                       </span>
                       <span class="text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/20 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                        Pendiente
+                        {{ 'shell.pending' | transloco }}
                       </span>
                     </div>
                     <span class="text-[11px] text-surface-500 flex items-center gap-1">
@@ -119,7 +125,7 @@
                   </button>
                 } @empty {
                   <div class="py-4 text-center text-xs text-surface-400">
-                    No tienes propuestas pendientes
+                    {{ 'shell.no_pending_proposals' | transloco }}
                   </div>
                 }
               </div>
@@ -133,7 +139,8 @@
           class="avatar-btn"
           [tuiDropdown]="userDropdown"
           [(tuiDropdownOpen)]="userMenuOpen"
-          aria-label="Menú de usuario"
+          (click)="userMenuOpen.set(!userMenuOpen())"
+          [attr.aria-label]="'shell.user_menu' | transloco"
         >
           <span tuiAvatar [attr.data-initials]="userInitials()" size="m" [round]="true" class="user-avatar">
             {{ userInitials() }}
@@ -161,7 +168,7 @@
       </div>
 
       <!-- Mobile Hamburger -->
-      <button type="button" class="hamburger mobile-only" (click)="toggleMobileMenu()" aria-label="Menú">
+      <button type="button" class="hamburger mobile-only" (click)="toggleMobileMenu()" [attr.aria-label]="'shell.menu' | transloco">
         <i [class]="mobileMenuOpen() ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'"></i>
       </button>
     </div>
@@ -170,7 +177,7 @@
   <!-- Mobile Menu Overlay -->
   @if (mobileMenuOpen()) {
     <div class="mobile-overlay" (click)="closeMobileMenu()" aria-hidden="true"></div>
-    <div class="mobile-menu" role="dialog" aria-label="Navegación">
+    <div class="mobile-menu" role="dialog" [attr.aria-label]="'shell.navigation' | transloco">
       <ul class="mobile-nav-list">
         @for (item of visibleNavItems(); track item.route) {
           <li>
@@ -204,7 +211,7 @@
 
         <button type="button" class="mobile-action-btn" (click)="toggleTheme()">
           <i [class]="themeService.colorScheme() === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
-          <span>Cambiar Tema</span>
+          <span>{{ 'shell.change_theme_mobile' | transloco }}</span>
         </button>
 
         <button type="button" class="mobile-action-btn logout-item" (click)="logout()">
