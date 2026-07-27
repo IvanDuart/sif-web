@@ -54,15 +54,15 @@
                         {{ menu.isActive || menu.active ? t('diets.active') : t('diets.inactive') }}
                       </span>
                     </td>
-                    <td tuiTd class="text-surface-500 text-sm">{{ menu.createdAt | date:'mediumDate' }}</td>
+                    <td tuiTd class="text-surface-500 text-sm">{{ (menu.createdAt || menu.assignedAt) | date:'mediumDate' }}</td>
                     <td tuiTd class="text-center">
                       <div class="flex items-center gap-1 justify-center">
-                        <button tuiIconButton appearance="flat" size="s" (click)="viewMenu(menu)" [title]="t('diets.view')">
+                        <button tuiButton appearance="flat" size="s" type="button" (click)="viewMenu(menu)" [title]="t('diets.view')">
                           <i class="fa-solid fa-eye"></i>
                         </button>
                         <button
                           *appIfPermission="'MANAGE_MENU'"
-                          tuiIconButton appearance="flat" size="s"
+                          tuiButton appearance="flat" size="s" type="button"
                           class="text-red-500 hover:text-red-700"
                           (click)="deleteMenu(menu)"
                           [title]="t('common.delete')">

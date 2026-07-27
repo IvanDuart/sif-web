@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, ViewEncapsulation, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiButton, TuiDialogContext } from '@taiga-ui/core';
@@ -30,6 +30,12 @@ const SUPERMARKET_LABELS: Record<string, string> = {
   standalone: true,
   imports: [FormsModule, TuiButton, TuiTable, TranslocoPipe],
   templateUrl: './shopping-list.dialog.html',
+  encapsulation: ViewEncapsulation.None,
+  styles: [`
+    tui-dialog[data-size=l]:has(app-shopping-list-dialog) {
+      inline-size: 80vw;
+    }
+  `],
 })
 export class ShoppingListDialog {
   private readonly notify = inject(NotificationService);

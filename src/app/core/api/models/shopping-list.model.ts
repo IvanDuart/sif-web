@@ -25,3 +25,7 @@ export interface ShoppingListDto {
 export interface GenerateShoppingListRequest {
   supermarket: string;
 }
+
+export interface UpdateShoppingListItemRequest {
+  checked: boolean;
+}

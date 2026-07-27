@@ -19,6 +19,7 @@ import { WaterIntakeWidget } from './components/water-intake-widget';
 import { PatientNextAppointment } from './components/patient-next-appointment';
 import { PatientTodayMeals } from './components/patient-today-meals';
 import { PatientWeightChart } from './components/patient-weight-chart';
+import { PatientShoppingList } from './components/patient-shopping-list';
 
 @Component({
   selector: 'app-tenant-dashboard',
@@ -31,6 +32,7 @@ import { PatientWeightChart } from './components/patient-weight-chart';
     PatientNextAppointment,
     PatientTodayMeals,
     PatientWeightChart,
+    PatientShoppingList,
     SkeletonComponent,
     TuiButton,
     TuiBadge

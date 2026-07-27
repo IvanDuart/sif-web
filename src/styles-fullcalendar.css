@@ -156,3 +156,47 @@
   border-color: var(--p-primary-500, #3b82f6);
   color: var(--p-primary-500, #3b82f6);
 }
+
+/* ── Holiday / Closed day cells ──────────────────────────── */
+.fc .fc-day--holiday .fc-daygrid-day-frame {
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 4px,
+    rgba(239, 68, 68, 0.04) 4px,
+    rgba(239, 68, 68, 0.04) 8px
+  );
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.fc .fc-day--holiday .fc-daygrid-day-number {
+  color: #dc2626;
+  text-decoration: line-through;
+}
+
+.fc .fc-day--holiday .fc-timegrid-col {
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 4px,
+    rgba(239, 68, 68, 0.04) 4px,
+    rgba(239, 68, 68, 0.04) 8px
+  );
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.fc .fc-day--closed .fc-daygrid-day-frame {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fc .fc-day--closed .fc-daygrid-day-number {
+  color: var(--p-surface-300, #cbd5e1);
+}
+
+.fc .fc-day--closed .fc-timegrid-col {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

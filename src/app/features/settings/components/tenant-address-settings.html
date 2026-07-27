@@ -1,0 +1,49 @@
+<div *transloco="let t" class="w-full">
+  <div class="data-card">
+    <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0 mb-1">{{ t('settings.address_tab') }}</h3>
+    <p class="text-sm text-surface-500 mb-5">{{ t('settings.address_subtitle') || 'Configura el país y la dirección del centro. El país y la provincia se usan para importar festivos nacionales.' }}</p>
+
+    @if (loading()) {
+      <div class="flex items-center justify-center py-8">
+        <i class="fa-solid fa-spinner fa-spin text-primary-500 text-xl"></i>
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+        <tui-textfield tuiChevron>
+          <label tuiLabel>{{ t('settings.address_country') }}</label>
+          <input tuiComboBox [(ngModel)]="countryDisplay" (ngModelChange)="onCountryChange()" />
+          <tui-data-list-wrapper *tuiDropdown [items]="countryLabels() | tuiFilterByInput" />
+        </tui-textfield>
+
+        <tui-textfield tuiChevron>
+          <label tuiLabel>{{ t('settings.address_state') }}</label>
+          <input tuiComboBox [(ngModel)]="stateDisplay" (ngModelChange)="onStateChange()" [disabled]="!countryDisplay" />
+          <tui-data-list-wrapper *tuiDropdown [items]="stateLabels() | tuiFilterByInput" />
+        </tui-textfield>
+
+        <tui-textfield tuiChevron>
+          <label tuiLabel>{{ t('settings.address_city') }}</label>
+          <input tuiComboBox [(ngModel)]="cityDisplay" [disabled]="!stateDisplay" />
+          <tui-data-list-wrapper *tuiDropdown [items]="cityLabels() | tuiFilterByInput" />
+        </tui-textfield>
+
+      </div>
+
+      <tui-textfield class="w-full mt-5">
+        <label tuiLabel>{{ t('settings.address_street') || 'Dirección' }}</label>
+        <input tuiInput [(ngModel)]="address" placeholder="C/ Mayor 1, 07001 Palma" />
+      </tui-textfield>
+
+      <div class="flex justify-end pt-5 mt-6 border-t border-surface-200 dark:border-surface-700">
+        <button tuiButton size="m" [disabled]="saving()" (click)="save()">
+          @if (saving()) {
+            <i class="fa-solid fa-spinner fa-spin"></i>
+          }
+          <i class="fa-solid fa-floppy-disk mr-1"></i>
+          {{ t('common.save') }}
+        </button>
+      </div>
+    }
+  </div>
+</div>

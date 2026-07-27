@@ -1,4 +1,4 @@
-import {Component, inject, signal, OnInit, computed, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject, signal, OnInit, computed, ChangeDetectionStrategy, effect} from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TuiDropdown, TuiTextfield, TuiLabel, TuiFilterByInputPipe, TuiInput, TuiButton } from '@taiga-ui/core';
 import {
@@ -20,6 +20,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { AppointmentTypeDto } from '../../core/api/models/appointment-type.model';
 import { AppUserDto } from '../../core/api/models/user.model';
 import { NotificationService } from '../../core/ui';
+import { ScheduleAvailabilityService } from '../../core/api/services/schedule-availability.service';
 
 @Component({
   selector: 'app-appointment-form-dialog',
@@ -58,6 +59,7 @@ export class AppointmentFormDialog implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly notify = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
+  private readonly scheduleAvailability = inject(ScheduleAvailabilityService);
 
   readonly context = injectContext<TuiDialogContext<boolean, { nutritionistId?: string; startTime?: Date }>>();
 
@@ -65,6 +67,11 @@ export class AppointmentFormDialog implements OnInit {
   appointmentTypes = signal<{ label: string; value: string }[]>([]);
   saving = signal(false);
   error = signal('');
+
+  scheduleInfo = signal<string | null>(null);
+  isHolidayDate = signal(false);
+  isClosedDate = signal(false);
+  availabilityLoaded = signal(false);
 
   patientLabels = computed(() => this.patients().map(p => p.label));
   typeLabels = computed(() => this.appointmentTypes().map(t => t.label));
@@ -92,11 +99,37 @@ export class AppointmentFormDialog implements OnInit {
     this.loadPatients();
     this.loadAppointmentTypes();
 
+    this.scheduleAvailability.load().subscribe(() => {
+      this.availabilityLoaded.set(true);
+      this.updateScheduleInfo();
+    });
+
     if (this.context.data?.startTime) {
       const d = new Date(this.context.data.startTime);
       const pad = (n: number) => String(n).padStart(2, '0');
       const local = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
       this.form.patchValue({ startTime: local });
+    }
+  }
+
+  private updateScheduleInfo() {
+    const raw = this.form.get('startTime')?.value;
+    if (!raw || !this.availabilityLoaded()) return;
+    const dateStr = raw.substring(0, 10);
+
+    this.isHolidayDate.set(this.scheduleAvailability.isHolidayCached(dateStr));
+    this.isClosedDate.set(false);
+    this.scheduleInfo.set(null);
+
+    if (this.isHolidayDate()) {
+      return;
+    }
+
+    const formatted = this.scheduleAvailability.getFormattedSchedule(dateStr);
+    if (formatted) {
+      this.scheduleInfo.set(`Horario: ${formatted}`);
+    } else {
+      this.isClosedDate.set(true);
     }
   }
 
@@ -130,6 +163,10 @@ export class AppointmentFormDialog implements OnInit {
     });
   }
 
+  onStartTimeChange() {
+    this.updateScheduleInfo();
+  }
+
   submit() {
     if (this.form.invalid) return;
 
@@ -138,6 +175,13 @@ export class AppointmentFormDialog implements OnInit {
     if (!tenantId || !user) return;
 
     const raw = this.form.value;
+    const startTime = raw.startTime as string;
+
+    const validationError = this.scheduleAvailability.validateAppointmentTime(startTime);
+    if (validationError) {
+      this.error.set(validationError);
+      return;
+    }
 
     const selectedPatient = this.patients().find(p => p.label === raw.patientId);
     const selectedType = this.appointmentTypes().find(t => t.label === raw.typeId);
@@ -156,7 +200,7 @@ export class AppointmentFormDialog implements OnInit {
       nutritionistId,
       patientId: selectedPatient.value,
       typeId: selectedType.value,
-      startTime: new Date(raw.startTime as string).toISOString(),
+      startTime: new Date(startTime).toISOString(),
       notes: raw.notes || undefined
     }).subscribe({
       next: () => {

@@ -3,7 +3,13 @@
     <!-- Left: Calendar -->
     <div class="flex-1 space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 class="text-xl font-bold text-surface-900 dark:text-surface-0">{{ t('appointments.title_management') }}</h2>
+        <div>
+          <h2 class="text-xl font-bold text-surface-900 dark:text-surface-0">{{ t('appointments.title_management') }}</h2>
+          <p class="text-sm text-surface-500 mt-1">
+            <i class="fa-regular fa-clock mr-1"></i>
+            {{ t('appointments.schedule_today') }} <span class="font-medium text-surface-700 dark:text-surface-200">{{ todayScheduleText() }}</span>
+          </p>
+        </div>
         <button tuiButton size="m" (click)="showNewAppointmentDialog()">
           <i class="fa-solid fa-plus"></i>
           {{ t('appointments.new_appointment') }}
@@ -47,6 +53,18 @@
           <div class="flex items-center gap-2">
             <span class="w-3 h-3 rounded-full" style="background: #f97316"></span>
             <span class="text-sm text-surface-700 dark:text-surface-200">{{ t('appointments.status_proposed', { defaultValue: 'Propuesta' }) }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full" style="background: #dc2626"></span>
+            <span class="text-sm text-surface-700 dark:text-surface-200">{{ t('appointments.legend_holiday') }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full" style="background: #94a3b8"></span>
+            <span class="text-sm text-surface-700 dark:text-surface-200">{{ t('appointments.legend_closed') }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full" style="background: rgba(16, 185, 129, 0.6)"></span>
+            <span class="text-sm text-surface-700 dark:text-surface-200">{{ t('appointments.legend_active_hours') }}</span>
           </div>
         </div>
       </div>

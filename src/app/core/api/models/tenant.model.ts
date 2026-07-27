@@ -17,6 +17,9 @@ export interface Tenant {
   cif: string;
   address?: string;
   phone?: string;
+  countryCode?: string;
+  stateCode?: string;
+  city?: string;
   createdAt?: string;
   updatedAt?: string;
   disabledAt?: string;

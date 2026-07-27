@@ -1,0 +1,50 @@
+<div class="p-4" *transloco="let t">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">{{ t('shopping_list.title', {defaultValue: 'Lista de la Compra'}) }}</h1>
+  </div>
+
+  <div class="data-card">
+    <boneyard-skeleton name="shopping-lists" [loading]="loading()">
+        <div class="table-wrapper">
+          <table tuiTable class="w-full">
+            <thead>
+              <tr>
+                <th tuiTh scope="col">{{ t('shopping_list.list_name', {defaultValue: 'Nombre'}) }}</th>
+                <th tuiTh scope="col">{{ t('shopping_list.supermarket', {defaultValue: 'Supermercado'}) }}</th>
+                <th tuiTh scope="col">{{ t('shopping_list.total_price', {defaultValue: 'Precio Total'}) }}</th>
+                <th tuiTh scope="col">{{ t('shopping_list.created_at', {defaultValue: 'Creado el'}) }}</th>
+                <th tuiTh scope="col" class="text-center" style="width: 6rem;">{{ t('common.actions') }}</th>
+              </tr>
+            </thead>
+            <tbody tuiTbody>
+              @if (lists().length === 0 && !loading()) {
+                <tr tuiTr>
+                  <td tuiTd colspan="5" class="table-empty-cell">
+                    <app-empty-state
+                      icon="fa-solid fa-cart-shopping"
+                      [title]="t('shopping_list.empty_title', {defaultValue: 'Sin listas de compra'})"
+                      [description]="t('shopping_list.empty', {defaultValue: 'Aún no se ha generado ninguna lista de la compra'})">
+                    </app-empty-state>
+                  </td>
+                </tr>
+              } @else {
+                @for (list of lists(); track list.id) {
+                  <tr tuiTr>
+                    <td tuiTd class="font-medium">{{ list.name }}</td>
+                    <td tuiTd>{{ supermarketLabel(list.supermarket) }}</td>
+                    <td tuiTd class="font-semibold text-primary-600">{{ totalLabel(list) }}</td>
+                    <td tuiTd class="text-surface-500 text-sm">{{ list.createdAt | date:'mediumDate' }}</td>
+                    <td tuiTd class="text-center">
+                      <button tuiButton appearance="flat" size="s" type="button" (click)="viewList(list)" [title]="t('common.view')">
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+    </boneyard-skeleton>
+  </div>
+</div>

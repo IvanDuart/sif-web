@@ -1,0 +1,37 @@
+<div *transloco="let t">
+  <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4 mt-2">
+    <tui-textfield class="w-full">
+      <label tuiLabel>{{ t('schedule_settings.holiday_date') }}</label>
+      <input tuiInput type="date" formControlName="holidayDate" />
+    </tui-textfield>
+
+    <tui-textfield class="w-full">
+      <label tuiLabel>{{ t('schedule_settings.description') }}</label>
+      <input tuiInput formControlName="description" />
+    </tui-textfield>
+
+    <tui-textfield tuiChevron>
+      <label tuiLabel>{{ t('schedule_settings.type') }}</label>
+      <input tuiComboBox formControlName="type" />
+      <tui-data-list-wrapper *tuiDropdown [items]="typeLabels() | tuiFilterByInput" />
+    </tui-textfield>
+
+    <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+      <button
+        tuiButton
+        appearance="secondary"
+        size="m"
+        type="button"
+        (click)="context.$implicit.complete()">
+        {{ t('common.cancel') }}
+      </button>
+      <button
+        tuiButton
+        size="m"
+        type="submit"
+        [disabled]="form.invalid || saving()">
+        {{ t('common.save') }}
+      </button>
+    </div>
+  </form>
+</div>

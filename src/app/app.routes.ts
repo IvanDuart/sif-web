@@ -41,6 +41,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/menus/menus-list.page').then(m => m.default)
       },
       {
+        path: 'shopping-lists',
+        loadComponent: () => import('./features/shopping-lists/shopping-lists.page').then(m => m.default)
+      },
+      {
         path: 'menus/:id',
         loadComponent: () => import('./features/menus/menu-detail.page').then(m => m.default)
       },

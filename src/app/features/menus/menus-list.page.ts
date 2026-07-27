@@ -75,7 +75,12 @@ export default class MenusListPage implements OnInit {
     this.loading.set(true);
     this.menuService.searchByUser(tenantId, userId, page, size).subscribe({
       next: (res) => {
-        this.menus.set(res.content || []);
+        const sorted = (res.content || []).sort((a, b) => {
+          const aActive = a.isActive || a.active || false;
+          const bActive = b.isActive || b.active || false;
+          return Number(bActive) - Number(aActive);
+        });
+        this.menus.set(sorted);
         this.totalRecords.set(res.page?.totalElements || 0);
         this.loading.set(false);
       },

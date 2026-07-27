@@ -12,6 +12,18 @@
   ],
   "tags": [
     {
+      "name": "HolidayController",
+      "description": "Controller for managing center holidays"
+    },
+    {
+      "name": "ScheduleController",
+      "description": "Controller for center schedules and their assignments"
+    },
+    {
+      "name": "TenantProfileController",
+      "description": "Controller for tenant self-management (profile, address, country, etc.)"
+    },
+    {
       "name": "AppointmentTypeController",
       "description": "CRUD for appointment types per tenant"
     },
@@ -30,6 +42,10 @@
     {
       "name": "WaterIntakeController",
       "description": "Controller for patient daily water consumption tracking"
+    },
+    {
+      "name": "ShoppingListController",
+      "description": "Controller for shopping lists management"
     },
     {
       "name": "MeController",
@@ -480,6 +496,120 @@
         }
       }
     },
+    "/tenant/{tenantId}/profile": {
+      "get": {
+        "tags": [
+          "TenantProfileController"
+        ],
+        "description": "Get the current tenant's public profile data",
+        "operationId": "getProfile",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tenant_Public"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "TenantProfileController"
+        ],
+        "description": "Update tenant profile data (name, address, phone, CIF, country/region codes)",
+        "operationId": "updateProfile",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTenantRequest_Public"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tenant_Public"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/profile/preferences": {
+      "put": {
+        "tags": [
+          "TenantProfileController"
+        ],
+        "description": "Update tenant preferences (colors, language, AI settings)",
+        "operationId": "updatePreferences",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenantPreferences"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantPreferences"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/patient-events/{eventId}": {
       "put": {
         "tags": [
@@ -792,7 +922,7 @@
           "TenantBrandingController"
         ],
         "description": "Update tenant preferences",
-        "operationId": "updatePreferences",
+        "operationId": "updatePreferences_1",
         "parameters": [
           {
             "name": "tenantId",
@@ -1310,6 +1440,156 @@
         }
       }
     },
+    "/tenant/{tenantId}/schedules": {
+      "get": {
+        "tags": [
+          "ScheduleController"
+        ],
+        "description": "List all active schedules for a tenant",
+        "operationId": "listSchedules",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScheduleDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ScheduleController"
+        ],
+        "description": "Create a new schedule (jornada) with time blocks",
+        "operationId": "createSchedule",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateScheduleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/schedules/assignments": {
+      "get": {
+        "tags": [
+          "ScheduleController"
+        ],
+        "description": "List all schedule assignments for a tenant",
+        "operationId": "listAssignments",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TenantScheduleAssignmentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ScheduleController"
+        ],
+        "description": "Assign a schedule to a tenant for a date range (e.g., a week or a special period)",
+        "operationId": "assignSchedule",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTenantScheduleAssignmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantScheduleAssignmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/patients/{patientId}/events": {
       "get": {
         "tags": [
@@ -1558,7 +1838,7 @@
     "/tenant/{tenantId}/menu/{id}/shopping-list/generate": {
       "post": {
         "tags": [
-          "MenuController"
+          "ShoppingListController"
         ],
         "description": "Generate AI shopping list for a menu",
         "operationId": "generateShoppingList",
@@ -2076,6 +2356,115 @@
         }
       }
     },
+    "/tenant/{tenantId}/holidays": {
+      "get": {
+        "tags": [
+          "HolidayController"
+        ],
+        "description": "List all holidays for the center",
+        "operationId": "listHolidays",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HolidayDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "HolidayController"
+        ],
+        "description": "Create a manual holiday entry for the center",
+        "operationId": "createHoliday",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateHolidayRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/HolidayDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/holidays/load-from-nager/{year}": {
+      "post": {
+        "tags": [
+          "HolidayController"
+        ],
+        "description": "Load holidays from Nager API for a specific year. Requires country_code and state_code in tenant",
+        "operationId": "loadHolidaysFromNager",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/appointments": {
       "post": {
         "tags": [
@@ -2195,6 +2584,66 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/AppointmentTypeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/shopping-list/{listId}/item/{itemId}": {
+      "patch": {
+        "tags": [
+          "ShoppingListController"
+        ],
+        "description": "Update item checked status in a shopping list",
+        "operationId": "updateItemStatus",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateShoppingListItemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShoppingListItemDto"
                 }
               }
             }
@@ -2583,6 +3032,123 @@
         }
       }
     },
+    "/tenant/{tenantId}/user/{userId}/shopping-lists": {
+      "get": {
+        "tags": [
+          "ShoppingListController"
+        ],
+        "description": "Get all shopping lists for a user",
+        "operationId": "getShoppingListsByUser",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ShoppingListDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/schedules/{scheduleId}": {
+      "get": {
+        "tags": [
+          "ScheduleController"
+        ],
+        "description": "Get a specific schedule by ID",
+        "operationId": "getSchedule",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "scheduleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ScheduleController"
+        ],
+        "description": "Delete a schedule (only if not in use)",
+        "operationId": "deleteSchedule",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "scheduleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/menu/{id}": {
       "get": {
         "tags": [
@@ -2652,6 +3218,47 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/menu/{id}/shopping-list": {
+      "get": {
+        "tags": [
+          "ShoppingListController"
+        ],
+        "description": "Get shopping list for a menu",
+        "operationId": "getShoppingListByMenu",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShoppingListDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2933,6 +3540,79 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/holidays/{holidayId}": {
+      "get": {
+        "tags": [
+          "HolidayController"
+        ],
+        "description": "Get a specific holiday by ID",
+        "operationId": "getHoliday",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "holidayId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/HolidayDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "HolidayController"
+        ],
+        "description": "Delete a holiday entry",
+        "operationId": "deleteHoliday",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "holidayId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -3252,6 +3932,40 @@
           }
         }
       }
+    },
+    "/tenant/{tenantId}/schedules/assignments/{assignmentId}": {
+      "delete": {
+        "tags": [
+          "ScheduleController"
+        ],
+        "description": "Delete a schedule assignment",
+        "operationId": "deleteAssignment",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assignmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3311,6 +4025,15 @@
           },
           "phone": {
             "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "stateCode": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
           }
         }
       },
@@ -3349,6 +4072,15 @@
             "type": "string"
           },
           "phone": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "stateCode": {
+            "type": "string"
+          },
+          "city": {
             "type": "string"
           },
           "preferences": {
@@ -3644,6 +4376,145 @@
           }
         }
       },
+      "TenantPreferences_Public": {
+        "type": "object",
+        "properties": {
+          "enable_vacation_module": {
+            "type": "boolean"
+          },
+          "enable_clock_in_module": {
+            "type": "boolean"
+          },
+          "default_language": {
+            "type": "string"
+          },
+          "primary_color": {
+            "type": "string"
+          },
+          "keycloak_sync_mode": {
+            "type": "string"
+          },
+          "from_email": {
+            "type": "string"
+          },
+          "standard_vacation_days": {
+            "type": "number"
+          },
+          "active_anamnesis_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ai_enabled": {
+            "type": "boolean"
+          },
+          "gemini_api_key": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateTenantRequest_Public": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "cif": {
+            "type": "string"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/TenantPreferences_Public"
+          },
+          "address": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "stateCode": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          }
+        }
+      },
+      "Tenant_Public": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "disabledAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "address": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "stateCode": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/TenantPreferences_Public"
+          }
+        }
+      },
+      "TenantPreferences": {
+        "type": "object",
+        "properties": {
+          "enable_vacation_module": {
+            "type": "boolean"
+          },
+          "enable_clock_in_module": {
+            "type": "boolean"
+          },
+          "default_language": {
+            "type": "string"
+          },
+          "primary_color": {
+            "type": "string"
+          },
+          "keycloak_sync_mode": {
+            "type": "string"
+          },
+          "from_email": {
+            "type": "string"
+          },
+          "standard_vacation_days": {
+            "type": "number"
+          },
+          "active_anamnesis_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ai_enabled": {
+            "type": "boolean"
+          },
+          "gemini_api_key": {
+            "type": "string"
+          }
+        }
+      },
       "UpdatePatientEventRequest": {
         "type": "object",
         "properties": {
@@ -3773,44 +4644,6 @@
           }
         }
       },
-      "TenantPreferences": {
-        "type": "object",
-        "properties": {
-          "enable_vacation_module": {
-            "type": "boolean"
-          },
-          "enable_clock_in_module": {
-            "type": "boolean"
-          },
-          "default_language": {
-            "type": "string"
-          },
-          "primary_color": {
-            "type": "string"
-          },
-          "keycloak_sync_mode": {
-            "type": "string"
-          },
-          "from_email": {
-            "type": "string"
-          },
-          "standard_vacation_days": {
-            "type": "number"
-          },
-          "active_anamnesis_fields": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "ai_enabled": {
-            "type": "boolean"
-          },
-          "gemini_api_key": {
-            "type": "string"
-          }
-        }
-      },
       "UpdateAppointmentTypeRequest": {
         "type": "object",
         "properties": {
@@ -3877,74 +4710,20 @@
           },
           "phone": {
             "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "stateCode": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
           }
         },
         "required": [
           "name"
         ]
-      },
-      "TenantPreferences_Public": {
-        "type": "object",
-        "properties": {
-          "enable_vacation_module": {
-            "type": "boolean"
-          },
-          "enable_clock_in_module": {
-            "type": "boolean"
-          },
-          "default_language": {
-            "type": "string"
-          },
-          "primary_color": {
-            "type": "string"
-          },
-          "keycloak_sync_mode": {
-            "type": "string"
-          },
-          "from_email": {
-            "type": "string"
-          },
-          "standard_vacation_days": {
-            "type": "number"
-          },
-          "active_anamnesis_fields": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "ai_enabled": {
-            "type": "boolean"
-          },
-          "gemini_api_key": {
-            "type": "string"
-          }
-        }
-      },
-      "Tenant_Public": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "disabledAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "address": {
-            "type": "string"
-          },
-          "phone": {
-            "type": "string"
-          },
-          "preferences": {
-            "$ref": "#/components/schemas/TenantPreferences_Public"
-          }
-        }
       },
       "CreateBodyMeasurementRequest": {
         "type": "object",
@@ -4070,6 +4849,138 @@
           "firstName",
           "roleCode"
         ]
+      },
+      "CreateScheduleDetailRequest": {
+        "type": "object",
+        "properties": {
+          "dayOfWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateScheduleRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateScheduleDetailRequest"
+            }
+          }
+        }
+      },
+      "ScheduleDetailDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayOfWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          }
+        }
+      },
+      "ScheduleDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleDetailDto"
+            }
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateTenantScheduleAssignmentRequest": {
+        "type": "object",
+        "properties": {
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "TenantScheduleAssignmentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/ScheduleDto"
+          }
+        }
       },
       "CreatePatientEventRequest": {
         "type": "object",
@@ -4340,6 +5251,51 @@
           }
         }
       },
+      "CreateHolidayRequest": {
+        "type": "object",
+        "properties": {
+          "holidayDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      },
+      "HolidayDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "holidayDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "CreateAppointmentRequest": {
         "type": "object",
         "properties": {
@@ -4451,6 +5407,17 @@
           "name"
         ]
       },
+      "UpdateShoppingListItemRequest": {
+        "type": "object",
+        "properties": {
+          "checked": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "checked"
+        ]
+      },
       "RescheduleAppointmentRequest": {
         "type": "object",
         "properties": {
@@ -4548,6 +5515,9 @@
               "type": "string"
             }
           },
+          "tenantName": {
+            "type": "string"
+          },
           "roleCode": {
             "type": "string"
           },
@@ -4557,9 +5527,6 @@
               "STAFF",
               "PATIENT"
             ]
-          },
-          "tenantName": {
-            "type": "string"
           }
         }
       },
@@ -4633,6 +5600,15 @@
             "type": "string"
           },
           "phone": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "stateCode": {
+            "type": "string"
+          },
+          "city": {
             "type": "string"
           },
           "preferences": {

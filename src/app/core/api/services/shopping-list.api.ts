@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ShoppingListDto, GenerateShoppingListRequest } from '../models/shopping-list.model';
+import { ShoppingListDto, ShoppingListItemDto, GenerateShoppingListRequest, UpdateShoppingListItemRequest } from '../models/shopping-list.model';
 
 @Injectable({ providedIn: 'root' })
 export class ShoppingListService {
@@ -16,6 +16,30 @@ export class ShoppingListService {
   ): Observable<ShoppingListDto> {
     return this.http.post<ShoppingListDto>(
       `${this.baseUrl}/tenant/${tenantId}/menu/${menuId}/shopping-list/generate`,
+      request
+    );
+  }
+
+  getByMenuId(tenantId: string, menuId: string): Observable<ShoppingListDto> {
+    return this.http.get<ShoppingListDto>(
+      `${this.baseUrl}/tenant/${tenantId}/menu/${menuId}/shopping-list`
+    );
+  }
+
+  getByUserId(tenantId: string, userId: string): Observable<ShoppingListDto[]> {
+    return this.http.get<ShoppingListDto[]>(
+      `${this.baseUrl}/tenant/${tenantId}/user/${userId}/shopping-lists`
+    );
+  }
+
+  updateItemStatus(
+    tenantId: string,
+    listId: string,
+    itemId: string,
+    request: UpdateShoppingListItemRequest
+  ): Observable<ShoppingListItemDto> {
+    return this.http.patch<ShoppingListItemDto>(
+      `${this.baseUrl}/tenant/${tenantId}/shopping-list/${listId}/item/${itemId}`,
       request
     );
   }

@@ -19,6 +19,7 @@ import { formatInstant } from '../../shared/utils/date';
 import { ModalService, NotificationService } from '../../core/ui';
 import { TuiButton } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
+import { ScheduleAvailabilityService } from '../../core/api/services/schedule-availability.service';
 
 @Component({
   selector: 'app-appointments-page',
@@ -36,6 +37,7 @@ export default class AppointmentsPage implements OnInit {
   private readonly notify = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
   private readonly route = inject(ActivatedRoute);
+  private readonly scheduleAvailability = inject(ScheduleAvailabilityService);
 
   @ViewChild('calendar') calendarComponent?: FullCalendarComponent;
 
@@ -47,6 +49,7 @@ export default class AppointmentsPage implements OnInit {
   loadingToday = signal(false);
   loadingWeek = signal(false);
   updatingStatus = signal<string | null>(null);
+  todayScheduleText = signal('');
 
   todayStart = '';
   todayEnd = '';
@@ -63,6 +66,15 @@ export default class AppointmentsPage implements OnInit {
     if (this.canViewAppointments() && this.currentUserId()) {
       this.loadTodayAppointments();
     }
+
+    this.scheduleAvailability.load().subscribe(() => {
+      this.scheduleAvailability.loadAll().subscribe(() => {
+        this.updateTodayScheduleText();
+        if (this.weekStart) {
+          this.loadWeekAppointments();
+        }
+      });
+    });
 
     this.route.queryParams.subscribe(params => {
       const dateParam = params['date'];
@@ -102,6 +114,13 @@ export default class AppointmentsPage implements OnInit {
       },
       datesSet: (info: DatesSetArg) => {
         this.onDatesSet(info);
+      },
+      dayCellClassNames: (arg) => {
+        const dateStr = this.toLocalDateStr(arg.date);
+        const isHoliday = this.scheduleAvailability.isHolidayCached(dateStr);
+        if (isHoliday) return ['fc-day--holiday'];
+        if (!this.scheduleAvailability.getScheduleForDate(dateStr)) return ['fc-day--closed'];
+        return [];
       }
     };
   }
@@ -151,6 +170,23 @@ export default class AppointmentsPage implements OnInit {
     });
   }
 
+  private updateTodayScheduleText() {
+    const dateStr = this.toLocalDateStr(new Date());
+    if (this.scheduleAvailability.isHolidayCached(dateStr)) {
+      this.todayScheduleText.set('Cerrado (Festivo)');
+      return;
+    }
+    const formatted = this.scheduleAvailability.getFormattedSchedule(dateStr);
+    this.todayScheduleText.set(formatted || 'Cerrado');
+  }
+
+  private toLocalDateStr(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
   private buildCalendarEvents(appointments: AppointmentDto[]) {
     const colors: Record<string, string> = {
       SCHEDULED: '#3b82f6',
@@ -160,8 +196,43 @@ export default class AppointmentsPage implements OnInit {
       PROPOSED: '#f97316'
     };
 
-    this.calendarEvents.set(
-      (appointments || []).map(a => ({
+    const events: any[] = [];
+
+    if (this.weekStart && this.weekEnd) {
+      const start = new Date(this.weekStart);
+      const end = new Date(this.weekEnd);
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateStr = this.toLocalDateStr(d);
+        if (this.scheduleAvailability.isHolidayCached(dateStr)) {
+          events.push({
+            start: dateStr,
+            display: 'background',
+            backgroundColor: 'rgba(239, 68, 68, 0.08)',
+          });
+        } else {
+          const schedule = this.scheduleAvailability.getScheduleForDate(dateStr);
+          if (!schedule || schedule.details.length === 0) {
+            events.push({
+              start: dateStr,
+              display: 'background',
+              backgroundColor: 'rgba(0, 0, 0, 0.03)',
+            });
+          } else {
+            schedule.details.forEach(detail => {
+              events.push({
+                start: `${dateStr}T${detail.startTime}`,
+                end: `${dateStr}T${detail.endTime}`,
+                display: 'background',
+                backgroundColor: 'rgba(16, 185, 129, 0.08)',
+              });
+            });
+          }
+        }
+      }
+    }
+
+    (appointments || []).forEach(a => {
+      events.push({
         id: a.id,
         title: `${a.patientName}`,
         start: a.startTime,
@@ -175,8 +246,10 @@ export default class AppointmentsPage implements OnInit {
           typeName: a.typeName,
           notes: a.notes
         }
-      }))
-    );
+      });
+    });
+
+    this.calendarEvents.set(events);
   }
 
   private onDatesSet(info: DatesSetArg) {
@@ -222,9 +295,22 @@ export default class AppointmentsPage implements OnInit {
   }
 
   handleDateClick(info: DateClickArg) {
-    if (info.date > new Date()) {
-      this.showNewAppointmentDialog(info.date);
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    if (info.date <= todayStart) return;
+    const dateStr = this.toLocalDateStr(info.date);
+
+    if (this.scheduleAvailability.isHolidayCached(dateStr)) {
+      this.notify.info('Festivo — el centro está cerrado');
+      return;
     }
+
+    if (!this.scheduleAvailability.getScheduleForDate(dateStr)) {
+      this.notify.info('El centro está cerrado este día');
+      return;
+    }
+
+    this.showNewAppointmentDialog(info.date);
   }
 
   markAttended(appointment: AppointmentDto) {

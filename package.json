@@ -51,6 +51,7 @@
     "autoprefixer": "^10.5.0",
     "boneyard-js": "^1.9.0",
     "chart.js": "^4.5.1",
+    "country-state-city": "^3.2.1",
     "keycloak-angular": "^21.0.0",
     "keycloak-js": "^26.2.4",
     "libphonenumber-js": "^1.13.9",

@@ -11,9 +11,17 @@
     <button tuiTab type="button">
       {{ t('settings.anamnesis_tab', { defaultValue: 'Anamnesis' }) }}
     </button>
+    <button tuiTab type="button">
+      {{ t('schedule_settings.title') }}
+    </button>
+    <button tuiTab type="button">
+      {{ t('settings.address_tab') }}
+    </button>
   </tui-tabs>
 
   @if (activeTab === 0) { <app-branding-settings /> }
   @if (activeTab === 1) { <app-appointment-types-settings /> }
   @if (activeTab === 2) { <app-anamnesis-settings /> }
+  @if (activeTab === 3) { <app-schedule-settings /> }
+  @if (activeTab === 4) { <app-tenant-address-settings /> }
 </div>

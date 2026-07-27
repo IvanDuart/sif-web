@@ -1,0 +1,46 @@
+<div *transloco="let t" class="w-full">
+  <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4 mt-2">
+    <tui-textfield tuiChevron class="w-full">
+      <label tuiLabel>{{ t('schedule_settings.select_schedule') }}</label>
+      <input tuiComboBox formControlName="scheduleId" />
+      <tui-data-list-wrapper *tuiDropdown [items]="scheduleLabels() | tuiFilterByInput" />
+    </tui-textfield>
+
+    <tui-textfield class="w-full">
+      <label tuiLabel>{{ t('schedule_settings.year') }}</label>
+      <input tuiInput type="number" formControlName="year" min="2024" max="2100" />
+    </tui-textfield>
+
+    <tui-textfield class="w-full">
+      <label tuiLabel>{{ t('schedule_settings.valid_from') }}</label>
+      <input tuiInput type="date" formControlName="validFrom" />
+    </tui-textfield>
+
+    <div class="flex items-center gap-2 mb-2">
+      <input id="indefinite" type="checkbox" [formControl]="indefiniteCtrl" class="rounded border-surface-300" />
+      <label for="indefinite" class="text-sm text-surface-600 dark:text-surface-400 cursor-pointer">
+        {{ t('schedule_settings.no_end_date') }}
+      </label>
+    </div>
+
+    @if (!indefiniteCtrl.value) {
+      <tui-textfield class="w-full">
+        <label tuiLabel>{{ t('schedule_settings.valid_to') }}</label>
+        <input tuiInput type="date" formControlName="validTo" />
+      </tui-textfield>
+    }
+
+    <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+      <button tuiButton appearance="secondary" size="m" type="button" (click)="context.$implicit.complete()">
+        {{ t('common.cancel') }}
+      </button>
+      <button tuiButton size="m" type="submit" [disabled]="form.invalid || saving()">
+        @if (saving()) {
+          <i class="fa-solid fa-spinner fa-spin"></i>
+        }
+        <i class="fa-solid fa-link mr-1"></i>
+        {{ t('schedule_settings.create_assignment') }}
+      </button>
+    </div>
+  </form>
+</div>
