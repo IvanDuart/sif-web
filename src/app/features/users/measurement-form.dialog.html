@@ -82,10 +82,18 @@
 
   @if (activeStep() === 3) {
     <div class="flex flex-col gap-4 pt-2">
-      <tui-textfield class="w-full">
-        <label tuiLabel>{{ t('measurements.measured_at') }}</label>
-        <input type="datetime-local" formControlName="measuredAt" tuiInput />
-      </tui-textfield>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <tui-textfield class="w-full">
+          <label tuiLabel>{{ t('measurements.measured_date') }}</label>
+          <input tuiInputDate formControlName="measuredDate" />
+          <tui-calendar *tuiDropdown />
+        </tui-textfield>
+
+        <tui-textfield class="w-full">
+          <label tuiLabel>{{ t('measurements.measured_time') }}</label>
+          <input tuiInputTime formControlName="measuredTime" />
+        </tui-textfield>
+      </div>
 
       <tui-textfield class="w-full">
         <label tuiLabel>{{ t('measurements.notes') }}</label>

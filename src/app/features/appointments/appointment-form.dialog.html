@@ -23,15 +23,24 @@
         [items]="typeLabels() | tuiFilterByInput" />
     </tui-textfield>
 
-    <tui-textfield>
-      <label tuiLabel>{{ t('appointments.start_time') }}</label>
-      <input
-        tuiInput
-        type="datetime-local"
-        id="startTime"
-        formControlName="startTime"
-        (input)="onStartTimeChange()" />
-    </tui-textfield>
+    <div class="flex gap-4">
+      <tui-textfield class="flex-1">
+        <label tuiLabel>{{ t('appointments.date') }}</label>
+        <input
+          tuiInputDate
+          id="date"
+          formControlName="date" />
+        <tui-calendar *tuiDropdown />
+      </tui-textfield>
+
+      <tui-textfield class="flex-1">
+        <label tuiLabel>{{ t('appointments.time') }}</label>
+        <input
+          tuiInputTime
+          id="time"
+          formControlName="time" />
+      </tui-textfield>
+    </div>
 
     @if (isHolidayDate()) {
       <div class="flex items-center gap-2 p-3 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">

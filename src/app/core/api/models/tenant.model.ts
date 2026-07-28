@@ -9,6 +9,7 @@ export interface TenantPreferences {
   from_email: string;
   standard_vacation_days: number;
   active_anamnesis_fields?: string[];
+  show_price?: boolean;
 }
 
 export interface Tenant {

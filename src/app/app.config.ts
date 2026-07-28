@@ -5,13 +5,16 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import {provideTaiga, tuiAssetsPathProvider} from '@taiga-ui/core';
 import { NG_EVENT_PLUGINS } from '@taiga-ui/event-plugins';
 import { TuiConfirmService, tuiToastOptionsProvider } from '@taiga-ui/kit';
+import { TUI_LANGUAGE, TUI_SPANISH_LANGUAGE, TUI_ENGLISH_LANGUAGE } from '@taiga-ui/i18n';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs/operators';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { errorInterceptor } from './core/http/error.interceptor';
 import { loadingInterceptor } from './core/http/loading.interceptor';
 import { getKeycloakProvider } from './core/auth/keycloak.config';
-import { provideTransloco } from '@jsverse/transloco';
+import { provideTransloco, TranslocoService } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
 
 import { ThemeService } from './core/branding/theme.service';
@@ -21,6 +24,16 @@ function initializeApp(theme: ThemeService) {
   return async () => {
     theme.init();
   };
+}
+
+function provideTuiLanguage(transloco: TranslocoService) {
+  const activeLang = transloco.getActiveLang();
+  return toSignal(
+    transloco.langChanges$.pipe(
+      map(lang => lang === 'en' ? TUI_ENGLISH_LANGUAGE : TUI_SPANISH_LANGUAGE)
+    ),
+    { initialValue: activeLang === 'en' ? TUI_ENGLISH_LANGUAGE : TUI_SPANISH_LANGUAGE }
+  );
 }
 
 export const appConfig: ApplicationConfig = {
@@ -58,6 +71,11 @@ export const appConfig: ApplicationConfig = {
       },
       loader: TranslocoHttpLoader
     }),
+    {
+      provide: TUI_LANGUAGE,
+      useFactory: provideTuiLanguage,
+      deps: [TranslocoService]
+    },
     TuiConfirmService
   ]
 };

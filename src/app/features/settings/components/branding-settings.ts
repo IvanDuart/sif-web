@@ -42,7 +42,8 @@ export class BrandingSettings implements OnInit, OnDestroy {
     primary_color: '#000000',
     keycloak_sync_mode: '',
     from_email: '',
-    standard_vacation_days: 0
+    standard_vacation_days: 0,
+    show_price: false
   });
   saving = signal(false);
   loading = signal(false);
@@ -103,7 +104,8 @@ export class BrandingSettings implements OnInit, OnDestroy {
           primary_color: '#000000',
           keycloak_sync_mode: '',
           from_email: '',
-          standard_vacation_days: 0
+          standard_vacation_days: 0,
+          show_price: false
         };
         this.preferences.set(prefs);
         const found = LANGUAGE_OPTIONS.find(l => l.value === prefs.default_language);

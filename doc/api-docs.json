@@ -496,6 +496,211 @@
         }
       }
     },
+    "/tenant/{tenantId}/schedules/{scheduleId}": {
+      "get": {
+        "tags": [
+          "ScheduleController"
+        ],
+        "description": "Get a specific schedule by ID",
+        "operationId": "getSchedule",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "scheduleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ScheduleController"
+        ],
+        "description": "Update an existing schedule (jornada) with time blocks",
+        "operationId": "updateSchedule",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "scheduleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScheduleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ScheduleController"
+        ],
+        "description": "Delete a schedule (only if not in use)",
+        "operationId": "deleteSchedule",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "scheduleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/schedules/assignments/{assignmentId}": {
+      "put": {
+        "tags": [
+          "ScheduleController"
+        ],
+        "description": "Update an existing schedule assignment",
+        "operationId": "updateAssignment",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assignmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTenantScheduleAssignmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantScheduleAssignmentDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ScheduleController"
+        ],
+        "description": "Delete a schedule assignment",
+        "operationId": "deleteAssignment",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assignmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/profile": {
       "get": {
         "tags": [
@@ -3076,79 +3281,6 @@
         }
       }
     },
-    "/tenant/{tenantId}/schedules/{scheduleId}": {
-      "get": {
-        "tags": [
-          "ScheduleController"
-        ],
-        "description": "Get a specific schedule by ID",
-        "operationId": "getSchedule",
-        "parameters": [
-          {
-            "name": "tenantId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "scheduleId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ScheduleDto"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "ScheduleController"
-        ],
-        "description": "Delete a schedule (only if not in use)",
-        "operationId": "deleteSchedule",
-        "parameters": [
-          {
-            "name": "tenantId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "scheduleId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/tenant/{tenantId}/menu/{id}": {
       "get": {
         "tags": [
@@ -3649,6 +3781,65 @@
         }
       }
     },
+    "/tenant/{tenantId}/appointments/revenue": {
+      "get": {
+        "tags": [
+          "AppointmentController"
+        ],
+        "description": "Calculate total revenue from completed appointments within date range. Optionally filter by nutritionist.",
+        "operationId": "getTotalRevenue",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "nutritionistId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/appointments/patient/{patientId}": {
       "get": {
         "tags": [
@@ -3932,40 +4123,6 @@
           }
         }
       }
-    },
-    "/tenant/{tenantId}/schedules/assignments/{assignmentId}": {
-      "delete": {
-        "tags": [
-          "ScheduleController"
-        ],
-        "description": "Delete a schedule assignment",
-        "operationId": "deleteAssignment",
-        "parameters": [
-          {
-            "name": "tenantId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "assignmentId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
     }
   },
   "components": {
@@ -4005,6 +4162,9 @@
           },
           "gemini_api_key": {
             "type": "string"
+          },
+          "show_price": {
+            "type": "boolean"
           }
         }
       },
@@ -4376,6 +4536,141 @@
           }
         }
       },
+      "CreateScheduleDetailRequest": {
+        "type": "object",
+        "properties": {
+          "dayOfWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateScheduleRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateScheduleDetailRequest"
+            }
+          }
+        }
+      },
+      "ScheduleDetailDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayOfWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          }
+        }
+      },
+      "ScheduleDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleDetailDto"
+            }
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UpdateTenantScheduleAssignmentRequest": {
+        "type": "object",
+        "properties": {
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "TenantScheduleAssignmentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/ScheduleDto"
+          }
+        }
+      },
       "TenantPreferences_Public": {
         "type": "object",
         "properties": {
@@ -4411,6 +4706,9 @@
           },
           "gemini_api_key": {
             "type": "string"
+          },
+          "show_price": {
+            "type": "boolean"
           }
         }
       },
@@ -4512,6 +4810,9 @@
           },
           "gemini_api_key": {
             "type": "string"
+          },
+          "show_price": {
+            "type": "boolean"
           }
         }
       },
@@ -4654,6 +4955,10 @@
             "type": "integer",
             "format": "int32"
           },
+          "price": {
+            "type": "number",
+            "minimum": 0
+          },
           "isDefault": {
             "type": "boolean"
           },
@@ -4679,6 +4984,9 @@
           "durationMinutes": {
             "type": "integer",
             "format": "int32"
+          },
+          "price": {
+            "type": "number"
           },
           "isDefault": {
             "type": "boolean"
@@ -4850,21 +5158,6 @@
           "roleCode"
         ]
       },
-      "CreateScheduleDetailRequest": {
-        "type": "object",
-        "properties": {
-          "dayOfWeek": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "startTime": {
-            "type": "string"
-          },
-          "endTime": {
-            "type": "string"
-          }
-        }
-      },
       "CreateScheduleRequest": {
         "type": "object",
         "properties": {
@@ -4879,57 +5172,6 @@
             "items": {
               "$ref": "#/components/schemas/CreateScheduleDetailRequest"
             }
-          }
-        }
-      },
-      "ScheduleDetailDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "dayOfWeek": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "startTime": {
-            "type": "string"
-          },
-          "endTime": {
-            "type": "string"
-          }
-        }
-      },
-      "ScheduleDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "color": {
-            "type": "string"
-          },
-          "details": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleDetailDto"
-            }
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
           }
         }
       },
@@ -4951,34 +5193,6 @@
           "validTo": {
             "type": "string",
             "format": "date"
-          }
-        }
-      },
-      "TenantScheduleAssignmentDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "scheduleId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "year": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "validFrom": {
-            "type": "string",
-            "format": "date"
-          },
-          "validTo": {
-            "type": "string",
-            "format": "date"
-          },
-          "schedule": {
-            "$ref": "#/components/schemas/ScheduleDto"
           }
         }
       },
@@ -5399,12 +5613,17 @@
             "type": "integer",
             "format": "int32"
           },
+          "price": {
+            "type": "number",
+            "minimum": 0
+          },
           "isDefault": {
             "type": "boolean"
           }
         },
         "required": [
-          "name"
+          "name",
+          "price"
         ]
       },
       "UpdateShoppingListItemRequest": {
@@ -5515,18 +5734,18 @@
               "type": "string"
             }
           },
-          "tenantName": {
-            "type": "string"
-          },
-          "roleCode": {
-            "type": "string"
-          },
           "userType": {
             "type": "string",
             "enum": [
               "STAFF",
               "PATIENT"
             ]
+          },
+          "roleCode": {
+            "type": "string"
+          },
+          "tenantName": {
+            "type": "string"
           }
         }
       },

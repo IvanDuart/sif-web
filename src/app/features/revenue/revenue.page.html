@@ -1,0 +1,143 @@
+<div *transloco="let t" class="py-4 space-y-6">
+  <div>
+    <h2 class="text-xl font-display font-bold text-surface-900 dark:text-surface-0">
+      {{ t('revenue.title') }}
+    </h2>
+    <p class="text-sm text-surface-500 mt-1">{{ t('revenue.subtitle') }}</p>
+  </div>
+
+  <div class="data-card p-4">
+     <div class="flex flex-wrap items-end gap-3">
+       <tui-textfield class="w-80" [tuiTextfieldCleaner]="false">
+         <label tuiLabel>{{ t('revenue.date_range') }}</label>
+         <input tuiInputDateRange [ngModel]="dateRange()" (ngModelChange)="dateRange.set($event); onDateChange()" />
+         <tui-calendar-range *tuiDropdown />
+       </tui-textfield>
+
+      @if (canSelectNutritionist()) {
+        <tui-textfield class="w-52" tuiChevron>
+          <label tuiLabel>{{ t('revenue.nutritionist') }}</label>
+          <input
+            tuiComboBox
+            [ngModel]="nutritionistDisplay()"
+            (ngModelChange)="onNutritionistChange($event)"
+          />
+          <tui-data-list-wrapper
+            *tuiDropdown
+            [items]="nutritionistLabels() | tuiFilterByInput"
+          />
+        </tui-textfield>
+      }
+
+      <div class="flex items-center gap-1 flex-wrap">
+        <button tuiButton appearance="secondary" size="s" (click)="applyPreset('this_month')">
+          {{ t('revenue.preset_this_month') }}
+        </button>
+        <button tuiButton appearance="secondary" size="s" (click)="applyPreset('last_month')">
+          {{ t('revenue.preset_last_month') }}
+        </button>
+        <button tuiButton appearance="secondary" size="s" (click)="applyPreset('quarter')">
+          {{ t('revenue.preset_quarter') }}
+        </button>
+        <button tuiButton appearance="secondary" size="s" (click)="applyPreset('year')">
+          {{ t('revenue.preset_year') }}
+        </button>
+        <button tuiButton appearance="secondary" size="s" (click)="applyPreset('last_12m')">
+          {{ t('revenue.preset_last_12m') }}
+        </button>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-4 mt-4 pt-3 border-t border-surface-200 dark:border-surface-700">
+      <span class="text-sm font-medium text-surface-500">{{ t('revenue.granularity') }}:</span>
+      <tui-tabs [(activeItemIndex)]="granularityIndex" (activeItemIndexChange)="onGranularityChange($event)">
+        <button tuiTab type="button">{{ t('revenue.granularity_month') }}</button>
+        <button tuiTab type="button">{{ t('revenue.granularity_week') }}</button>
+        <button tuiTab type="button">{{ t('revenue.granularity_day') }}</button>
+      </tui-tabs>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="data-card p-4 text-center">
+      <p class="text-xs uppercase tracking-wider text-surface-400 font-semibold">{{ t('revenue.total') }}</p>
+      <p class="text-2xl font-bold text-primary-600 dark:text-primary-400 mt-1">
+        {{ formatEUR(totalRevenue()) }}
+      </p>
+    </div>
+    <div class="data-card p-4 text-center">
+      <p class="text-xs uppercase tracking-wider text-surface-400 font-semibold">{{ t('revenue.average') }}</p>
+      <p class="text-2xl font-bold text-surface-800 dark:text-surface-100 mt-1">
+        {{ formatEUR(averageRevenue()) }}
+      </p>
+    </div>
+    <div class="data-card p-4 text-center">
+      <p class="text-xs uppercase tracking-wider text-surface-400 font-semibold">{{ t('revenue.buckets_count') }}</p>
+      <p class="text-2xl font-bold text-surface-800 dark:text-surface-100 mt-1">
+        {{ bucketCount() }}
+      </p>
+    </div>
+  </div>
+
+  <div class="data-card p-4">
+    <tui-tabs [(activeItemIndex)]="viewModeIndex" (activeItemIndexChange)="setViewMode(viewModeIndex() === 0 ? 'chart' : 'table')">
+      <button tuiTab type="button">{{ t('revenue.chart') }}</button>
+      <button tuiTab type="button">{{ t('revenue.table') }}</button>
+    </tui-tabs>
+
+    <div class="mt-4">
+      @if (loading()) {
+        <div class="flex items-center justify-center py-16">
+          <div class="loading-spinner"></div>
+        </div>
+      } @else if (bucketCount() === 0) {
+        <div class="text-center py-16 text-surface-400">
+          {{ t('revenue.no_data') }}
+        </div>
+        } @else if (viewMode() === 'chart') {
+          <tui-axes
+            class="block w-full"
+            style="height: 350px;"
+            [axisXLabels]="xLabels()"
+            [axisYLabels]="yLabels"
+            [horizontalLines]="4"
+          >
+            <tui-line-chart
+              class="text-primary-600 dark:text-primary-400"
+              [value]="chartData()"
+              [smoothingFactor]="50"
+              [dots]="true"
+              [filled]="true"
+              [width]="Math.max(1, xLabels().length - 1)"
+              [height]="maxY"
+            ></tui-line-chart>
+          </tui-axes>
+      } @else {
+        <div class="table-wrapper mt-2">
+          <table tuiTable class="w-full">
+            <thead>
+              <tr>
+                <th tuiTh scope="col">{{ t('revenue.column_period') }}</th>
+                <th tuiTh scope="col" class="text-right">{{ t('revenue.column_revenue') }}</th>
+              </tr>
+            </thead>
+            <tbody tuiTbody>
+              @for (row of revenueData(); track row.label) {
+                <tr tuiTr>
+                  <td tuiTd class="font-medium">{{ row.label }}</td>
+                  <td tuiTd class="text-right font-mono">{{ formatEUR(row.value) }}</td>
+                </tr>
+              }
+              <tr tuiTr class="font-bold border-t-2 border-surface-300 dark:border-surface-600">
+                <td tuiTd>{{ t('revenue.total') }}</td>
+                <td tuiTd class="text-right font-mono text-primary-600 dark:text-primary-400">
+                  {{ formatEUR(totalRevenue()) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</div>

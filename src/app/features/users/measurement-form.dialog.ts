@@ -2,13 +2,13 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext, TuiButton, TuiInput, TuiTextfield, TuiLabel } from '@taiga-ui/core';
-import { TuiTextarea } from '@taiga-ui/kit';
+import { TuiDialogContext, TuiButton, TuiInput, TuiTextfield, TuiLabel, TuiCalendar, TuiDropdown } from '@taiga-ui/core';
+import { TuiTextarea, TuiInputDate, TuiInputTime } from '@taiga-ui/kit';
+import { TuiDay, TuiTime } from '@taiga-ui/cdk';
 import { BodyMeasurementService } from '../../core/api/services/body-measurement.api';
 import { CreateBodyMeasurementRequest } from '../../core/api/models/body-measurement.model';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { toLocalISOString } from '../../shared/utils/date';
 
 @Component({
   selector: 'app-measurement-form',
@@ -22,7 +22,11 @@ import { toLocalISOString } from '../../shared/utils/date';
     TuiInput,
     TuiTextfield,
     TuiLabel,
-    TuiTextarea
+    TuiTextarea,
+    TuiInputDate,
+    TuiInputTime,
+    TuiCalendar,
+    TuiDropdown,
   ],
   templateUrl: './measurement-form.dialog.html'
 })
@@ -48,7 +52,8 @@ export class MeasurementFormDialog {
     hipsCm: [null as number | null],
     contourCm: [null as number | null],
     armCm: [null as number | null],
-    measuredAt: [toLocalISOString(new Date()) as string | null],
+    measuredDate: [TuiDay.fromLocalNativeDate(new Date())],
+    measuredTime: [new TuiTime(new Date().getHours(), new Date().getMinutes())],
     notes: ['']
   });
 
@@ -84,7 +89,12 @@ export class MeasurementFormDialog {
     if (raw.hipsCm != null) request.hipsCm = raw.hipsCm;
     if (raw.contourCm != null) request.contourCm = raw.contourCm;
     if (raw.armCm != null) request.armCm = raw.armCm;
-    if (raw.measuredAt) request.measuredAt = new Date(raw.measuredAt).toISOString();
+    if (raw.measuredDate && raw.measuredTime) {
+      const d = raw.measuredDate as TuiDay;
+      const t = raw.measuredTime as TuiTime;
+      const localDate = new Date(d.year, d.month, d.day, t.hours, t.minutes);
+      request.measuredAt = localDate.toISOString();
+    }
     if (raw.notes) request.notes = raw.notes;
 
     this.saving.set(true);

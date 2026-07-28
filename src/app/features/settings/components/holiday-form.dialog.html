@@ -1,11 +1,12 @@
 <div *transloco="let t">
   <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4 mt-2">
-    <tui-textfield class="w-full">
+    <tui-textfield>
       <label tuiLabel>{{ t('schedule_settings.holiday_date') }}</label>
-      <input tuiInput type="date" formControlName="holidayDate" />
+      <input tuiInputDate formControlName="holidayDate" />
+      <tui-calendar *tuiDropdown />
     </tui-textfield>
 
-    <tui-textfield class="w-full">
+    <tui-textfield>
       <label tuiLabel>{{ t('schedule_settings.description') }}</label>
       <input tuiInput formControlName="description" />
     </tui-textfield>

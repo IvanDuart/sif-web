@@ -66,6 +66,19 @@ export class AppointmentService {
     );
   }
 
+  getRevenue(
+    tenantId: string,
+    startDate: string,
+    endDate: string,
+    nutritionistId?: string
+  ): Observable<number> {
+    let params = new HttpParams()
+      .set('startDate', startDate)
+      .set('endDate', endDate);
+    if (nutritionistId) params = params.set('nutritionistId', nutritionistId);
+    return this.http.get<number>(`${this.endpoint(tenantId)}/revenue`, { params });
+  }
+
   getPatientsByNutritionist(
     tenantId: string,
     nutritionistId: string

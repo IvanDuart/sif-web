@@ -1,8 +1,9 @@
-import { Component, inject, signal, computed, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ViewChild, ElementRef, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ModalService, NotificationService, ConfirmService } from '../../core/ui';
+import { ThemeService } from '../../core/branding/theme.service';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -65,7 +66,7 @@ Chart.register(...registerables);
   templateUrl: './user-detail.page.html',
   styleUrls: ['./user-detail.page.scss']
 })
-export default class UserDetailPage implements OnInit {
+export default class UserDetailPage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly userTenantRoleService = inject(UserTenantRoleService);
   private readonly measurementService = inject(BodyMeasurementService);
@@ -79,6 +80,7 @@ export default class UserDetailPage implements OnInit {
   private readonly modal = inject(ModalService);
   private readonly transloco = inject(TranslocoService);
   private readonly permissionsService = inject(PermissionsService);
+  private readonly themeService = inject(ThemeService);
 
   user = signal<AppUserDto | null>(null);
   measurements = signal<BodyMeasurementDto[]>([]);
@@ -193,6 +195,20 @@ export default class UserDetailPage implements OnInit {
       this.loadUser();
       this.loadTenantPreferences();
     }
+
+    // Subscribe to theme changes and rebuild chart when theme toggles
+    effect(() => {
+      this.themeService.colorScheme(); // Reactive dependency
+      if (this.measurementHistory() && this.chartLoaded()) {
+        // Rebuild chart on next tick to allow CSS variables to update
+        requestAnimationFrame(() => {
+          const history = this.measurementHistory();
+          if (history) {
+            this.buildChart(history);
+          }
+        });
+      }
+    });
 
     this.calendarOptions = {
       plugins: [dayGridPlugin, interactionPlugin],
@@ -324,11 +340,7 @@ export default class UserDetailPage implements OnInit {
         label: transloco.translate(series.label),
         data: sorted.map(p => p[series.field]),
         borderColor: series.color,
-        backgroundColor: series.color + '20',
-        tension: 0.3,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        spanGaps: true,
+        backgroundColor: series.color, // Will be transformed to gradient in buildChartConfig
       }));
 
     const config = buildChartConfig(labels, datasets);
@@ -610,9 +622,16 @@ export default class UserDetailPage implements OnInit {
               this.loadMeasurements(this.page(), this.size());
               this.loadEvolution();
             }
-          });
-        }
-      }
-    });
-  }
-}
+           });
+         }
+       }
+     });
+   }
+
+   ngOnDestroy() {
+     if (this.chartInstance) {
+       this.chartInstance.destroy();
+       this.chartInstance = null;
+     }
+   }
+ }

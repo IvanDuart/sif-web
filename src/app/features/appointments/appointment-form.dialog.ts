@@ -1,12 +1,15 @@
 import {Component, inject, signal, OnInit, computed, ChangeDetectionStrategy, effect} from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TuiDropdown, TuiTextfield, TuiLabel, TuiFilterByInputPipe, TuiInput, TuiButton } from '@taiga-ui/core';
+import { TuiDropdown, TuiTextfield, TuiLabel, TuiFilterByInputPipe, TuiButton } from '@taiga-ui/core';
 import {
   TuiTextarea,
   TuiComboBox,
   TuiDataListWrapper,
-  TuiChevron
+  TuiChevron,
+  TuiInputDate,
+  TuiInputTime
 } from '@taiga-ui/kit';
+import { TuiDay, TuiTime } from '@taiga-ui/cdk';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import type { TuiDialogContext } from '@taiga-ui/core';
 
@@ -34,19 +37,14 @@ import { ScheduleAvailabilityService } from '../../core/api/services/schedule-av
     TuiComboBox,
     TuiDataListWrapper,
     TuiTextfield,
-    TuiInput,
+    TuiInputDate,
+    TuiInputTime,
     TuiFilterByInputPipe,
     TuiLabel,
     TuiButton,
     TuiChevron
   ],
   templateUrl: './appointment-form.dialog.html',
-  styles: [`
-    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-      transform: translateY(-2px);
-      cursor: pointer;
-    }
-  `],
   styleUrls: ['./appointment-form.dialog.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -91,7 +89,8 @@ export class AppointmentFormDialog implements OnInit {
   form = this.fb.group({
     patientId: ['', Validators.required],
     typeId: ['', Validators.required],
-    startTime: ['', Validators.required],
+    date: [null as TuiDay | null, Validators.required],
+    time: [null as TuiTime | null, Validators.required],
     notes: ['']
   });
 
@@ -104,18 +103,27 @@ export class AppointmentFormDialog implements OnInit {
       this.updateScheduleInfo();
     });
 
+    // Subscribe to date changes to update schedule info
+    this.form.get('date')?.valueChanges.subscribe(() => {
+      this.updateScheduleInfo();
+    });
+
     if (this.context.data?.startTime) {
       const d = new Date(this.context.data.startTime);
-      const pad = (n: number) => String(n).padStart(2, '0');
-      const local = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-      this.form.patchValue({ startTime: local });
+      const day = TuiDay.fromLocalNativeDate(d);
+      const time = TuiTime.fromLocalNativeDate(d);
+      this.form.patchValue({ date: day, time });
     }
   }
 
   private updateScheduleInfo() {
-    const raw = this.form.get('startTime')?.value;
+    const raw = this.form.get('date')?.value;
     if (!raw || !this.availabilityLoaded()) return;
-    const dateStr = raw.substring(0, 10);
+    
+    const day = raw as TuiDay;
+    if (!day) return;
+    
+    const dateStr = `${String(day.year).padStart(4, '0')}-${String(day.month + 1).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`;
 
     this.isHolidayDate.set(this.scheduleAvailability.isHolidayCached(dateStr));
     this.isClosedDate.set(false);
@@ -163,10 +171,6 @@ export class AppointmentFormDialog implements OnInit {
     });
   }
 
-  onStartTimeChange() {
-    this.updateScheduleInfo();
-  }
-
   submit() {
     if (this.form.invalid) return;
 
@@ -175,9 +179,17 @@ export class AppointmentFormDialog implements OnInit {
     if (!tenantId || !user) return;
 
     const raw = this.form.value;
-    const startTime = raw.startTime as string;
+    const day = raw.date as TuiDay | null;
+    const time = raw.time as TuiTime | null;
+    
+    if (!day || !time) return;
 
-    const validationError = this.scheduleAvailability.validateAppointmentTime(startTime);
+    // Build local datetime string for validation
+    const dateStr = `${String(day.year).padStart(4, '0')}-${String(day.month + 1).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`;
+    const timeStr = `${String(time.hours).padStart(2, '0')}:${String(time.minutes).padStart(2, '0')}`;
+    const localDatetimeStr = `${dateStr}T${timeStr}`;
+
+    const validationError = this.scheduleAvailability.validateAppointmentTime(localDatetimeStr);
     if (validationError) {
       this.error.set(validationError);
       return;
@@ -196,11 +208,15 @@ export class AppointmentFormDialog implements OnInit {
     this.saving.set(true);
     this.error.set('');
 
+    // Convert date and time to ISO string for API
+    const startDate = day.toLocalNativeDate();
+    startDate.setHours(time.hours, time.minutes, 0, 0);
+
     this.appointmentService.create(tenantId, {
       nutritionistId,
       patientId: selectedPatient.value,
       typeId: selectedType.value,
-      startTime: new Date(startTime).toISOString(),
+      startTime: startDate.toISOString(),
       notes: raw.notes || undefined
     }).subscribe({
       next: () => {

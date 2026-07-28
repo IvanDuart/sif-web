@@ -106,14 +106,21 @@
                   <td tuiTd>{{ a.year }}</td>
                   <td tuiTd>{{ a.validFrom }}</td>
                   <td tuiTd>{{ a.validTo ?? t('schedule_settings.no_end_date') }}</td>
-                  <td tuiTd class="text-center">
-                    <button tuiButton appearance="flat" size="s" type="button"
-                      class="text-red-500 hover:text-red-700"
-                      [title]="t('common.delete')"
-                      (click)="confirmDeleteAssignment(a)">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
-                  </td>
+                   <td tuiTd class="text-center">
+                     <div class="flex items-center gap-1 justify-center">
+                       <button tuiButton appearance="flat" size="s" type="button"
+                         [title]="t('common.edit')"
+                         (click)="showAssignmentForm(a)">
+                         <i class="fa-solid fa-pen"></i>
+                       </button>
+                       <button tuiButton appearance="flat" size="s" type="button"
+                         class="text-red-500 hover:text-red-700"
+                         [title]="t('common.delete')"
+                         (click)="confirmDeleteAssignment(a)">
+                         <i class="fa-solid fa-trash"></i>
+                       </button>
+                     </div>
+                   </td>
                 </tr>
               } @empty {
                 <tr tuiTr>

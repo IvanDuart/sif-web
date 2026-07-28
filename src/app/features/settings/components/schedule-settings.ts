@@ -117,11 +117,11 @@ export class ScheduleSettings implements OnInit {
     });
   }
 
-  showAssignmentForm() {
+  showAssignmentForm(assignment?: TenantScheduleAssignmentDto) {
     this.modal.open<boolean, AssignmentFormDialogInput>(AssignmentFormDialog, {
-      label: this.transloco.translate('schedule_settings.create_assignment'),
+      label: this.transloco.translate(assignment ? 'schedule_settings.edit_assignment' : 'schedule_settings.create_assignment'),
       size: 'm',
-      data: { schedules: this.schedules() },
+      data: { schedules: this.schedules(), assignment },
     }).subscribe((result) => {
       if (result) this.loadAssignments();
     });

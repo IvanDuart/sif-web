@@ -36,6 +36,17 @@ export interface AppointmentTypeFormDialogInput {
           step="5" />
       </tui-textfield>
 
+      <tui-textfield class="w-full">
+        <label tuiLabel>Precio (€)</label>
+        <input
+          tuiInput
+          type="number"
+          [(ngModel)]="price"
+          min="0"
+          step="0.01"
+          placeholder="50.00" />
+      </tui-textfield>
+
       <div class="flex items-center gap-3 py-1">
         <input
           id="isDefault"
@@ -76,6 +87,7 @@ export class AppointmentTypeFormDialog {
   typeId: string | null = null;
   name = '';
   durationMinutes: number | null = null;
+  price: number | null = null;
   isDefault = false;
 
   constructor() {
@@ -86,6 +98,7 @@ export class AppointmentTypeFormDialog {
       this.typeId = at.id;
       this.name = at.name;
       this.durationMinutes = at.durationMinutes;
+      this.price = at.price;
       this.isDefault = at.isDefault;
     }
   }
@@ -97,6 +110,7 @@ export class AppointmentTypeFormDialog {
     const request = {
       name: this.name,
       durationMinutes: this.durationMinutes,
+      price: this.price ?? 0,
       isDefault: this.isDefault
     };
 

@@ -37,7 +37,8 @@
     "diets": "Dietas y Menús",
     "templates": "Plantillas",
     "shopping_list": "Lista de la Compra",
-    "settings": "Configuración"
+    "settings": "Configuración",
+    "revenue": "Ingresos"
   },
   "auth": {
     "select_tenant": "Seleccionar Clínica",
@@ -154,12 +155,14 @@
     "empty_title": "Sin menús aún",
     "view": "Ver detalle"
   },
-  "measurements": {
-    "title": "Mediciones Corporales",
-    "register": "Registrar Medición",
-    "edit": "Editar Medición",
-    "measured_at": "Fecha de Medición",
-    "weight": "Peso (kg)",
+   "measurements": {
+     "title": "Mediciones Corporales",
+     "register": "Registrar Medición",
+     "edit": "Editar Medición",
+     "measured_at": "Fecha de Medición",
+     "measured_date": "Fecha",
+     "measured_time": "Hora",
+     "weight": "Peso (kg)",
     "bmi": "IMC",
     "body_fat": "% Grasa Corporal",
     "muscle_mass": "Masa Muscular (kg)",
@@ -420,7 +423,10 @@
     "address_country": "País",
     "address_state": "Provincia",
     "address_city": "Ciudad",
-    "address_street": "Dirección completa"
+    "address_street": "Dirección completa",
+    "pricing_section": "Precios",
+    "show_price": "Mostrar precios al paciente al reagendar",
+    "show_price_hint": "Muestra los precios de los tipos de consulta cuando el paciente reagenda una cita."
   },
   "appointment_types": {
     "title": "Tipos de Cita",
@@ -434,7 +440,35 @@
     "update_success": "Tipo de cita actualizado",
     "delete_confirm": "¿Desactivar el tipo de cita '{{name}}'?",
     "delete_success": "Tipo de cita desactivado",
+    "price": "Precio",
     "empty": "No hay tipos de cita configurados"
+  },
+  "revenue": {
+    "title": "Ingresos",
+    "subtitle": "Consulta los ingresos generados por las citas completadas",
+    "total": "Total",
+    "average": "Media por período",
+    "buckets_count": "Períodos",
+    "chart": "Gráfico",
+    "table": "Tabla",
+    "no_data": "No hay datos en el rango seleccionado",
+    "date_range": "Rango de fechas",
+    "start_date": "Fecha inicio",
+    "end_date": "Fecha fin",
+    "nutritionist": "Nutricionista",
+    "all_nutritionists": "Todos",
+    "granularity": "Agrupar por",
+    "granularity_day": "Día",
+    "granularity_week": "Semana",
+    "granularity_month": "Mes",
+    "preset_this_month": "Este mes",
+    "preset_last_month": "Mes pasado",
+    "preset_quarter": "Trimestre",
+    "preset_year": "Año actual",
+    "preset_last_12m": "Últimos 12 meses",
+    "column_period": "Período",
+    "column_revenue": "Ingresos",
+    "too_many_buckets_warning": "Demasiados períodos. Ajusta el rango de fechas o la granularidad."
   },
   "schedule_settings": {
     "title": "Horarios y Festivos",

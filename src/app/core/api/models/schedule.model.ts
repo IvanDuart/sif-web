@@ -30,9 +30,13 @@ export interface CreateScheduleRequest {
   details: Omit<ScheduleDetailDto, 'id'>[];
 }
 
+export type UpdateScheduleRequest = CreateScheduleRequest;
+
 export interface CreateScheduleAssignmentRequest {
   scheduleId: string;
   year: number;
   validFrom: string;
   validTo?: string | null;
 }
+
+export type UpdateScheduleAssignmentRequest = CreateScheduleAssignmentRequest;

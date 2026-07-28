@@ -37,7 +37,8 @@
     "diets": "Diets & Menus",
     "templates": "Templates",
     "shopping_list": "Shopping List",
-    "settings": "Settings"
+    "settings": "Settings",
+    "revenue": "Revenue"
   },
   "auth": {
     "select_tenant": "Select Clinic",
@@ -154,12 +155,14 @@
     "empty_title": "No menus yet",
     "view": "View detail"
   },
-  "measurements": {
-    "title": "Body Measurements",
-    "register": "Register Measurement",
-    "edit": "Edit Measurement",
-    "measured_at": "Measurement Date",
-    "weight": "Weight (kg)",
+   "measurements": {
+     "title": "Body Measurements",
+     "register": "Register Measurement",
+     "edit": "Edit Measurement",
+     "measured_at": "Measurement Date",
+     "measured_date": "Date",
+     "measured_time": "Time",
+     "weight": "Weight (kg)",
     "bmi": "BMI",
     "body_fat": "Body Fat %",
     "muscle_mass": "Muscle Mass (kg)",
@@ -420,7 +423,10 @@
     "address_country": "Country",
     "address_state": "State / Province",
     "address_city": "City",
-    "address_street": "Full Address"
+    "address_street": "Full Address",
+    "pricing_section": "Pricing",
+    "show_price": "Show prices to patients when rescheduling",
+    "show_price_hint": "Displays appointment type prices when a patient reschedules an appointment."
   },
   "appointment_types": {
     "title": "Appointment Types",
@@ -428,6 +434,7 @@
     "duration": "Duration (min)",
     "is_default": "Default",
     "is_active": "Active",
+    "price": "Price",
     "create": "New Appointment Type",
     "edit": "Edit Appointment Type",
     "create_success": "Appointment type created",
@@ -728,5 +735,32 @@
     "menu_created": "Menu assigned to patient successfully",
     "template_assigned": "Template assigned to patient successfully",
     "meal_deleted": "Meal deleted"
+  },
+  "revenue": {
+    "title": "Revenue",
+    "subtitle": "View revenue generated from completed appointments",
+    "total": "Total",
+    "average": "Average per period",
+    "buckets_count": "Periods",
+    "chart": "Chart",
+    "table": "Table",
+    "no_data": "No data in the selected range",
+    "date_range": "Date range",
+    "start_date": "Start date",
+    "end_date": "End date",
+    "nutritionist": "Nutritionist",
+    "all_nutritionists": "All",
+    "granularity": "Group by",
+    "granularity_day": "Day",
+    "granularity_week": "Week",
+    "granularity_month": "Month",
+    "preset_this_month": "This month",
+    "preset_last_month": "Last month",
+    "preset_quarter": "Quarter",
+    "preset_year": "Current year",
+    "preset_last_12m": "Last 12 months",
+    "column_period": "Period",
+    "column_revenue": "Revenue",
+    "too_many_buckets_warning": "Too many periods. Adjust the date range or granularity."
   }
 }

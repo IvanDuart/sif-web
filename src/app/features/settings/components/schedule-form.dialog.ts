@@ -1,7 +1,8 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
-import { TuiButton, TuiDialogContext, TuiTextfield, TuiDropdown, TuiFilterByInputPipe } from '@taiga-ui/core';
-import { TuiComboBox, TuiDataListWrapper, TuiChevron } from '@taiga-ui/kit';
+import { TuiButton, TuiDialogContext, TuiTextfield, TuiDropdown, TuiFilterByInputPipe, TuiInput } from '@taiga-ui/core';
+import { TuiComboBox, TuiDataListWrapper, TuiChevron, TuiInputTime, TuiInputColor } from '@taiga-ui/kit';
+import { TuiTime } from '@taiga-ui/cdk';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { ScheduleService } from '../../../core/api/services/schedule.api';
@@ -18,8 +19,8 @@ export interface ScheduleFormDialogInput {
   standalone: true,
   imports: [
     ReactiveFormsModule, TranslocoDirective,
-    TuiButton, TuiTextfield, TuiDropdown, TuiFilterByInputPipe,
-    TuiComboBox, TuiDataListWrapper, TuiChevron,
+    TuiButton, TuiTextfield, TuiDropdown, TuiFilterByInputPipe, TuiInput,
+    TuiComboBox, TuiDataListWrapper, TuiChevron, TuiInputTime, TuiInputColor,
   ],
   templateUrl: './schedule-form.dialog.html',
   styleUrls: ['./schedule-form.dialog.scss'],
@@ -66,11 +67,14 @@ export class ScheduleFormDialog {
       this.form.patchValue({ name: s.name, color: s.color });
       for (const detail of s.details) {
         const dayLabel = this.dayOptions().find(d => d.value === detail.dayOfWeek)?.label ?? '';
+        // Parse time strings (HH:mm:ss) to TuiTime objects
+        const startTime = this.parseTimeString(detail.startTime);
+        const endTime = this.parseTimeString(detail.endTime);
         this.details.push(
           this.fb.group({
             dayOfWeek: [dayLabel, Validators.required],
-            startTime: [detail.startTime, Validators.required],
-            endTime: [detail.endTime, Validators.required],
+            startTime: [startTime, Validators.required],
+            endTime: [endTime, Validators.required],
           }),
         );
       }
@@ -81,8 +85,8 @@ export class ScheduleFormDialog {
     this.details.push(
       this.fb.group({
         dayOfWeek: [this.dayLabels()[0], Validators.required],
-        startTime: ['09:00', Validators.required],
-        endTime: ['17:00', Validators.required],
+        startTime: [new TuiTime(9, 0), Validators.required],
+        endTime: [new TuiTime(17, 0), Validators.required],
       }),
     );
   }
@@ -98,18 +102,26 @@ export class ScheduleFormDialog {
     if (!tenantId) return;
 
     const raw = this.form.value;
-    const details = (raw.details as Array<{ dayOfWeek: string; startTime: string; endTime: string }>).map(d => ({
+    const details = (raw.details as Array<{ dayOfWeek: string; startTime: TuiTime; endTime: TuiTime }>).map(d => ({
       dayOfWeek: this.dayOptions().find(o => o.label === d.dayOfWeek)?.value ?? 1,
-      startTime: d.startTime,
-      endTime: d.endTime,
+      startTime: this.formatTimeToString(d.startTime),
+      endTime: this.formatTimeToString(d.endTime),
     }));
 
-    this.saving.set(true);
-    this.scheduleService.create(tenantId, {
+    const request = {
       name: raw.name as string,
       color: raw.color as string,
       details,
-    }).subscribe({
+    };
+
+    this.saving.set(true);
+    
+    // Conditional: create vs update
+    const operation$ = this.editing() && this.scheduleId
+      ? this.scheduleService.update(tenantId, this.scheduleId, request)
+      : this.scheduleService.create(tenantId, request);
+
+    operation$.subscribe({
       next: () => {
         this.notify.success(this.transloco.translate('schedule_settings.schedule_saved'));
         this.context.$implicit.next(true);
@@ -120,5 +132,20 @@ export class ScheduleFormDialog {
         this.notify.error(this.transloco.translate('common.error'));
       },
     });
+  }
+
+  private parseTimeString(timeStr: string): TuiTime {
+    // Parse "HH:mm:ss" or "HH:mm" to TuiTime
+    const parts = timeStr.split(':');
+    const hours = parseInt(parts[0], 10) || 0;
+    const minutes = parseInt(parts[1], 10) || 0;
+    return new TuiTime(hours, minutes);
+  }
+
+  private formatTimeToString(time: TuiTime): string {
+    // Format TuiTime to "HH:mm:ss"
+    const hours = String(time.hours).padStart(2, '0');
+    const minutes = String(time.minutes).padStart(2, '0');
+    return `${hours}:${minutes}:00`;
   }
 }

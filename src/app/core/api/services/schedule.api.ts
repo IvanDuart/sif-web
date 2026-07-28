@@ -30,6 +30,10 @@ export class ScheduleService {
     return this.http.post<ScheduleDto>(this.endpoint(tenantId), request);
   }
 
+  update(tenantId: string, scheduleId: string, request: CreateScheduleRequest): Observable<ScheduleDto> {
+    return this.http.put<ScheduleDto>(`${this.endpoint(tenantId)}/${scheduleId}`, request);
+  }
+
   delete(tenantId: string, scheduleId: string): Observable<void> {
     return this.http.delete<void>(`${this.endpoint(tenantId)}/${scheduleId}`);
   }
@@ -40,6 +44,10 @@ export class ScheduleService {
 
   createAssignment(tenantId: string, request: CreateScheduleAssignmentRequest): Observable<TenantScheduleAssignmentDto> {
     return this.http.post<TenantScheduleAssignmentDto>(`${this.endpoint(tenantId)}/assignments`, request);
+  }
+
+  updateAssignment(tenantId: string, assignmentId: string, request: CreateScheduleAssignmentRequest): Observable<TenantScheduleAssignmentDto> {
+    return this.http.put<TenantScheduleAssignmentDto>(`${this.endpoint(tenantId)}/assignments/${assignmentId}`, request);
   }
 
   deleteAssignment(tenantId: string, assignmentId: string): Observable<void> {

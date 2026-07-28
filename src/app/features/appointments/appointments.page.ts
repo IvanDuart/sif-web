@@ -207,7 +207,7 @@ export default class AppointmentsPage implements OnInit {
           events.push({
             start: dateStr,
             display: 'background',
-            backgroundColor: 'rgba(239, 68, 68, 0.08)',
+            backgroundColor: 'rgba(220, 38, 38, 0.15)',
           });
         } else {
           const schedule = this.scheduleAvailability.getScheduleForDate(dateStr);
@@ -215,7 +215,7 @@ export default class AppointmentsPage implements OnInit {
             events.push({
               start: dateStr,
               display: 'background',
-              backgroundColor: 'rgba(0, 0, 0, 0.03)',
+              backgroundColor: 'rgba(148, 163, 184, 0.15)',
             });
           } else {
             schedule.details.forEach(detail => {
@@ -223,7 +223,7 @@ export default class AppointmentsPage implements OnInit {
                 start: `${dateStr}T${detail.startTime}`,
                 end: `${dateStr}T${detail.endTime}`,
                 display: 'background',
-                backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                backgroundColor: 'rgba(16, 185, 129, 0.15)',
               });
             });
           }

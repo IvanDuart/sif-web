@@ -61,6 +61,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/appointments/appointments.page').then(m => m.default)
       },
       {
+        path: 'revenue',
+        loadComponent: () => import('./features/revenue/revenue.page').then(m => m.default)
+      },
+      {
         path: 'settings',
         loadComponent: () => import('./features/settings/branding-settings.page').then(m => m.default)
       }

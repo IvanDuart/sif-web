@@ -32,8 +32,9 @@ const SUPERMARKET_LABELS: Record<string, string> = {
   templateUrl: './shopping-list.dialog.html',
   encapsulation: ViewEncapsulation.None,
   styles: [`
-    tui-dialog[data-size=l]:has(app-shopping-list-dialog) {
-      inline-size: 80vw;
+    tui-dialog:has(app-shopping-list-dialog) {
+      width: 90vw !important;
+      max-width: 1100px !important;
     }
   `],
 })

@@ -1,15 +1,28 @@
 <div *transloco="let t" class="w-full">
   <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4 mt-2">
-    <tui-textfield class="w-full">
+    <tui-textfield>
       <label tuiLabel>{{ t('schedule_settings.name') }}</label>
       <input tuiInput formControlName="name" />
     </tui-textfield>
 
-    <div class="flex items-center gap-3">
-      <label class="text-sm font-medium text-surface-700 dark:text-surface-300 whitespace-nowrap">{{ t('schedule_settings.color') }}</label>
-      <input type="color" formControlName="color" class="w-10 h-10 rounded border border-surface-200 dark:border-surface-600 cursor-pointer" />
-      <span class="text-xs text-surface-500">{{ form.get('color')?.value }}</span>
-    </div>
+    <tui-textfield>
+      <label tuiLabel>{{ t('schedule_settings.color') }}</label>
+      <input
+        list="scheduleColors"
+        placeholder="#4F46E5"
+        tuiInputColor
+        formControlName="color" />
+      <datalist id="scheduleColors">
+        <option value="#4F46E5"></option>
+        <option value="#EF4444"></option>
+        <option value="#10B981"></option>
+        <option value="#F59E0B"></option>
+        <option value="#3B82F6"></option>
+        <option value="#8B5CF6"></option>
+        <option value="#EC4899"></option>
+        <option value="#06B6D4"></option>
+      </datalist>
+    </tui-textfield>
 
     <div class="border-t border-surface-200 dark:border-surface-700 pt-4">
       <div class="flex items-center justify-between mb-3">
@@ -21,7 +34,7 @@
 
       <div formArrayName="details" class="space-y-2">
         @for (detail of details.controls; track detail; let i = $index) {
-          <div [formGroupName]="i" class="grid gap-2 p-3 rounded bg-surface-50 dark:bg-surface-800" style="grid-template-columns: 1fr 120px auto 120px 36px;">
+          <div [formGroupName]="i" class="grid gap-2 p-3 rounded bg-surface-50 dark:bg-surface-800" style="grid-template-columns: 1fr 140px auto 140px 36px;">
             <tui-textfield tuiChevron>
               <label tuiLabel>{{ t('schedule_settings.day') }}</label>
               <input tuiComboBox formControlName="dayOfWeek" />
@@ -29,14 +42,14 @@
             </tui-textfield>
             <tui-textfield>
               <label tuiLabel>{{ t('schedule_settings.start_time') }}</label>
-              <input tuiInput type="time" formControlName="startTime" />
+              <input tuiInputTime formControlName="startTime" />
             </tui-textfield>
             <div class="flex items-center justify-center pt-6">
               <span class="text-surface-400">—</span>
             </div>
             <tui-textfield>
               <label tuiLabel>{{ t('schedule_settings.end_time') }}</label>
-              <input tuiInput type="time" formControlName="endTime" />
+              <input tuiInputTime formControlName="endTime" />
             </tui-textfield>
             <button type="button"
               class="inline-flex items-center justify-center w-9 h-9 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 hover:text-red-700 transition-colors self-end"

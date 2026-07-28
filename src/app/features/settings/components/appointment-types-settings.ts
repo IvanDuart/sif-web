@@ -39,6 +39,7 @@ import { TuiBadge } from '@taiga-ui/kit';
               <tr>
                 <th tuiTh scope="col">{{ t('appointment_types.name') }}</th>
                 <th tuiTh scope="col">{{ t('appointment_types.duration') }}</th>
+                <th tuiTh scope="col">{{ t('appointment_types.price') }}</th>
                 <th tuiTh scope="col">{{ t('appointment_types.is_default') }}</th>
                 <th tuiTh scope="col">{{ t('appointment_types.is_active') }}</th>
                 <th tuiTh scope="col" class="text-center" style="width: 8rem;">{{ t('common.actions') }}</th>
@@ -49,6 +50,7 @@ import { TuiBadge } from '@taiga-ui/kit';
                 <tr tuiTr>
                   <td tuiTd class="font-medium">{{ type.name }}</td>
                   <td tuiTd>{{ type.durationMinutes }} min</td>
+                  <td tuiTd>{{ formatPrice(type.price) }}</td>
                   <td tuiTd>
                     @if (type.isDefault) {
                       <i class="fa-solid fa-check text-green-500"></i>
@@ -83,7 +85,7 @@ import { TuiBadge } from '@taiga-ui/kit';
                 </tr>
               } @empty {
                 <tr tuiTr>
-                  <td tuiTd colspan="5" class="text-center text-surface-400 py-8">
+                  <td tuiTd colspan="6" class="text-center text-surface-400 py-8">
                     {{ t('appointment_types.empty') }}
                   </td>
                 </tr>
@@ -131,6 +133,13 @@ export class AppointmentTypesSettings implements OnInit {
     }).subscribe((result) => {
       if (result) this.loadTypes();
     });
+  }
+
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(price);
   }
 
   confirmDelete(type: AppointmentTypeDto) {
