@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AppUserDto, UserType, UserTenantProfileDto, UpdateUserTenantProfileRequest } from '../models/user.model';
-import { environment } from '../../../../environments/environment';
+import {ConfigService} from '../../config/config.service';
 
 export interface UpdateUserRequest {
   firstName?: string | null;
@@ -29,8 +29,12 @@ export interface ChangeUserRoleRequest {
 
 @Injectable({ providedIn: 'root' })
 export class UserTenantRoleService {
-  private readonly baseUrl = environment.apiBaseUrl;
+  private readonly configService = inject(ConfigService);
   private readonly http = inject(HttpClient);
+
+  private get baseUrl(): string {
+    return this.configService.apiUrl;
+  }
 
   getUsersByTenant(tenantId: string): Observable<AppUserDto[]> {
     return this.http.get<AppUserDto[]>(`${this.baseUrl}/tenant/${tenantId}/users`);

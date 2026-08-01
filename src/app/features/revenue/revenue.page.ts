@@ -1,13 +1,15 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ViewChild, ElementRef, OnDestroy, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
-import { TuiAxes, TuiLineChart } from '@taiga-ui/addon-charts';
 import { TuiTable } from '@taiga-ui/addon-table';
 import { TuiButton, TuiDropdown, TuiTextfield, TuiFilterByInputPipe } from '@taiga-ui/core';
 import {TuiChevron, TuiComboBox, TuiDataListWrapper, TuiTabs, TuiInputDateRange, TuiCalendarRange} from '@taiga-ui/kit';
 import { TuiDay, TuiDayRange } from '@taiga-ui/cdk';
+
+import { Chart, registerables } from 'chart.js';
+import type { ChartConfiguration } from 'chart.js/auto';
 
 import { AppointmentService } from '../../core/api/services/appointment.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
@@ -15,7 +17,11 @@ import { AuthService } from '../../core/auth/auth.service';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { NotificationService } from '../../core/ui';
+import { ThemeService } from '../../core/branding/theme.service';
+import { buildChartConfig } from '../../shared/utils/chart-config';
 import type { AppUserDto } from '../../core/api/models/user.model';
+
+Chart.register(...registerables);
 
 type Granularity = 'day' | 'week' | 'month';
 type ViewMode = 'chart' | 'table';
@@ -34,14 +40,13 @@ const MAX_BUCKETS = 60;
   imports: [
     FormsModule,
     TranslocoDirective,
-    TuiLineChart, TuiAxes,
     TuiTable,
     TuiButton, TuiDropdown, TuiTextfield, TuiFilterByInputPipe,
     TuiChevron, TuiComboBox, TuiDataListWrapper, TuiTabs, TuiInputDateRange, TuiCalendarRange,
   ],
   templateUrl: './revenue.page.html',
 })
-export default class RevenuePage implements OnInit {
+export default class RevenuePage implements OnInit, OnDestroy {
   private readonly appointmentService = inject(AppointmentService);
   private readonly userTenantRoleService = inject(UserTenantRoleService);
   private readonly authService = inject(AuthService);
@@ -49,9 +54,7 @@ export default class RevenuePage implements OnInit {
   private readonly transloco = inject(TranslocoService);
   readonly permissionsService = inject(PermissionsService);
   private readonly notify = inject(NotificationService);
-
-  // Expose Math to template
-  Math = Math;
+  private readonly themeService = inject(ThemeService);
 
   dateRange = signal(
     new TuiDayRange(
@@ -91,6 +94,17 @@ export default class RevenuePage implements OnInit {
 
   revenueData = signal<{ label: string; value: number }[]>([]);
 
+  // Chart
+  chartData: ChartConfiguration<'line'>['data'] | null = null;
+  chartOptions: ChartConfiguration<'line'>['options'] | null = null;
+  chartLoaded = signal(false);
+  private _chartCanvasEl?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartCanvas') set chartCanvasEl(el: ElementRef<HTMLCanvasElement> | undefined) {
+    this._chartCanvasEl = el;
+    if (el) this.renderChartIfReady();
+  }
+  private chartInstance: Chart | null = null;
+
   currentUser = this.authService.user;
 
   isAdmin = computed(() => {
@@ -116,14 +130,6 @@ export default class RevenuePage implements OnInit {
     return count > 0 ? this.totalRevenue() / count : 0;
   });
 
-  chartData = computed(() => {
-    return this.revenueData().map((d, i) => [i, d.value] as [number, number]);
-  });
-
-  xLabels = computed(() => {
-    return this.revenueData().map(d => d.label);
-  });
-
   ngOnInit(): void {
     const user = this.currentUser();
     const tenantId = this.tenantCtx.currentTenantId();
@@ -136,6 +142,13 @@ export default class RevenuePage implements OnInit {
 
     this.loadNutritionists(tenantId);
     this.loadData();
+
+    effect(() => {
+      this.themeService.colorScheme();
+      if (this.chartLoaded()) {
+        requestAnimationFrame(() => this.buildChart());
+      }
+    });
   }
 
   private loadNutritionists(tenantId: string): void {
@@ -215,6 +228,7 @@ export default class RevenuePage implements OnInit {
         this.revenueData.set(
           buckets.map((b, i) => ({ label: b.label, value: results[i] ?? 0 }))
         );
+        this.buildChart();
       });
   }
 
@@ -241,20 +255,6 @@ export default class RevenuePage implements OnInit {
     const map: Granularity[] = ['month', 'week', 'day'];
     this.granularity.set(map[index] ?? 'month');
     this.loadData();
-  }
-
-  get maxY(): number {
-    const values = this.revenueData().map(d => d.value);
-    if (values.length === 0) return 100;
-    const max = Math.max(...values);
-    return Math.max(10, max > 0 ? max * 1.15 : 100);
-  }
-
-  formatEURShort(value: number): string {
-    if (value >= 1000) {
-      return '€' + (value / 1000).toFixed(1) + 'k';
-    }
-    return this.formatEUR(value);
   }
 
   onDateChange(): void {
@@ -360,12 +360,50 @@ export default class RevenuePage implements OnInit {
     return `${y}-${m}-${d}`;
   }
 
-  get yLabels(): string[] {
-    const values = this.revenueData().map(d => d.value);
-    if (values.length === 0) return [];
-    const max = Math.max(...values);
-    if (max === 0) return ['€0', '€0', '€0', '€0', '€0'];
-    const step = max / 4;
-    return Array.from({ length: 5 }, (_, i) => this.formatEURShort(Math.round(step * i)));
+  private buildChart(): void {
+    const data = this.revenueData();
+    if (!data || data.length === 0) {
+      this.chartLoaded.set(false);
+      return;
+    }
+
+    const labels = data.map(d => d.label);
+    const values = data.map(d => d.value);
+
+    const config = buildChartConfig(
+      labels,
+      [{
+        label: this.transloco.translate('revenue.title'),
+        data: values,
+        borderColor: '#3B82F6',
+        backgroundColor: '#3B82F6',
+      }]
+    );
+
+    if (config.options?.plugins?.legend) {
+      config.options.plugins.legend.display = false;
+    }
+
+    this.chartData = config.data;
+    this.chartOptions = config.options;
+    this.chartLoaded.set(true);
+    this.renderChartIfReady();
+  }
+
+  private renderChartIfReady(): void {
+    if (!this.chartData || !this._chartCanvasEl) return;
+    if (this.chartInstance) this.chartInstance.destroy();
+    this.chartInstance = new Chart(this._chartCanvasEl.nativeElement, {
+      type: 'line',
+      data: this.chartData,
+      options: this.chartOptions ?? undefined,
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.chartInstance) {
+      this.chartInstance.destroy();
+      this.chartInstance = null;
+    }
   }
 }

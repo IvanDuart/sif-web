@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Menu } from '../models/menu.model';
 import { Page } from '../models/page.model';
-import { environment } from '../../../../environments/environment';
+import {ConfigService} from '../../config/config.service';
 
 export interface CreateMenuRequest {
   appUserId?: string;
@@ -13,8 +13,12 @@ export interface CreateMenuRequest {
 
 @Injectable({ providedIn: 'root' })
 export class MenuService {
-  private readonly baseUrl = environment.apiBaseUrl;
+  private readonly configService = inject(ConfigService);
   private readonly http = inject(HttpClient);
+
+  private get baseUrl(): string {
+    return this.configService.apiUrl;
+  }
 
   search(
     tenantId: string,

@@ -24,18 +24,17 @@
       </textarea>
     </div>
 
-    <div class="flex flex-col gap-1.5">
-      <label for="eventStart" class="text-sm font-medium text-surface-700">{{ t('patient_events.start_time') }}</label>
+    <tui-textfield>
+      <label tuiLabel>{{ t('patient_events.start_time') }}</label>
       <input
-        type="date"
+        tuiInputDate
         id="eventStart"
-        formControlName="startTime"
-        [min]="minDate"
-        class="w-full rounded-lg border border-surface-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+        formControlName="startTime" />
+      <tui-calendar *tuiDropdown />
       @if (form.get('startTime')?.invalid && form.get('startTime')?.touched) {
         <small class="text-red-500">{{ t('patient_events.start_time_future') }}</small>
       }
-    </div>
+    </tui-textfield>
 
     <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
       <button type="button" tuiButton appearance="secondary" size="m" (click)="ref.close()">{{ t('common.cancel') }}</button>

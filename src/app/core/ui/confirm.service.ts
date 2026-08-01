@@ -19,6 +19,7 @@ export class ConfirmService {
    * @returns Observable<boolean> — true if confirmed, false/complete if cancelled
    */
   confirm(options: ConfirmOptions = {}): Observable<boolean> {
+    this.tui.markAsDirty();
     return this.tui.withConfirm({
       label: options.label ?? 'Confirmar',
       size: options.size ?? 's',

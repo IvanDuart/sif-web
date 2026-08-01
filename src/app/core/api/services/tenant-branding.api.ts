@@ -3,12 +3,16 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { TenantBrandingDto } from '../models/branding.model';
 import { TenantPreferences } from '../models/tenant.model';
-import { environment } from '../../../../environments/environment';
+import {ConfigService} from '../../config/config.service';
 
 @Injectable({ providedIn: 'root' })
 export class TenantBrandingService {
-  private readonly baseUrl = environment.apiBaseUrl;
+  private readonly configService = inject(ConfigService);
   private readonly http = inject(HttpClient);
+
+  private get baseUrl(): string {
+    return this.configService.apiUrl;
+  }
 
   getBranding(tenantId: string): Observable<TenantBrandingDto> {
     return this.http.get<TenantBrandingDto>(`${this.baseUrl}/tenant/${tenantId}/branding`);

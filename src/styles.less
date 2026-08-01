@@ -343,3 +343,18 @@ tui-toast[data-appearance="info"] {
   box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.15);
 }
 
+/* ─────────────────────────────────────────────
+   FIX: Taiga UI 5 tuiIconButton + FontAwesome
+   tuiIconButton sets font-size: 0 !important which
+   collapses FontAwesome icons that use em units.
+   ───────────────────────────────────────────── */
+button[tuiIconButton] i[class*="fa-"] {
+  font-size: 1.25rem !important;
+}
+button[tuiIconButton][data-size="s"] i[class*="fa-"] {
+  font-size: 1rem !important;
+}
+button[tuiIconButton][data-size="xs"] i[class*="fa-"] {
+  font-size: 0.875rem !important;
+}
+

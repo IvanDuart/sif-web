@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Tenant, TenantPreferences } from '../models/tenant.model';
 import { Page } from '../models/page.model';
-import { environment } from '../../../../environments/environment';
+import {ConfigService} from '../../config/config.service';
 
 export interface CreateTenantRequest {
   name: string;
@@ -29,9 +29,16 @@ export interface UpdateTenantRequest {
 
 @Injectable({ providedIn: 'root' })
 export class TenantService {
-  private readonly baseUrl = `${environment.apiBaseUrl}/tenants`;
-  private readonly profileUrl = environment.apiBaseUrl;
+  private readonly configService = inject(ConfigService);
   private readonly http = inject(HttpClient);
+
+  private get baseUrl(): string {
+    return `${this.configService.apiUrl}/tenants`;
+  }
+
+  private get profileUrl(): string {
+    return this.configService.apiUrl;
+  }
 
   search(page = 0, size = 10, sort: string[] = ['name,ASC']): Observable<Page<Tenant>> {
     let params = new HttpParams()

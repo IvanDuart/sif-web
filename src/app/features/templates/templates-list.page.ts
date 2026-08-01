@@ -1,4 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { TuiButton } from '@taiga-ui/core';
 import { TuiTable } from '@taiga-ui/addon-table';
@@ -18,7 +19,7 @@ import { InstantiateTemplateDialog, InstantiateTemplateDialogInput } from './ins
 @Component({
   selector: 'app-templates-list',
   standalone: true,
-  imports: [IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent, TuiButton, TuiTable],
+  imports: [IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent, TuiButton, TuiTable, DatePipe],
   templateUrl: './templates-list.page.html'
 })
 export default class TemplatesListPage implements OnInit {

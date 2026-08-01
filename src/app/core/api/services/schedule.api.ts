@@ -1,18 +1,22 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../../environments/environment';
 import {
   ScheduleDto,
   CreateScheduleRequest,
   TenantScheduleAssignmentDto,
   CreateScheduleAssignmentRequest,
 } from '../models/schedule.model';
+import {ConfigService} from '../../config/config.service';
 
 @Injectable({ providedIn: 'root' })
 export class ScheduleService {
-  private readonly baseUrl = environment.apiBaseUrl;
+  private readonly configService = inject(ConfigService);
   private readonly http = inject(HttpClient);
+
+  private get baseUrl(): string {
+    return this.configService.apiUrl;
+  }
 
   private endpoint(tenantId: string): string {
     return `${this.baseUrl}/tenant/${tenantId}/schedules`;

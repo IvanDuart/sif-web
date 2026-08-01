@@ -2,12 +2,16 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PatientEventDto, CreatePatientEventRequest, UpdatePatientEventRequest } from '../models/patient-event.model';
-import { environment } from '../../../../environments/environment';
+import {ConfigService} from '../../config/config.service';
 
 @Injectable({ providedIn: 'root' })
 export class PatientEventService {
-  private readonly baseUrl = environment.apiBaseUrl;
+  private readonly configService = inject(ConfigService);
   private readonly http = inject(HttpClient);
+
+  private get baseUrl(): string {
+    return this.configService.apiUrl;
+  }
 
   getByPatient(tenantId: string, patientId: string, from?: string, to?: string): Observable<PatientEventDto[]> {
     const params: Record<string, string> = {};

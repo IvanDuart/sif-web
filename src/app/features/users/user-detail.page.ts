@@ -8,7 +8,7 @@ import { FullCalendarModule } from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
-import type { CalendarOptions, EventSourceInput, EventClickArg, DatesSetArg } from '@fullcalendar/core';
+import type { CalendarOptions, EventClickArg, DatesSetArg } from '@fullcalendar/core';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { PatientEventService } from '../../core/api/services/patient-event.api';
 import { BodyMeasurementService } from '../../core/api/services/body-measurement.api';
@@ -119,8 +119,41 @@ export default class UserDetailPage implements OnInit, OnDestroy {
 
   patientEvents = signal<PatientEventDto[]>([]);
   loadingEvents = signal(false);
-  calendarEvents = signal<EventSourceInput>([]);
-  calendarOptions: CalendarOptions = {};
+
+  private readonly baseCalendarOptions: CalendarOptions = {
+    plugins: [dayGridPlugin, interactionPlugin],
+    initialView: 'dayGridMonth',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth'
+    },
+    locales: [esLocale],
+    locale: 'es',
+    height: 'auto',
+    firstDay: 1,
+    editable: false,
+    selectable: false,
+  };
+
+  calendarOptions = computed<CalendarOptions>(() => ({
+    ...this.baseCalendarOptions,
+    eventClick: (info: EventClickArg) => this.handlePatientEventClick(info),
+    datesSet: (info: DatesSetArg) => this.onPatientEventDatesSet(info),
+    events: this.patientEvents().map(e => ({
+      id: e.id,
+      title: e.title,
+      start: e.startTime,
+      allDay: true,
+      backgroundColor: '#eff6ff',
+      borderColor: '#3b82f6',
+      textColor: '#334155',
+      extendedProps: {
+        description: e.description,
+        startTime: e.startTime
+      }
+    })),
+  }));
 
   activeTabIndex = signal(0);
 
@@ -210,27 +243,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       }
     });
 
-    this.calendarOptions = {
-      plugins: [dayGridPlugin, interactionPlugin],
-      initialView: 'dayGridMonth',
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth'
-      },
-      locales: [esLocale],
-      locale: 'es',
-      height: 'auto',
-      firstDay: 1,
-      editable: false,
-      selectable: false,
-      eventClick: (info: EventClickArg) => {
-        this.handlePatientEventClick(info);
-      },
-      datesSet: (info: DatesSetArg) => {
-        this.onPatientEventDatesSet(info);
-      }
-    };
+
   }
 
   private onUserLoaded() {
@@ -404,29 +417,10 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     this.patientEventService.getByPatient(tenantId, this.userId, from, to).subscribe({
       next: (events) => {
         this.patientEvents.set(events || []);
-        this.buildCalendarEvents(events || []);
         this.loadingEvents.set(false);
       },
       error: () => this.loadingEvents.set(false)
     });
-  }
-
-  private buildCalendarEvents(events: PatientEventDto[]) {
-    this.calendarEvents.set(
-      (events || []).map(e => ({
-        id: e.id,
-        title: e.title,
-        start: e.startTime,
-        allDay: true,
-        backgroundColor: '#2563eb',
-        borderColor: '#2563eb',
-        textColor: '#ffffff',
-        extendedProps: {
-          description: e.description,
-          startTime: e.startTime
-        }
-      }))
-    );
   }
 
   private onPatientEventDatesSet(info: DatesSetArg) {

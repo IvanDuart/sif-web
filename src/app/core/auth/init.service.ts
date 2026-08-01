@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 import { KEYCLOAK_EVENT_SIGNAL, KeycloakEventType, ReadyArgs, typeEventArgs } from 'keycloak-angular';
 import { AppUserDto, TenantMembershipDto } from '../api/models/user.model';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import {ConfigService} from '../config/config.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,9 +16,10 @@ export class InitService {
   readonly #http = inject(HttpClient);
   readonly #keycloak = inject(Keycloak);
   readonly #authService = inject(AuthService);
+  readonly #configService = inject(ConfigService);
 
   private get baseUrl(): string {
-    return environment.apiBaseUrl;
+    return this.#configService.apiUrl;
   }
 
   constructor() {

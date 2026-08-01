@@ -1,13 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../../environments/environment';
 import { WaterIntakeDto, UpdateWaterIntakeRequest } from '../models/water-intake.model';
+import {ConfigService} from '../../config/config.service';
 
 @Injectable({ providedIn: 'root' })
 export class WaterIntakeService {
+  private readonly configService = inject(ConfigService);
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = environment.apiBaseUrl;
+
+  private get baseUrl(): string {
+    return this.configService.apiUrl;
+  }
 
   update(tenantId: string, userId: string, date: string, request: UpdateWaterIntakeRequest): Observable<WaterIntakeDto> {
     return this.http.put<WaterIntakeDto>(

@@ -3,12 +3,16 @@ import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { BodyMeasurementDto, CreateBodyMeasurementRequest, MeasurementHistoryDto } from '../models/body-measurement.model';
 import { Page } from '../models/page.model';
-import { environment } from '../../../../environments/environment';
+import {ConfigService} from '../../config/config.service';
 
 @Injectable({ providedIn: 'root' })
 export class BodyMeasurementService {
-  private readonly baseUrl = environment.apiBaseUrl;
+  private readonly configService = inject(ConfigService);
   private readonly http = inject(HttpClient);
+
+  private get baseUrl(): string {
+    return this.configService.apiUrl;
+  }
 
   private endpoint(tenantId: string, userId: string): string {
     return `${this.baseUrl}/tenant/${tenantId}/users/${userId}/measurements`;

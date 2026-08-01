@@ -1,7 +1,8 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TuiButton, TuiInput } from '@taiga-ui/core';
-import { TuiTextarea } from '@taiga-ui/kit';
+import { TuiButton, TuiTextfield, TuiLabel, TuiDropdown } from '@taiga-ui/core';
+import { TuiTextarea, TuiInputDate, TuiInputTime } from '@taiga-ui/kit';
+import { TuiDay, TuiTime } from '@taiga-ui/cdk';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import type { TuiDialogContext } from '@taiga-ui/core';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
@@ -12,12 +13,12 @@ import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppointmentDto } from '../../core/api/models/appointment.model';
 import { NotificationService, ConfirmService } from '../../core/ui';
 import { PermissionsService } from '../../core/permissions/permissions.service';
-import { toLocalISOString } from '../../shared/utils/date';
+import { ScheduleAvailabilityService } from '../../core/api/services/schedule-availability.service';
 
 @Component({
   selector: 'app-appointment-action-dialog',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton, TuiInput, TuiTextarea],
+  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton, TuiTextarea, TuiTextfield, TuiInputDate, TuiInputTime, TuiLabel, TuiDropdown],
   templateUrl: './appointment-action.dialog.html'
 })
 export class AppointmentActionDialog implements OnInit {
@@ -29,6 +30,7 @@ export class AppointmentActionDialog implements OnInit {
   private readonly notify = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
   private readonly permissionsService = inject(PermissionsService);
+  private readonly scheduleAvailability = inject(ScheduleAvailabilityService);
 
   canManage = computed(() => this.permissionsService.has('MANAGE_APPOINTMENTS'));
 
@@ -38,9 +40,16 @@ export class AppointmentActionDialog implements OnInit {
 
   appointmentTypes = signal<{ label: string; value: string }[]>([]);
   saving = signal(false);
+  error = signal('');
+
+  scheduleInfo = signal<string | null>(null);
+  isHolidayDate = signal(false);
+  isClosedDate = signal(false);
+  availabilityLoaded = signal(false);
 
   form = this.fb.group({
-    startTime: ['', Validators.required],
+    date: [null as TuiDay | null, Validators.required],
+    time: [null as TuiTime | null, Validators.required],
     typeId: ['', Validators.required],
     notes: ['']
   });
@@ -48,6 +57,41 @@ export class AppointmentActionDialog implements OnInit {
   ngOnInit() {
     this.loadAppointmentTypes();
     this.prefillForm();
+
+    this.scheduleAvailability.load().subscribe(() => {
+      this.availabilityLoaded.set(true);
+      this.updateScheduleInfo();
+    });
+
+    this.form.get('date')?.valueChanges.subscribe(() => {
+      this.updateScheduleInfo();
+    });
+  }
+
+  private updateScheduleInfo() {
+    const raw = this.form.get('date')?.value;
+    if (!raw || !this.availabilityLoaded()) return;
+
+    const day = raw as TuiDay;
+    if (!day) return;
+
+    const dateStr = `${String(day.year).padStart(4, '0')}-${String(day.month + 1).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`;
+
+    this.isHolidayDate.set(this.scheduleAvailability.isHolidayCached(dateStr));
+    this.isClosedDate.set(false);
+    this.scheduleInfo.set(null);
+    this.error.set('');
+
+    if (this.isHolidayDate()) {
+      return;
+    }
+
+    const formatted = this.scheduleAvailability.getFormattedSchedule(dateStr);
+    if (formatted) {
+      this.scheduleInfo.set(`Horario: ${formatted}`);
+    } else {
+      this.isClosedDate.set(true);
+    }
   }
 
   private loadAppointmentTypes() {
@@ -66,8 +110,11 @@ export class AppointmentActionDialog implements OnInit {
   }
 
   private prefillForm() {
+    const day = this.appointment.startTime ? TuiDay.fromLocalNativeDate(new Date(this.appointment.startTime)) : null;
+    const time = this.appointment.startTime ? TuiTime.fromLocalNativeDate(new Date(this.appointment.startTime)) : null;
     this.form.patchValue({
-      startTime: this.appointment.startTime ? toLocalISOString(new Date(this.appointment.startTime)) : '',
+      date: day,
+      time,
       typeId: this.appointment.typeId || '',
       notes: this.appointment.notes || ''
     });
@@ -80,11 +127,29 @@ export class AppointmentActionDialog implements OnInit {
     if (!tenantId) return;
 
     const raw = this.form.value;
+    const day = raw.date as TuiDay | null;
+    const time = raw.time as TuiTime | null;
+
+    if (!day || !time) return;
+
+    const dateStr = `${String(day.year).padStart(4, '0')}-${String(day.month + 1).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`;
+    const timeStr = `${String(time.hours).padStart(2, '0')}:${String(time.minutes).padStart(2, '0')}`;
+    const localDatetimeStr = `${dateStr}T${timeStr}`;
+
+    const validationError = this.scheduleAvailability.validateAppointmentTime(localDatetimeStr);
+    if (validationError) {
+      this.error.set(validationError);
+      return;
+    }
 
     this.saving.set(true);
+    this.error.set('');
+
+    const startDate = day.toLocalNativeDate();
+    startDate.setHours(time.hours, time.minutes, 0, 0);
 
     this.appointmentService.reschedule(tenantId, this.appointment.id, {
-      startTime: new Date(raw.startTime!).toISOString(),
+      startTime: startDate.toISOString(),
       typeId: raw.typeId!,
       notes: raw.notes || undefined
     }).subscribe({
@@ -99,15 +164,9 @@ export class AppointmentActionDialog implements OnInit {
       error: (err) => {
         this.saving.set(false);
         if (err.status === 409) {
-          this.notify.error(
-            this.transloco.translate('appointments.conflict'),
-            this.transloco.translate('common.error')
-          );
+          this.error.set(this.transloco.translate('appointments.conflict'));
         } else {
-          this.notify.error(
-            this.transloco.translate('appointments.reschedule_error'),
-            this.transloco.translate('common.error')
-          );
+          this.error.set(this.transloco.translate('appointments.reschedule_error'));
         }
       }
     });

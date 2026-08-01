@@ -1,12 +1,15 @@
 import { provideKeycloak } from 'keycloak-angular';
-import { environment } from '../../../environments/environment';
+import {ConfigService} from '../config/config.service';
 
 export function getKeycloakProvider() {
+  const configService = new ConfigService();
+  const keycloakConfig = configService.keycloak;
+
   return provideKeycloak({
     config: {
-      url: environment.keycloak.url,
-      realm: environment.keycloak.realm,
-      clientId: environment.keycloak.clientId,
+      url: keycloakConfig.url,
+      realm: keycloakConfig.realm,
+      clientId: keycloakConfig.clientId,
     },
     initOptions: {
       onLoad: 'check-sso',

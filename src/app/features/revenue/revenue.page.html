@@ -95,23 +95,9 @@
           {{ t('revenue.no_data') }}
         </div>
         } @else if (viewMode() === 'chart') {
-          <tui-axes
-            class="block w-full"
-            style="height: 350px;"
-            [axisXLabels]="xLabels()"
-            [axisYLabels]="yLabels"
-            [horizontalLines]="4"
-          >
-            <tui-line-chart
-              class="text-primary-600 dark:text-primary-400"
-              [value]="chartData()"
-              [smoothingFactor]="50"
-              [dots]="true"
-              [filled]="true"
-              [width]="Math.max(1, xLabels().length - 1)"
-              [height]="maxY"
-            ></tui-line-chart>
-          </tui-axes>
+          <div class="relative" style="height: 350px">
+            <canvas #chartCanvas></canvas>
+          </div>
       } @else {
         <div class="table-wrapper mt-2">
           <table tuiTable class="w-full">

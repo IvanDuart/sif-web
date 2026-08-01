@@ -1,34 +1,86 @@
-<div class="flex flex-col gap-4 mt-2">
-  <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg flex items-start gap-3 mb-2">
-    <i class="fa-solid fa-wand-magic-sparkles text-primary-500 text-xl mt-1"></i>
-    <div class="text-sm">
-      {{ 'templates.upload_description' | transloco }}
+@if (isLoadingAiStatus()) {
+  <div class="flex flex-col items-center justify-center py-12 gap-3">
+    <i class="fa-solid fa-spinner fa-spin text-primary-500 text-2xl"></i>
+    <p class="text-sm text-surface-500">{{ 'templates.upload_ai_checking' | transloco }}</p>
+  </div>
+} @else if (!aiAvailable()) {
+  <div class="flex flex-col gap-4 mt-2">
+    <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg flex items-start gap-3 mb-2 border border-amber-300 dark:border-amber-700">
+      <i class="fa-solid fa-exclamation-triangle text-amber-500 text-xl mt-0.5"></i>
+      <div class="text-sm text-amber-800 dark:text-amber-200">
+        {{ 'templates.upload_ai_disabled' | transloco }}
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+      <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ 'common.close' | transloco }}</button>
     </div>
   </div>
+} @else {
+  <div class="flex flex-col gap-4 mt-2">
+    <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg flex items-start gap-3 mb-2">
+      <i class="fa-solid fa-wand-magic-sparkles text-primary-500 text-xl mt-1"></i>
+      <div class="text-sm">
+        {{ 'templates.upload_description' | transloco }}
+      </div>
+    </div>
 
-  <tui-textfield class="w-full">
-    <label tuiLabel for="name">{{ 'templates.form_name_optional' | transloco }}</label>
-    <input id="name" [(ngModel)]="name" tuiInput [placeholder]="'templates.form_name_placeholder' | transloco" />
-  </tui-textfield>
+    <tui-textfield class="w-full">
+      <label tuiLabel for="name">{{ 'templates.form_name_optional' | transloco }}</label>
+      <input id="name" [(ngModel)]="name" tuiInput [placeholder]="'templates.form_name_placeholder' | transloco" [disabled]="isUploading()" />
+    </tui-textfield>
 
-  <tui-textfield class="w-full">
-    <label tuiLabel for="description">{{ 'templates.form_description_optional' | transloco }}</label>
-    <textarea id="description" [(ngModel)]="description" tuiTextarea rows="4" [placeholder]="'templates.form_description_placeholder' | transloco"></textarea>
-  </tui-textfield>
+    <tui-textfield class="w-full">
+      <label tuiLabel for="description">{{ 'templates.form_description_optional' | transloco }}</label>
+      <textarea id="description" [(ngModel)]="description" tuiTextarea rows="4" [placeholder]="'templates.form_description_placeholder' | transloco" [disabled]="isUploading()"></textarea>
+    </tui-textfield>
 
-  <div class="flex flex-col gap-2 mt-2">
-    <p class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ 'diets.document_label' | transloco }}</p>
-    <label tuiInputFiles class="w-full">
-      <input
-        type="file"
-        tuiInputFiles
-        accept="image/*,application/pdf"
-        (change)="onFileSelected($event)"
-      />
-    </label>
+    <div class="flex flex-col gap-2 mt-2">
+      <p class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ 'diets.document_label' | transloco }}</p>
+      <label tuiInputFiles class="w-full">
+        <input tuiInputFiles accept="image/*,application/pdf" [ngModel]="null" (ngModelChange)="onFileSelected($event)" [disabled]="isUploading()" />
+        <ng-template let-dragged>
+          @if (dragged) {
+            <div class="border-2 border-primary-500 border-dashed rounded-lg p-6 text-center bg-primary-50 dark:bg-primary-900/20">
+              <i class="fa-solid fa-cloud-arrow-down text-3xl text-primary-500 mb-2" aria-hidden="true"></i>
+              <p class="text-sm text-primary-600 dark:text-primary-400 font-medium">
+                {{ 'templates.upload_drop_here' | transloco }}
+              </p>
+            </div>
+          } @else if (selectedFile(); as file) {
+            <div class="relative group cursor-pointer">
+              <div class="w-full py-6 rounded-lg border border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20 flex flex-col items-center justify-center gap-2">
+                <i class="fa-solid fa-file text-2xl text-primary-500" aria-hidden="true"></i>
+                <span class="text-sm font-medium text-primary-700 dark:text-primary-300 px-3 text-center truncate max-w-full">{{ file.name }}</span>
+                <span class="text-xs text-primary-500">({{ (file.size / 1024).toFixed(1) }} KB)</span>
+              </div>
+              <button type="button" class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600 transition-colors" (click)="removeFile(); $event.stopPropagation()" [title]="'common.remove' | transloco">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+              </button>
+            </div>
+          } @else {
+            <div class="border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg p-6 text-center hover:border-primary-400 dark:hover:border-primary-500 transition-colors cursor-pointer">
+              <i class="fa-solid fa-cloud-arrow-up text-2xl text-surface-300 dark:text-surface-500 mb-2" aria-hidden="true"></i>
+              <p class="text-sm text-surface-500">{{ 'templates.upload_hint' | transloco }}</p>
+            </div>
+          }
+        </ng-template>
+      </label>
+    </div>
+
+    <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+      <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()" [disabled]="isUploading()">
+        {{ 'common.cancel' | transloco }}
+      </button>
+      @if (isUploading()) {
+        <button type="button" tuiButton size="m" disabled>
+          <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+          {{ 'templates.upload_processing' | transloco }}
+        </button>
+      } @else {
+        <button type="button" tuiButton size="m" [disabled]="!hasFile()" (click)="submit()">
+          {{ 'common.accept' | transloco }}
+        </button>
+      }
+    </div>
   </div>
-
-  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-    <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
-  </div>
-</div>
+}

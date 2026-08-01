@@ -2,12 +2,16 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AppointmentTypeDto, CreateAppointmentTypeRequest, UpdateAppointmentTypeRequest } from '../models/appointment-type.model';
-import { environment } from '../../../../environments/environment';
+import {ConfigService} from '../../config/config.service';
 
 @Injectable({ providedIn: 'root' })
 export class AppointmentTypeService {
-  private readonly baseUrl = environment.apiBaseUrl;
+  private readonly configService = inject(ConfigService);
   private readonly http = inject(HttpClient);
+
+  private get baseUrl(): string {
+    return this.configService.apiUrl;
+  }
 
   private endpoint(tenantId: string): string {
     return `${this.baseUrl}/tenant/${tenantId}/appointment-types`;

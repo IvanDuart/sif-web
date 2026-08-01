@@ -2,8 +2,9 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext } from '@taiga-ui/core';
-import { TuiButton } from '@taiga-ui/core';
+import { TuiDialogContext, TuiDropdown, TuiTextfield, TuiLabel, TuiButton } from '@taiga-ui/core';
+import { TuiInputDate } from '@taiga-ui/kit';
+import { TuiDay } from '@taiga-ui/cdk';
 import { NotificationService } from '../../core/ui/notification.service';
 import { PatientEventService } from '../../core/api/services/patient-event.api';
 import { PatientEventDto, CreatePatientEventRequest, UpdatePatientEventRequest } from '../../core/api/models/patient-event.model';
@@ -13,7 +14,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 @Component({
   selector: 'app-patient-event-form-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton, TuiTextfield, TuiInputDate, TuiDropdown, TuiLabel],
   templateUrl: './patient-event-form.dialog.html'
 })
 export class PatientEventFormDialog {
@@ -28,12 +29,11 @@ export class PatientEventFormDialog {
   saving = false;
   existingEvent: PatientEventDto | null = this.context.data.event || null;
   userId: string = this.context.data.userId;
-  minDate = new Date().toISOString().split('T')[0];
 
   form = this.fb.group({
     title: [this.existingEvent?.title ?? '', Validators.required],
     description: [this.existingEvent?.description ?? ''],
-    startTime: [this.existingEvent ? new Date(this.existingEvent.startTime).toISOString().split('T')[0] : null as string | null, Validators.required]
+    startTime: [this.existingEvent ? TuiDay.fromLocalNativeDate(new Date(this.existingEvent.startTime)) : null as TuiDay | null, Validators.required]
   });
 
   submit() {
@@ -43,13 +43,13 @@ export class PatientEventFormDialog {
     if (!tenantId) return;
 
     const raw = this.form.value;
-    const startTime = raw.startTime as string | null;
+    const day = raw.startTime as TuiDay | null;
 
     this.saving = true;
 
-    const startOfDay = startTime ? new Date(startTime + 'T00:00:00') : new Date();
+    const startOfDay = day ? day.toLocalNativeDate() : new Date();
     startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = startTime ? new Date(startTime + 'T00:00:00') : new Date();
+    const endOfDay = day ? day.toLocalNativeDate() : new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
     if (this.existingEvent) {

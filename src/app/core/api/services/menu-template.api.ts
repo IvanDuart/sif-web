@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { MenuTemplate, MealTemplate } from '../models/menu-template.model';
 import { Menu } from '../models/menu.model';
 import { Page } from '../models/page.model';
-import { environment } from '../../../../environments/environment';
+import {ConfigService} from '../../config/config.service';
 
 export interface CreateMealTemplateRequest {
   dayOfWeek?: string;
@@ -32,8 +32,12 @@ export interface InstantiateMenuTemplateRequest {
 
 @Injectable({ providedIn: 'root' })
 export class MenuTemplateService {
-  private readonly baseUrl = environment.apiBaseUrl;
+  private readonly configService = inject(ConfigService);
   private readonly http = inject(HttpClient);
+
+  private get baseUrl(): string {
+    return this.configService.apiUrl;
+  }
 
   search(
     tenantId: string,

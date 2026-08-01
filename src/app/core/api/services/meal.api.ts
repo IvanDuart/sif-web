@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Meal } from '../models/meal.model';
 import { Page } from '../models/page.model';
-import { environment } from '../../../../environments/environment';
+import {ConfigService} from '../../config/config.service';
 
 export interface CreateMealRequest {
   menuId?: string;
@@ -18,8 +18,12 @@ export interface UpdateMealRequest {
 
 @Injectable({ providedIn: 'root' })
 export class MealService {
-  private readonly baseUrl = environment.apiBaseUrl;
+  private readonly configService = inject(ConfigService);
   private readonly http = inject(HttpClient);
+
+  private get baseUrl(): string {
+    return this.configService.apiUrl;
+  }
 
   search(
     tenantId: string,

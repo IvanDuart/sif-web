@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, of, map, tap } from 'rxjs';
+import { forkJoin, Observable, of, map, tap } from 'rxjs';
 import { ScheduleService } from './schedule.api';
 import { HolidayService } from './holiday.api';
 import { TenantContextService } from '../../tenant/tenant-context.service';
@@ -29,8 +29,14 @@ export class ScheduleAvailabilityService {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return of(false);
 
-    return this.holidayService.getAll(tenantId).pipe(
-      tap((h) => this.holidaysCache.set(h)),
+    return forkJoin({
+      holidays: this.holidayService.getAll(tenantId),
+      assignments: this.scheduleService.getAssignments(tenantId),
+    }).pipe(
+      tap(({ holidays, assignments }) => {
+        this.holidaysCache.set(holidays);
+        this.assignmentsCache.set(assignments);
+      }),
       map(() => true),
     );
   }

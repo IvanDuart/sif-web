@@ -27,7 +27,9 @@
     "previous": "Anterior",
     "select_option": "Seleccionar...",
     "total": "Total: {{total}}",
-    "page": "Página {{page}}"
+    "page": "Página {{page}}",
+    "accept": "Aceptar",
+    "remove": "Eliminar"
   },
   "menu": {
     "dashboard": "Panel Principal",
@@ -121,7 +123,7 @@
   "diets": {
     "title": "Dietas y Menús",
     "create": "Crear Menú",
-    "upload_ocr": "Subir (OCR)",
+    "upload_ocr": "Importar",
     "name": "Nombre",
     "status": "Estado",
     "created_at": "Creado el",
@@ -279,11 +281,12 @@
     "create": "Crear Plantilla",
     "description": "Descripción",
     "assign": "Asignar a Paciente",
-    "upload_ocr": "Subir (OCR)",
+    "upload_ocr": "Importar",
     "view_detail": "Ver detalle",
     "empty": "No se encontraron plantillas. Creá una para reutilizarla en distintos pacientes.",
     "empty_title": "Sin plantillas aún",
     "created": "Creada:",
+    "created_at": "Creado el",
     "updated": "Actualizada:",
     "not_found": "Plantilla no encontrada...",
     "form_name_label": "Nombre de la Plantilla",
@@ -294,8 +297,19 @@
     "form_description_placeholder": "Describí brevemente esta plantilla...",
     "form_save": "Guardar Plantilla",
     "upload_description": "Subí un PDF o imagen de una dieta. La IA extraerá los platos y creará la plantilla automáticamente.",
+    "upload_drop_here": "Soltá el archivo aquí",
+    "upload_hint": "Hacé clic o arrastrá un PDF o imagen aquí",
     "creating_from": "Creando menú a partir de:",
-    "delete_confirm_msg": "¿Estás seguro de que quieres eliminar la plantilla '{{name}}'?"
+    "delete_confirm_msg": "¿Estás seguro de que quieres eliminar la plantilla '{{name}}'?",
+    "upload_ai_checking": "Verificando disponibilidad de IA...",
+    "upload_ai_disabled": "La carga inteligente con IA no está habilitada para tu cuenta. Contactá al administrador del tenant para activarla en Preferencias del Sistema.",
+    "upload_processing": "Procesando con IA...",
+    "upload_error_ai_not_enabled": "IA no habilitada. Contactá al administrador del tenant.",
+    "upload_error_no_api_key": "La API Key de Gemini no está configurada. Contactá al administrador para configurarla en Preferencias del Sistema.",
+    "upload_file_too_large": "Archivo demasiado grande (máx 10MB)",
+    "upload_file_invalid_type": "Tipo de archivo no soportado. Usá PDF, JPG o PNG.",
+    "upload_error_network": "Error de conexión. Verificá tu conexión e intentá de nuevo.",
+    "upload_error_server": "Error del servidor. Intentá de nuevo más tarde."
   },
   "diet_detail": {
     "title": "Comidas de la Semana",

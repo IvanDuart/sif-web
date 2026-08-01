@@ -36,6 +36,7 @@
               <tr>
                 <th tuiTh scope="col">{{ t('diets.name') }}</th>
                 <th tuiTh scope="col">{{ t('templates.description') }}</th>
+                <th tuiTh scope="col">{{ t('templates.created_at') }}</th>
                 <th tuiTh scope="col" class="text-center" style="width: 8rem;">{{ t('common.actions') }}</th>
               </tr>
             </thead>
@@ -44,6 +45,7 @@
                 <tr tuiTr>
                   <td tuiTd class="font-medium">{{ template.name }}</td>
                   <td tuiTd class="text-surface-500 text-sm">{{ template.description }}</td>
+                  <td tuiTd class="text-surface-500 text-sm whitespace-nowrap">{{ template.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
                   <td tuiTd class="text-center">
                     <div class="flex items-center gap-1 justify-center">
                       <button type="button" tuiIconButton appearance="flat" size="s"
