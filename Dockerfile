@@ -14,7 +14,7 @@ FROM nginx:alpine
 # Install envsubst for runtime configuration
 RUN apk add --no-cache gettext
 
-COPY --from=builder /app/dist/dagr-frontend/browser /usr/share/nginx/html
+COPY --from=builder /app/dist/sif-web/browser /usr/share/nginx/html
 
 # Copy nginx configuration for SPA routing
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
