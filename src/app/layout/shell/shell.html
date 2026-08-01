@@ -11,7 +11,11 @@
       <!-- Logo -->
       <div class="nav-brand" routerLink="/">
         <div class="brand-text">
-          <i class="fa-solid fa-apple-whole"></i>{{ 'shell.app_name' | transloco }}
+          @if (tenantLogoUrl() && !logoError()) {
+            <img [src]="tenantLogoUrl()" alt="Logo" class="nav-logo" (error)="logoError.set(true)" />
+          } @else {
+            <img src="logo-sif.svg" alt="Logo" class="nav-logo" />
+          }
         </div>
       </div>
 

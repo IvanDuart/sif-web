@@ -8,6 +8,7 @@ import { TuiDropdown, TuiHint } from '@taiga-ui/core';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/branding/theme.service';
+import { ConfigService } from '../../core/config/config.service';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { TenantMembershipDto } from '../../core/api/models/user.model';
 import { AppointmentService } from '../../core/api/services/appointment.api';
@@ -31,6 +32,7 @@ const NAV_ITEMS: NavItem[] = [
   { labelKey: 'shopping_list', icon: 'fa-solid fa-cart-shopping', route: '/shopping-lists', permission: 'VIEW_MENU' },
   { labelKey: 'templates', icon: 'fa-solid fa-clipboard-list', route: '/templates', permission: 'MANAGE_TEMPLATE' },
   { labelKey: 'settings', icon: 'fa-solid fa-gear', route: '/settings', permission: 'MANAGE_TENANT_BRANDING' },
+  { labelKey: 'admin', icon: 'fa-solid fa-shield-halved', route: '/admin', permission: 'MANAGE_TENANT' },
 ];
 
 @Component({
@@ -57,6 +59,7 @@ export class Shell implements OnInit {
   private readonly appointmentService = inject(AppointmentService);
   private readonly router = inject(Router);
   readonly themeService = inject(ThemeService);
+  private readonly configService = inject(ConfigService);
 
   proposedAppointments = signal<AppointmentDto[]>([]);
   bellMenuOpen = signal(false);
@@ -64,6 +67,12 @@ export class Shell implements OnInit {
   user = this.authService.user;
   activeTenant = this.authService.selectedTenant;
   tenants = computed(() => this.user()?.memberships ?? []);
+
+  tenantLogoUrl = computed(() => {
+    const tenantId = this.activeTenant()?.tenantId;
+    return tenantId ? `${this.configService.apiUrl}/tenant/${tenantId}/branding/logo` : null;
+  });
+  logoError = signal(false);
 
   mobileMenuOpen = signal(false);
   userMenuOpen = signal(false);
@@ -157,6 +166,7 @@ export class Shell implements OnInit {
 
   selectTenant(tenant: TenantMembershipDto): void {
     this.authService.selectTenant(tenant);
+    this.logoError.set(false);
     this.tenantMenuOpen.set(false);
   }
 

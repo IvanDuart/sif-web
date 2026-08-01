@@ -40,7 +40,8 @@
     "templates": "Templates",
     "shopping_list": "Shopping List",
     "settings": "Settings",
-    "revenue": "Revenue"
+    "revenue": "Revenue",
+    "admin": "Administration"
   },
   "auth": {
     "select_tenant": "Select Clinic",
@@ -718,7 +719,31 @@
     "not_authorized": "Not Authorized"
   },
   "admin": {
-    "dashboard_title": "Admin Dashboard"
+    "dashboard_title": "Admin Dashboard",
+    "dashboard_subtitle": "Manage the platform's centers (tenants). Creating a center automatically initializes it with the base configuration.",
+    "create_tenant": "New center",
+    "tenants_empty": "No centers registered yet",
+    "tenants_empty_desc": "Create your first center to start operating on the platform.",
+    "col_name": "Name",
+    "col_cif": "CIF",
+    "col_phone": "Phone",
+    "col_city": "City",
+    "col_created": "Created",
+    "col_admin": "Type",
+    "badge_admin": "Administration",
+    "badge_center": "Center",
+    "created_success": "Center created successfully. Switching to the new center...",
+    "dialog_name": "Center name",
+    "dialog_name_placeholder": "e.g. Palma Clinic",
+    "dialog_cif": "CIF",
+    "dialog_phone": "Phone",
+    "dialog_address": "Address",
+    "dialog_country": "Country",
+    "dialog_state": "State",
+    "dialog_city": "City",
+    "dialog_info_title": "Automatic initialization",
+    "dialog_info": "The new center will be created with the base configuration: default language and preferences, initial appointment types, standard schedule and your user as administrator. No need to set it up from scratch.",
+    "dialog_submit": "Create center"
   },
   "shopping_list": {
     "title": "Shopping List",

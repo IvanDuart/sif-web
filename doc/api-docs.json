@@ -2366,7 +2366,7 @@
         "tags": [
           "MenuTemplateUploadController"
         ],
-        "description": "Upload a PDF or image to create a weekly menu template",
+        "description": "Upload a PDF or image to create a weekly menu template. Requires AI to be enabled for the tenant.",
         "operationId": "uploadMenuTemplate",
         "parameters": [
           {

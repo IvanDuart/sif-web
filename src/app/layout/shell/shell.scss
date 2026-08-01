@@ -68,6 +68,8 @@
 }
 
 .brand-text {
+  display: flex;
+  align-items: center;
   font-weight: 600;
   font-size: 1.25rem;
   color: var(--tui-primary, #526ed3);
@@ -76,6 +78,14 @@
   i {
     margin-right: 0.5rem;
   }
+}
+
+.nav-logo {
+  height: 2rem;
+  width: auto;
+  margin-right: 0.5rem;
+  display: inline-block;
+  flex-shrink: 0;
 }
 
 /* ── Desktop nav menu ─────────────────────────────────────────────── */

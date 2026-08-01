@@ -22,7 +22,7 @@ export class ConfigService {
 
   get keycloak() {
     return {
-      url: this.resolveValue(this.env.KEYCLOAK_URL, '___KEYCLOAK_URL___', 'https://pre-login.carajillolabs.com'),
+      url: this.resolveValue(this.env.KEYCLOAK_URL, '___KEYCLOAK_URL___', 'http://192.168.1.5:8088'),
       realm: this.resolveValue(this.env.KEYCLOAK_REALM, '___KEYCLOAK_REALM___', 'master'),
       clientId: this.resolveValue(this.env.KEYCLOAK_CLIENT_ID, '___KEYCLOAK_CLIENT_ID___', 'localhost-frontend'),
     };

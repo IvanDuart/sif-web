@@ -1,3 +1,80 @@
-<div *transloco="let t">
-      <h1 class="text-2xl font-bold mb-4">{{ t('admin.dashboard_title') }}</h1>
+<div class="p-4 lg:p-6" *transloco="let t">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-display font-bold text-surface-900 dark:text-surface-0">{{ t('admin.dashboard_title') }}</h1>
+      <p class="text-sm text-surface-500 mt-1">{{ t('admin.dashboard_subtitle') }}</p>
     </div>
+    <button
+      tuiButton
+      size="m"
+      type="button"
+      (click)="showCreateDialog()">
+      <i class="fa-solid fa-plus mr-1"></i>
+      {{ t('admin.create_tenant') }}
+    </button>
+  </div>
+
+  <div class="data-card">
+    @if (loading()) {
+      <div class="table-loading">
+        <i class="fa-solid fa-spinner fa-spin text-primary-500 text-xl"></i>
+        <span>{{ t('common.loading') }}</span>
+      </div>
+    } @else if (tenants().length === 0) {
+      <app-empty-state
+        icon="fa-solid fa-building"
+        [title]="t('admin.tenants_empty')"
+        [description]="t('admin.tenants_empty_desc')"
+        [actionLabel]="t('admin.create_tenant')"
+        actionIcon="fa-solid fa-plus"
+        (action)="showCreateDialog()">
+      </app-empty-state>
+    } @else {
+      <div class="table-wrapper">
+        <table tuiTable class="w-full">
+          <thead>
+            <tr>
+              <th tuiTh scope="col">{{ t('admin.col_name') }}</th>
+              <th tuiTh scope="col">{{ t('admin.col_cif') }}</th>
+              <th tuiTh scope="col">{{ t('admin.col_phone') }}</th>
+              <th tuiTh scope="col">{{ t('admin.col_city') }}</th>
+              <th tuiTh scope="col">{{ t('admin.col_created') }}</th>
+              <th tuiTh scope="col">{{ t('admin.col_admin') }}</th>
+            </tr>
+          </thead>
+          <tbody tuiTbody>
+            @for (tenant of tenants(); track tenant.id) {
+              <tr tuiTr>
+                <td tuiTd class="font-medium">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full inline-block shrink-0"
+                      [style.background]="tenant.preferences?.primary_color || '#005ac2'"></span>
+                    {{ tenant.name }}
+                  </div>
+                </td>
+                <td tuiTd>{{ tenant.cif || '—' }}</td>
+                <td tuiTd>{{ tenant.phone || '—' }}</td>
+                <td tuiTd>{{ tenant.city || '—' }}</td>
+                <td tuiTd class="text-surface-500">{{ formatInstant(tenant.createdAt) }}</td>
+                <td tuiTd>
+                  @if (tenant.adminTenant) {
+                    <span tuiBadge appearance="accent">
+                      <i class="fa-solid fa-shield-halved mr-1"></i>{{ t('admin.badge_admin') }}
+                    </span>
+                  } @else {
+                    <span tuiBadge appearance="neutral">{{ t('admin.badge_center') }}</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (totalRecords() > tenants().length) {
+        <div class="table-footer">
+          {{ t('common.pagination_report', { first: 1, last: tenants().length, totalRecords: totalRecords() }) }}
+        </div>
+      }
+    }
+  </div>
+</div>

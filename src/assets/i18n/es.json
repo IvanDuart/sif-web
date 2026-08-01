@@ -40,7 +40,8 @@
     "templates": "Plantillas",
     "shopping_list": "Lista de la Compra",
     "settings": "Configuración",
-    "revenue": "Ingresos"
+    "revenue": "Ingresos",
+    "admin": "Administración"
   },
   "auth": {
     "select_tenant": "Seleccionar Clínica",
@@ -805,7 +806,31 @@
     "not_authorized": "No Autorizado"
   },
   "admin": {
-    "dashboard_title": "Panel de Administración"
+    "dashboard_title": "Panel de Administración",
+    "dashboard_subtitle": "Gestiona los centros (tenants) de la plataforma. Al crear un centro se inicializa automáticamente con la configuración base.",
+    "create_tenant": "Nuevo centro",
+    "tenants_empty": "Todavía no hay centros registrados",
+    "tenants_empty_desc": "Crea tu primer centro para empezar a operar en la plataforma.",
+    "col_name": "Nombre",
+    "col_cif": "CIF",
+    "col_phone": "Teléfono",
+    "col_city": "Ciudad",
+    "col_created": "Creado",
+    "col_admin": "Tipo",
+    "badge_admin": "Administración",
+    "badge_center": "Centro",
+    "created_success": "Centro creado correctamente. Cambiando al nuevo centro...",
+    "dialog_name": "Nombre del centro",
+    "dialog_name_placeholder": "Ej. Clínica Palma",
+    "dialog_cif": "CIF",
+    "dialog_phone": "Teléfono",
+    "dialog_address": "Dirección",
+    "dialog_country": "País",
+    "dialog_state": "Provincia",
+    "dialog_city": "Ciudad",
+    "dialog_info_title": "Inicialización automática",
+    "dialog_info": "El nuevo centro se creará con la configuración base: idioma y preferencias por defecto, tipos de cita iniciales, horario estándar y tu usuario como administrador. No es necesario configurarlo desde cero.",
+    "dialog_submit": "Crear centro"
   },
   "shopping_list": {
     "title": "Lista de la Compra",
