@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { TenantBrandingDto } from '../models/branding.model';
 import { TenantPreferences } from '../models/tenant.model';
 import {ConfigService} from '../../config/config.service';
+import { IGNORE_NOT_FOUND } from '../../http/error.interceptor';
 
 @Injectable({ providedIn: 'root' })
 export class TenantBrandingService {
@@ -24,7 +25,8 @@ export class TenantBrandingService {
 
   getLogo(tenantId: string): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/tenant/${tenantId}/branding/logo`, {
-      responseType: 'blob'
+      responseType: 'blob',
+      context: new HttpContext().set(IGNORE_NOT_FOUND, true)
     });
   }
 
@@ -36,7 +38,8 @@ export class TenantBrandingService {
 
   getLogoPdf(tenantId: string): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/tenant/${tenantId}/branding/logo-pdf`, {
-      responseType: 'blob'
+      responseType: 'blob',
+      context: new HttpContext().set(IGNORE_NOT_FOUND, true)
     });
   }
 

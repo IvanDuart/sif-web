@@ -1,9 +1,11 @@
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse, HttpContextToken } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import Keycloak from 'keycloak-js';
 import { Router } from '@angular/router';
 import { NotificationService } from '../ui';
+
+export const IGNORE_NOT_FOUND = new HttpContextToken<boolean>(() => false);
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const keycloak = inject(Keycloak);
@@ -20,7 +22,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         notify.error('Acceso Denegado: No tienes permisos para esta acción');
         router.navigate(['/not-authorized']);
       } else if (error.status === 404) {
-        notify.warning('No encontrado: El recurso solicitado no existe');
+        if (!req.context.get(IGNORE_NOT_FOUND)) {
+          notify.warning('No encontrado: El recurso solicitado no existe');
+        }
       } else {
         const msg = error.error?.error || 'Ocurrió un error inesperado';
         notify.error(msg);

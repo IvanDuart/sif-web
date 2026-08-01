@@ -119,7 +119,8 @@ export class BrandingSettings implements OnInit, OnDestroy {
         if (blob.size > 0) {
           this.setLogoFromBlob(blob);
         }
-      }
+      },
+      error: () => {}
     });
     this.tenantBrandingService.getLogoPdf(tenantId).subscribe({
       next: (blob) => {

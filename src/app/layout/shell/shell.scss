@@ -81,8 +81,10 @@
 }
 
 .nav-logo {
-  height: 2rem;
+  height: 2.75rem;
   width: auto;
+  max-width: 180px;
+  object-fit: contain;
   margin-right: 0.5rem;
   display: inline-block;
   flex-shrink: 0;

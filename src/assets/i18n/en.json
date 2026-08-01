@@ -521,7 +521,8 @@
     "cancel": "Cancel",
     "save": "Save",
     "update": "Update",
-    "assign": "Assign"
+    "assign": "Assign",
+    "update_assignment": "Update"
   },
   "primeng": {
     "startsWith": "Starts with",

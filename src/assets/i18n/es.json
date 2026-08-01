@@ -548,7 +548,8 @@
     "cancel": "Cancelar",
     "save": "Guardar",
     "update": "Actualizar",
-    "assign": "Asignar"
+    "assign": "Asignar",
+    "update_assignment": "Actualizar"
   },
   "primeng": {
     "startsWith": "Comienza con",
