@@ -19,13 +19,10 @@
   </tui-textfield>
 
   @if (isStaff()) {
-    <tui-textfield class="w-full">
+    <tui-textfield class="w-full" tuiChevron [stringify]="roleStringify">
       <label tuiLabel for="roleCode">{{ t('users.role') }}</label>
-      <select id="roleCode" formControlName="roleCode" tuiInput>
-        @for (role of staffRoles; track role.value) {
-          <option [value]="role.value">{{ role.label }}</option>
-        }
-      </select>
+      <input id="roleCode" formControlName="roleCode" tuiSelect />
+      <tui-data-list-wrapper *tuiDropdown [items]="staffRoleValues"></tui-data-list-wrapper>
     </tui-textfield>
   }
 
@@ -33,26 +30,23 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <tui-textfield class="w-full">
         <label tuiLabel for="birthDate">{{ t('users.birth_date') }}</label>
-        <input id="birthDate" type="date" formControlName="birthDate" tuiInput />
+        <input id="birthDate" tuiInputDate formControlName="birthDate" />
+        <tui-calendar *tuiDropdown></tui-calendar>
         @if (fieldErrors['birthDate']) {
           <small class="text-red-500">{{ fieldErrors['birthDate'] }}</small>
         }
       </tui-textfield>
-      <tui-textfield class="w-full">
+      <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
         <label tuiLabel for="heightCm">{{ t('users.height_cm') }}</label>
         <input id="heightCm" type="number" formControlName="heightCm" min="30" max="275" step="0.1" tuiInput />
         @if (fieldErrors['heightCm']) {
           <small class="text-red-500">{{ fieldErrors['heightCm'] }}</small>
         }
       </tui-textfield>
-      <tui-textfield class="w-full">
+      <tui-textfield class="w-full" tuiChevron [stringify]="genderStringify">
         <label tuiLabel for="gender">{{ t('users.gender') }}</label>
-        <select id="gender" formControlName="gender" tuiInput>
-          <option value="" disabled>Seleccionar...</option>
-          @for (opt of genderOptions; track opt.value) {
-            <option [value]="opt.value">{{ opt.label }}</option>
-          }
-        </select>
+        <input id="gender" formControlName="gender" tuiSelect />
+        <tui-data-list-wrapper *tuiDropdown [items]="genderValues"></tui-data-list-wrapper>
       </tui-textfield>
     </div>
   }

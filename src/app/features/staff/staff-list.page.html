@@ -1,5 +1,5 @@
 <div class="p-4" *transloco="let t">
-  <div class="flex justify-between items-center mb-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
     <h1 class="text-2xl font-bold">{{ t('staff.title') }}</h1>
     <button *appIfPermission="'INVITE_USER'" tuiButton type="button" size="m" (click)="showInviteDialog()">
       <i class="fa-solid fa-user-plus mr-1"></i>

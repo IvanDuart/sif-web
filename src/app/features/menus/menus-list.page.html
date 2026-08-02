@@ -1,7 +1,7 @@
 <div class="p-4" *transloco="let t">
-  <div class="flex justify-between items-center mb-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
     <h1 class="text-2xl font-bold">{{ t('diets.title') }}</h1>
-    <div class="flex gap-2">
+    <div class="flex flex-wrap gap-2">
       <button
         *appIfPermission="'MANAGE_MENU'"
         tuiButton appearance="secondary" size="m"
@@ -20,7 +20,7 @@
   </div>
 
   <div class="data-card">
-    <div class="flex items-center justify-end gap-4 p-4 pb-0">
+    <div class="flex items-center justify-end gap-4 p-2 sm:p-4 pb-0">
       <tui-textfield class="w-80 max-w-full" iconStart="@tui.search">
         <input tuiInput type="search" [formControl]="searchControl" [placeholder]="t('common.search')" />
       </tui-textfield>

@@ -3,23 +3,22 @@
     {{ 'templates.creating_from' | transloco }} <strong>{{ template?.name }}</strong>
   </div>
 
-  <div class="field flex flex-col gap-1.5">
-    <label for="appUserId" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'menu_history.target_patient' | transloco }}</label>
-    <select id="appUserId" formControlName="appUserId" required class="form-input">
-      <option value="" disabled>{{ 'menu_history.select_patient' | transloco }}</option>
-      @for (u of users(); track u.id) {
-        <option [value]="u.id">{{ u.fullName }}</option>
-      }
-    </select>
-  </div>
+  <tui-textfield class="w-full" tuiChevron [stringify]="patientStringify">
+    <label tuiLabel for="appUserId">{{ 'menu_history.target_patient' | transloco }}</label>
+    <input id="appUserId" formControlName="appUserId" tuiComboBox />
+    <tui-data-list-wrapper *tuiDropdown [items]="users() | tuiFilterByInput"></tui-data-list-wrapper>
+  </tui-textfield>
 
-  <div class="field flex flex-col gap-1.5">
-    <label for="name" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'menu_history.new_menu_name' | transloco }}</label>
-    <input id="name" formControlName="name" class="form-input" />
-  </div>
+  <tui-textfield class="w-full">
+    <label tuiLabel for="name">{{ 'menu_history.new_menu_name' | transloco }}</label>
+    <input id="name" formControlName="name" tuiInput />
+  </tui-textfield>
 
   <div class="flex items-center gap-2 mt-2">
-    <input type="checkbox" id="isActive" formControlName="isActive" class="h-4 w-4 rounded border-surface-300 text-primary-500 focus:ring-primary-300" />
+    <input type="checkbox"
+           tuiCheckbox
+           id="isActive"
+           formControlName="isActive" />
     <label for="isActive" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'menu_history.set_active' | transloco }}</label>
   </div>
 

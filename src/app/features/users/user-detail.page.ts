@@ -592,7 +592,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     if (!current) return;
     this.modal.open(EditUserDialog, {
       label: this.transloco.translate('users.edit_user_title'),
-      size: 's',
+      size: 'm',
       data: { user: current }
     }).subscribe(() => {
       this.loadUser();

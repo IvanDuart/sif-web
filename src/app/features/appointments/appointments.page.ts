@@ -89,14 +89,14 @@ export default class AppointmentsPage implements OnInit {
       }
     });
 
+    const isMobile = globalThis.innerWidth < 768;
+
     this.calendarOptions = {
       plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-      initialView: 'timeGridWeek',
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'timeGridWeek,timeGridDay'
-      },
+      initialView: isMobile ? 'timeGridDay' : 'timeGridWeek',
+      headerToolbar: isMobile
+        ? { left: 'prev,next today', center: 'title', right: 'timeGridDay,timeGridWeek' }
+        : { left: 'prev,next today', center: 'title', right: 'timeGridWeek,timeGridDay' },
       locales: [esLocale],
       locale: 'es',
       allDaySlot: false,

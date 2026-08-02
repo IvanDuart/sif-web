@@ -44,6 +44,7 @@
   --tui-primary-hover: #047857;
   --tui-background-accent-1: #059669;
   --tui-background-accent-1-hover: #047857;
+  --tui-background-base: #f8fafc;
   --tui-background-neutral-1: #f8fafc;
   --tui-background-neutral-2: #f1f5f9;
   --tui-background-elevation-3: #ffffff;
@@ -52,6 +53,7 @@
   --tui-text-primary: #1e293b;
   --tui-text-secondary: #64748b;
   --tui-border: #e2e8f0;
+  --tui-border-normal: #e2e8f0;
   --tui-background: #f1f5f9;
 }
 
@@ -60,6 +62,7 @@
   --tui-primary-hover: #6ee7b7;
   --tui-background-accent-1: #34d399;
   --tui-background-accent-1-hover: #6ee7b7;
+  --tui-background-base: #1e293b;
   --tui-background-neutral-1: #1e293b;
   --tui-background-neutral-2: #334155;
   --tui-background-elevation-3: #1e293b;
@@ -68,7 +71,25 @@
   --tui-text-primary: #f1f5f9;
   --tui-text-secondary: #cbd5e1;
   --tui-border: #334155;
+  --tui-border-normal: #334155;
   --tui-background: #0f172a;
+
+  /* Prime Fallback — dark mode tokens */
+  --p-surface-0: #0f172a;
+  --p-surface-50: #1e293b;
+  --p-surface-100: #334155;
+  --p-surface-200: #475569;
+  --p-surface-300: #64748b;
+  --p-surface-400: #94a3b8;
+  --p-surface-500: #cbd5e1;
+  --p-surface-600: #e2e8f0;
+  --p-surface-700: #f1f5f9;
+  --p-surface-800: #f8fafc;
+  --p-surface-900: #ffffff;
+  --p-surface-950: #ffffff;
+  --p-content-background: var(--p-surface-0);
+  --p-text-color: var(--p-surface-700);
+  --p-text-muted-color: var(--p-surface-400);
 }
 
 /* ── Dialog background ─────────────────────────────── */
@@ -231,6 +252,8 @@ table[tuiTable] {
   }
 
   tbody td[tuiTd] {
+    background-color: transparent !important;
+    background: transparent !important;
     padding: 0.875rem 1rem !important;
     border: none !important;
     border-top: 1px solid var(--tui-border, #e2e8f0) !important;
@@ -256,6 +279,25 @@ table[tuiTable] {
   }
 }
 
+
+/* ─────────────────────────────────────────────
+   RESPONSIVE — compact tables & cards on mobile
+   ───────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .data-card {
+    padding: 0.75rem;
+  }
+
+  table[tuiTable] {
+    thead th[tuiTh] {
+      padding: 0.5rem 0.5rem !important;
+    }
+
+    tbody td[tuiTd] {
+      padding: 0.625rem 0.5rem !important;
+    }
+  }
+}
 
 /* ─────────────────────────────────────────────
    TOAST NOTIFICATIONS — position & color

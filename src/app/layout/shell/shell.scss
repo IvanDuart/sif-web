@@ -30,6 +30,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: var(--tui-background);
+  color: var(--tui-text-primary);
 }
 
 /* ── Top nav ──────────────────────────────────────────────────────── */

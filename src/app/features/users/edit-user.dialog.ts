@@ -1,7 +1,9 @@
 import { Component, inject, computed } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext, TuiButton, TuiInput, TuiTextfield, TuiLabel } from '@taiga-ui/core';
+import { TuiDialogContext, TuiButton, TuiInput, TuiDropdown } from '@taiga-ui/core';
+import { TuiInputDate, TuiSelect, TuiDataListWrapper, TuiChevron } from '@taiga-ui/kit';
+import { TuiDay } from '@taiga-ui/cdk';
 import { NotificationService } from '../../core/ui/notification.service';
 import { UserTenantRoleService, UpdateUserRequest } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -17,7 +19,7 @@ export interface EditUserDialogInput {
 @Component({
   selector: 'app-edit-user',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton, TuiInput, TuiTextfield, TuiLabel],
+  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton, TuiInput, TuiDropdown, TuiInputDate, TuiSelect, TuiDataListWrapper, TuiChevron],
   templateUrl: './edit-user.dialog.html'
 })
 export class EditUserDialog {
@@ -52,20 +54,42 @@ export class EditUserDialog {
     { label: this.transloco.translate('users.role_nutritionist'), value: 'NUTRITIONIST' }
   ];
 
+  staffRoleValues = this.staffRoles.map(r => r.value);
+
+  roleStringify = (value: string): string => {
+    const found = this.staffRoles.find(r => r.value === value);
+    return found ? found.label : value;
+  };
+
   genderOptions = [
     { label: this.transloco.translate('users.gender_male'), value: 'MALE' as Gender },
     { label: this.transloco.translate('users.gender_female'), value: 'FEMALE' as Gender }
   ];
 
+  genderValues = ['MALE', 'FEMALE'];
+
+  genderStringify = (value: string): string => {
+    const found = this.genderOptions.find(g => g.value === value);
+    return found ? found.label : value;
+  };
+
   form = this.fb.group({
     firstName: [this.user.firstName, [Validators.required, Validators.maxLength(100)]],
     lastName: [this.user.lastName, [Validators.required, Validators.maxLength(100)]],
     email: [this.user.email, [Validators.required, Validators.email]],
-    birthDate: [this.user.birthDate ?? null],
+    birthDate: [this.toTuiDay(this.user.birthDate)],
     heightCm: [this.user.heightCm ?? null],
     gender: [this.user.gender ?? null],
     roleCode: [this.initialRoleCode]
   });
+
+  private toTuiDay(value?: string | null): TuiDay | null {
+    if (!value) return null;
+    const [year, month, day] = value.split('-').map(Number);
+    return Number.isFinite(year) && Number.isFinite(month) && Number.isFinite(day)
+      ? new TuiDay(year, month - 1, day)
+      : null;
+  }
 
   fieldErrors: Record<string, string> = {};
 
@@ -89,7 +113,7 @@ export class EditUserDialog {
       request.heightCm = this.user.heightCm ?? null;
       request.gender = this.user.gender ?? null;
     } else {
-      request.birthDate = raw.birthDate ?? null;
+      request.birthDate = raw.birthDate ? (raw.birthDate as TuiDay).toString('yyyy/mm/dd', '-') : null;
       request.heightCm = raw.heightCm ?? null;
       request.gender = raw.gender ?? null;
     }

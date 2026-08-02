@@ -11,6 +11,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { MenuTemplate } from '../../core/api/models/menu-template.model';
+import { Menu } from '../../core/api/models/menu.model';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
 import { EmptyState } from '../../shared/ui/empty-state';
 import { NotificationService, ModalService, ConfirmService } from '../../core/ui';
@@ -131,12 +132,14 @@ export default class TemplatesListPage implements OnInit {
   }
 
   instantiateTemplate(template: MenuTemplate) {
-    this.modal.open<boolean, InstantiateTemplateDialogInput>(InstantiateTemplateDialog, {
+    this.modal.open<Menu, InstantiateTemplateDialogInput>(InstantiateTemplateDialog, {
       label: 'Asignar Plantilla a Paciente',
       size: 'm',
       data: { template }
-    }).subscribe(() => {
+    }).subscribe(menu => {
+      if (!menu?.id) return;
       this.notify.success('La plantilla fue instanciada y asignada al paciente.');
+      this.router.navigate(['/menus', menu.id]);
     });
   }
 
