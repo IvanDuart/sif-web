@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiButton, TuiDialogContext, TuiInput } from '@taiga-ui/core';
-import { TuiTextarea, TuiInputFiles } from '@taiga-ui/kit';
+import { TuiTextarea, TuiFiles } from '@taiga-ui/kit';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NotificationService } from '../../core/ui/notification.service';
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
@@ -14,7 +14,7 @@ import { MenuTemplate } from '../../core/api/models/menu-template.model';
 @Component({
   selector: 'app-template-upload',
   standalone: true,
-  imports: [FormsModule, TuiButton, TuiInput, TuiTextarea, TuiInputFiles, TranslocoPipe],
+  imports: [FormsModule, TuiButton, TuiInput, TuiTextarea, ...TuiFiles, TranslocoPipe],
   templateUrl: './template-upload.dialog.html'
 })
 export class TemplateUploadDialog implements OnInit {

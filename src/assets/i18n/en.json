@@ -29,7 +29,8 @@
     "total": "Total: {{total}}",
     "page": "Page {{page}}",
     "accept": "Accept",
-    "remove": "Remove"
+    "remove": "Remove",
+    "search": "Search"
   },
   "menu": {
     "dashboard": "Dashboard",
@@ -522,7 +523,8 @@
     "save": "Save",
     "update": "Update",
     "assign": "Assign",
-    "update_assignment": "Update"
+    "update_assignment": "Update",
+    "edit_assignment": "Edit Assignment"
   },
   "primeng": {
     "startsWith": "Starts with",

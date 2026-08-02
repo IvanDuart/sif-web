@@ -1,11 +1,13 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
-import { TuiButton } from '@taiga-ui/core';
+import { TuiButton, TuiInput } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
 import { TuiTable } from '@taiga-ui/addon-table';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
 
 import { MenuService } from '../../core/api/services/menu.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -21,7 +23,7 @@ import { EmptyState } from '../../shared/ui/empty-state';
 @Component({
   selector: 'app-menus-list',
   standalone: true,
-  imports: [DatePipe, IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent, TuiButton, TuiBadge, TuiTable],
+  imports: [DatePipe, ReactiveFormsModule, IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent, TuiButton, TuiBadge, TuiTable, TuiInput],
   templateUrl: './menus-list.page.html'
 })
 export default class MenusListPage implements OnInit {
@@ -40,11 +42,23 @@ export default class MenusListPage implements OnInit {
   menus = signal<Menu[]>([]);
   loading = signal(false);
   totalRecords = signal(0);
+  searchControl = new FormControl('');
+
+  sortKey = signal<string>('name');
+  sortDirection = signal<'ASC' | 'DESC'>('ASC');
 
   lastPage = 0;
   lastSize = 25;
 
   ngOnInit() {
+    this.searchControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.lastPage = 0;
+      this.loadMenus(this.lastPage, this.lastSize);
+    });
+
     this.loadMenus(0, 25);
   }
 
@@ -67,20 +81,33 @@ export default class MenusListPage implements OnInit {
     }
   }
 
+  onSort(key: string) {
+    if (this.sortKey() === key) {
+      this.sortDirection.set(this.sortDirection() === 'ASC' ? 'DESC' : 'ASC');
+    } else {
+      this.sortKey.set(key);
+      this.sortDirection.set('ASC');
+    }
+    this.lastPage = 0;
+    this.loadMenus(this.lastPage, this.lastSize);
+  }
+
   loadMenus(page: number, size: number) {
     const tenantId = this.tenantCtx.currentTenantId();
     const userId = this.authService.user()?.id;
     if (!tenantId || !userId) return;
 
     this.loading.set(true);
-    this.menuService.searchByUser(tenantId, userId, page, size).subscribe({
+    this.menuService.search(
+      tenantId,
+      page,
+      size,
+      [`${this.sortKey()},${this.sortDirection()}`],
+      userId,
+      this.searchControl.value?.trim() || undefined
+    ).subscribe({
       next: (res) => {
-        const sorted = (res.content || []).sort((a, b) => {
-          const aActive = a.isActive || a.active || false;
-          const bActive = b.isActive || b.active || false;
-          return Number(bActive) - Number(aActive);
-        });
-        this.menus.set(sorted);
+        this.menus.set(res.content || []);
         this.totalRecords.set(res.page?.totalElements || 0);
         this.loading.set(false);
       },

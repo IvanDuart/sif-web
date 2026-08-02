@@ -20,14 +20,41 @@
   </div>
 
   <div class="data-card">
+    <div class="flex items-center justify-end gap-4 p-4 pb-0">
+      <tui-textfield class="w-80 max-w-full" iconStart="@tui.search">
+        <input tuiInput type="search" [formControl]="searchControl" [placeholder]="t('common.search')" />
+      </tui-textfield>
+    </div>
+
     <boneyard-skeleton name="menus-list" [loading]="loading()">
         <div class="table-wrapper">
           <table tuiTable class="w-full">
             <thead>
               <tr>
-                <th tuiTh scope="col">{{ t('diets.name') }}</th>
-                <th tuiTh scope="col">{{ t('diets.status') }}</th>
-                <th tuiTh scope="col">{{ t('diets.created_at') }}</th>
+                <th tuiTh scope="col" class="cursor-pointer select-none" (click)="onSort('name')">
+                  <span class="inline-flex items-center gap-1">
+                    {{ t('diets.name') }}
+                    @if (sortKey() === 'name') {
+                      <i class="fa-solid text-xs" [class.fa-arrow-up]="sortDirection() === 'ASC'" [class.fa-arrow-down]="sortDirection() === 'DESC'"></i>
+                    }
+                  </span>
+                </th>
+                <th tuiTh scope="col" class="cursor-pointer select-none" (click)="onSort('isActive')">
+                  <span class="inline-flex items-center gap-1">
+                    {{ t('diets.status') }}
+                    @if (sortKey() === 'isActive') {
+                      <i class="fa-solid text-xs" [class.fa-arrow-up]="sortDirection() === 'ASC'" [class.fa-arrow-down]="sortDirection() === 'DESC'"></i>
+                    }
+                  </span>
+                </th>
+                <th tuiTh scope="col" class="cursor-pointer select-none" (click)="onSort('createdAt')">
+                  <span class="inline-flex items-center gap-1">
+                    {{ t('diets.created_at') }}
+                    @if (sortKey() === 'createdAt') {
+                      <i class="fa-solid text-xs" [class.fa-arrow-up]="sortDirection() === 'ASC'" [class.fa-arrow-down]="sortDirection() === 'DESC'"></i>
+                    }
+                  </span>
+                </th>
                 <th tuiTh scope="col" class="text-center" style="width: 8rem;">{{ t('common.actions') }}</th>
               </tr>
             </thead>

@@ -48,6 +48,7 @@
     "@taiga-ui/i18n": "^5.16.0",
     "@taiga-ui/icons": "^5.16.0",
     "@taiga-ui/kit": "^5.16.0",
+    "@taiga-ui/layout": "5.16.0",
     "@taiga-ui/polymorpheus": "^5.0.1",
     "@taiga-ui/styles": "^5.16.0",
     "autoprefixer": "^10.5.0",

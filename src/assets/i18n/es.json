@@ -29,7 +29,8 @@
     "total": "Total: {{total}}",
     "page": "Página {{page}}",
     "accept": "Aceptar",
-    "remove": "Eliminar"
+    "remove": "Eliminar",
+    "search": "Buscar"
   },
   "menu": {
     "dashboard": "Panel Principal",
@@ -154,7 +155,7 @@
     "target_patient": "Paciente Destino",
     "document_label": "Documento (PDF o Imagen)",
     "process_and_create": "Procesar y Crear",
-    "empty": "Aún no hay menús creados. Comenzá creando uno manualmente o subiendo un archivo.",
+    "empty": "Aún no hay menús creados. Comienza creando uno manualmente o subiendo un archivo.",
     "empty_title": "Sin menús aún",
     "view": "Ver detalle"
   },
@@ -295,22 +296,22 @@
     "form_name_placeholder": "Ej: Plantilla Semana 1",
     "form_description_label": "Descripción",
     "form_description_optional": "Descripción (opcional)",
-    "form_description_placeholder": "Describí brevemente esta plantilla...",
+    "form_description_placeholder": "Describe brevemente esta plantilla...",
     "form_save": "Guardar Plantilla",
-    "upload_description": "Subí un PDF o imagen de una dieta. La IA extraerá los platos y creará la plantilla automáticamente.",
-    "upload_drop_here": "Soltá el archivo aquí",
-    "upload_hint": "Hacé clic o arrastrá un PDF o imagen aquí",
+    "upload_description": "Sube un PDF o imagen de una dieta. La IA extraerá los platos y creará la plantilla automáticamente.",
+    "upload_drop_here": "Suelta el archivo aquí",
+    "upload_hint": "Haz clic o arrastra un PDF o imagen aquí",
     "creating_from": "Creando menú a partir de:",
     "delete_confirm_msg": "¿Estás seguro de que quieres eliminar la plantilla '{{name}}'?",
     "upload_ai_checking": "Verificando disponibilidad de IA...",
-    "upload_ai_disabled": "La carga inteligente con IA no está habilitada para tu cuenta. Contactá al administrador del tenant para activarla en Preferencias del Sistema.",
+    "upload_ai_disabled": "La carga inteligente con IA no está habilitada para tu cuenta. Contacta al administrador del tenant para activarla en Preferencias del Sistema.",
     "upload_processing": "Procesando con IA...",
-    "upload_error_ai_not_enabled": "IA no habilitada. Contactá al administrador del tenant.",
-    "upload_error_no_api_key": "La API Key de Gemini no está configurada. Contactá al administrador para configurarla en Preferencias del Sistema.",
+    "upload_error_ai_not_enabled": "IA no habilitada. Contacta al administrador del tenant.",
+    "upload_error_no_api_key": "La API Key de Gemini no está configurada. Contacta al administrador para configurarla en Preferencias del Sistema.",
     "upload_file_too_large": "Archivo demasiado grande (máx 10MB)",
-    "upload_file_invalid_type": "Tipo de archivo no soportado. Usá PDF, JPG o PNG.",
-    "upload_error_network": "Error de conexión. Verificá tu conexión e intentá de nuevo.",
-    "upload_error_server": "Error del servidor. Intentá de nuevo más tarde."
+    "upload_file_invalid_type": "Tipo de archivo no soportado. Usa PDF, JPG o PNG.",
+    "upload_error_network": "Error de conexión. Verifica tu conexión e intenta de nuevo.",
+    "upload_error_server": "Error del servidor. Intenta de nuevo más tarde."
   },
   "diet_detail": {
     "title": "Comidas de la Semana",
@@ -321,7 +322,7 @@
     "print_pdf": "Imprimir",
     "download_pdf": "Descargar PDF",
     "empty_title": "Sin comidas asignadas",
-    "empty_description": "Esta dieta aún no tiene comidas. Agregá la primera usando el botón superior.",
+    "empty_description": "Esta dieta aún no tiene comidas. Agrega la primera usando el botón superior.",
     "days": {
       "lunes": "Lunes",
       "martes": "Martes",
@@ -348,7 +349,7 @@
     "add_meal_short": "Añadir",
     "free_day": "Día libre o sin platos definidos",
     "empty_title": "Sin platos aún",
-    "empty_description": "Esta plantilla no tiene platos. Agregá el primero usando el botón superior.",
+    "empty_description": "Esta plantilla no tiene platos. Agrega el primero usando el botón superior.",
     "days": {
       "lunes": "Lunes",
       "martes": "Martes",
@@ -549,7 +550,8 @@
     "save": "Guardar",
     "update": "Actualizar",
     "assign": "Asignar",
-    "update_assignment": "Actualizar"
+    "update_assignment": "Actualizar",
+    "edit_assignment": "Editar Asignación"
   },
   "primeng": {
     "startsWith": "Comienza con",
@@ -789,7 +791,7 @@
   },
   "shell": {
     "loading": "Cargando...",
-    "app_name": "Tus Dietas",
+    "app_name": "Sif",
     "theme_light": "Cambiar a Modo Claro",
     "theme_dark": "Cambiar a Modo Oscuro",
     "change_theme": "Cambiar tema",

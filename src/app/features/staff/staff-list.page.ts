@@ -41,9 +41,9 @@ export default class StaffListPage implements OnInit {
     if (!tenantId) return;
 
     this.loading.set(true);
-    this.userTenantRoleService.getUsersByTenantAndType(tenantId, 'STAFF').subscribe({
+    this.userTenantRoleService.getUsersByTenantAndType(tenantId, 'STAFF', { size: 1000 }).subscribe({
       next: (res) => {
-        this.users.set(res || []);
+        this.users.set(res.content || []);
         this.loading.set(false);
       },
       error: () => this.loading.set(false)

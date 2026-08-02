@@ -2168,6 +2168,14 @@
             }
           },
           {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "page",
             "in": "query",
             "description": "Zero-based page index (0..N)",
@@ -2995,6 +3003,51 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Zero-based page index (0..N)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "The size of the page to be returned",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sorting criteria in the format: property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "default": [
+                "appUser.firstName,ASC"
+              ],
+              "items": {
+                "type": "string"
+              }
+            }
           }
         ],
         "responses": {
@@ -3003,10 +3056,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TenantUserDto"
-                  }
+                  "$ref": "#/components/schemas/PagedModelTenantUserDto"
                 }
               }
             }
@@ -3156,6 +3206,51 @@
                 "PATIENT"
               ]
             }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Zero-based page index (0..N)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "The size of the page to be returned",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sorting criteria in the format: property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "default": [
+                "appUser.firstName,ASC"
+              ],
+              "items": {
+                "type": "string"
+              }
+            }
           }
         ],
         "responses": {
@@ -3164,10 +3259,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TenantUserDto"
-                  }
+                  "$ref": "#/components/schemas/PagedModelTenantUserDto"
                 }
               }
             }
@@ -5734,15 +5826,15 @@
               "type": "string"
             }
           },
+          "roleCode": {
+            "type": "string"
+          },
           "userType": {
             "type": "string",
             "enum": [
               "STAFF",
               "PATIENT"
             ]
-          },
-          "roleCode": {
-            "type": "string"
           },
           "tenantName": {
             "type": "string"
@@ -5832,6 +5924,20 @@
           },
           "preferences": {
             "$ref": "#/components/schemas/TenantPreferences"
+          }
+        }
+      },
+      "PagedModelTenantUserDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TenantUserDto"
+            }
+          },
+          "page": {
+            "$ref": "#/components/schemas/PageMetadata"
           }
         }
       },

@@ -1,8 +1,16 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AppUserDto, UserType, UserTenantProfileDto, UpdateUserTenantProfileRequest } from '../models/user.model';
+import { Page } from '../models/page.model';
 import {ConfigService} from '../../config/config.service';
+
+export interface UserSearchParams {
+  search?: string;
+  page?: number;
+  size?: number;
+  sort?: string[];
+}
 
 export interface UpdateUserRequest {
   firstName?: string | null;
@@ -36,12 +44,22 @@ export class UserTenantRoleService {
     return this.configService.apiUrl;
   }
 
-  getUsersByTenant(tenantId: string): Observable<AppUserDto[]> {
-    return this.http.get<AppUserDto[]>(`${this.baseUrl}/tenant/${tenantId}/users`);
+  getUsersByTenant(tenantId: string, params?: UserSearchParams): Observable<Page<AppUserDto>> {
+    return this.http.get<Page<AppUserDto>>(`${this.baseUrl}/tenant/${tenantId}/users`, { params: this.buildParams(params) });
   }
 
-  getUsersByTenantAndType(tenantId: string, userType: UserType): Observable<AppUserDto[]> {
-    return this.http.get<AppUserDto[]>(`${this.baseUrl}/tenant/${tenantId}/users/by-type/${userType}`);
+  getUsersByTenantAndType(tenantId: string, userType: UserType, params?: UserSearchParams): Observable<Page<AppUserDto>> {
+    return this.http.get<Page<AppUserDto>>(`${this.baseUrl}/tenant/${tenantId}/users/by-type/${userType}`, { params: this.buildParams(params) });
+  }
+
+  private buildParams(params?: UserSearchParams): HttpParams {
+    let httpParams = new HttpParams();
+    if (!params) return httpParams;
+    if (params.search) httpParams = httpParams.set('search', params.search);
+    if (params.page !== undefined) httpParams = httpParams.set('page', String(params.page));
+    if (params.size !== undefined) httpParams = httpParams.set('size', String(params.size));
+    (params.sort || []).forEach(s => httpParams = httpParams.append('sort', s));
+    return httpParams;
   }
 
   inviteUser(tenantId: string, request: InviteUserRequest): Observable<void> {

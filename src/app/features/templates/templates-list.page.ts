@@ -1,10 +1,12 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
-import { TuiButton } from '@taiga-ui/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { TuiButton, TuiInput } from '@taiga-ui/core';
 import { TuiTable } from '@taiga-ui/addon-table';
 import { TranslocoService, TranslocoDirective } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
 
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -19,7 +21,7 @@ import { InstantiateTemplateDialog, InstantiateTemplateDialogInput } from './ins
 @Component({
   selector: 'app-templates-list',
   standalone: true,
-  imports: [IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent, TuiButton, TuiTable, DatePipe],
+  imports: [ReactiveFormsModule, IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent, TuiButton, TuiTable, DatePipe, TuiInput],
   templateUrl: './templates-list.page.html'
 })
 export default class TemplatesListPage implements OnInit {
@@ -34,11 +36,23 @@ export default class TemplatesListPage implements OnInit {
   templates = signal<MenuTemplate[]>([]);
   loading = signal(false);
   totalRecords = signal(0);
+  searchControl = new FormControl('');
 
-  private lastPage = 0;
-  private lastSize = 25;
+  sortKey = signal<string>('name');
+  sortDirection = signal<'ASC' | 'DESC'>('ASC');
+
+  lastPage = 0;
+  lastSize = 25;
 
   ngOnInit() {
+    this.searchControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.lastPage = 0;
+      this.loadTemplates(this.lastPage, this.lastSize);
+    });
+
     this.loadTemplates(0, 25);
   }
 
@@ -47,12 +61,43 @@ export default class TemplatesListPage implements OnInit {
     this.loadTemplates(this.lastPage, this.lastSize);
   }
 
+  prevPage() {
+    if (this.lastPage > 0) {
+      this.lastPage--;
+      this.loadTemplates(this.lastPage, this.lastSize);
+    }
+  }
+
+  nextPage() {
+    if ((this.lastPage + 1) * this.lastSize < this.totalRecords()) {
+      this.lastPage++;
+      this.loadTemplates(this.lastPage, this.lastSize);
+    }
+  }
+
+  onSort(key: string) {
+    if (this.sortKey() === key) {
+      this.sortDirection.set(this.sortDirection() === 'ASC' ? 'DESC' : 'ASC');
+    } else {
+      this.sortKey.set(key);
+      this.sortDirection.set('ASC');
+    }
+    this.lastPage = 0;
+    this.loadTemplates(this.lastPage, this.lastSize);
+  }
+
   loadTemplates(page: number, size: number) {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
 
     this.loading.set(true);
-    this.templateService.search(tenantId, page, size).subscribe({
+    this.templateService.search(
+      tenantId,
+      page,
+      size,
+      [`${this.sortKey()},${this.sortDirection()}`],
+      this.searchControl.value?.trim() || undefined
+    ).subscribe({
       next: (res) => {
         this.templates.set(res.content || []);
         this.totalRecords.set(res.page?.totalElements || 0);

@@ -43,12 +43,14 @@ export class MenuTemplateService {
     tenantId: string,
     page = 0,
     size = 10,
-    sort: string[] = ['name,ASC']
+    sort: string[] = ['name,ASC'],
+    search?: string
   ): Observable<Page<MenuTemplate>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
     sort.forEach(s => params = params.append('sort', s));
+    if (search) params = params.set('search', search);
 
     return this.http.get<Page<MenuTemplate>>(`${this.baseUrl}/tenant/${tenantId}/menu-template`, { params });
   }

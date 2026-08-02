@@ -144,10 +144,10 @@ export class AppointmentFormDialog implements OnInit {
   private loadPatients() {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
-    this.userRoleService.getUsersByTenantAndType(tenantId, 'PATIENT').subscribe({
+    this.userRoleService.getUsersByTenantAndType(tenantId, 'PATIENT', { size: 1000 }).subscribe({
       next: (users) => {
         this.patients.set(
-          (users || []).map((u: AppUserDto) => ({
+          (users.content || []).map((u: AppUserDto) => ({
             label: `${u.firstName} ${u.lastName}`,
             value: u.id
           }))

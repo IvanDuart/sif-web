@@ -51,9 +51,9 @@ export class InstantiateTemplateDialog implements OnInit {
     if (!tenantId) return;
 
     this.loadingUsers.set(true);
-    this.userRoleService.getUsersByTenantAndType(tenantId, 'PATIENT').subscribe({
+    this.userRoleService.getUsersByTenantAndType(tenantId, 'PATIENT', { size: 1000 }).subscribe({
       next: (res) => {
-        const mapped = res.map(u => ({
+        const mapped = (res.content || []).map(u => ({
           ...u,
           fullName: u.firstName + ' ' + u.lastName
         }));

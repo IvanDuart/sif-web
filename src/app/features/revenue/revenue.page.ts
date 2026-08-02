@@ -152,8 +152,8 @@ export default class RevenuePage implements OnInit, OnDestroy {
   }
 
   private loadNutritionists(tenantId: string): void {
-    this.userTenantRoleService.getUsersByTenantAndType(tenantId, 'STAFF').subscribe({
-      next: (res) => this.nutritionists.set(res || []),
+    this.userTenantRoleService.getUsersByTenantAndType(tenantId, 'STAFF', { size: 1000 }).subscribe({
+      next: (res) => this.nutritionists.set(res.content || []),
     });
   }
 

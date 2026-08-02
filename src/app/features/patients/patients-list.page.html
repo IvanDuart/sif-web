@@ -12,6 +12,12 @@
   </div>
 
   <div class="data-card">
+    <div class="flex items-center justify-end gap-4 p-4 pb-0">
+      <tui-textfield class="w-80 max-w-full" iconStart="@tui.search">
+        <input tuiInput type="search" [formControl]="searchControl" [placeholder]="t('common.search')" />
+      </tui-textfield>
+    </div>
+
     <boneyard-skeleton name="patients-list" [loading]="loading()">
       @if (users().length === 0 && !loading()) {
         <app-empty-state
@@ -26,9 +32,30 @@
           <table tuiTable class="w-full">
             <thead>
               <tr>
-                <th tuiTh scope="col">{{ t('users.first_name') }}</th>
-                <th tuiTh scope="col">{{ t('users.last_name') }}</th>
-                <th tuiTh scope="col">{{ t('users.email') }}</th>
+                <th tuiTh scope="col" class="cursor-pointer select-none" (click)="onSort('appUser.firstName')">
+                  <span class="inline-flex items-center gap-1">
+                    {{ t('users.first_name') }}
+                    @if (sortKey() === 'appUser.firstName') {
+                      <i class="fa-solid text-xs" [class.fa-arrow-up]="sortDirection() === 'ASC'" [class.fa-arrow-down]="sortDirection() === 'DESC'"></i>
+                    }
+                  </span>
+                </th>
+                <th tuiTh scope="col" class="cursor-pointer select-none" (click)="onSort('appUser.lastName')">
+                  <span class="inline-flex items-center gap-1">
+                    {{ t('users.last_name') }}
+                    @if (sortKey() === 'appUser.lastName') {
+                      <i class="fa-solid text-xs" [class.fa-arrow-up]="sortDirection() === 'ASC'" [class.fa-arrow-down]="sortDirection() === 'DESC'"></i>
+                    }
+                  </span>
+                </th>
+                <th tuiTh scope="col" class="cursor-pointer select-none" (click)="onSort('appUser.email')">
+                  <span class="inline-flex items-center gap-1">
+                    {{ t('users.email') }}
+                    @if (sortKey() === 'appUser.email') {
+                      <i class="fa-solid text-xs" [class.fa-arrow-up]="sortDirection() === 'ASC'" [class.fa-arrow-down]="sortDirection() === 'DESC'"></i>
+                    }
+                  </span>
+                </th>
                 <th tuiTh scope="col">{{ t('users.age') }}</th>
                 <th tuiTh scope="col">{{ t('users.weight') }}</th>
                 <th tuiTh scope="col">{{ t('users.bmi') }}</th>
@@ -72,8 +99,15 @@
             </tbody>
           </table>
         </div>
-        <div class="table-footer">
-          {{ t('common.pagination_report', { first: 1, last: users().length, totalRecords: users().length }) }}
+        <div class="table-footer flex justify-between items-center">
+          <span class="text-sm text-surface-500">
+            {{ t('common.pagination_report', { first: totalRecords() === 0 ? 0 : lastPage * lastSize + 1, last: lastPage * lastSize + users().length, totalRecords: totalRecords() }) }}
+          </span>
+          <div class="flex gap-1">
+            <button tuiIconButton appearance="flat" size="s" (click)="prevPage()" [disabled]="lastPage === 0"><i class="fa-solid fa-chevron-left"></i></button>
+            <span class="text-sm text-surface-500 px-2">{{ t('common.page', { page: lastPage + 1 }) }}</span>
+            <button tuiIconButton appearance="flat" size="s" (click)="nextPage()" [disabled]="(lastPage + 1) * lastSize >= totalRecords()"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
         </div>
       }
     </boneyard-skeleton>
