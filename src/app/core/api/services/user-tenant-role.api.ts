@@ -78,6 +78,14 @@ export class UserTenantRoleService {
     return this.http.delete<void>(`${this.baseUrl}/tenant/${tenantId}/users/${userId}`);
   }
 
+  setUserEnabled(tenantId: string, userId: string, enabled: boolean): Observable<AppUserDto> {
+    return this.http.patch<AppUserDto>(
+      `${this.baseUrl}/tenant/${tenantId}/users/${userId}/status`,
+      null,
+      { params: new HttpParams().set('enabled', String(enabled)) }
+    );
+  }
+
   changeRole(tenantId: string, userId: string, request: ChangeUserRoleRequest): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/tenant/${tenantId}/users/${userId}/role`, request);
   }

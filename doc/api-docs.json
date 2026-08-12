@@ -24,6 +24,10 @@
       "description": "Controller for tenant self-management (profile, address, country, etc.)"
     },
     {
+      "name": "AppVersionController",
+      "description": "Controller for managing the mobile app version"
+    },
+    {
       "name": "AppointmentTypeController",
       "description": "CRUD for appointment types per tenant"
     },
@@ -1390,6 +1394,56 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/app/version": {
+      "get": {
+        "tags": [
+          "AppVersionController"
+        ],
+        "description": "Get the current app version. Public endpoint used by the Flutter app to decide if an update is required",
+        "operationId": "getVersion",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppVersionDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "AppVersionController"
+        ],
+        "description": "Update the app version and whether the update is mandatory",
+        "operationId": "updateVersion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAppVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppVersionDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2797,6 +2851,55 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/AppointmentTypeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/users/{userId}/status": {
+      "patch": {
+        "tags": [
+          "UserTenantRoleController"
+        ],
+        "description": "Enable or disable a user in the tenant",
+        "operationId": "setUserStatus",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "enabled",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppUser_Full"
                 }
               }
             }
@@ -5092,6 +5195,40 @@
           }
         }
       },
+      "UpdateAppVersionRequest": {
+        "type": "object",
+        "properties": {
+          "latestVersion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mandatoryUpdate": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "latestVersion"
+        ]
+      },
+      "AppVersionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "latestVersion": {
+            "type": "string"
+          },
+          "mandatoryUpdate": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "CreateTenantRequest_Public": {
         "type": "object",
         "properties": {
@@ -5826,15 +5963,15 @@
               "type": "string"
             }
           },
-          "roleCode": {
-            "type": "string"
-          },
           "userType": {
             "type": "string",
             "enum": [
               "STAFF",
               "PATIENT"
             ]
+          },
+          "roleCode": {
+            "type": "string"
           },
           "tenantName": {
             "type": "string"

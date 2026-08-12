@@ -106,7 +106,18 @@
     "email_already_in_use": "Este email ya está en uso por otro usuario",
     "future_birth_date": "La fecha de nacimiento no puede ser futura",
     "height_out_of_range": "La altura debe estar entre 30 y 275 cm",
-    "partial_update_warning": "Perfil actualizado pero no se pudo cambiar el rol"
+    "partial_update_warning": "Perfil actualizado pero no se pudo cambiar el rol",
+    "status_active": "Activo",
+    "status_disabled": "Deshabilitado",
+    "disable": "Deshabilitar",
+    "enable": "Habilitar",
+    "disable_confirm_title": "Confirmar Deshabilitación",
+    "disable_confirm_msg": "¿Estás seguro de que deseas deshabilitar al usuario {{name}}? No podrá iniciar sesión ni usar la plataforma.",
+    "enable_confirm_title": "Confirmar Habilitación",
+    "enable_confirm_msg": "¿Estás seguro de que deseas habilitar al usuario {{name}}? Podrá volver a iniciar sesión y usar la plataforma.",
+    "disable_success": "Usuario deshabilitado correctamente",
+    "enable_success": "Usuario habilitado correctamente",
+    "disable_conflict": "No se puede deshabilitar a este usuario (puede ser el único administrador)"
   },
   "patients": {
     "title": "Pacientes",

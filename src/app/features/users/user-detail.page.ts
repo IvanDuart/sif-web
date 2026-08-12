@@ -14,7 +14,7 @@ import { PatientEventService } from '../../core/api/services/patient-event.api';
 import { BodyMeasurementService } from '../../core/api/services/body-measurement.api';
 import { MenuService } from '../../core/api/services/menu.api';
 import { AppointmentService } from '../../core/api/services/appointment.api';
-import { TenantService } from '../../core/api/services/tenant.api';
+import { TenantBrandingService } from '../../core/api/services/tenant-branding.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppUserDto, UserTenantProfileDto } from '../../core/api/models/user.model';
 import { PatientEventDto } from '../../core/api/models/patient-event.model';
@@ -74,7 +74,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   private readonly appointmentService = inject(AppointmentService);
   private readonly patientEventService = inject(PatientEventService);
   private readonly tenantCtx = inject(TenantContextService);
-  private readonly tenantService = inject(TenantService);
+  private readonly tenantBrandingService = inject(TenantBrandingService);
   private readonly confirm = inject(ConfirmService);
   private readonly notify = inject(NotificationService);
   private readonly modal = inject(ModalService);
@@ -277,9 +277,9 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   private loadTenantPreferences() {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
-    this.tenantService.getById(tenantId).subscribe({
-      next: (tenant) => {
-        this.activeAnamnesisFields.set(tenant.preferences?.active_anamnesis_fields || []);
+    this.tenantBrandingService.getBranding(tenantId).subscribe({
+      next: (branding) => {
+        this.activeAnamnesisFields.set(branding.preferences?.active_anamnesis_fields || []);
       }
     });
   }

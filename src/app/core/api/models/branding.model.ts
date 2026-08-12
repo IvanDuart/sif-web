@@ -1,3 +1,5 @@
+import { TenantPreferences } from './tenant.model';
+
 export interface TenantBrandingDto {
   name: string;
   primaryColor: string;
@@ -7,4 +9,5 @@ export interface TenantBrandingDto {
   address?: string;
   phone?: string;
   aiEnabled?: boolean;
+  preferences?: TenantPreferences;
 }

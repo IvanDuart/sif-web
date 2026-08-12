@@ -57,14 +57,15 @@
                   </span>
                 </th>
                 <th tuiTh scope="col">{{ t('users.age') }}</th>
-                <th tuiTh scope="col">{{ t('users.weight') }}</th>
-                <th tuiTh scope="col">{{ t('users.bmi') }}</th>
-                <th tuiTh scope="col" class="text-center" style="width: 8rem;">{{ t('common.actions') }}</th>
+                 <th tuiTh scope="col">{{ t('users.weight') }}</th>
+                 <th tuiTh scope="col">{{ t('users.bmi') }}</th>
+                 <th tuiTh scope="col">{{ t('users.status') }}</th>
+                 <th tuiTh scope="col" class="text-center" style="width: 10rem;">{{ t('common.actions') }}</th>
               </tr>
             </thead>
             <tbody tuiTbody>
               @for (user of users(); track user.id) {
-                <tr tuiTr class="table-row">
+                <tr tuiTr class="table-row" [class.opacity-60]="user.enabled === false">
                   <td tuiTd class="font-medium">{{ user.firstName }}</td>
                   <td tuiTd>{{ user.lastName }}</td>
                   <td tuiTd class="text-sm text-surface-500">{{ user.email }}</td>
@@ -78,6 +79,12 @@
                   </td>
                   <td tuiTd class="text-sm font-mono">{{ user.lastMeasurement?.weightKg ?? '—' }}</td>
                   <td tuiTd class="text-sm font-mono">{{ user.lastMeasurement?.bmi ?? '—' }}</td>
+                  <td tuiTd>
+                    <span tuiBadge
+                      [appearance]="user.enabled !== false ? 'success' : 'error'">
+                      {{ user.enabled !== false ? t('users.status_active') : t('users.status_disabled') }}
+                    </span>
+                  </td>
                   <td tuiTd class="text-center">
                     <div class="flex items-center gap-1 justify-center">
                       <a tuiButton appearance="flat" size="s" [routerLink]="['/users', user.id]" [title]="t('common.view')">
@@ -87,11 +94,20 @@
                         (click)="editUser(user)" [title]="t('users.edit')">
                         <i class="fa-solid fa-pen"></i>
                       </button>
-                      <button *appIfPermission="'MANAGE_USER'" tuiButton appearance="flat" size="s" type="button"
-                        class="text-red-500 hover:text-red-700"
-                        (click)="revokeAccess(user)" [title]="t('users.revoke')">
-                        <i class="fa-solid fa-user-xmark"></i>
+                      <button *appIfPermission="'DISABLE_USER'" tuiButton appearance="flat" size="s" type="button"
+                        [class.text-red-500]="user.enabled !== false"
+                        [class.text-green-600]="user.enabled === false"
+                        (click)="toggleEnabled(user)"
+                        [title]="user.enabled !== false ? t('users.disable') : t('users.enable')">
+                        <i class="fa-solid" [class.fa-toggle-on]="user.enabled !== false" [class.fa-toggle-off]="user.enabled === false"></i>
                       </button>
+                      @if (canDeleteUsers()) {
+                        <button *appIfPermission="'MANAGE_USER'" tuiButton appearance="flat" size="s" type="button"
+                          class="text-red-500 hover:text-red-700"
+                          (click)="revokeAccess(user)" [title]="t('users.revoke')">
+                          <i class="fa-solid fa-user-xmark"></i>
+                        </button>
+                      }
                     </div>
                   </td>
                 </tr>

@@ -106,7 +106,18 @@
     "email_already_in_use": "This email is already in use by another user",
     "future_birth_date": "Date of birth cannot be in the future",
     "height_out_of_range": "Height must be between 30 and 275 cm",
-    "partial_update_warning": "Profile updated but role could not be changed"
+    "partial_update_warning": "Profile updated but role could not be changed",
+    "status_active": "Active",
+    "status_disabled": "Disabled",
+    "disable": "Disable",
+    "enable": "Enable",
+    "disable_confirm_title": "Confirm Deactivation",
+    "disable_confirm_msg": "Are you sure you want to deactivate {{name}}? They will not be able to log in or use the platform.",
+    "enable_confirm_title": "Confirm Activation",
+    "enable_confirm_msg": "Are you sure you want to activate {{name}}? They will be able to log in and use the platform again.",
+    "disable_success": "User deactivated successfully",
+    "enable_success": "User activated successfully",
+    "disable_conflict": "Cannot deactivate this user (they might be the only administrator)"
   },
   "patients": {
     "title": "Patients",
