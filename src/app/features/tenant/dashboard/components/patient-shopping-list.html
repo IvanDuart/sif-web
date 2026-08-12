@@ -1,0 +1,66 @@
+<div *transloco="let t" class="data-card border border-surface-200 dark:border-surface-700 flex flex-col h-full">
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-2">
+      <i class="fa-solid fa-cart-shopping text-primary-500 text-xl"></i>
+      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0">
+        {{ t('patient_dashboard.shopping_list', {defaultValue: 'Lista de la Compra'}) }}
+      </h3>
+    </div>
+    @if (shoppingList(); as list) {
+      <span class="bg-primary-50 dark:bg-brand-tint-20 text-primary-700 dark:text-primary-400 text-xs font-bold px-2 py-0.5 rounded">
+        {{ supermarketLabel(list.supermarket) }}
+      </span>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="flex-1 flex items-center justify-center py-6">
+      <i class="fa-solid fa-spinner fa-spin text-primary-500 text-xl"></i>
+    </div>
+  } @else if (shoppingList(); as list) {
+    <div class="space-y-4 flex-1 overflow-y-auto max-h-[400px] pr-1">
+      @for (group of groupedItems(); track group.category) {
+        <div>
+          <h4 class="text-xs font-bold text-surface-500 uppercase tracking-wider mb-2">{{ group.category }}</h4>
+          <div class="space-y-1">
+            @for (item of group.items; track item.id) {
+              <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-50 dark:hover:bg-surface-800 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  [ngModel]="item.checked"
+                  (ngModelChange)="toggleItem(item, $event)"
+                  class="w-4 h-4 rounded border-surface-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                />
+                <div class="flex-1 min-w-0">
+                  <span [class.line-through]="item.checked" [class.text-surface-400]="item.checked" class="text-sm font-medium text-surface-900 dark:text-surface-0">
+                    {{ item.name }}
+                  </span>
+                  @if (item.quantity) {
+                    <span class="text-xs text-surface-400 ml-1">
+                      {{ item.quantity }}{{ item.unit ? ' ' + item.unit : '' }}
+                    </span>
+                  }
+                  @if (item.notes) {
+                    <p class="text-xs text-surface-400 truncate">{{ item.notes }}</p>
+                  }
+                </div>
+                @if (item.estimatedPrice) {
+                  <span class="text-xs font-medium text-surface-500 whitespace-nowrap font-mono">{{ item.estimatedPrice.toFixed(2) }} €</span>
+                }
+              </label>
+            }
+          </div>
+        </div>
+      }
+      <div class="flex items-center justify-between pt-2 border-t border-surface-200 dark:border-surface-700">
+        <span class="text-xs text-surface-500">{{ t('shopping_list.total_items', {defaultValue: 'Total'}) }}: {{ list.items.length }}</span>
+        <span class="text-sm font-bold text-primary-600 font-mono">{{ totalPrice() }} €</span>
+      </div>
+    </div>
+  } @else {
+    <div class="flex-1 flex flex-col items-center justify-center py-6 text-surface-400">
+      <i class="fa-solid fa-cart-shopping text-3xl mb-2 opacity-50"></i>
+      <p class="text-sm">{{ t('patient_dashboard.no_shopping_list', {defaultValue: 'No hay lista de la compra activa'}) }}</p>
+    </div>
+  }
+</div>

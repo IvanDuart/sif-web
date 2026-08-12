@@ -1,14 +1,14 @@
 <div *transloco="let t" class="w-full">
   <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4 mt-2">
     <tui-textfield tuiChevron>
-      <label tuiLabel>{{ t('schedule_settings.select_schedule') }}</label>
-      <input tuiComboBox formControlName="scheduleId" />
+      <label tuiLabel for="assignmentScheduleId">{{ t('schedule_settings.select_schedule') }}</label>
+      <input id="assignmentScheduleId" tuiComboBox formControlName="scheduleId" />
       <tui-data-list-wrapper *tuiDropdown [items]="scheduleLabels() | tuiFilterByInput" />
     </tui-textfield>
 
     <tui-textfield>
-      <label tuiLabel>{{ t('schedule_settings.valid_from') }}</label>
-      <input tuiInputDate formControlName="validFrom" />
+      <label tuiLabel for="assignmentValidFrom">{{ t('schedule_settings.valid_from') }}</label>
+      <input id="assignmentValidFrom" tuiInputDate formControlName="validFrom" />
       <tui-calendar *tuiDropdown />
     </tui-textfield>
 
@@ -24,8 +24,8 @@
 
     @if (!indefiniteCtrl.value) {
       <tui-textfield>
-        <label tuiLabel>{{ t('schedule_settings.valid_to') }}</label>
-        <input tuiInputDate formControlName="validTo" />
+        <label tuiLabel for="assignmentValidTo">{{ t('schedule_settings.valid_to') }}</label>
+        <input id="assignmentValidTo" tuiInputDate formControlName="validTo" />
         <tui-calendar *tuiDropdown />
       </tui-textfield>
     }

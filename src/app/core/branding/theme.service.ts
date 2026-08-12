@@ -12,22 +12,29 @@ export class ThemeService {
     this.applyColorScheme();
   }
 
+  /**
+   * Single source of truth for the accent: the tenant's primary color.
+   * Writes ONLY the anchor (--brand-primary) and the computed contrast color;
+   * the full 50-950 ramp + Taiga tokens + dark variants are derived in CSS via
+   * color-mix(), so dark mode and every shade stay in sync automatically.
+   */
   setPrimary(hex: string) {
-    document.documentElement.style.setProperty('--p-primary-500', hex);
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    const darken = (factor: number) =>
-      `rgb(${Math.round(r * factor)}, ${Math.round(g * factor)}, ${Math.round(b * factor)})`;
-    document.documentElement.style.setProperty('--p-primary-50', `rgba(${r}, ${g}, ${b}, 0.1)`);
-    document.documentElement.style.setProperty('--p-primary-300', darken(0.7));
-    document.documentElement.style.setProperty('--p-primary-600', darken(0.8));
-    document.documentElement.style.setProperty('--p-primary-700', darken(0.6));
+    if (!/^#([0-9a-fA-F]{6})$/.test(hex)) return;
+    document.documentElement.style.setProperty('--brand-primary', hex);
+    document.documentElement.style.setProperty('--p-primary-contrast-color', this.contrastColor(hex));
+  }
 
-    document.documentElement.style.setProperty('--tui-primary', hex);
-    document.documentElement.style.setProperty('--tui-primary-hover', darken(0.8));
-    document.documentElement.style.setProperty('--tui-background-accent-1', hex);
-    document.documentElement.style.setProperty('--tui-background-accent-1-hover', darken(0.8));
+  /** WCAG-style: pick white or near-black (surface-950) for text on the primary. */
+  private contrastColor(hex: string): string {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    const lin = (c: number) =>
+      c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    const l = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+    const contrastWhite = (l + 0.05) / 1.05;
+    const contrastDark = 1.05 / (l + 0.05);
+    return contrastWhite >= contrastDark ? '#ffffff' : '#0f172a';
   }
 
   toggleColorScheme() {

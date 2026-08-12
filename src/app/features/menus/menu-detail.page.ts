@@ -92,7 +92,7 @@ export default class MenuDetailPage implements OnInit {
 
     this.tenantBrandingService.getBranding(tenantId).subscribe({
       next: (branding) => this.isAiEnabled.set(branding.aiEnabled === true),
-      error: () => {}
+      error: () => { /* handle silently */ }
     });
 
     this.menuService.getById(tenantId, this.menuId).subscribe({

@@ -8,7 +8,6 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { AppointmentService } from '../../../core/api/services/appointment.api';
 import { AppointmentDto, AppointmentStatus, UpdateAppointmentStatusRequest } from '../../../core/api/models/appointment.model';
 import { AppointmentFormDialog } from '../../appointments/appointment-form.dialog';
-import { AppointmentActionDialog } from '../../appointments/appointment-action.dialog';
 import { formatInstant } from '../../../shared/utils/date';
 import { ModalService, NotificationService, ConfirmService } from '../../../core/ui';
 import { TuiButton } from '@taiga-ui/core';
@@ -50,6 +49,7 @@ export class TenantDashboardComponent implements OnInit {
   private readonly transloco = inject(TranslocoService);
 
   tenantName = computed(() => this.tenantCtx.currentMembership()?.tenantName || 'la clínica');
+  isStaff = computed(() => this.tenantCtx.currentMembership()?.userType === 'STAFF');
 
   canViewAppointments = computed(() => this.tenantCtx.hasPermission('VIEW_APPOINTMENTS'));
   currentUserId = computed(() => this.authService.user()?.id || '');

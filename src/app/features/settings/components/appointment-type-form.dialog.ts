@@ -16,66 +16,7 @@ export interface AppointmentTypeFormDialogInput {
   selector: 'app-appointment-type-form-dialog',
   standalone: true,
   imports: [FormsModule, TuiInput, TuiTextfield, TuiLabel, TuiButton, TuiSwitch],
-  template: `
-    <div class="flex flex-col gap-4 mt-2">
-      <tui-textfield class="w-full">
-        <label tuiLabel>Nombre</label>
-        <input
-          tuiInput
-          [(ngModel)]="name" />
-      </tui-textfield>
-
-      <tui-textfield class="w-full">
-        <label tuiLabel>Duración (minutos)</label>
-        <input
-          tuiInput
-          type="number"
-          [(ngModel)]="durationMinutes"
-          min="1"
-          max="480"
-          step="5" />
-      </tui-textfield>
-
-      <tui-textfield class="w-full">
-        <label tuiLabel>Precio (€)</label>
-        <input
-          tuiInput
-          type="number"
-          [(ngModel)]="price"
-          min="0"
-          step="0.01"
-          placeholder="50.00" />
-      </tui-textfield>
-
-      <div class="flex items-center gap-3 py-1">
-        <input
-          id="isDefault"
-          type="checkbox"
-          tuiSwitch
-          [(ngModel)]="isDefault" />
-        <label for="isDefault" class="text-sm font-medium text-surface-700 dark:text-surface-300 cursor-pointer">
-          Tipo predeterminado
-        </label>
-      </div>
-
-      <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-        <button
-          tuiButton
-          appearance="secondary"
-          size="m"
-          (click)="context.$implicit.complete()">
-          Cancelar
-        </button>
-        <button
-          tuiButton
-          size="m"
-          [disabled]="!name || !durationMinutes"
-          (click)="save()">
-          {{ editing ? 'Actualizar' : 'Crear' }}
-        </button>
-      </div>
-    </div>
-  `
+  templateUrl: './appointment-type-form.dialog.html'
 })
 export class AppointmentTypeFormDialog {
   private readonly appointmentTypeService = inject(AppointmentTypeService);

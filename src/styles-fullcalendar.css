@@ -7,15 +7,15 @@
   --fc-border-color: rgba(0, 0, 0, 0.06);
   --fc-page-bg-color: transparent;
   --fc-neutral-bg-color: transparent;
-  --fc-today-bg-color: rgba(5, 150, 105, 0.04);
+  --fc-today-bg-color: color-mix(in srgb, var(--p-primary-500, #059669) 4%, transparent);
 
-  --fc-button-text-color: var(--p-primary-700, #1e40af);
-  --fc-button-bg-color: var(--p-primary-50, #eff6ff);
-  --fc-button-border-color: var(--p-primary-200, #bfdbfe);
-  --fc-button-hover-bg-color: var(--p-primary-100, #dbeafe);
-  --fc-button-hover-border-color: var(--p-primary-300, #93c5fd);
-  --fc-button-active-bg-color: var(--p-primary-200, #bfdbfe);
-  --fc-button-active-border-color: var(--p-primary-400, #60a5fa);
+  --fc-button-text-color: var(--p-primary-700, #046f4e);
+  --fc-button-bg-color: var(--p-primary-50, #e1f2ed);
+  --fc-button-border-color: var(--p-primary-200, #aadbcc);
+  --fc-button-hover-bg-color: var(--p-primary-100, #c8e8de);
+  --fc-button-hover-border-color: var(--p-primary-300, #87cdb7);
+  --fc-button-active-bg-color: var(--p-primary-200, #aadbcc);
+  --fc-button-active-border-color: var(--p-primary-400, #5fbc9f);
 }
 
 /* ── Toolbar title (Poppins) ───────────────────────────── */
@@ -87,7 +87,7 @@
 
 /* Today circle */
 .fc .fc-day-today .fc-daygrid-day-number {
-  background: var(--p-primary-500, #3b82f6);
+  background: var(--p-primary-500, #059669);
   color: #fff;
   border-radius: 50%;
   width: 1.75rem;
@@ -149,12 +149,12 @@
 
 /* ── Now indicator line (timegrid) ───────────────────────── */
 .fc .fc-timegrid-now-indicator-line {
-  border-color: var(--p-primary-500, #3b82f6);
+  border-color: var(--p-primary-500, #059669);
 }
 
 .fc .fc-timegrid-now-indicator-arrow {
-  border-color: var(--p-primary-500, #3b82f6);
-  color: var(--p-primary-500, #3b82f6);
+  border-color: var(--p-primary-500, #059669);
+  color: var(--p-primary-500, #059669);
 }
 
 /* ── Holiday / Closed day cells ──────────────────────────── */

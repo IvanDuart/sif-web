@@ -29,76 +29,7 @@ interface GeoOption {
     TuiDataListWrapper,
     TuiChevron,
   ],
-  template: `
-    <div *transloco="let t" class="w-full">
-      <form (ngSubmit)="save()" class="flex flex-col gap-4 mt-2">
-        <tui-textfield class="w-full">
-          <label tuiLabel>{{ t('admin.dialog_name') }} *</label>
-          <input tuiInput [(ngModel)]="name" name="name" [placeholder]="t('admin.dialog_name_placeholder')" required />
-        </tui-textfield>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <tui-textfield class="w-full">
-            <label tuiLabel>{{ t('admin.dialog_cif') }}</label>
-            <input tuiInput [(ngModel)]="cif" name="cif" placeholder="B12345678" />
-          </tui-textfield>
-
-          <tui-textfield class="w-full">
-            <label tuiLabel>{{ t('admin.dialog_phone') }}</label>
-            <input tuiInput [(ngModel)]="phone" name="phone" placeholder="+34 600 000 000" />
-          </tui-textfield>
-        </div>
-
-        <tui-textfield class="w-full">
-          <label tuiLabel>{{ t('admin.dialog_address') }}</label>
-          <input tuiInput [(ngModel)]="address" name="address" placeholder="C/ Mayor 1, 07001 Palma" />
-        </tui-textfield>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <tui-textfield tuiChevron>
-            <label tuiLabel>{{ t('admin.dialog_country') }}</label>
-            <input tuiComboBox [(ngModel)]="countryDisplay" (ngModelChange)="onCountryChange()" name="country" />
-            <tui-data-list-wrapper *tuiDropdown [items]="countryLabels() | tuiFilterByInput" />
-          </tui-textfield>
-
-          <tui-textfield tuiChevron>
-            <label tuiLabel>{{ t('admin.dialog_state') }}</label>
-            <input tuiComboBox [(ngModel)]="stateDisplay" (ngModelChange)="onStateChange()" name="state" [disabled]="!countryDisplay" />
-            <tui-data-list-wrapper *tuiDropdown [items]="stateLabels() | tuiFilterByInput" />
-          </tui-textfield>
-
-          <tui-textfield tuiChevron>
-            <label tuiLabel>{{ t('admin.dialog_city') }}</label>
-            <input tuiComboBox [(ngModel)]="cityDisplay" name="city" [disabled]="!stateDisplay" />
-            <tui-data-list-wrapper *tuiDropdown [items]="cityLabels() | tuiFilterByInput" />
-          </tui-textfield>
-        </div>
-
-        <div class="mt-2 p-4 rounded-lg bg-primary-50 dark:bg-primary-950/10 border border-primary-100 dark:border-primary-900/40">
-          <div class="flex items-start gap-3">
-            <i class="fa-solid fa-circle-info mt-1 text-primary-500"></i>
-            <div>
-              <p class="text-sm font-semibold text-surface-800 dark:text-surface-200 mb-1">{{ t('admin.dialog_info_title') }}</p>
-              <p class="text-xs text-surface-500 leading-relaxed">{{ t('admin.dialog_info') }}</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-          <button tuiButton appearance="secondary" size="m" type="button" (click)="context.$implicit.complete()">
-            {{ t('common.cancel') }}
-          </button>
-          <button tuiButton size="m" type="submit" [disabled]="!name.trim() || saving()">
-            @if (saving()) {
-              <i class="fa-solid fa-spinner fa-spin"></i>
-            }
-            <i class="fa-solid fa-plus mr-1"></i>
-            {{ t('admin.dialog_submit') }}
-          </button>
-        </div>
-      </form>
-    </div>
-  `
+  templateUrl: './create-tenant.dialog.html'
 })
 export class CreateTenantDialog {
   private readonly tenantService = inject(TenantService);

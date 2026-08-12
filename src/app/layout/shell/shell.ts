@@ -113,12 +113,12 @@ export class Shell implements OnInit {
 
   readonly navTranslations = toSignal(
     this.transloco.selectTranslateObject('menu'),
-    { initialValue: <Record<string, string>>{} }
+    { initialValue: {} as Record<string, string> }
   );
 
   readonly authTranslations = toSignal(
     this.transloco.selectTranslateObject('auth'),
-    { initialValue: <Record<string, string>>{} }
+    { initialValue: {} as Record<string, string> }
   );
 
   visibleNavItems = computed<NavItem[]>(() => {
@@ -135,7 +135,8 @@ export class Shell implements OnInit {
         return this.permissionsService.has('VIEW_USER') || this.permissionsService.has('MANAGE_USER');
       }
       if (item.permission === 'VIEW_APPOINTMENTS') {
-        return this.permissionsService.has('VIEW_APPOINTMENTS') || this.permissionsService.has('MANAGE_APPOINTMENTS');
+        return this.activeTenant()?.userType === 'STAFF' &&
+          (this.permissionsService.has('VIEW_APPOINTMENTS') || this.permissionsService.has('MANAGE_APPOINTMENTS'));
       }
       if (item.permission === 'VIEW_MENU') {
         return this.activeTenant()?.userType === 'PATIENT';

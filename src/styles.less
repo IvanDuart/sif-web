@@ -21,14 +21,19 @@
   --p-surface-800: #1e293b;
   --p-surface-900: #0f172a;
   --p-surface-950: #020617;
-  --p-primary-50: #eff6ff;
-  --p-primary-100: #dbeafe;
-  --p-primary-200: #bfdbfe;
-  --p-primary-300: #93c5fd;
-  --p-primary-400: #60a5fa;
-  --p-primary-500: #3b82f6;
-  --p-primary-600: #2563eb;
-  --p-primary-700: #1d4ed8;
+  /* Brand primary — single source of truth (tenant overrides via setPrimary) */
+  --brand-primary: #059669;
+  --p-primary-50: color-mix(in srgb, var(--brand-primary) 12%, white);
+  --p-primary-100: color-mix(in srgb, var(--brand-primary) 22%, white);
+  --p-primary-200: color-mix(in srgb, var(--brand-primary) 34%, white);
+  --p-primary-300: color-mix(in srgb, var(--brand-primary) 48%, white);
+  --p-primary-400: color-mix(in srgb, var(--brand-primary) 64%, white);
+  --p-primary-500: var(--brand-primary);
+  --p-primary-600: color-mix(in srgb, var(--brand-primary) 88%, black);
+  --p-primary-700: color-mix(in srgb, var(--brand-primary) 74%, black);
+  --p-primary-800: color-mix(in srgb, var(--brand-primary) 58%, black);
+  --p-primary-900: color-mix(in srgb, var(--brand-primary) 42%, black);
+  --p-primary-950: color-mix(in srgb, var(--brand-primary) 30%, black);
   --p-primary-contrast-color: #ffffff;
   --p-content-background: var(--p-surface-0);
   --p-text-color: var(--p-surface-700);
@@ -40,10 +45,10 @@
     TAIGA UI THEME — Emerald + Slate palette
     ───────────────────────────────────────────── */
 :root {
-  --tui-primary: #059669;
-  --tui-primary-hover: #047857;
-  --tui-background-accent-1: #059669;
-  --tui-background-accent-1-hover: #047857;
+  --tui-primary: var(--brand-primary);
+  --tui-primary-hover: color-mix(in srgb, var(--brand-primary) 88%, black);
+  --tui-background-accent-1: var(--brand-primary);
+  --tui-background-accent-1-hover: color-mix(in srgb, var(--brand-primary) 88%, black);
   --tui-background-base: #f8fafc;
   --tui-background-neutral-1: #f8fafc;
   --tui-background-neutral-2: #f1f5f9;
@@ -55,13 +60,23 @@
   --tui-border: #e2e8f0;
   --tui-border-normal: #e2e8f0;
   --tui-background: #f1f5f9;
+
+  /* Semantic status palette — fixed, NOT tenant-driven */
+  --status-scheduled: #3b82f6;
+  --status-completed: #10b981;
+  --status-cancelled: #6b7280;
+  --status-no-show: #f59e0b;
+  --status-proposed: #f97316;
+  --status-holiday: #dc2626;
+  --status-closed: #94a3b8;
+  --status-active-hours: #10b981;
 }
 
 .dark {
-  --tui-primary: #34d399;
-  --tui-primary-hover: #6ee7b7;
-  --tui-background-accent-1: #34d399;
-  --tui-background-accent-1-hover: #6ee7b7;
+  --tui-primary: color-mix(in srgb, var(--brand-primary) 78%, white);
+  --tui-primary-hover: color-mix(in srgb, var(--brand-primary) 62%, white);
+  --tui-background-accent-1: color-mix(in srgb, var(--brand-primary) 78%, white);
+  --tui-background-accent-1-hover: color-mix(in srgb, var(--brand-primary) 62%, white);
   --tui-background-base: #1e293b;
   --tui-background-neutral-1: #1e293b;
   --tui-background-neutral-2: #334155;
@@ -90,6 +105,19 @@
   --p-content-background: var(--p-surface-0);
   --p-text-color: var(--p-surface-700);
   --p-text-muted-color: var(--p-surface-400);
+
+  /* Brand primary — dark ramp (lighter family, anchored on the tenant color) */
+  --p-primary-50: color-mix(in srgb, var(--brand-primary) 14%, white);
+  --p-primary-100: color-mix(in srgb, var(--brand-primary) 26%, white);
+  --p-primary-200: color-mix(in srgb, var(--brand-primary) 40%, white);
+  --p-primary-300: color-mix(in srgb, var(--brand-primary) 56%, white);
+  --p-primary-400: color-mix(in srgb, var(--brand-primary) 72%, white);
+  --p-primary-500: var(--brand-primary);
+  --p-primary-600: color-mix(in srgb, var(--brand-primary) 90%, white);
+  --p-primary-700: color-mix(in srgb, var(--brand-primary) 78%, white);
+  --p-primary-800: color-mix(in srgb, var(--brand-primary) 64%, white);
+  --p-primary-900: color-mix(in srgb, var(--brand-primary) 50%, white);
+  --p-primary-950: color-mix(in srgb, var(--brand-primary) 38%, white);
 }
 
 /* ── Dialog background ─────────────────────────────── */
@@ -372,7 +400,7 @@ tui-toast[data-appearance="info"] {
 
 .form-input:focus {
   border-color: var(--tui-primary, #059669);
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--tui-primary, #059669) 15%, transparent);
 }
 
 .dark .form-input {
@@ -382,7 +410,7 @@ tui-toast[data-appearance="info"] {
 }
 
 .dark .form-input:focus {
-  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.15);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--tui-primary, #059669) 15%, transparent);
 }
 
 /* ─────────────────────────────────────────────
@@ -398,5 +426,42 @@ button[tuiIconButton][data-size="s"] i[class*="fa-"] {
 }
 button[tuiIconButton][data-size="xs"] i[class*="fa-"] {
   font-size: 0.875rem !important;
+}
+
+/* ─────────────────────────────────────────────
+   BRAND TINT UTILITIES — dark surfaces & borders
+   Tailwind v3 can't apply /opacity modifiers to var()-based
+   colors, so `dark:bg-primary-950/20` compiled to nothing (no-op).
+   These color-mix utilities restore those tints, always derived
+   from the single --brand-primary anchor. Use with variants:
+   `dark:bg-brand-tint-20`, `dark:hover:bg-brand-tint-20`,
+   `dark:border-brand-tint-40`, `dark:file:bg-brand-tint-20`.
+   ───────────────────────────────────────────── */
+@layer utilities {
+  .bg-brand-tint-10 {
+    background-color: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  }
+  .bg-brand-tint-20 {
+    background-color: color-mix(in srgb, var(--brand-primary) 20%, transparent);
+  }
+  .bg-brand-tint-30 {
+    background-color: color-mix(in srgb, var(--brand-primary) 30%, transparent);
+  }
+  .bg-brand-tint-50 {
+    background-color: color-mix(in srgb, var(--brand-primary) 50%, transparent);
+  }
+  .border-brand-tint-40 {
+    border-color: color-mix(in srgb, var(--brand-primary) 40%, transparent);
+  }
+  .border-brand-tint-50 {
+    border-color: color-mix(in srgb, var(--brand-primary) 50%, transparent);
+  }
+  .from-brand-tint-10 {
+    --tw-gradient-from: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, transparent);
+  }
+  .to-brand-tint-10 {
+    --tw-gradient-to: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  }
 }
 

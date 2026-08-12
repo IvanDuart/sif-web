@@ -17,27 +17,27 @@
 
   @if (activeStep() === 1) {
     <div class="flex flex-col gap-4 pt-2">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <tui-textfield class="w-full">
-          <label tuiLabel>{{ t('measurements.weight') }} (kg)</label>
-          <input type="number" formControlName="weightKg" tuiInput step="0.01" min="0" max="999.99" />
-        </tui-textfield>
+       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+         <tui-textfield class="w-full">
+           <label tuiLabel for="measurementWeight">{{ t('measurements.weight') }} (kg)</label>
+           <input id="measurementWeight" type="number" formControlName="weightKg" tuiInput step="0.01" min="0" max="999.99" />
+         </tui-textfield>
 
-        <tui-textfield class="w-full">
-          <label tuiLabel>{{ t('measurements.body_fat') }} (%)</label>
-          <input type="number" formControlName="bodyFatPct" tuiInput step="0.1" min="0" max="99.9" />
-        </tui-textfield>
+         <tui-textfield class="w-full">
+           <label tuiLabel for="measurementBodyFat">{{ t('measurements.body_fat') }} (%)</label>
+           <input id="measurementBodyFat" type="number" formControlName="bodyFatPct" tuiInput step="0.1" min="0" max="99.9" />
+         </tui-textfield>
 
-        <tui-textfield class="w-full">
-          <label tuiLabel>{{ t('measurements.muscle_mass') }} (kg)</label>
-          <input type="number" formControlName="muscleMassKg" tuiInput step="0.01" min="0" max="999.99" />
-        </tui-textfield>
+         <tui-textfield class="w-full">
+           <label tuiLabel for="measurementMuscleMass">{{ t('measurements.muscle_mass') }} (kg)</label>
+           <input id="measurementMuscleMass" type="number" formControlName="muscleMassKg" tuiInput step="0.01" min="0" max="999.99" />
+         </tui-textfield>
 
-        <tui-textfield class="w-full">
-          <label tuiLabel>{{ t('measurements.body_water') }} (%)</label>
-          <input type="number" formControlName="bodyWaterPct" tuiInput step="0.1" min="0" max="99.9" />
-        </tui-textfield>
-      </div>
+         <tui-textfield class="w-full">
+           <label tuiLabel for="measurementBodyWater">{{ t('measurements.body_water') }} (%)</label>
+           <input id="measurementBodyWater" type="number" formControlName="bodyWaterPct" tuiInput step="0.1" min="0" max="99.9" />
+         </tui-textfield>
+       </div>
       <div class="flex justify-end gap-2 pt-4 border-t border-surface-200 dark:border-surface-700 mt-4">
         <button type="button" tuiButton appearance="secondary" size="m" (click)="ref.close()">{{ t('common.cancel') }}</button>
         <button type="button" tuiButton size="m" (click)="nextStep()">{{ t('common.next') }} <i class="fa-solid fa-arrow-right ml-1"></i></button>
@@ -47,32 +47,32 @@
 
   @if (activeStep() === 2) {
     <div class="flex flex-col gap-4 pt-2">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <tui-textfield class="w-full">
-          <label tuiLabel>{{ t('measurements.waist') }} (cm)</label>
-          <input type="number" formControlName="waistCm" tuiInput step="0.1" min="0" max="999.9" />
-        </tui-textfield>
+       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+         <tui-textfield class="w-full">
+           <label tuiLabel for="measurementWaist">{{ t('measurements.waist') }} (cm)</label>
+           <input id="measurementWaist" type="number" formControlName="waistCm" tuiInput step="0.1" min="0" max="999.9" />
+         </tui-textfield>
 
-        <tui-textfield class="w-full">
-          <label tuiLabel>{{ t('measurements.chest') }} (cm)</label>
-          <input type="number" formControlName="chestCm" tuiInput step="0.1" min="0" max="999.9" />
-        </tui-textfield>
+         <tui-textfield class="w-full">
+           <label tuiLabel for="measurementChest">{{ t('measurements.chest') }} (cm)</label>
+           <input id="measurementChest" type="number" formControlName="chestCm" tuiInput step="0.1" min="0" max="999.9" />
+         </tui-textfield>
 
-        <tui-textfield class="w-full">
-          <label tuiLabel>{{ t('measurements.hips') }} (cm)</label>
-          <input type="number" formControlName="hipsCm" tuiInput step="0.1" min="0" max="999.9" />
-        </tui-textfield>
+         <tui-textfield class="w-full">
+           <label tuiLabel for="measurementHips">{{ t('measurements.hips') }} (cm)</label>
+           <input id="measurementHips" type="number" formControlName="hipsCm" tuiInput step="0.1" min="0" max="999.9" />
+         </tui-textfield>
 
-        <tui-textfield class="w-full">
-          <label tuiLabel>{{ t('measurements.contour') }} (cm)</label>
-          <input type="number" formControlName="contourCm" tuiInput step="0.1" min="0" max="999.9" />
-        </tui-textfield>
+         <tui-textfield class="w-full">
+           <label tuiLabel for="measurementContour">{{ t('measurements.contour') }} (cm)</label>
+           <input id="measurementContour" type="number" formControlName="contourCm" tuiInput step="0.1" min="0" max="999.9" />
+         </tui-textfield>
 
-        <tui-textfield class="w-full sm:col-span-2">
-          <label tuiLabel>{{ t('measurements.arm') }} (cm)</label>
-          <input type="number" formControlName="armCm" tuiInput step="0.1" min="0" max="999.9" />
-        </tui-textfield>
-      </div>
+         <tui-textfield class="w-full sm:col-span-2">
+           <label tuiLabel for="measurementArm">{{ t('measurements.arm') }} (cm)</label>
+           <input id="measurementArm" type="number" formControlName="armCm" tuiInput step="0.1" min="0" max="999.9" />
+         </tui-textfield>
+       </div>
       <div class="flex justify-between gap-2 pt-4 border-t border-surface-200 dark:border-surface-700 mt-4">
         <button type="button" tuiButton appearance="secondary" size="m" (click)="prevStep()"><i class="fa-solid fa-arrow-left mr-1"></i> {{ t('common.previous') }}</button>
         <button type="button" tuiButton size="m" (click)="nextStep()">{{ t('common.next') }} <i class="fa-solid fa-arrow-right ml-1"></i></button>
@@ -82,23 +82,23 @@
 
   @if (activeStep() === 3) {
     <div class="flex flex-col gap-4 pt-2">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <tui-textfield class="w-full">
-          <label tuiLabel>{{ t('measurements.measured_date') }}</label>
-          <input tuiInputDate formControlName="measuredDate" />
-          <tui-calendar *tuiDropdown />
-        </tui-textfield>
+       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+         <tui-textfield class="w-full">
+           <label tuiLabel for="measurementDate">{{ t('measurements.measured_date') }}</label>
+           <input id="measurementDate" tuiInputDate formControlName="measuredDate" />
+           <tui-calendar *tuiDropdown />
+         </tui-textfield>
 
-        <tui-textfield class="w-full">
-          <label tuiLabel>{{ t('measurements.measured_time') }}</label>
-          <input tuiInputTime formControlName="measuredTime" />
-        </tui-textfield>
-      </div>
+         <tui-textfield class="w-full">
+           <label tuiLabel for="measurementTime">{{ t('measurements.measured_time') }}</label>
+           <input id="measurementTime" tuiInputTime formControlName="measuredTime" />
+         </tui-textfield>
+       </div>
 
-      <tui-textfield class="w-full">
-        <label tuiLabel>{{ t('measurements.notes') }}</label>
-        <textarea formControlName="notes" tuiTextarea rows="3" [placeholder]="t('measurements.notes_placeholder')"></textarea>
-      </tui-textfield>
+       <tui-textfield class="w-full">
+         <label tuiLabel for="measurementNotes">{{ t('measurements.notes') }}</label>
+         <textarea id="measurementNotes" formControlName="notes" tuiTextarea rows="3" [placeholder]="t('measurements.notes_placeholder')"></textarea>
+       </tui-textfield>
 
       <div class="flex justify-between gap-2 pt-4 border-t border-surface-200 dark:border-surface-700 mt-4">
         <button type="button" tuiButton appearance="secondary" size="m" (click)="prevStep()"><i class="fa-solid fa-arrow-left mr-1"></i> {{ t('common.previous') }}</button>

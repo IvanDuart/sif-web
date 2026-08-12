@@ -30,22 +30,22 @@
 
     <div class="flex gap-4">
       <tui-textfield class="flex-1">
-        <label tuiLabel>{{ t('appointments.date') }}</label>
-        <input
-          tuiInputDate
-          id="date"
-          formControlName="date" />
-        <tui-calendar *tuiDropdown />
-      </tui-textfield>
+         <label tuiLabel for="appointmentDate">{{ t('appointments.date') }}</label>
+         <input
+           tuiInputDate
+           id="appointmentDate"
+           formControlName="date" />
+         <tui-calendar *tuiDropdown />
+       </tui-textfield>
 
-      <tui-textfield class="flex-1">
-        <label tuiLabel>{{ t('appointments.time') }}</label>
-        <input
-          tuiInputTime
-          id="time"
-          formControlName="time" />
-      </tui-textfield>
-    </div>
+       <tui-textfield class="flex-1">
+         <label tuiLabel for="appointmentTime">{{ t('appointments.time') }}</label>
+         <input
+           tuiInputTime
+           id="appointmentTime"
+           formControlName="time" />
+       </tui-textfield>
+     </div>
 
     @if (isHolidayDate()) {
       <div class="flex items-center gap-2 p-3 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">

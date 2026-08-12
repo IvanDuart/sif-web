@@ -2,13 +2,13 @@
   @if (menu()) {
   <div class="p-4" *transloco="let t">
     <div class="mb-6">
-      <a (click)="goBack()" class="inline-flex items-center gap-1 text-sm font-semibold text-surface-500 hover:text-primary-600 mb-4 transition-colors cursor-pointer">
+      <a (click)="goBack()" (keydown.enter)="goBack()" tabindex="0" role="link" class="inline-flex items-center gap-1 text-sm font-semibold text-surface-500 hover:text-primary-600 mb-4 transition-colors cursor-pointer">
         <i class="fa-solid fa-arrow-left text-xs"></i> {{ t('diet_detail.back') }}
       </a>
 
       <div class="flex justify-between items-start">
         <div>
-          <h1 class="text-3xl font-bold mb-2">{{ menu()?.name }}</h1>
+          <h1 class="text-3xl font-display font-bold tracking-tight text-balance mb-2">{{ menu()?.name }}</h1>
           <div class="flex gap-2 items-center">
             <span tuiBadge [appearance]="menu()?.isActive ? 'positive' : 'neutral'">
               {{ menu()?.isActive ? t('diets.active_badge') : t('diets.inactive_badge') }}

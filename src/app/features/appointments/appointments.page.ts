@@ -16,6 +16,8 @@ import { AppointmentDto, AppointmentStatus, UpdateAppointmentStatusRequest } fro
 import { AppointmentFormDialog } from './appointment-form.dialog';
 import { AppointmentActionDialog } from './appointment-action.dialog';
 import { formatInstant } from '../../shared/utils/date';
+import { statusColor, HOLIDAY_COLOR, CLOSED_COLOR, ACTIVE_HOURS_COLOR } from '../../shared/utils/status-colors';
+import { hexToRgba } from '../../shared/utils/chart-config';
 import { ModalService, NotificationService } from '../../core/ui';
 import { TuiButton } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
@@ -57,6 +59,10 @@ export default class AppointmentsPage implements OnInit {
   weekEnd = '';
 
   protected readonly formatInstant = formatInstant;
+  protected readonly statusColor = statusColor;
+  protected readonly holidayColor = HOLIDAY_COLOR;
+  protected readonly closedColor = CLOSED_COLOR;
+  protected readonly activeHoursDot = hexToRgba(ACTIVE_HOURS_COLOR, 0.6);
 
   calendarOptions: CalendarOptions = {};
   calendarEvents = signal<EventSourceInput>([]);
@@ -188,15 +194,7 @@ export default class AppointmentsPage implements OnInit {
   }
 
   private buildCalendarEvents(appointments: AppointmentDto[]) {
-    const colors: Record<string, string> = {
-      SCHEDULED: '#3b82f6',
-      COMPLETED: '#10b981',
-      CANCELLED: '#6b7280',
-      NO_SHOW: '#f59e0b',
-      PROPOSED: '#f97316'
-    };
-
-    const events: any[] = [];
+    const events: object[] = [];
 
     if (this.weekStart && this.weekEnd) {
       const start = new Date(this.weekStart);
@@ -207,7 +205,7 @@ export default class AppointmentsPage implements OnInit {
           events.push({
             start: dateStr,
             display: 'background',
-            backgroundColor: 'rgba(220, 38, 38, 0.15)',
+            backgroundColor: hexToRgba(HOLIDAY_COLOR, 0.15),
           });
         } else {
           const schedule = this.scheduleAvailability.getScheduleForDate(dateStr);
@@ -215,7 +213,7 @@ export default class AppointmentsPage implements OnInit {
             events.push({
               start: dateStr,
               display: 'background',
-              backgroundColor: 'rgba(148, 163, 184, 0.15)',
+              backgroundColor: hexToRgba(CLOSED_COLOR, 0.15),
             });
           } else {
             schedule.details.forEach(detail => {
@@ -223,7 +221,7 @@ export default class AppointmentsPage implements OnInit {
                 start: `${dateStr}T${detail.startTime}`,
                 end: `${dateStr}T${detail.endTime}`,
                 display: 'background',
-                backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                backgroundColor: hexToRgba(ACTIVE_HOURS_COLOR, 0.15),
               });
             });
           }
@@ -237,8 +235,8 @@ export default class AppointmentsPage implements OnInit {
         title: `${a.patientName}`,
         start: a.startTime,
         end: a.endTime,
-        backgroundColor: (colors[a.status] || '#3b82f6') + '20',
-        borderColor: colors[a.status] || '#3b82f6',
+        backgroundColor: statusColor(a.status) + '20',
+        borderColor: statusColor(a.status),
         extendedProps: {
           status: a.status,
           patientName: a.patientName,

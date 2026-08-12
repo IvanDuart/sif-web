@@ -11,29 +11,29 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
         <tui-textfield tuiChevron>
-          <label tuiLabel>{{ t('settings.address_country') }}</label>
-          <input tuiComboBox [(ngModel)]="countryDisplay" (ngModelChange)="onCountryChange()" />
+          <label tuiLabel for="addressCountry">{{ t('settings.address_country') }}</label>
+          <input id="addressCountry" tuiComboBox [(ngModel)]="countryDisplay" (ngModelChange)="onCountryChange()" />
           <tui-data-list-wrapper *tuiDropdown [items]="countryLabels() | tuiFilterByInput" />
         </tui-textfield>
 
-        <tui-textfield tuiChevron>
-          <label tuiLabel>{{ t('settings.address_state') }}</label>
-          <input tuiComboBox [(ngModel)]="stateDisplay" (ngModelChange)="onStateChange()" [disabled]="!countryDisplay" />
-          <tui-data-list-wrapper *tuiDropdown [items]="stateLabels() | tuiFilterByInput" />
-        </tui-textfield>
+         <tui-textfield tuiChevron>
+           <label tuiLabel for="addressState">{{ t('settings.address_state') }}</label>
+           <input id="addressState" tuiComboBox [(ngModel)]="stateDisplay" (ngModelChange)="onStateChange()" [disabled]="!countryDisplay" />
+           <tui-data-list-wrapper *tuiDropdown [items]="stateLabels() | tuiFilterByInput" />
+         </tui-textfield>
 
-        <tui-textfield tuiChevron>
-          <label tuiLabel>{{ t('settings.address_city') }}</label>
-          <input tuiComboBox [(ngModel)]="cityDisplay" [disabled]="!stateDisplay" />
-          <tui-data-list-wrapper *tuiDropdown [items]="cityLabels() | tuiFilterByInput" />
-        </tui-textfield>
+         <tui-textfield tuiChevron>
+           <label tuiLabel for="addressCity">{{ t('settings.address_city') }}</label>
+           <input id="addressCity" tuiComboBox [(ngModel)]="cityDisplay" [disabled]="!stateDisplay" />
+           <tui-data-list-wrapper *tuiDropdown [items]="cityLabels() | tuiFilterByInput" />
+         </tui-textfield>
 
-      </div>
+       </div>
 
-      <tui-textfield class="w-full mt-5">
-        <label tuiLabel>{{ t('settings.address_street') || 'Dirección' }}</label>
-        <input tuiInput [(ngModel)]="address" placeholder="C/ Mayor 1, 07001 Palma" />
-      </tui-textfield>
+       <tui-textfield class="w-full mt-5">
+         <label tuiLabel for="addressStreet">{{ t('settings.address_street') || 'Dirección' }}</label>
+         <input id="addressStreet" tuiInput [(ngModel)]="address" placeholder="C/ Mayor 1, 07001 Palma" />
+       </tui-textfield>
 
       <div class="flex justify-end pt-5 mt-6 border-t border-surface-200 dark:border-surface-700">
         <button tuiButton size="m" [disabled]="saving()" (click)="save()">

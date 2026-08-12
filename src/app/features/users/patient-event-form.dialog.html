@@ -25,10 +25,10 @@
     </div>
 
     <tui-textfield>
-      <label tuiLabel>{{ t('patient_events.start_time') }}</label>
+      <label tuiLabel for="eventStartDate">{{ t('patient_events.start_time') }}</label>
       <input
+        id="eventStartDate"
         tuiInputDate
-        id="eventStart"
         formControlName="startTime" />
       <tui-calendar *tuiDropdown />
       @if (form.get('startTime')?.invalid && form.get('startTime')?.touched) {

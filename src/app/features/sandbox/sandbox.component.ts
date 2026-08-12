@@ -47,8 +47,9 @@ import { ActivatedRoute } from '@angular/router';
       useValue: {
         snapshot: {
           paramMap: {
-            get: (key: string) => 'mock-id'
-          }
+            get: () => 'mock-id'
+          },
+          queryParams: of({})
         },
         queryParams: of({})
       }

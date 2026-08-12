@@ -7,6 +7,7 @@ import { TenantService } from '../../../core/api/services/tenant.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
 import { TenantPreferences } from '../../../core/api/models/tenant.model';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { ThemeService } from '../../../core/branding/theme.service';
 import { NotificationService } from '../../../core/ui';
 
 const LANGUAGE_OPTIONS = [
@@ -29,6 +30,7 @@ export class BrandingSettings implements OnInit, OnDestroy {
   private readonly tenantService = inject(TenantService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly notify = inject(NotificationService);
+  private readonly themeService = inject(ThemeService);
 
   readonly languageLabels = LANGUAGE_OPTIONS.map(l => l.label);
   readonly languageDisplay = signal('');
@@ -39,7 +41,7 @@ export class BrandingSettings implements OnInit, OnDestroy {
     ai_enabled: false,
     gemini_api_key: '',
     default_language: 'es',
-    primary_color: '#000000',
+    primary_color: '#059669',
     keycloak_sync_mode: '',
     from_email: '',
     standard_vacation_days: 0,
@@ -101,7 +103,7 @@ export class BrandingSettings implements OnInit, OnDestroy {
           ai_enabled: false,
           gemini_api_key: '',
           default_language: 'es',
-          primary_color: '#000000',
+          primary_color: '#059669',
           keycloak_sync_mode: '',
           from_email: '',
           standard_vacation_days: 0,
@@ -120,7 +122,7 @@ export class BrandingSettings implements OnInit, OnDestroy {
           this.setLogoFromBlob(blob);
         }
       },
-      error: () => {}
+      error: () => { /* handle silently */ }
     });
     this.tenantBrandingService.getLogoPdf(tenantId).subscribe({
       next: (blob) => {
@@ -128,7 +130,7 @@ export class BrandingSettings implements OnInit, OnDestroy {
           this.setLogoPdfFromBlob(blob);
         }
       },
-      error: () => {}
+      error: () => { /* handle silently */ }
     });
   }
 
@@ -143,6 +145,7 @@ export class BrandingSettings implements OnInit, OnDestroy {
     this.tenantBrandingService.updatePreferences(tenantId, prefs).subscribe({
       next: (res) => {
         this.preferences.set(res);
+        this.themeService.setPrimary(res.primary_color ?? '#059669');
         this.saving.set(false);
         this.notify.success('Éxito: Preferencias actualizadas');
       },

@@ -33,7 +33,7 @@ import { PatientEventFormDialog } from './patient-event-form.dialog';
 import { AssignMenuTemplateDialog } from './assign-menu-template.dialog';
 import { MenuFormDialog } from '../menus/menu-form.dialog';
 import { formatInstant, formatInstantWithTime } from '../../shared/utils/date';
-import { METRIC_SERIES, buildChartConfig } from '../../shared/utils/chart-config';
+import { METRIC_SERIES, buildChartConfig, hexToRgba, themePrimary } from '../../shared/utils/chart-config';
 import type { ChartConfiguration } from 'chart.js/auto';
 
 import { Chart, registerables } from 'chart.js';
@@ -145,8 +145,8 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       title: e.title,
       start: e.startTime,
       allDay: true,
-      backgroundColor: '#eff6ff',
-      borderColor: '#3b82f6',
+      backgroundColor: hexToRgba(themePrimary(), 0.12),
+      borderColor: themePrimary(),
       textColor: '#334155',
       extendedProps: {
         description: e.description,

@@ -2,9 +2,9 @@
   <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
 
     <tui-textfield tuiChevron>
-      <label tuiLabel>{{ t('appointments.patient') }}</label>
+      <label tuiLabel for="formPatientId">{{ t('appointments.patient') }}</label>
       <input
-        id="patientId"
+        id="formPatientId"
         tuiComboBox
         formControlName="patientId">
       <tui-data-list-wrapper
@@ -13,9 +13,9 @@
     </tui-textfield>
 
     <tui-textfield tuiChevron>
-      <label tuiLabel>{{ t('appointments.type') }}</label>
+      <label tuiLabel for="formTypeId">{{ t('appointments.type') }}</label>
       <input
-        id="typeId"
+        id="formTypeId"
         tuiComboBox
         formControlName="typeId">
       <tui-data-list-wrapper
@@ -25,22 +25,22 @@
 
     <div class="flex gap-4">
       <tui-textfield class="flex-1">
-        <label tuiLabel>{{ t('appointments.date') }}</label>
-        <input
-          tuiInputDate
-          id="date"
-          formControlName="date" />
-        <tui-calendar *tuiDropdown />
-      </tui-textfield>
+         <label tuiLabel for="formDate">{{ t('appointments.date') }}</label>
+         <input
+           tuiInputDate
+           id="formDate"
+           formControlName="date" />
+         <tui-calendar *tuiDropdown />
+       </tui-textfield>
 
-      <tui-textfield class="flex-1">
-        <label tuiLabel>{{ t('appointments.time') }}</label>
-        <input
-          tuiInputTime
-          id="time"
-          formControlName="time" />
-      </tui-textfield>
-    </div>
+       <tui-textfield class="flex-1">
+         <label tuiLabel for="formTime">{{ t('appointments.time') }}</label>
+         <input
+           tuiInputTime
+           id="formTime"
+           formControlName="time" />
+       </tui-textfield>
+     </div>
 
     @if (isHolidayDate()) {
       <div class="flex items-center gap-2 p-3 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
@@ -61,10 +61,11 @@
 
 
     <tui-textfield>
-      <label tuiLabel>
+      <label tuiLabel for="formNotes">
         {{ t('appointments.notes') }}
       </label>
       <textarea
+                id="formNotes"
                 tuiTextarea
                 formControlName="notes"
                 ></textarea>

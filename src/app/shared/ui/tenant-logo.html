@@ -1,0 +1,9 @@
+@if (logoUrl()) {
+  @if (!imageError) {
+    <img [src]="logoUrl()" alt="Tenant Logo" [class]="imgClass()" (error)="imageError = true" />
+  }
+} @else if (showPlaceholder()) {
+  <div [class]="placeholderClass() + ' flex items-center justify-center bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-300 font-bold'">
+    {{ fallbackText() }}
+  </div>
+}

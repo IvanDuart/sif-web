@@ -9,7 +9,7 @@ export interface ChartMetricSeries {
 }
 
 export const METRIC_SERIES: ChartMetricSeries[] = [
-  { label: 'measurements.series.weight', field: 'weightKg', color: '#3B82F6' },
+  { label: 'measurements.series.weight', field: 'weightKg', color: '#059669' },
   { label: 'measurements.series.bmi', field: 'bmi', color: '#8B5CF6' },
   { label: 'measurements.series.body_fat', field: 'bodyFatPct', color: '#EF4444' },
   { label: 'measurements.series.muscle', field: 'muscleMassKg', color: '#10B981' },
@@ -20,6 +20,26 @@ export const METRIC_SERIES: ChartMetricSeries[] = [
   { label: 'measurements.series.arm', field: 'armCm', color: '#F97316' },
   { label: 'measurements.series.body_water', field: 'bodyWaterPct', color: '#0EA5E9' },
 ];
+
+// Weight is the primary series — it follows the tenant accent (lazily, so it
+// stays fresh after a branding change) while the rest keep a fixed categorical
+// rainbow for multi-series distinguishability.
+Object.defineProperty(METRIC_SERIES[0], 'color', { get: () => themePrimary() });
+
+/** Resolves the current brand accent as a concrete hex (from --brand-primary). */
+export function themePrimary(): string {
+  const v = getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim();
+  return /^#([0-9a-fA-F]{6})$/.test(v) ? v.toLowerCase() : '#059669';
+}
+
+/** Converts #rrggbb to rgba() with the given alpha (for canvas fills). */
+export function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 /**
  * Creates a canvas gradient fill mimicking Taiga UI's tui-line-chart style:
@@ -62,7 +82,7 @@ export function buildChartConfig(
           usePointStyle: true,
           padding: 20,
           color: textSecondary,
-          font: { family: "'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', sans-serif", size: 12 },
+          font: { family: "'system-ui', '-apple-system', 'Segoe UI', Roboto, sans-serif", size: 12 },
         },
       },
       tooltip: {
@@ -74,7 +94,7 @@ export function buildChartConfig(
         padding: 8,
         displayColors: true,
         boxPadding: 8,
-        titleFont: { weight: 'bold', size: 12 } as any,
+        titleFont: { weight: 'bold' as const, size: 12 },
         bodyFont: { size: 12 },
       },
     },
@@ -84,7 +104,7 @@ export function buildChartConfig(
         ticks: {
           maxRotation: 45,
           color: textSecondary,
-          font: { family: "'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', sans-serif", size: 12 },
+          font: { family: "'system-ui', '-apple-system', 'Segoe UI', Roboto, sans-serif", size: 12 },
         },
       },
       y: {
@@ -92,7 +112,7 @@ export function buildChartConfig(
         grid: { color: borderColor },
         ticks: {
           color: textSecondary,
-          font: { family: "'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', sans-serif", size: 12 },
+          font: { family: "'system-ui', '-apple-system', 'Segoe UI', Roboto, sans-serif", size: 12 },
         },
       },
     },

@@ -1,6 +1,6 @@
 <div class="p-4" *transloco="let t">
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-    <h1 class="text-2xl font-bold">{{ t('templates.title') }}</h1>
+    <h1 class="text-2xl font-display font-bold tracking-tight text-surface-900 dark:text-surface-0 text-balance">{{ t('templates.title') }}</h1>
     <div class="flex flex-wrap gap-2">
       <button *appIfPermission="'MANAGE_TEMPLATE'"
         type="button"
@@ -72,7 +72,7 @@
                 <tr tuiTr>
                   <td tuiTd class="font-medium">{{ template.name }}</td>
                   <td tuiTd class="text-surface-500 text-sm">{{ template.description }}</td>
-                  <td tuiTd class="text-surface-500 text-sm whitespace-nowrap">{{ template.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td tuiTd class="text-surface-500 text-sm font-mono whitespace-nowrap">{{ template.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
                   <td tuiTd class="text-center">
                     <div class="flex items-center gap-1 justify-center">
                       <button type="button" tuiIconButton appearance="flat" size="s"

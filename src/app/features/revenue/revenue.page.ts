@@ -18,7 +18,7 @@ import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { NotificationService } from '../../core/ui';
 import { ThemeService } from '../../core/branding/theme.service';
-import { buildChartConfig } from '../../shared/utils/chart-config';
+import { buildChartConfig, themePrimary } from '../../shared/utils/chart-config';
 import type { AppUserDto } from '../../core/api/models/user.model';
 
 Chart.register(...registerables);
@@ -278,12 +278,13 @@ export default class RevenuePage implements OnInit, OnDestroy {
     if (start > end) return [];
 
     const buckets: Bucket[] = [];
-    let current = new Date(start);
+    const current = new Date(start);
 
     let granularityFinal = granularity;
     let estimated: number;
 
-    do {
+    let shouldContinue = true;
+    while (shouldContinue) {
       const diffMs = end.getTime() - start.getTime();
       const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
@@ -295,8 +296,10 @@ export default class RevenuePage implements OnInit, OnDestroy {
         granularityFinal = 'week';
       } else if (estimated > MAX_BUCKETS && granularityFinal === 'week') {
         granularityFinal = 'month';
-      } else break;
-    } while (true);
+      } else {
+        shouldContinue = false;
+      }
+    }
 
     while (current <= end) {
       let bucketStart: Date;
@@ -375,8 +378,8 @@ export default class RevenuePage implements OnInit, OnDestroy {
       [{
         label: this.transloco.translate('revenue.title'),
         data: values,
-        borderColor: '#3B82F6',
-        backgroundColor: '#3B82F6',
+        borderColor: themePrimary(),
+        backgroundColor: themePrimary(),
       }]
     );
 

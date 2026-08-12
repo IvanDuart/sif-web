@@ -9,6 +9,7 @@ import { ScheduleService } from '../../../core/api/services/schedule.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
 import { NotificationService } from '../../../core/ui';
 import { ScheduleDto } from '../../../core/api/models/schedule.model';
+import { themePrimary } from '../../../shared/utils/chart-config';
 
 export interface ScheduleFormDialogInput {
   schedule?: ScheduleDto;
@@ -50,7 +51,7 @@ export class ScheduleFormDialog {
 
   readonly form = this.fb.group({
     name: ['', Validators.required],
-    color: ['#4F46E5'],
+    color: [themePrimary()],
     details: this.fb.array([]),
   });
 
@@ -102,7 +103,7 @@ export class ScheduleFormDialog {
     if (!tenantId) return;
 
     const raw = this.form.value;
-    const details = (raw.details as Array<{ dayOfWeek: string; startTime: TuiTime; endTime: TuiTime }>).map(d => ({
+    const details = (raw.details as { dayOfWeek: string; startTime: TuiTime; endTime: TuiTime }[]).map(d => ({
       dayOfWeek: this.dayOptions().find(o => o.label === d.dayOfWeek)?.value ?? 1,
       startTime: this.formatTimeToString(d.startTime),
       endTime: this.formatTimeToString(d.endTime),

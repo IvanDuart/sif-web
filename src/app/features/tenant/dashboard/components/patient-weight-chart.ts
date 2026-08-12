@@ -1,12 +1,12 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, inject, signal, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { BodyMeasurementService } from '../../../../core/api/services/body-measurement.api';
 import { TenantContextService } from '../../../../core/tenant/tenant-context.service';
 import { AuthService } from '../../../../core/auth/auth.service';
-import { MeasurementHistoryDto, MeasurementPoint } from '../../../../core/api/models/body-measurement.model';
-import { buildChartConfig } from '../../../../shared/utils/chart-config';
+import { MeasurementPoint } from '../../../../core/api/models/body-measurement.model';
+import { buildChartConfig, hexToRgba, themePrimary } from '../../../../shared/utils/chart-config';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
@@ -15,57 +15,7 @@ Chart.register(...registerables);
   selector: 'app-patient-weight-chart',
   standalone: true,
   imports: [CommonModule, FormsModule, TranslocoDirective],
-  template: `
-    <div *transloco="let t" class="data-card border border-surface-200 dark:border-surface-700 flex flex-col h-full">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-chart-line text-primary-500 text-xl"></i>
-          <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0">
-            {{ t('patient_dashboard.weight_evolution', { defaultValue: 'Evolución de Peso' }) }}
-          </h3>
-        </div>
-
-        <!-- Date filters -->
-        <div class="flex flex-wrap items-center gap-2">
-          <div class="flex items-center gap-1">
-            <span class="text-xs text-surface-500">{{ t('common.from', { defaultValue: 'Desde' }) }}</span>
-            <input
-              type="date"
-              [(ngModel)]="startDate"
-              (change)="filterAndRenderChart()"
-              class="rounded-lg border border-surface-300 dark:border-surface-700 bg-transparent px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-          </div>
-          <div class="flex items-center gap-1">
-            <span class="text-xs text-surface-500">{{ t('common.to', { defaultValue: 'Hasta' }) }}</span>
-            <input
-              type="date"
-              [(ngModel)]="endDate"
-              (change)="filterAndRenderChart()"
-              class="rounded-lg border border-surface-300 dark:border-surface-700 bg-transparent px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-          </div>
-        </div>
-      </div>
-
-      @if (loading()) {
-        <div class="flex-1 flex items-center justify-center py-12">
-          <i class="fa-solid fa-spinner fa-spin text-primary-500 text-2xl"></i>
-        </div>
-      } @else if (hasData()) {
-        <div class="flex-1 min-h-[250px] relative">
-          <canvas #chartCanvas></canvas>
-        </div>
-      } @else {
-        <div class="flex-1 flex flex-col items-center justify-center text-center py-12 text-surface-400">
-          <i class="fa-solid fa-chart-area text-3xl mb-2 text-surface-300"></i>
-          <p class="text-sm">
-            {{ t('patient_dashboard.no_weight_history', { defaultValue: 'No hay datos de evolución de peso registrados' }) }}
-          </p>
-        </div>
-      }
-    </div>
-  `
+  templateUrl: './patient-weight-chart.html'
 })
 export class PatientWeightChart implements OnInit, OnDestroy {
   private readonly measurementService = inject(BodyMeasurementService);
@@ -107,7 +57,6 @@ export class PatientWeightChart implements OnInit, OnDestroy {
         if (this.rawPoints.length > 0) {
           this.hasData.set(true);
 
-          // Find date range
           const sortedDates = [...this.rawPoints].map(p => new Date(p.measuredAt).getTime()).sort((a, b) => a - b);
           const firstDate = new Date(sortedDates[0]);
           const lastDate = new Date(sortedDates[sortedDates.length - 1]);
@@ -116,7 +65,6 @@ export class PatientWeightChart implements OnInit, OnDestroy {
           this.startDate = format(firstDate);
           this.endDate = format(lastDate);
 
-          // Render chart after view initializes
           setTimeout(() => this.filterAndRenderChart(), 50);
         } else {
           this.hasData.set(false);
@@ -135,7 +83,6 @@ export class PatientWeightChart implements OnInit, OnDestroy {
     const start = this.startDate ? new Date(this.startDate + 'T00:00:00') : null;
     const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
 
-    // Filter points between startDate and endDate
     let filtered = this.rawPoints.filter(p => {
       const d = new Date(p.measuredAt);
       if (start && d < start) return false;
@@ -143,8 +90,6 @@ export class PatientWeightChart implements OnInit, OnDestroy {
       return true;
     });
 
-    // Chart.js expects chronologically ascending order (oldest to newest)
-    // Points from the API are usually descending, let's sort ascending by date
     filtered = [...filtered].sort((a, b) => new Date(a.measuredAt).getTime() - new Date(b.measuredAt).getTime());
 
     if (filtered.length === 0) {
@@ -166,8 +111,8 @@ export class PatientWeightChart implements OnInit, OnDestroy {
       {
         label: this.transloco.translate('measurements.series.weight', { defaultValue: 'Peso (Kg)' }),
         data: weightData,
-        borderColor: '#3B82F6',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        borderColor: themePrimary(),
+        backgroundColor: hexToRgba(themePrimary(), 0.1),
         tension: 0.3,
         pointRadius: 4,
         pointHoverRadius: 6,

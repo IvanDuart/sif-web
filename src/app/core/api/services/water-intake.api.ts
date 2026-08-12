@@ -21,7 +21,7 @@ export class WaterIntakeService {
   }
 
   getHistory(tenantId: string, userId: string, startDate?: string, endDate?: string): Observable<WaterIntakeDto[]> {
-    let params: Record<string, string> = {};
+    const params: Record<string, string> = {};
     if (startDate) params['startDate'] = startDate;
     if (endDate) params['endDate'] = endDate;
 

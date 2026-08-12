@@ -16,7 +16,7 @@
       <div class="data-card p-4 mb-4">
         <div class="flex items-start justify-between">
           <div>
-            <h1 class="text-2xl font-bold mb-1">{{ u.firstName }} {{ u.lastName }}</h1>
+            <h1 class="text-2xl font-display font-bold tracking-tight text-balance mb-1">{{ u.firstName }} {{ u.lastName }}</h1>
             <p class="text-surface-500 text-sm mb-0">{{ u.email }}</p>
           </div>
           <div class="flex items-center gap-2">
@@ -102,11 +102,11 @@
               <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-center">
                 <div>
                   <span class="text-sm text-surface-400">{{ t('users.weight') }}</span>
-                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.weightKg ?? '—' }}</p>
+                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.weightKg ?? '—' }}</p>
                 </div>
                 <div>
                   <span class="text-sm text-surface-400">{{ t('users.bmi') }}</span>
-                  <p class="text-lg font-bold mt-1"
+                  <p class="text-lg font-bold mt-1 font-mono"
                     [class.text-green-600]="u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 18.5 && u.lastMeasurement.bmi < 25"
                     [class.text-amber-600]="(u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 25 && u.lastMeasurement.bmi < 30) || (u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi < 18.5)"
                     [class.text-red-600]="u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 30">
@@ -115,35 +115,35 @@
                 </div>
                 <div>
                   <span class="text-sm text-surface-400">{{ t('users.body_fat') }}</span>
-                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.bodyFatPct ?? '—' }}</p>
+                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.bodyFatPct ?? '—' }}</p>
                 </div>
                 <div>
                   <span class="text-sm text-surface-400">{{ t('users.muscle_mass') }}</span>
-                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.muscleMassKg ?? '—' }}</p>
+                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.muscleMassKg ?? '—' }}</p>
                 </div>
                 <div>
                   <span class="text-sm text-surface-400">{{ t('measurements.body_water') }}</span>
-                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.bodyWaterPct ?? '—' }}</p>
+                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.bodyWaterPct ?? '—' }}</p>
                 </div>
                 <div>
                   <span class="text-sm text-surface-400">{{ t('measurements.waist') }}</span>
-                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.waistCm ?? '—' }}</p>
+                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.waistCm ?? '—' }}</p>
                 </div>
                 <div>
                   <span class="text-sm text-surface-400">{{ t('measurements.chest') }}</span>
-                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.chestCm ?? '—' }}</p>
+                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.chestCm ?? '—' }}</p>
                 </div>
                 <div>
                   <span class="text-sm text-surface-400">{{ t('measurements.hips') }}</span>
-                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.hipsCm ?? '—' }}</p>
+                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.hipsCm ?? '—' }}</p>
                 </div>
                 <div>
                   <span class="text-sm text-surface-400">{{ t('measurements.contour') }}</span>
-                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.contourCm ?? '—' }}</p>
+                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.contourCm ?? '—' }}</p>
                 </div>
                 <div>
                   <span class="text-sm text-surface-400">{{ t('measurements.arm') }}</span>
-                  <p class="text-lg font-bold mt-1">{{ u.lastMeasurement.armCm ?? '—' }}</p>
+                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.armCm ?? '—' }}</p>
                 </div>
               </div>
             </div>
@@ -218,16 +218,16 @@
                         @for (m of measurements(); track m.id) {
                           <tr tuiTr>
                             <td tuiTd class="text-sm">{{ formatInstantWithTime(m.measuredAt) }}</td>
-                            <td tuiTd>{{ m.weightKg ?? '—' }}</td>
-                            <td tuiTd>{{ m.bmi ?? '—' }}</td>
-                            <td tuiTd>{{ m.bodyFatPct ?? '—' }}</td>
-                            <td tuiTd>{{ m.muscleMassKg ?? '—' }}</td>
-                            <td tuiTd>{{ m.bodyWaterPct ?? '—' }}</td>
-                            <td tuiTd>{{ m.waistCm ?? '—' }}</td>
-                            <td tuiTd>{{ m.chestCm ?? '—' }}</td>
-                            <td tuiTd>{{ m.hipsCm ?? '—' }}</td>
-                            <td tuiTd>{{ m.contourCm ?? '—' }}</td>
-                            <td tuiTd>{{ m.armCm ?? '—' }}</td>
+                            <td tuiTd class="font-mono">{{ m.weightKg ?? '—' }}</td>
+                            <td tuiTd class="font-mono">{{ m.bmi ?? '—' }}</td>
+                            <td tuiTd class="font-mono">{{ m.bodyFatPct ?? '—' }}</td>
+                            <td tuiTd class="font-mono">{{ m.muscleMassKg ?? '—' }}</td>
+                            <td tuiTd class="font-mono">{{ m.bodyWaterPct ?? '—' }}</td>
+                            <td tuiTd class="font-mono">{{ m.waistCm ?? '—' }}</td>
+                            <td tuiTd class="font-mono">{{ m.chestCm ?? '—' }}</td>
+                            <td tuiTd class="font-mono">{{ m.hipsCm ?? '—' }}</td>
+                            <td tuiTd class="font-mono">{{ m.contourCm ?? '—' }}</td>
+                            <td tuiTd class="font-mono">{{ m.armCm ?? '—' }}</td>
                             <td tuiTd class="text-surface-400 text-sm max-w-32 truncate">{{ m.notes ?? '—' }}</td>
                             <td tuiTd class="text-sm">{{ m.recordedBy ?? '—' }}</td>
                             <td tuiTd class="text-center">

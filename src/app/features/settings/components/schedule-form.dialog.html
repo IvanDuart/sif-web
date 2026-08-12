@@ -1,15 +1,16 @@
 <div *transloco="let t" class="w-full">
   <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4 mt-2">
     <tui-textfield>
-      <label tuiLabel>{{ t('schedule_settings.name') }}</label>
-      <input tuiInput formControlName="name" />
+      <label tuiLabel for="scheduleName">{{ t('schedule_settings.name') }}</label>
+      <input id="scheduleName" tuiInput formControlName="name" />
     </tui-textfield>
 
     <tui-textfield>
-      <label tuiLabel>{{ t('schedule_settings.color') }}</label>
+      <label tuiLabel for="scheduleColor">{{ t('schedule_settings.color') }}</label>
       <input
+        id="scheduleColor"
         list="scheduleColors"
-        placeholder="#4F46E5"
+        placeholder="#059669"
         tuiInputColor
         formControlName="color" />
       <datalist id="scheduleColors">
@@ -34,23 +35,23 @@
 
       <div formArrayName="details" class="space-y-2">
         @for (detail of details.controls; track detail; let i = $index) {
-          <div [formGroupName]="i" class="grid gap-2 p-3 rounded bg-surface-50 dark:bg-surface-800" style="grid-template-columns: 1fr 140px auto 140px 36px;">
-            <tui-textfield tuiChevron>
-              <label tuiLabel>{{ t('schedule_settings.day') }}</label>
-              <input tuiComboBox formControlName="dayOfWeek" />
-              <tui-data-list-wrapper *tuiDropdown [items]="dayLabels() | tuiFilterByInput" />
-            </tui-textfield>
-            <tui-textfield>
-              <label tuiLabel>{{ t('schedule_settings.start_time') }}</label>
-              <input tuiInputTime formControlName="startTime" />
-            </tui-textfield>
-            <div class="flex items-center justify-center pt-6">
-              <span class="text-surface-400">—</span>
-            </div>
-            <tui-textfield>
-              <label tuiLabel>{{ t('schedule_settings.end_time') }}</label>
-              <input tuiInputTime formControlName="endTime" />
-            </tui-textfield>
+           <div [formGroupName]="i" class="grid gap-2 p-3 rounded bg-surface-50 dark:bg-surface-800" style="grid-template-columns: 1fr 140px auto 140px 36px;">
+             <tui-textfield tuiChevron>
+               <label tuiLabel for="scheduleDay">{{ t('schedule_settings.day') }}</label>
+               <input id="scheduleDay" tuiComboBox formControlName="dayOfWeek" />
+               <tui-data-list-wrapper *tuiDropdown [items]="dayLabels() | tuiFilterByInput" />
+             </tui-textfield>
+             <tui-textfield>
+               <label tuiLabel for="scheduleStartTime">{{ t('schedule_settings.start_time') }}</label>
+               <input id="scheduleStartTime" tuiInputTime formControlName="startTime" />
+             </tui-textfield>
+             <div class="flex items-center justify-center pt-6">
+               <span class="text-surface-400">—</span>
+             </div>
+             <tui-textfield>
+               <label tuiLabel for="scheduleEndTime">{{ t('schedule_settings.end_time') }}</label>
+               <input id="scheduleEndTime" tuiInputTime formControlName="endTime" />
+             </tui-textfield>
             <button type="button"
               class="inline-flex items-center justify-center w-9 h-9 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 hover:text-red-700 transition-colors self-end"
               [title]="t('schedule_settings.remove_block')"

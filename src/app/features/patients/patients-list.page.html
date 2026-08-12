@@ -1,6 +1,6 @@
 <div class="p-4" *transloco="let t">
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-    <h1 class="text-2xl font-bold">{{ t('patients.title') }}</h1>
+    <h1 class="text-2xl font-display font-bold tracking-tight text-surface-900 dark:text-surface-0 text-balance">{{ t('patients.title') }}</h1>
     <button *appIfPermission="'INVITE_USER'"
       tuiButton
       type="button"
@@ -69,15 +69,15 @@
                   <td tuiTd>{{ user.lastName }}</td>
                   <td tuiTd class="text-sm text-surface-500">{{ user.email }}</td>
                   <td tuiTd>
-                    <span class="text-sm">
+                    <span class="text-sm font-mono">
                       {{ user.age ?? '—' }}
                       @if (user.age !== null) {
                         <span class="text-surface-400"> años</span>
                       }
                     </span>
                   </td>
-                  <td tuiTd class="text-sm">{{ user.lastMeasurement?.weightKg ?? '—' }}</td>
-                  <td tuiTd class="text-sm">{{ user.lastMeasurement?.bmi ?? '—' }}</td>
+                  <td tuiTd class="text-sm font-mono">{{ user.lastMeasurement?.weightKg ?? '—' }}</td>
+                  <td tuiTd class="text-sm font-mono">{{ user.lastMeasurement?.bmi ?? '—' }}</td>
                   <td tuiTd class="text-center">
                     <div class="flex items-center gap-1 justify-center">
                       <a tuiButton appearance="flat" size="s" [routerLink]="['/users', user.id]" [title]="t('common.view')">

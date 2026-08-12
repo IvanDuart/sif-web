@@ -74,7 +74,7 @@
   align-items: center;
   font-weight: 600;
   font-size: 1.25rem;
-  color: var(--tui-primary, #526ed3);
+  color: var(--tui-primary, #059669);
   font-family: var(--tui-font-heading, inherit);
 
   i {
@@ -130,13 +130,13 @@
   }
 
   &:hover {
-    color: var(--tui-primary, #526ed3);
+    color: var(--tui-primary, #059669);
     gap: 12px;
   }
 
   &.active-link {
-    color: var(--tui-primary, #526ed3);
-    border-color: var(--tui-primary, #526ed3);
+    color: var(--tui-primary, #059669);
+    border-color: var(--tui-primary, #059669);
   }
 }
 
@@ -182,8 +182,8 @@
   }
 
   &:not(.static):hover {
-    border-color: var(--tui-primary, #526ed3);
-    box-shadow: 0 2px 8px rgba(82, 110, 211, 0.12);
+    border-color: var(--tui-primary, #059669);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--tui-primary, #059669) 12%, transparent);
   }
 
   i {
@@ -228,7 +228,7 @@
 
   &:hover {
     background: rgba(0, 0, 0, 0.06);
-    color: var(--tui-primary, #526ed3);
+    color: var(--tui-primary, #059669);
 
     :host-context(.dark) & {
       background: rgba(255, 255, 255, 0.08);
@@ -253,8 +253,8 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    border-color: var(--tui-primary, #526ed3);
-    box-shadow: 0 0 0 3px rgba(82, 110, 211, 0.15);
+    border-color: var(--tui-primary, #059669);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tui-primary, #059669) 15%, transparent);
   }
 }
 
@@ -265,7 +265,7 @@
   border-radius: 50%;
   font-weight: 800;
   font-size: 0.8rem;
-  background: var(--tui-primary, #526ed3);
+  background: var(--tui-primary, #059669);
   color: white;
   width: 2.25rem;
   height: 2.25rem;
@@ -342,7 +342,7 @@
 }
 
 .check-icon {
-  color: var(--tui-primary, #526ed3);
+  color: var(--tui-primary, #059669);
   font-size: 0.85rem;
 }
 
@@ -442,7 +442,7 @@
   background: white;
   border-radius: 12px;
   cursor: pointer;
-  color: var(--tui-primary, #526ed3);
+  color: var(--tui-primary, #059669);
   margin-left: auto;
   transition: background 0.2s ease;
   font-size: 1.1rem;
@@ -515,12 +515,12 @@
 
   &:hover,
   &.active-link {
-    color: var(--tui-primary, #526ed3);
-    background: rgba(82, 110, 211, 0.06);
+    color: var(--tui-primary, #059669);
+    background: color-mix(in srgb, var(--tui-primary, #059669) 6%, transparent);
   }
 
   &.active-link {
-    border-color: var(--tui-primary, #526ed3);
+    border-color: var(--tui-primary, #059669);
   }
 
   i {

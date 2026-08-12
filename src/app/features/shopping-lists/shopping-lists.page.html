@@ -1,6 +1,6 @@
 <div class="p-4" *transloco="let t">
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-    <h1 class="text-2xl font-bold">{{ t('shopping_list.title', {defaultValue: 'Lista de la Compra'}) }}</h1>
+    <h1 class="text-2xl font-display font-bold tracking-tight text-surface-900 dark:text-surface-0 text-balance">{{ t('shopping_list.title', {defaultValue: 'Lista de la Compra'}) }}</h1>
   </div>
 
   <div class="data-card">
@@ -32,8 +32,8 @@
                   <tr tuiTr>
                     <td tuiTd class="font-medium">{{ list.name }}</td>
                     <td tuiTd>{{ supermarketLabel(list.supermarket) }}</td>
-                    <td tuiTd class="font-semibold text-primary-600">{{ totalLabel(list) }}</td>
-                    <td tuiTd class="text-surface-500 text-sm">{{ list.createdAt | date:'mediumDate' }}</td>
+                    <td tuiTd class="font-semibold text-primary-600 font-mono">{{ totalLabel(list) }}</td>
+                    <td tuiTd class="text-surface-500 text-sm font-mono">{{ list.createdAt | date:'mediumDate' }}</td>
                     <td tuiTd class="text-center">
                       <button tuiButton appearance="flat" size="s" type="button" (click)="viewList(list)" [title]="t('common.view')">
                         <i class="fa-solid fa-eye"></i>
