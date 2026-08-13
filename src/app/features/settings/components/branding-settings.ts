@@ -45,7 +45,8 @@ export class BrandingSettings implements OnInit, OnDestroy {
     keycloak_sync_mode: '',
     from_email: '',
     standard_vacation_days: 0,
-    show_price: false
+    show_price: false,
+    enable_appointment_reminders: true
   });
   saving = signal(false);
   loading = signal(false);
@@ -107,8 +108,12 @@ export class BrandingSettings implements OnInit, OnDestroy {
           keycloak_sync_mode: '',
           from_email: '',
           standard_vacation_days: 0,
-          show_price: false
+          show_price: false,
+          enable_appointment_reminders: true
         };
+        if (prefs.enable_appointment_reminders === undefined || prefs.enable_appointment_reminders === null) {
+          prefs.enable_appointment_reminders = true;
+        }
         this.preferences.set(prefs);
         const found = LANGUAGE_OPTIONS.find(l => l.value === prefs.default_language);
         this.languageDisplay.set(found?.label ?? prefs.default_language);

@@ -10,6 +10,7 @@ export interface TenantPreferences {
   standard_vacation_days: number;
   active_anamnesis_fields?: string[];
   show_price?: boolean;
+  enable_appointment_reminders?: boolean;
 }
 
 export interface Tenant {

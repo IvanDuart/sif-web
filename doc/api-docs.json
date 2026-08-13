@@ -2858,6 +2858,30 @@
         }
       }
     },
+    "/users/me/locale": {
+      "patch": {
+        "tags": [
+          "MeController"
+        ],
+        "description": "Update logged user's timezone and language",
+        "operationId": "updateLocale",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLocaleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/users/{userId}/status": {
       "patch": {
         "tags": [
@@ -4360,6 +4384,9 @@
           },
           "show_price": {
             "type": "boolean"
+          },
+          "enable_appointment_reminders": {
+            "type": "boolean"
           }
         }
       },
@@ -4904,6 +4931,9 @@
           },
           "show_price": {
             "type": "boolean"
+          },
+          "enable_appointment_reminders": {
+            "type": "boolean"
           }
         }
       },
@@ -5007,6 +5037,9 @@
             "type": "string"
           },
           "show_price": {
+            "type": "boolean"
+          },
+          "enable_appointment_reminders": {
             "type": "boolean"
           }
         }
@@ -5855,6 +5888,23 @@
           "price"
         ]
       },
+      "UpdateLocaleRequest": {
+        "type": "object",
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "minLength": 1
+          },
+          "language": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "language",
+          "timezone"
+        ]
+      },
       "UpdateShoppingListItemRequest": {
         "type": "object",
         "properties": {
@@ -5938,6 +5988,12 @@
             "type": "string",
             "format": "date-time"
           },
+          "timezone": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
           "age": {
             "type": "integer",
             "format": "int32"
@@ -5963,15 +6019,15 @@
               "type": "string"
             }
           },
+          "roleCode": {
+            "type": "string"
+          },
           "userType": {
             "type": "string",
             "enum": [
               "STAFF",
               "PATIENT"
             ]
-          },
-          "roleCode": {
-            "type": "string"
           },
           "tenantName": {
             "type": "string"

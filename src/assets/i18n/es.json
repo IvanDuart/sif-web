@@ -453,7 +453,10 @@
     "address_street": "Dirección completa",
     "pricing_section": "Precios",
     "show_price": "Mostrar precios al paciente al reagendar",
-    "show_price_hint": "Muestra los precios de los tipos de consulta cuando el paciente reagenda una cita."
+    "show_price_hint": "Muestra los precios de los tipos de consulta cuando el paciente reagenda una cita.",
+    "notifications_section": "Notificaciones",
+    "enable_appointment_reminders": "Recordatorios de cita por push",
+    "enable_appointment_reminders_hint": "Envía notificaciones push a los pacientes recordándoles sus citas del día siguiente y del mismo día."
   },
   "appointment_types": {
     "title": "Tipos de Cita",

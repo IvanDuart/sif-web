@@ -453,7 +453,10 @@
     "address_street": "Full Address",
     "pricing_section": "Pricing",
     "show_price": "Show prices to patients when rescheduling",
-    "show_price_hint": "Displays appointment type prices when a patient reschedules an appointment."
+    "show_price_hint": "Displays appointment type prices when a patient reschedules an appointment.",
+    "notifications_section": "Notifications",
+    "enable_appointment_reminders": "Push appointment reminders",
+    "enable_appointment_reminders_hint": "Sends push notifications to patients reminding them of their appointments the day before and on the same day."
   },
   "appointment_types": {
     "title": "Appointment Types",
