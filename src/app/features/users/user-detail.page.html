@@ -14,10 +14,15 @@
     @if (user(); as u) {
       <!-- Profile header card -->
       <div class="data-card p-4 mb-4">
-        <div class="flex items-start justify-between">
-          <div>
-            <h1 class="text-2xl font-display font-bold tracking-tight text-balance mb-1">{{ u.firstName }} {{ u.lastName }}</h1>
-            <p class="text-surface-500 text-sm mb-0">{{ u.email }}</p>
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-full bg-primary-500 text-primary-contrast-color flex items-center justify-center font-display font-semibold text-lg shrink-0 shadow-sm">
+              {{ getInitials(u) }}
+            </div>
+            <div>
+              <h1 class="text-2xl font-display font-bold tracking-tight text-balance mb-1">{{ u.firstName }} {{ u.lastName }}</h1>
+              <p class="text-surface-500 text-sm mb-0">{{ u.email }}</p>
+            </div>
           </div>
           <div class="flex items-center gap-2">
             <span tuiBadge appearance="info">
@@ -40,57 +45,76 @@
       </div>
 
       <!-- Tabs nativas Taiga UI -->
-      <tui-tabs [(activeItemIndex)]="activeTabIndex" class="mb-4">
-        @for (tab of tabs(); track tab.id) {
-          <button tuiTab type="button">
-            @if (tab.defaultValue) {
-              {{ t(tab.label, { defaultValue: tab.defaultValue }) }}
-            } @else {
-              {{ t(tab.label) }}
-            }
-          </button>
-        }
-      </tui-tabs>
+      <div class="mb-4 border-b border-surface-200 dark:border-surface-700">
+        <tui-tabs [(activeItemIndex)]="activeTabIndex" class="bg-transparent">
+          @for (tab of tabs(); track tab.id) {
+            <button tuiTab type="button" class="flex items-center gap-2 px-1 pb-1">
+              <i class="{{ tab.icon }} text-[1.1em] opacity-80"></i>
+              <span class="font-medium text-sm">
+                @if (tab.defaultValue) {
+                  {{ t(tab.label, { defaultValue: tab.defaultValue }) }}
+                } @else {
+                  {{ t(tab.label) }}
+                }
+              </span>
+            </button>
+          }
+        </tui-tabs>
+      </div>
 
       <!-- TAB 1: Perfil -->
       @if (activeTabId() === 'profile') {
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-          <div class="flex flex-col gap-4">
-            <div>
-              <span class="text-sm text-surface-400 font-medium">{{ t('users.invited_at') }}</span>
-              <p class="font-medium mt-1">{{ formatInstant(u.createdAt) }}</p>
+        <div class="py-4">
+          <div class="data-card">
+            <div class="flex items-center gap-2 mb-4">
+              <i class="fa-solid fa-address-card text-primary-500"></i>
+              <h2 class="text-lg font-semibold m-0">{{ t('users.tab_profile') }}</h2>
             </div>
-          </div>
-          <div class="flex flex-col gap-4">
-            <div>
-              <span class="text-sm text-surface-400 font-medium">{{ t('users.birth_date') }}</span>
-              <p class="font-medium mt-1">{{ u.birthDate ?? '—' }}</p>
-            </div>
-            <div>
-              <span class="text-sm text-surface-400 font-medium">{{ t('users.age') }}</span>
-              <p class="font-medium mt-1">
-                @if (u.age !== null) {
-                  {{ u.age }} {{ t('common.years') }}
-                } @else {
-                  —
-                }
-              </p>
-            </div>
-            <div>
-              <span class="text-sm text-surface-400 font-medium">{{ t('users.gender') }}</span>
-              <p class="font-medium mt-1">
-                @if (u.gender === 'MALE') {
-                  {{ t('users.gender_male') }}
-                } @else if (u.gender === 'FEMALE') {
-                  {{ t('users.gender_female') }}
-                } @else {
-                  —
-                }
-              </p>
-            </div>
-            <div>
-              <span class="text-sm text-surface-400 font-medium">{{ t('users.height_cm') }}</span>
-              <p class="font-medium mt-1">{{ u.heightCm !== null ? (u.heightCm + ' cm') : '—' }}</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
+              <div class="flex flex-col gap-1.5">
+                <span class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                  <i class="fa-solid fa-calendar-plus w-4 text-center"></i>{{ t('users.invited_at') }}
+                </span>
+                <p class="font-medium">{{ formatInstant(u.createdAt) }}</p>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <span class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                  <i class="fa-solid fa-cake-candles w-4 text-center"></i>{{ t('users.birth_date') }}
+                </span>
+                <p class="font-medium">{{ u.birthDate ?? '—' }}</p>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <span class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                  <i class="fa-solid fa-hourglass-half w-4 text-center"></i>{{ t('users.age') }}
+                </span>
+                <p class="font-medium">
+                  @if (u.age !== null) {
+                    {{ u.age }} {{ t('common.years') }}
+                  } @else {
+                    —
+                  }
+                </p>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <span class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                  <i class="fa-solid fa-venus-mars w-4 text-center"></i>{{ t('users.gender') }}
+                </span>
+                <p class="font-medium">
+                  @if (u.gender === 'MALE') {
+                    {{ t('users.gender_male') }}
+                  } @else if (u.gender === 'FEMALE') {
+                    {{ t('users.gender_female') }}
+                  } @else {
+                    —
+                  }
+                </p>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <span class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                  <i class="fa-solid fa-ruler-vertical w-4 text-center"></i>{{ t('users.height_cm') }}
+                </span>
+                <p class="font-medium">{{ u.heightCm !== null ? (u.heightCm + ' cm') : '—' }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -99,14 +123,14 @@
           <div class="data-card mt-4">
             <div class="px-4 pt-4"><h2 class="text-xl font-semibold m-0">{{ t('users.last_measurement') }}</h2></div>
             <div class="p-4">
-              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-center">
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
                 <div>
                   <span class="text-sm text-surface-400">{{ t('users.weight') }}</span>
-                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.weightKg ?? '—' }}</p>
+                  <p class="text-2xl font-bold mt-1 font-mono">{{ u.lastMeasurement.weightKg ?? '—' }}</p>
                 </div>
                 <div>
                   <span class="text-sm text-surface-400">{{ t('users.bmi') }}</span>
-                  <p class="text-lg font-bold mt-1 font-mono"
+                  <p class="text-2xl font-bold mt-1 font-mono"
                     [class.text-green-600]="u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 18.5 && u.lastMeasurement.bmi < 25"
                     [class.text-amber-600]="(u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 25 && u.lastMeasurement.bmi < 30) || (u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi < 18.5)"
                     [class.text-red-600]="u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 30">
@@ -115,35 +139,37 @@
                 </div>
                 <div>
                   <span class="text-sm text-surface-400">{{ t('users.body_fat') }}</span>
-                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.bodyFatPct ?? '—' }}</p>
+                  <p class="text-2xl font-bold mt-1 font-mono">{{ u.lastMeasurement.bodyFatPct ?? '—' }}</p>
                 </div>
                 <div>
                   <span class="text-sm text-surface-400">{{ t('users.muscle_mass') }}</span>
-                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.muscleMassKg ?? '—' }}</p>
+                  <p class="text-2xl font-bold mt-1 font-mono">{{ u.lastMeasurement.muscleMassKg ?? '—' }}</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-3 sm:grid-cols-6 gap-4 text-center mt-6 pt-6 border-t border-surface-200 dark:border-surface-700">
+                <div>
+                  <span class="text-xs text-surface-400">{{ t('measurements.body_water') }}</span>
+                  <p class="text-sm font-semibold mt-1 font-mono">{{ u.lastMeasurement.bodyWaterPct ?? '—' }}</p>
                 </div>
                 <div>
-                  <span class="text-sm text-surface-400">{{ t('measurements.body_water') }}</span>
-                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.bodyWaterPct ?? '—' }}</p>
+                  <span class="text-xs text-surface-400">{{ t('measurements.waist') }}</span>
+                  <p class="text-sm font-semibold mt-1 font-mono">{{ u.lastMeasurement.waistCm ?? '—' }}</p>
                 </div>
                 <div>
-                  <span class="text-sm text-surface-400">{{ t('measurements.waist') }}</span>
-                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.waistCm ?? '—' }}</p>
+                  <span class="text-xs text-surface-400">{{ t('measurements.chest') }}</span>
+                  <p class="text-sm font-semibold mt-1 font-mono">{{ u.lastMeasurement.chestCm ?? '—' }}</p>
                 </div>
                 <div>
-                  <span class="text-sm text-surface-400">{{ t('measurements.chest') }}</span>
-                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.chestCm ?? '—' }}</p>
+                  <span class="text-xs text-surface-400">{{ t('measurements.hips') }}</span>
+                  <p class="text-sm font-semibold mt-1 font-mono">{{ u.lastMeasurement.hipsCm ?? '—' }}</p>
                 </div>
                 <div>
-                  <span class="text-sm text-surface-400">{{ t('measurements.hips') }}</span>
-                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.hipsCm ?? '—' }}</p>
+                  <span class="text-xs text-surface-400">{{ t('measurements.contour') }}</span>
+                  <p class="text-sm font-semibold mt-1 font-mono">{{ u.lastMeasurement.contourCm ?? '—' }}</p>
                 </div>
                 <div>
-                  <span class="text-sm text-surface-400">{{ t('measurements.contour') }}</span>
-                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.contourCm ?? '—' }}</p>
-                </div>
-                <div>
-                  <span class="text-sm text-surface-400">{{ t('measurements.arm') }}</span>
-                  <p class="text-lg font-bold mt-1 font-mono">{{ u.lastMeasurement.armCm ?? '—' }}</p>
+                  <span class="text-xs text-surface-400">{{ t('measurements.arm') }}</span>
+                  <p class="text-sm font-semibold mt-1 font-mono">{{ u.lastMeasurement.armCm ?? '—' }}</p>
                 </div>
               </div>
             </div>
@@ -291,79 +317,121 @@
                      (profile.medicationSupplements && isAnamnesisFieldActive('medicationSupplements')) ||
                      (profile.gastrointestinalStatus && isAnamnesisFieldActive('gastrointestinalStatus')) ||
                      (profile.hormonalCycle && isAnamnesisFieldActive('hormonalCycle'))) {
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="data-card">
+                    <div class="flex items-center gap-2 mb-2">
+                      <i class="fa-solid fa-notes-medical text-primary-500"></i>
+                      <h2 class="text-lg font-semibold m-0">{{ t('users.tab_patient_profile') }}</h2>
+                    </div>
+                    <div class="divide-y divide-surface-200 dark:divide-surface-700">
                     @if (profile.consultationReason && isAnamnesisFieldActive('consultationReason')) {
-                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.consultation_reason') }}</span>
-                        <p class="mt-1 whitespace-pre-wrap">{{ profile.consultationReason }}</p>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4 first:pt-0">
+                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                          <i class="fa-solid fa-bullseye text-primary-500 w-4 text-center"></i>
+                          <span>{{ t('patient_profile.consultation_reason') }}</span>
+                        </div>
+                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.consultationReason }}</p>
                       </div>
                     }
                     @if (profile.diseases && isAnamnesisFieldActive('diseases')) {
-                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.diseases') }}</span>
-                        <p class="mt-1 whitespace-pre-wrap">{{ profile.diseases }}</p>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
+                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                          <i class="fa-solid fa-disease text-primary-500 w-4 text-center"></i>
+                          <span>{{ t('patient_profile.diseases') }}</span>
+                        </div>
+                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.diseases }}</p>
                       </div>
                     }
                     @if (profile.medicalHistory && isAnamnesisFieldActive('medicalHistory')) {
-                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.medical_history') }}</span>
-                        <p class="mt-1 whitespace-pre-wrap">{{ profile.medicalHistory }}</p>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
+                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                          <i class="fa-solid fa-notes-medical text-primary-500 w-4 text-center"></i>
+                          <span>{{ t('patient_profile.medical_history') }}</span>
+                        </div>
+                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.medicalHistory }}</p>
                       </div>
                     }
                     @if (profile.habits && isAnamnesisFieldActive('habits')) {
-                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.habits') }}</span>
-                        <p class="mt-1 whitespace-pre-wrap">{{ profile.habits }}</p>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
+                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                          <i class="fa-solid fa-mug-hot text-primary-500 w-4 text-center"></i>
+                          <span>{{ t('patient_profile.habits') }}</span>
+                        </div>
+                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.habits }}</p>
                       </div>
                     }
                     @if (profile.lifestyle && isAnamnesisFieldActive('lifestyle')) {
-                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.lifestyle') }}</span>
-                        <p class="mt-1 whitespace-pre-wrap">{{ profile.lifestyle }}</p>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
+                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                          <i class="fa-solid fa-bed text-primary-500 w-4 text-center"></i>
+                          <span>{{ t('patient_profile.lifestyle') }}</span>
+                        </div>
+                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.lifestyle }}</p>
                       </div>
                     }
                     @if (profile.exercise && isAnamnesisFieldActive('exercise')) {
-                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.exercise') }}</span>
-                        <p class="mt-1 whitespace-pre-wrap">{{ profile.exercise }}</p>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
+                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                          <i class="fa-solid fa-dumbbell text-primary-500 w-4 text-center"></i>
+                          <span>{{ t('patient_profile.exercise') }}</span>
+                        </div>
+                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.exercise }}</p>
                       </div>
                     }
                     @if (profile.psyche && isAnamnesisFieldActive('psyche')) {
-                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.psyche') }}</span>
-                        <p class="mt-1 whitespace-pre-wrap">{{ profile.psyche }}</p>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
+                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                          <i class="fa-solid fa-face-smile text-primary-500 w-4 text-center"></i>
+                          <span>{{ t('patient_profile.psyche') }}</span>
+                        </div>
+                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.psyche }}</p>
                       </div>
                     }
                     @if (profile.allergiesIntolerances && isAnamnesisFieldActive('allergiesIntolerances')) {
-                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.allergies_intolerances') }}</span>
-                        <p class="mt-1 whitespace-pre-wrap">{{ profile.allergiesIntolerances }}</p>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
+                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                          <i class="fa-solid fa-allergies text-primary-500 w-4 text-center"></i>
+                          <span>{{ t('patient_profile.allergies_intolerances') }}</span>
+                        </div>
+                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.allergiesIntolerances }}</p>
                       </div>
                     }
                     @if (profile.foodPreferences && isAnamnesisFieldActive('foodPreferences')) {
-                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.food_preferences') }}</span>
-                        <p class="mt-1 whitespace-pre-wrap">{{ profile.foodPreferences }}</p>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
+                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                          <i class="fa-solid fa-utensils text-primary-500 w-4 text-center"></i>
+                          <span>{{ t('patient_profile.food_preferences') }}</span>
+                        </div>
+                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.foodPreferences }}</p>
                       </div>
                     }
                     @if (profile.medicationSupplements && isAnamnesisFieldActive('medicationSupplements')) {
-                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.medication_supplements') }}</span>
-                        <p class="mt-1 whitespace-pre-wrap">{{ profile.medicationSupplements }}</p>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
+                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                          <i class="fa-solid fa-pills text-primary-500 w-4 text-center"></i>
+                          <span>{{ t('patient_profile.medication_supplements') }}</span>
+                        </div>
+                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.medicationSupplements }}</p>
                       </div>
                     }
                     @if (profile.gastrointestinalStatus && isAnamnesisFieldActive('gastrointestinalStatus')) {
-                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.gastrointestinal_status') }}</span>
-                        <p class="mt-1 whitespace-pre-wrap">{{ profile.gastrointestinalStatus }}</p>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
+                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                          <i class="fa-solid fa-bacteria text-primary-500 w-4 text-center"></i>
+                          <span>{{ t('patient_profile.gastrointestinal_status') }}</span>
+                        </div>
+                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.gastrointestinalStatus }}</p>
                       </div>
                     }
                     @if (profile.hormonalCycle && isAnamnesisFieldActive('hormonalCycle')) {
-                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.hormonal_cycle') }}</span>
-                        <p class="mt-1 whitespace-pre-wrap">{{ profile.hormonalCycle }}</p>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4 last:pb-0">
+                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                          <i class="fa-solid fa-venus text-primary-500 w-4 text-center"></i>
+                          <span>{{ t('patient_profile.hormonal_cycle') }}</span>
+                        </div>
+                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.hormonalCycle }}</p>
                       </div>
                     }
+                    </div>
                   </div>
                 } @else {
                   <app-empty-state
@@ -398,35 +466,51 @@
           <div class="py-4">
             @if (patientProfile(); as profile) {
               @if (editingGuidelines()) {
-                <div class="flex flex-col gap-4">
-                  <div class="field flex flex-col gap-1">
-                    <label for="breakfast" class="font-medium text-sm">{{ t('patient_profile.breakfast') }}</label>
-                    <textarea id="breakfast" class="form-input" [ngModel]="editBreakfast()" (ngModelChange)="editBreakfast.set($event)" rows="3"></textarea>
+                <div class="data-card flex flex-col gap-4">
+                  <div class="flex flex-col gap-1.5">
+                    <label for="breakfast" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('patient_profile.breakfast') }}</label>
+                    <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                      <textarea id="breakfast" tuiTextarea [ngModel]="editBreakfast()" (ngModelChange)="editBreakfast.set($event)" [min]="3"></textarea>
+                    </tui-textfield>
                   </div>
-                  <div class="field flex flex-col gap-1">
-                    <label for="snack" class="font-medium text-sm">{{ t('patient_profile.snack') }}</label>
-                    <textarea id="snack" class="form-input" [ngModel]="editSnack()" (ngModelChange)="editSnack.set($event)" rows="3"></textarea>
+                  <div class="flex flex-col gap-1.5">
+                    <label for="snack" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('patient_profile.snack') }}</label>
+                    <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                      <textarea id="snack" tuiTextarea [ngModel]="editSnack()" (ngModelChange)="editSnack.set($event)" [min]="3"></textarea>
+                    </tui-textfield>
                   </div>
-                  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+                  <div class="flex justify-end gap-2 mt-2 pt-4 border-t border-surface-200 dark:border-surface-700">
                     <button type="button" tuiButton appearance="secondary" size="m" (click)="cancelEditGuidelines()">{{ t('common.cancel') }}</button>
                     <button type="button" tuiButton size="m" (click)="saveGuidelines()" [class.loading]="savingGuidelines()">{{ t('common.save') }}</button>
                   </div>
                 </div>
               } @else {
                 @if (profile.breakfast || profile.snack) {
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    @if (profile.breakfast) {
-                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.breakfast') }}</span>
-                        <p class="mt-1 whitespace-pre-wrap">{{ profile.breakfast }}</p>
-                      </div>
-                    }
-                    @if (profile.snack) {
-                      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                        <span class="text-sm text-surface-400 font-medium">{{ t('patient_profile.snack') }}</span>
-                        <p class="mt-1 whitespace-pre-wrap">{{ profile.snack }}</p>
-                      </div>
-                    }
+                  <div class="data-card">
+                    <div class="flex items-center gap-2 mb-2">
+                      <i class="fa-solid fa-apple-whole text-primary-500"></i>
+                      <h2 class="text-lg font-semibold m-0">{{ t('users.tab_fixed_guidelines') }}</h2>
+                    </div>
+                    <div class="divide-y divide-surface-200 dark:divide-surface-700">
+                      @if (profile.breakfast) {
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4 first:pt-0">
+                          <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                            <i class="fa-solid fa-mug-saucer text-primary-500 w-4 text-center"></i>
+                            <span>{{ t('patient_profile.breakfast') }}</span>
+                          </div>
+                          <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.breakfast }}</p>
+                        </div>
+                      }
+                      @if (profile.snack) {
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4 last:pb-0">
+                          <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                            <i class="fa-solid fa-cookie-bite text-primary-500 w-4 text-center"></i>
+                            <span>{{ t('patient_profile.snack') }}</span>
+                          </div>
+                          <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.snack }}</p>
+                        </div>
+                      }
+                    </div>
                   </div>
                 } @else {
                   <app-empty-state
@@ -478,8 +562,9 @@
             </div>
             
             <boneyard-skeleton name="user-menus-history" [loading]="loadingMenus()">
+              <div class="flex flex-col gap-6">
               @if (activeMenu(); as menu) {
-                <div class="data-card">
+                <div class="data-card !bg-primary-50 dark:!bg-brand-tint-20">
                   <div class="px-4 pt-4"><h2 class="text-xl font-semibold m-0">{{ t('menu_history.active_menu') }}</h2></div>
                   <div class="p-4">
                     <div class="flex items-center justify-between">
@@ -541,6 +626,7 @@
                   </div>
                 </div>
               }
+              </div>
 
               @if (menus().length === 0 && !loadingMenus()) {
                 <app-empty-state
@@ -558,6 +644,7 @@
       @if (!isStaff() && canViewAppointments()) {
         @if (activeTabId() === 'appointments') {
           <div class="py-4">
+            <div class="data-card">
             <boneyard-skeleton name="user-appointments" [loading]="loadingAppointments()">
               @if (appointments().length === 0 && !loadingAppointments()) {
                 <app-empty-state
@@ -568,9 +655,6 @@
               } @else {
                 <div class="overflow-x-auto">
                   <table tuiTable class="w-full">
-                    <caption class="text-sm font-normal text-surface-500 px-4 py-2 text-left border-b border-surface-200 dark:border-surface-700">
-                      {{ t('common.total_records', { total: appointments().length }) }}
-                    </caption>
                     <thead>
                       <tr>
                         <th tuiTh>{{ t('appointments.date') }}</th>
@@ -618,8 +702,14 @@
                     </tbody>
                   </table>
                 </div>
+                <div class="flex items-center justify-between px-4 py-3 border-t border-surface-200 dark:border-surface-700">
+                  <div class="text-sm text-surface-500">
+                    {{ t('common.total_records', { total: appointments().length }) }}
+                  </div>
+                </div>
               }
             </boneyard-skeleton>
+            </div>
           </div>
         }
       }

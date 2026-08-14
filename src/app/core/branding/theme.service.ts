@@ -1,13 +1,19 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { TUI_DARK_MODE } from '@taiga-ui/core';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
+  private readonly tuiDarkMode = inject(TUI_DARK_MODE);
+
   colorScheme = signal<'light' | 'dark'>('light');
 
   init() {
-    const saved = localStorage.getItem('colorScheme');
-    if (saved === 'dark' || saved === 'light') {
-      this.colorScheme.set(saved);
+    const saved = localStorage.getItem('colorScheme') ?? localStorage.getItem('tuiDark');
+    if (saved === 'dark' || saved === 'light' || saved === 'true' || saved === 'false') {
+      const isDarkSaved = saved === 'dark' || saved === 'true';
+      this.colorScheme.set(isDarkSaved ? 'dark' : 'light');
+    } else if (globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches) {
+      this.colorScheme.set('dark');
     }
     this.applyColorScheme();
   }
@@ -45,10 +51,12 @@ export class ThemeService {
   }
 
   private applyColorScheme() {
-    if (this.colorScheme() === 'dark') {
+    const isDark = this.colorScheme() === 'dark';
+    if (isDark) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+    this.tuiDarkMode.set(isDark);
   }
 }

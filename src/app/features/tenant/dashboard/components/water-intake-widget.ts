@@ -7,12 +7,12 @@ import { TenantContextService } from '../../../../core/tenant/tenant-context.ser
 import { AuthService } from '../../../../core/auth/auth.service';
 import { WaterIntakeDto } from '../../../../core/api/models/water-intake.model';
 import { NotificationService } from '../../../../core/ui';
-import { TuiButton } from '@taiga-ui/core';
+import { TuiButton, TuiInput, TuiTextfield } from '@taiga-ui/core';
 
 @Component({
   selector: 'app-water-intake-widget',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslocoDirective, TuiButton],
+  imports: [CommonModule, FormsModule, TranslocoDirective, TuiButton, TuiInput, TuiTextfield],
   templateUrl: './water-intake-widget.html'
 })
 export class WaterIntakeWidget implements OnInit {

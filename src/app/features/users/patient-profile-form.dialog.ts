@@ -2,8 +2,8 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext } from '@taiga-ui/core';
-import { TuiButton } from '@taiga-ui/core';
+import { TuiButton, TuiDialogContext, TuiTextfield } from '@taiga-ui/core';
+import { TuiTextarea } from '@taiga-ui/kit';
 import { NotificationService } from '../../core/ui/notification.service';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -14,7 +14,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 @Component({
   selector: 'app-patient-profile-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton, TuiTextarea, TuiTextfield],
   templateUrl: './patient-profile-form.dialog.html'
 })
 export class PatientProfileFormDialog implements OnInit {

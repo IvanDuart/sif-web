@@ -1,75 +1,123 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2" *transloco="let t">
-  <div class="grid grid-cols-1 gap-4">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     @if (isFieldActive('consultationReason')) {
-      <div class="field flex flex-col gap-1">
-        <label for="consultationReason" class="font-medium text-sm">{{ t('patient_profile.consultation_reason') }}</label>
-        <textarea id="consultationReason" formControlName="consultationReason" rows="3" class="form-input"></textarea>
+      <div class="flex flex-col gap-1.5">
+        <label for="consultationReason" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+          {{ t('patient_profile.consultation_reason') }}
+        </label>
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <textarea id="consultationReason" tuiTextarea formControlName="consultationReason" [min]="8" [max]="8"></textarea>
+        </tui-textfield>
       </div>
     }
     @if (isFieldActive('diseases')) {
-      <div class="field flex flex-col gap-1">
-        <label for="diseases" class="font-medium text-sm">{{ t('patient_profile.diseases') }}</label>
-        <textarea id="diseases" formControlName="diseases" rows="3" class="form-input"></textarea>
+      <div class="flex flex-col gap-1.5">
+        <label for="diseases" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+          {{ t('patient_profile.diseases') }}
+        </label>
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <textarea id="diseases" tuiTextarea formControlName="diseases" [min]="8" [max]="8"></textarea>
+        </tui-textfield>
       </div>
     }
     @if (isFieldActive('medicalHistory')) {
-      <div class="field flex flex-col gap-1">
-        <label for="medicalHistory" class="font-medium text-sm">{{ t('patient_profile.medical_history') }}</label>
-        <textarea id="medicalHistory" formControlName="medicalHistory" rows="3" class="form-input"></textarea>
+      <div class="flex flex-col gap-1.5">
+        <label for="medicalHistory" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+          {{ t('patient_profile.medical_history') }}
+        </label>
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <textarea id="medicalHistory" tuiTextarea formControlName="medicalHistory" [min]="8" [max]="8"></textarea>
+        </tui-textfield>
       </div>
     }
     @if (isFieldActive('habits')) {
-      <div class="field flex flex-col gap-1">
-        <label for="habits" class="font-medium text-sm">{{ t('patient_profile.habits') }}</label>
-        <textarea id="habits" formControlName="habits" rows="3" class="form-input"></textarea>
+      <div class="flex flex-col gap-1.5">
+        <label for="habits" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+          {{ t('patient_profile.habits') }}
+        </label>
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <textarea id="habits" tuiTextarea formControlName="habits" [min]="8" [max]="8"></textarea>
+        </tui-textfield>
       </div>
     }
     @if (isFieldActive('lifestyle')) {
-      <div class="field flex flex-col gap-1">
-        <label for="lifestyle" class="font-medium text-sm">{{ t('patient_profile.lifestyle') }}</label>
-        <textarea id="lifestyle" formControlName="lifestyle" rows="3" class="form-input"></textarea>
+      <div class="flex flex-col gap-1.5">
+        <label for="lifestyle" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+          {{ t('patient_profile.lifestyle') }}
+        </label>
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <textarea id="lifestyle" tuiTextarea formControlName="lifestyle" [min]="8" [max]="8"></textarea>
+        </tui-textfield>
       </div>
     }
     @if (isFieldActive('exercise')) {
-      <div class="field flex flex-col gap-1">
-        <label for="exercise" class="font-medium text-sm">{{ t('patient_profile.exercise') }}</label>
-        <textarea id="exercise" formControlName="exercise" rows="3" class="form-input"></textarea>
+      <div class="flex flex-col gap-1.5">
+        <label for="exercise" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+          {{ t('patient_profile.exercise') }}
+        </label>
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <textarea id="exercise" tuiTextarea formControlName="exercise" [min]="8" [max]="8"></textarea>
+        </tui-textfield>
       </div>
     }
     @if (isFieldActive('psyche')) {
-      <div class="field flex flex-col gap-1">
-        <label for="psyche" class="font-medium text-sm">{{ t('patient_profile.psyche') }}</label>
-        <textarea id="psyche" formControlName="psyche" rows="3" class="form-input"></textarea>
+      <div class="flex flex-col gap-1.5">
+        <label for="psyche" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+          {{ t('patient_profile.psyche') }}
+        </label>
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <textarea id="psyche" tuiTextarea formControlName="psyche" [min]="8" [max]="8"></textarea>
+        </tui-textfield>
       </div>
     }
     @if (isFieldActive('allergiesIntolerances')) {
-      <div class="field flex flex-col gap-1">
-        <label for="allergiesIntolerances" class="font-medium text-sm">{{ t('patient_profile.allergies_intolerances') }}</label>
-        <textarea id="allergiesIntolerances" formControlName="allergiesIntolerances" rows="3" class="form-input"></textarea>
+      <div class="flex flex-col gap-1.5">
+        <label for="allergiesIntolerances" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+          {{ t('patient_profile.allergies_intolerances') }}
+        </label>
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <textarea id="allergiesIntolerances" tuiTextarea formControlName="allergiesIntolerances" [min]="8" [max]="8"></textarea>
+        </tui-textfield>
       </div>
     }
     @if (isFieldActive('foodPreferences')) {
-      <div class="field flex flex-col gap-1">
-        <label for="foodPreferences" class="font-medium text-sm">{{ t('patient_profile.food_preferences') }}</label>
-        <textarea id="foodPreferences" formControlName="foodPreferences" rows="3" class="form-input"></textarea>
+      <div class="flex flex-col gap-1.5">
+        <label for="foodPreferences" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+          {{ t('patient_profile.food_preferences') }}
+        </label>
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <textarea id="foodPreferences" tuiTextarea formControlName="foodPreferences" [min]="8" [max]="8"></textarea>
+        </tui-textfield>
       </div>
     }
     @if (isFieldActive('medicationSupplements')) {
-      <div class="field flex flex-col gap-1">
-        <label for="medicationSupplements" class="font-medium text-sm">{{ t('patient_profile.medication_supplements') }}</label>
-        <textarea id="medicationSupplements" formControlName="medicationSupplements" rows="3" class="form-input"></textarea>
+      <div class="flex flex-col gap-1.5">
+        <label for="medicationSupplements" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+          {{ t('patient_profile.medication_supplements') }}
+        </label>
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <textarea id="medicationSupplements" tuiTextarea formControlName="medicationSupplements" [min]="8" [max]="8"></textarea>
+        </tui-textfield>
       </div>
     }
     @if (isFieldActive('gastrointestinalStatus')) {
-      <div class="field flex flex-col gap-1">
-        <label for="gastrointestinalStatus" class="font-medium text-sm">{{ t('patient_profile.gastrointestinal_status') }}</label>
-        <textarea id="gastrointestinalStatus" formControlName="gastrointestinalStatus" rows="3" class="form-input"></textarea>
+      <div class="flex flex-col gap-1.5">
+        <label for="gastrointestinalStatus" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+          {{ t('patient_profile.gastrointestinal_status') }}
+        </label>
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <textarea id="gastrointestinalStatus" tuiTextarea formControlName="gastrointestinalStatus" [min]="8" [max]="8"></textarea>
+        </tui-textfield>
       </div>
     }
     @if (isFieldActive('hormonalCycle')) {
-      <div class="field flex flex-col gap-1">
-        <label for="hormonalCycle" class="font-medium text-sm">{{ t('patient_profile.hormonal_cycle') }}</label>
-        <textarea id="hormonalCycle" formControlName="hormonalCycle" rows="3" class="form-input"></textarea>
+      <div class="flex flex-col gap-1.5">
+        <label for="hormonalCycle" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+          {{ t('patient_profile.hormonal_cycle') }}
+        </label>
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <textarea id="hormonalCycle" tuiTextarea formControlName="hormonalCycle" [min]="8" [max]="8"></textarea>
+        </tui-textfield>
       </div>
     }
   </div>

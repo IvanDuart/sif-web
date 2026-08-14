@@ -39,8 +39,8 @@ import type { ChartConfiguration } from 'chart.js/auto';
 import { Chart, registerables } from 'chart.js';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
-import { TuiButton } from '@taiga-ui/core';
-import { TuiBadge, TuiTabs } from '@taiga-ui/kit';
+import { TuiButton, TuiTextfield } from '@taiga-ui/core';
+import { TuiBadge, TuiTabs, TuiTextarea } from '@taiga-ui/kit';
 import { TuiTable } from '@taiga-ui/addon-table';
 
 Chart.register(...registerables);
@@ -61,7 +61,9 @@ Chart.register(...registerables);
     TuiButton,
     TuiBadge,
     TuiTable,
-    TuiTabs
+    TuiTabs,
+    TuiTextfield,
+    TuiTextarea
   ],
   templateUrl: './user-detail.page.html',
   styleUrls: ['./user-detail.page.scss']
@@ -158,28 +160,28 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   activeTabIndex = signal(0);
 
   protected readonly tabs = computed(() => {
-    const items: { id: string; label: string; defaultValue?: string }[] = [];
+    const items: { id: string; label: string; defaultValue?: string; icon: string }[] = [];
     const isStaff = this.isStaff();
 
-    items.push({ id: 'profile', label: 'users.tab_profile' });
+    items.push({ id: 'profile', label: 'users.tab_profile', icon: 'fa-solid fa-user' });
 
     if (!isStaff) {
-      items.push({ id: 'measurements', label: 'users.tab_measurements' });
-      items.push({ id: 'menus', label: 'users.tab_menus' });
-      items.push({ id: 'water', label: 'users.tab_water', defaultValue: 'Agua' });
+      items.push({ id: 'measurements', label: 'users.tab_measurements', icon: 'fa-solid fa-chart-line' });
+      items.push({ id: 'menus', label: 'users.tab_menus', icon: 'fa-solid fa-utensils' });
+      items.push({ id: 'water', label: 'users.tab_water', defaultValue: 'Agua', icon: 'fa-solid fa-droplet' });
     }
 
     if (!isStaff && this.canViewPatientProfile()) {
-      items.push({ id: 'patient_profile', label: 'users.tab_patient_profile' });
-      items.push({ id: 'fixed_guidelines', label: 'users.tab_fixed_guidelines' });
+      items.push({ id: 'patient_profile', label: 'users.tab_patient_profile', icon: 'fa-solid fa-notes-medical' });
+      items.push({ id: 'fixed_guidelines', label: 'users.tab_fixed_guidelines', icon: 'fa-solid fa-apple-whole' });
     }
 
     if (!isStaff && this.canViewPatientEvents()) {
-      items.push({ id: 'patient_events', label: 'users.tab_patient_events' });
+      items.push({ id: 'patient_events', label: 'users.tab_patient_events', icon: 'fa-solid fa-calendar-days' });
     }
 
     if (!isStaff && this.canViewAppointments()) {
-      items.push({ id: 'appointments', label: 'appointments.history_title' });
+      items.push({ id: 'appointments', label: 'appointments.history_title', icon: 'fa-solid fa-clock-rotate-left' });
     }
 
     return items;
@@ -214,6 +216,13 @@ export default class UserDetailPage implements OnInit, OnDestroy {
 
   protected readonly formatInstant = formatInstant;
   protected readonly formatInstantWithTime = formatInstantWithTime;
+
+  getInitials(user: AppUserDto): string {
+    const first = (user.firstName ?? '').trim();
+    const last = (user.lastName ?? '').trim();
+    const initials = `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
+    return initials || '?';
+  }
 
   getRoleLabel(user: AppUserDto): string {
     if (user.roleName) return user.roleName;

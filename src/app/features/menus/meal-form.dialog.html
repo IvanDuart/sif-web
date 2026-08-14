@@ -1,31 +1,28 @@
-<form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
-  <div class="field flex flex-col gap-1.5">
-    <label for="dayOfWeek" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.day_of_week' | transloco }}</label>
-    <select id="dayOfWeek" formControlName="dayOfWeek" class="form-input">
-      <option value="" disabled>{{ 'diets.select_day' | transloco }}</option>
-      @for (d of days; track d.value) {
-        <option [value]="d.value">{{ d.label }}</option>
-      }
-    </select>
-  </div>
+<form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2" *transloco="let t">
+  <tui-textfield class="w-full" tuiChevron [stringify]="dayStringify">
+    <label tuiLabel for="dayOfWeek">{{ t('diets.day_of_week') }}</label>
+    <input id="dayOfWeek" formControlName="dayOfWeek" tuiSelect />
+    <tui-data-list-wrapper *tuiDropdown [items]="dayValues()"></tui-data-list-wrapper>
+  </tui-textfield>
 
-  <div class="field flex flex-col gap-1.5">
-    <label for="mealType" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.meal_type' | transloco }}</label>
-    <select id="mealType" formControlName="mealType" class="form-input">
-      <option value="" disabled>{{ 'diets.select_type' | transloco }}</option>
-      @for (m of mealTypes; track m.value) {
-        <option [value]="m.value">{{ m.label }}</option>
-      }
-    </select>
-  </div>
+  <tui-textfield class="w-full" tuiChevron [stringify]="mealTypeStringify">
+    <label tuiLabel for="mealType">{{ t('diets.meal_type') }}</label>
+    <input id="mealType" formControlName="mealType" tuiSelect />
+    <tui-data-list-wrapper *tuiDropdown [items]="mealTypeValues()"></tui-data-list-wrapper>
+  </tui-textfield>
 
-  <div class="field flex flex-col gap-1.5">
-    <label for="description" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.description' | transloco }}</label>
-    <textarea id="description" formControlName="description" class="form-input" rows="6" [placeholder]="'diets.description_placeholder' | transloco"></textarea>
-  </div>
+  <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+    <label tuiLabel for="description">{{ t('diets.description') }}</label>
+    <textarea id="description" formControlName="description" tuiTextarea [min]="4" [max]="10"></textarea>
+  </tui-textfield>
 
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-    <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
-    <button type="submit" tuiButton size="m" [disabled]="form.invalid" [class.loading]="saving()">{{ isEdit ? ('diets.save_changes' | transloco) : ('diets.add_dish' | transloco) }}</button>
+    <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ t('common.cancel') }}</button>
+    <button type="submit" tuiButton size="m" [disabled]="form.invalid || saving()">
+      @if (saving()) {
+        <i class="fa-solid fa-spinner fa-spin animate-spin mr-1"></i>
+      }
+      {{ isEdit ? t('diets.save_changes') : t('diets.add_dish') }}
+    </button>
   </div>
 </form>

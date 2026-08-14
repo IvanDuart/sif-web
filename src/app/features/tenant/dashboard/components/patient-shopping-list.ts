@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { TuiCheckbox } from '@taiga-ui/core';
 
 import { TenantContextService } from '../../../../core/tenant/tenant-context.service';
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -26,7 +27,7 @@ const SUPERMARKET_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-patient-shopping-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslocoDirective],
+  imports: [CommonModule, FormsModule, TranslocoDirective, TuiCheckbox],
   templateUrl: './patient-shopping-list.html'
 })
 export class PatientShoppingList implements OnInit {

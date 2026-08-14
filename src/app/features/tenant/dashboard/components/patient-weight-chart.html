@@ -11,21 +11,25 @@
     <div class="flex flex-wrap items-center gap-2">
       <div class="flex items-center gap-1">
         <span class="text-xs text-surface-500">{{ t('common.from', { defaultValue: 'Desde' }) }}</span>
-        <input
-          type="date"
-          [(ngModel)]="startDate"
-          (change)="filterAndRenderChart()"
-          class="rounded-lg border border-surface-300 dark:border-surface-700 bg-transparent px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
-        />
+        <tui-textfield class="w-[130px]" tuiTextfieldSize="s">
+          <input
+            tuiInput
+            type="date"
+            [(ngModel)]="startDate"
+            (change)="filterAndRenderChart()"
+          />
+        </tui-textfield>
       </div>
       <div class="flex items-center gap-1">
         <span class="text-xs text-surface-500">{{ t('common.to', { defaultValue: 'Hasta' }) }}</span>
-        <input
-          type="date"
-          [(ngModel)]="endDate"
-          (change)="filterAndRenderChart()"
-          class="rounded-lg border border-surface-300 dark:border-surface-700 bg-transparent px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
-        />
+        <tui-textfield class="w-[130px]" tuiTextfieldSize="s">
+          <input
+            tuiInput
+            type="date"
+            [(ngModel)]="endDate"
+            (change)="filterAndRenderChart()"
+          />
+        </tui-textfield>
       </div>
     </div>
   </div>

@@ -29,13 +29,6 @@
             <i class="fa-solid fa-user-plus"></i>
             {{ t('templates.assign') }}
           </button>
-          <button
-            *appIfPermission="'MANAGE_TEMPLATE'"
-            tuiButton size="m"
-            (click)="addMeal()">
-            <i class="fa-solid fa-plus"></i>
-            {{ t('template_detail.add_meal') }}
-          </button>
         </div>
       </div>
     </div>
@@ -44,55 +37,88 @@
       <div class="p-6">
         <h2 class="text-base font-bold mb-4 uppercase tracking-widest text-surface-400">{{ t('template_detail.title') }}</h2>
 
-        <div class="weekly-grid">
-          @for (day of allDays; track day) {
-            <div class="day-column">
-              <div class="day-header">
-                <i class="fa-regular fa-calendar text-xs"></i>
-                <span>{{ dayLabel(day) }}</span>
-              </div>
-
-              <div class="day-body">
-                @for (meal of groupedMeals().get(day); track meal.id) {
-                  <div class="meal-card" [class.meal-card--lunch]="meal.mealType === 'COMIDA'" [class.meal-card--dinner]="meal.mealType === 'CENA'">
-                    <div class="meal-card__header">
-                      <div class="meal-card__type">
-                        @if (meal.mealType === 'COMIDA') {
-                          <i class="fa-solid fa-utensils text-xs"></i>
-                        } @else {
-                          <i class="fa-solid fa-moon text-xs"></i>
+        <div class="overflow-x-auto">
+          <table tuiTable class="w-full min-w-[640px] menu-table">
+            <thead>
+              <tr>
+                <th tuiTh class="menu-table__day-head">{{ t('template_detail.day_column') }}</th>
+                <th tuiTh>
+                  <div class="menu-table__meal-head">
+                    <i class="fa-solid fa-utensils text-xs"></i>
+                    {{ t('template_detail.meal_types.lunch') }}
+                  </div>
+                </th>
+                <th tuiTh>
+                  <div class="menu-table__meal-head">
+                    <i class="fa-solid fa-moon text-xs"></i>
+                    {{ t('template_detail.meal_types.dinner') }}
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody tuiTbody>
+              @for (day of allDays; track day) {
+                <tr tuiTr>
+                  <td tuiTd class="menu-table__day">
+                    <i class="fa-regular fa-calendar text-xs"></i>
+                    <span>{{ dayLabel(day) }}</span>
+                  </td>
+                  <td tuiTd class="menu-table__cell">
+                    @if (getMeal(day, 'COMIDA'); as meal) {
+                      <div class="menu-table__meal">
+                        <span class="menu-table__meal-text">{{ meal.description }}</span>
+                        @if (canManageTemplate()) {
+                          <span class="menu-table__meal-actions">
+                            <button tuiIconButton appearance="flat" size="xs" type="button" (click)="editMeal(meal)" [title]="t('common.edit')">
+                              <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button tuiIconButton appearance="flat" size="xs" type="button" class="text-red-500 hover:text-red-700" (click)="deleteMeal(meal)" [title]="t('common.delete')">
+                              <i class="fa-solid fa-trash"></i>
+                            </button>
+                          </span>
                         }
-                        <span>{{ mealTypeLabel(meal.mealType) }}</span>
                       </div>
-                      @if (canManageTemplate()) {
-                        <div class="meal-card__actions">
-                          <button class="meal-action-btn" (click)="editMeal(meal)" [title]="t('common.edit')">
-                            <i class="fa-solid fa-pen-to-square text-xs"></i>
+                    } @else {
+                      <div class="menu-table__empty">
+                        <span>{{ t('template_detail.free_day_short') }}</span>
+                        @if (canManageTemplate()) {
+                          <button tuiIconButton appearance="flat" size="xs" type="button" (click)="addMeal(day, 'COMIDA')" [title]="t('template_detail.add_meal_short')">
+                            <i class="fa-solid fa-plus"></i>
                           </button>
-                          <button class="meal-action-btn meal-action-btn--danger" (click)="deleteMeal(meal)" [title]="t('common.delete')">
-                            <i class="fa-solid fa-trash text-xs"></i>
-                          </button>
-                        </div>
-                      }
-                    </div>
-                    <p class="meal-card__description">{{ meal.description }}</p>
-                  </div>
-                } @empty {
-                  <div class="empty-day-card">
-                    <div class="empty-day-card__icon">
-                      <i class="fa-solid fa-plus"></i>
-                    </div>
-                    <p class="empty-day-card__text">{{ t('template_detail.free_day') }}</p>
-                    @if (canManageTemplate()) {
-                      <button class="empty-day-card__btn" (click)="addMeal(day)">
-                        {{ t('template_detail.add_meal_short') }}
-                      </button>
+                        }
+                      </div>
                     }
-                  </div>
-                }
-              </div>
-            </div>
-          }
+                  </td>
+                  <td tuiTd class="menu-table__cell">
+                    @if (getMeal(day, 'CENA'); as meal) {
+                      <div class="menu-table__meal">
+                        <span class="menu-table__meal-text">{{ meal.description }}</span>
+                        @if (canManageTemplate()) {
+                          <span class="menu-table__meal-actions">
+                            <button tuiIconButton appearance="flat" size="xs" type="button" (click)="editMeal(meal)" [title]="t('common.edit')">
+                              <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button tuiIconButton appearance="flat" size="xs" type="button" class="text-red-500 hover:text-red-700" (click)="deleteMeal(meal)" [title]="t('common.delete')">
+                              <i class="fa-solid fa-trash"></i>
+                            </button>
+                          </span>
+                        }
+                      </div>
+                    } @else {
+                      <div class="menu-table__empty">
+                        <span>{{ t('template_detail.free_day_short') }}</span>
+                        @if (canManageTemplate()) {
+                          <button tuiIconButton appearance="flat" size="xs" type="button" (click)="addMeal(day, 'CENA')" [title]="t('template_detail.add_meal_short')">
+                            <i class="fa-solid fa-plus"></i>
+                          </button>
+                        }
+                      </div>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

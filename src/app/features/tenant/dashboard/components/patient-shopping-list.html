@@ -26,10 +26,10 @@
             @for (item of group.items; track item.id) {
               <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-50 dark:hover:bg-surface-800 cursor-pointer transition-colors">
                 <input
+                  tuiCheckbox
                   type="checkbox"
                   [ngModel]="item.checked"
                   (ngModelChange)="toggleItem(item, $event)"
-                  class="w-4 h-4 rounded border-surface-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
                 />
                 <div class="flex-1 min-w-0">
                   <span [class.line-through]="item.checked" [class.text-surface-400]="item.checked" class="text-sm font-medium text-surface-900 dark:text-surface-0">

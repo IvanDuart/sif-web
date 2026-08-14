@@ -12,6 +12,7 @@ import { formatInstant } from '../../../shared/utils/date';
 import { ModalService, NotificationService, ConfirmService } from '../../../core/ui';
 import { TuiButton } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
+import { EmptyState } from '../../../shared/ui/empty-state';
 
 // Patient Dashboard Widgets
 import { WaterIntakeWidget } from './components/water-intake-widget';
@@ -34,7 +35,8 @@ import { PatientShoppingList } from './components/patient-shopping-list';
     PatientShoppingList,
     SkeletonComponent,
     TuiButton,
-    TuiBadge
+    TuiBadge,
+    EmptyState
   ],
   templateUrl: './tenant-dashboard.component.html',
   styleUrls: ['./tenant-dashboard.component.scss']

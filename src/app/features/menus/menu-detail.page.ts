@@ -3,8 +3,9 @@ import { DatePipe, Location } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { TranslocoDirective, TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
-import { TuiButton } from '@taiga-ui/core';
+import { TuiButton, TuiDropdown, TuiDataList } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
+import { TuiTable } from '@taiga-ui/addon-table';
 
 import { MenuService } from '../../core/api/services/menu.api';
 import { MealService } from '../../core/api/services/meal.api';
@@ -22,10 +23,24 @@ import { ShoppingListDialog, ShoppingListDialogInput } from './shopping-list.dia
 const ALL_DAYS = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'] as const;
 const MEAL_ORDER: Record<string, number> = { COMIDA: 0, CENA: 1 };
 
+const SUPERMARKETS = [
+  { value: 'MERCADONA', label: 'Mercadona' },
+  { value: 'CARREFOUR', label: 'Carrefour' },
+  { value: 'LIDL', label: 'Lidl' },
+  { value: 'ALCAMPO', label: 'Alcampo' },
+  { value: 'DIA', label: 'Dia' },
+  { value: 'EL_CORTE_INGLES', label: 'El Corte Inglés' },
+  { value: 'ALDI', label: 'Aldi' },
+  { value: 'EROSKI', label: 'Eroski' },
+  { value: 'CONSUM', label: 'Consum' },
+  { value: 'HIPERCOR', label: 'Hipercor' },
+  { value: 'MASYMAS', label: 'Mas y Mas' },
+] as const;
+
 @Component({
   selector: 'app-menu-detail',
   standalone: true,
-  imports: [DatePipe, RouterModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, TuiButton, TuiBadge],
+  imports: [DatePipe, RouterModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, TuiButton, TuiBadge, TuiDropdown, TuiDataList, TuiTable],
   templateUrl: './menu-detail.page.html',
   styleUrls: ['./menu-detail.page.scss'],
 })
@@ -49,6 +64,8 @@ export default class MenuDetailPage implements OnInit {
   menuId = '';
 
   allDays = ALL_DAYS;
+  supermarkets = SUPERMARKETS;
+  supermarketMenuOpen = signal(false);
   canManageMeal = computed(() => this.permissionsService.has('MANAGE_MEAL'));
   canViewMenu = computed(() => this.permissionsService.has('VIEW_MENU'));
   downloadingPdf = signal(false);
@@ -119,19 +136,18 @@ export default class MenuDetailPage implements OnInit {
     return this.transloco.translate(`diet_detail.days.${day.toLowerCase()}`);
   }
 
-  mealTypeLabel(mealType: string): string {
-    const key = mealType === 'COMIDA' ? 'lunch' : 'dinner';
-    return this.transloco.translate(`diet_detail.meal_types.${key}`);
-  }
-
-  addMeal(day?: string) {
+  addMeal(day?: string, mealType?: string) {
     this.modal.open<Meal, MealFormDialogInput>(MealFormDialog, {
       label: this.transloco.translate('diet_detail.add_meal'),
       size: 'm',
-      data: { menuId: this.menuId, prefillDay: day }
+      data: { menuId: this.menuId, prefillDay: day, prefillMealType: mealType }
     }).subscribe(result => {
       if (result) this.loadData();
     });
+  }
+
+  getMeal(day: string, mealType: string): Meal | undefined {
+    return this.groupedMeals().get(day)?.find(m => m.mealType === mealType);
   }
 
   editMeal(meal: Meal) {
@@ -202,6 +218,11 @@ export default class MenuDetailPage implements OnInit {
       },
       error: () => this.printingPdf.set(false)
     });
+  }
+
+  selectSupermarket(supermarket: string): void {
+    this.supermarketMenuOpen.set(false);
+    this.generateShoppingList(supermarket);
   }
 
   generateShoppingList(supermarket: string): void {

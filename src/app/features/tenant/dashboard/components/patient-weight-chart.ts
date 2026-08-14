@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, inject, signal } f
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TuiInput, TuiTextfield } from '@taiga-ui/core';
 import { BodyMeasurementService } from '../../../../core/api/services/body-measurement.api';
 import { TenantContextService } from '../../../../core/tenant/tenant-context.service';
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -14,7 +15,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-patient-weight-chart',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslocoDirective],
+  imports: [CommonModule, FormsModule, TranslocoDirective, TuiInput, TuiTextfield],
   templateUrl: './patient-weight-chart.html'
 })
 export class PatientWeightChart implements OnInit, OnDestroy {

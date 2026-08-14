@@ -1,9 +1,9 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext } from '@taiga-ui/core';
-import { TuiButton } from '@taiga-ui/core';
-import { TranslocoService, TranslocoPipe } from '@jsverse/transloco';
+import { TuiDialogContext, TuiButton, TuiDropdown, TuiTextfield } from '@taiga-ui/core';
+import { TuiSelect, TuiDataListWrapper, TuiChevron, TuiTextarea } from '@taiga-ui/kit';
+import { TranslocoService, TranslocoPipe, TranslocoDirective } from '@jsverse/transloco';
 import { MenuTemplateService, UpdateMealTemplateRequest } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { MealTemplate } from '../../core/api/models/menu-template.model';
@@ -15,23 +15,46 @@ export interface MealTemplateFormDialogInput {
   templateId: string;
   meal?: MealTemplate;
   prefillDay?: string;
+  prefillMealType?: string;
 }
 
 @Component({
   selector: 'app-meal-template-form',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, TuiButton, TranslocoPipe],
+  imports: [
+    FormsModule,
+    ReactiveFormsModule,
+    TranslocoPipe,
+    TranslocoDirective,
+    TuiButton,
+    TuiDropdown,
+    TuiTextfield,
+    TuiSelect,
+    TuiDataListWrapper,
+    TuiChevron,
+    TuiTextarea,
+  ],
   templateUrl: './meal-template-form.dialog.html'
 })
-export class MealTemplateFormDialog implements OnInit {
+export class MealTemplateFormDialog {
   private readonly fb = inject(FormBuilder);
   private readonly templateService = inject(MenuTemplateService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly transloco = inject(TranslocoService);
   readonly context = injectContext<TuiDialogContext<MealTemplate, MealTemplateFormDialogInput>>();
 
-  days: { label: string; value: string }[] = [];
-  mealTypes: { label: string; value: string }[] = [];
+  days = computed(() => DAY_VALUES.map(d => ({
+    value: d,
+    label: this.transloco.translate(`template_detail.days.${d.toLowerCase()}`),
+  })));
+
+  mealTypes = computed(() => MEAL_VALUES.map(m => ({
+    value: m,
+    label: this.transloco.translate(`template_detail.meal_types.${m === 'COMIDA' ? 'lunch' : 'dinner'}`),
+  })));
+
+  dayValues = computed(() => this.days().map(d => d.value));
+  mealTypeValues = computed(() => this.mealTypes().map(m => m.value));
 
   templateId = '';
   isEdit = false;
@@ -45,6 +68,9 @@ export class MealTemplateFormDialog implements OnInit {
     description: ['', Validators.required]
   });
 
+  dayStringify = (value: string): string => this.days().find(d => d.value === value)?.label ?? value;
+  mealTypeStringify = (value: string): string => this.mealTypes().find(m => m.value === value)?.label ?? value;
+
   constructor() {
     const data = this.context.data;
     this.templateId = data.templateId;
@@ -57,20 +83,12 @@ export class MealTemplateFormDialog implements OnInit {
         mealType: data.meal.mealType,
         description: data.meal.description
       });
-    } else if (data.prefillDay) {
-      this.form.patchValue({ dayOfWeek: data.prefillDay });
+    } else if (data.prefillDay || data.prefillMealType) {
+      this.form.patchValue({
+        ...(data.prefillDay ? { dayOfWeek: data.prefillDay } : {}),
+        ...(data.prefillMealType ? { mealType: data.prefillMealType } : {}),
+      });
     }
-  }
-
-  ngOnInit() {
-    this.days = DAY_VALUES.map(d => ({
-      label: this.transloco.translate(`template_detail.days.${d.toLowerCase()}`),
-      value: d
-    }));
-    this.mealTypes = MEAL_VALUES.map(m => ({
-      label: this.transloco.translate(`template_detail.meal_types.${m === 'COMIDA' ? 'lunch' : 'dinner'}`),
-      value: m
-    }));
   }
 
   cancel() {

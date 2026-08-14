@@ -54,7 +54,7 @@
 
       <!-- Goal feedback badge -->
       @if (isGoalReached()) {
-        <span class="mt-4 px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1.5 animate-bounce">
+        <span class="mt-4 px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1.5">
           <i class="fa-solid fa-circle-check"></i>
           {{ t('water_intake.goal_reached', { defaultValue: '¡Meta alcanzada!' }) }}
         </span>
@@ -81,13 +81,15 @@
         </div>
 
         <div class="flex gap-2 items-center">
-          <input
-            type="number"
-            [placeholder]="t('water_intake.custom_placeholder')"
-            [(ngModel)]="customAmount"
-            min="0"
-            class="flex-1 rounded-lg border border-surface-300 dark:border-surface-700 bg-transparent px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
+          <tui-textfield class="flex-1" tuiTextfieldSize="s">
+            <input
+              tuiInput
+              type="number"
+              [placeholder]="t('water_intake.custom_placeholder')"
+              [(ngModel)]="customAmount"
+              min="0"
+            />
+          </tui-textfield>
           <button tuiButton size="s" (click)="logCustomWater()" class="text-sm font-medium">
             {{ t('common.add', { defaultValue: 'Añadir' }) }}
           </button>
