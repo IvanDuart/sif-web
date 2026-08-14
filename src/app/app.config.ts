@@ -1,4 +1,7 @@
-import { ApplicationConfig, provideZoneChangeDetection, APP_INITIALIZER } from '@angular/core';
+import { ApplicationConfig, provideZoneChangeDetection, APP_INITIALIZER, LOCALE_ID } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeEs from '@angular/common/locales/es';
+import localeEn from '@angular/common/locales/en';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -19,6 +22,9 @@ import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
 
 import { ThemeService } from './core/branding/theme.service';
 import {InitService} from './core/auth/init.service';
+
+registerLocaleData(localeEs, 'es');
+registerLocaleData(localeEn, 'en');
 
 function initializeApp(theme: ThemeService) {
   return async () => {
@@ -71,6 +77,10 @@ export const appConfig: ApplicationConfig = {
       },
       loader: TranslocoHttpLoader
     }),
+    {
+      provide: LOCALE_ID,
+      useFactory: () => localStorage.getItem('preferredLanguage') ?? 'es'
+    },
     {
       provide: TUI_LANGUAGE,
       useFactory: provideTuiLanguage,

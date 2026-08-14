@@ -3,7 +3,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angu
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext, TuiButton, TuiDropdown, TuiTextfield } from '@taiga-ui/core';
 import { TuiSelect, TuiDataListWrapper, TuiChevron, TuiTextarea } from '@taiga-ui/kit';
-import { TranslocoService, TranslocoPipe, TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoService, TranslocoDirective } from '@jsverse/transloco';
 import { MenuTemplateService, UpdateMealTemplateRequest } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { MealTemplate } from '../../core/api/models/menu-template.model';
@@ -24,7 +24,6 @@ export interface MealTemplateFormDialogInput {
   imports: [
     FormsModule,
     ReactiveFormsModule,
-    TranslocoPipe,
     TranslocoDirective,
     TuiButton,
     TuiDropdown,
