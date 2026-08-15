@@ -35,7 +35,7 @@ export class PatientProfileFormDialog implements OnInit {
   ngOnInit() {
     const tenantId = this.tenantCtx.currentTenantId();
     if (tenantId) {
-      this.tenantBrandingService.getById(tenantId).subscribe({
+      this.tenantBrandingService.getBranding(tenantId).subscribe({
         next: (tenant) => {
           this.activeFields.set(tenant.preferences?.active_anamnesis_fields || []);
         }
