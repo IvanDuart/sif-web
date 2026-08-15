@@ -7,9 +7,9 @@ import { TuiTextarea } from '@taiga-ui/kit';
 import { NotificationService } from '../../core/ui/notification.service';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
-import { TenantService } from '../../core/api/services/tenant.api';
 import { UserTenantProfileDto } from '../../core/api/models/user.model';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import {TenantBrandingService} from '../../core/api/services/tenant-branding.api';
 
 @Component({
   selector: 'app-patient-profile-form',
@@ -21,7 +21,7 @@ export class PatientProfileFormDialog implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly userRoleService = inject(UserTenantRoleService);
   private readonly tenantCtx = inject(TenantContextService);
-  private readonly tenantService = inject(TenantService);
+  private readonly tenantBrandingService = inject(TenantBrandingService);
   private readonly notify = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
   readonly context = injectContext<TuiDialogContext<boolean, { profile: UserTenantProfileDto; userId: string }>>();
@@ -35,7 +35,7 @@ export class PatientProfileFormDialog implements OnInit {
   ngOnInit() {
     const tenantId = this.tenantCtx.currentTenantId();
     if (tenantId) {
-      this.tenantService.getById(tenantId).subscribe({
+      this.tenantBrandingService.getById(tenantId).subscribe({
         next: (tenant) => {
           this.activeFields.set(tenant.preferences?.active_anamnesis_fields || []);
         }
