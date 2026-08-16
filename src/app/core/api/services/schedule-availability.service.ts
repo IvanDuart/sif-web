@@ -86,8 +86,9 @@ export class ScheduleAvailabilityService {
       return 'El centro está cerrado este día';
     }
 
+    const normTime = timeStr.substring(0, 5);
     const isWithin = schedule.details.some(
-      (d) => timeStr >= d.startTime && timeStr < d.endTime,
+      (d) => normTime >= d.startTime.substring(0, 5) && normTime < d.endTime.substring(0, 5),
     );
     if (!isWithin) {
       return 'La hora de la cita está fuera del horario de apertura del centro';

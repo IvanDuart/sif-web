@@ -49,6 +49,8 @@
                   </span>
                 </th>
                 <th tuiTh scope="col">{{ t('users.age') }}</th>
+                <th tuiTh scope="col">{{ t('users.email') }}</th>
+                <th tuiTh scope="col">{{ t('users.phone') }}</th>
                 <th tuiTh scope="col">{{ t('users.status') }}</th>
                 <th tuiTh scope="col" class="text-center" style="width: 10rem;">{{ t('common.actions') }}</th>
               </tr>
@@ -65,6 +67,12 @@
                         <span class="text-surface-400"> años</span>
                       }
                     </span>
+                  </td>
+                  <td tuiTd>
+                    <span class="text-sm">{{ user.email }}</span>
+                  </td>
+                  <td tuiTd>
+                    <span class="text-sm">{{ user.phone ?? '—' }}</span>
                   </td>
                   <td tuiTd>
                     <span tuiBadge
