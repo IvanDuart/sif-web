@@ -11,6 +11,7 @@ import { ThemeService } from '../../core/branding/theme.service';
 import { ConfigService } from '../../core/config/config.service';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { TenantMembershipDto } from '../../core/api/models/user.model';
+import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppointmentService } from '../../core/api/services/appointment.api';
 import { AppointmentDto } from '../../core/api/models/appointment.model';
 import { globalLoadingSignal } from '../../core/http/loading.interceptor';
@@ -56,6 +57,7 @@ export class Shell implements OnInit {
   private readonly transloco = inject(TranslocoService);
   private readonly authService = inject(AuthService);
   readonly permissionsService = inject(PermissionsService);
+  private readonly tenantCtx = inject(TenantContextService);
   private readonly appointmentService = inject(AppointmentService);
   private readonly router = inject(Router);
   readonly themeService = inject(ThemeService);
@@ -140,6 +142,9 @@ export class Shell implements OnInit {
       }
       if (item.permission === 'VIEW_MENU') {
         return this.activeTenant()?.userType === 'PATIENT';
+      }
+      if (item.permission === 'MANAGE_TENANT') {
+        return this.permissionsService.has('MANAGE_TENANT') && this.tenantCtx.isAdminTenant();
       }
       return this.permissionsService.has(item.permission);
     });

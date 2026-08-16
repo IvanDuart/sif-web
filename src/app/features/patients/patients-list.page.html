@@ -48,19 +48,9 @@
                     }
                   </span>
                 </th>
-                <th tuiTh scope="col" class="cursor-pointer select-none" (click)="onSort('appUser.email')">
-                  <span class="inline-flex items-center gap-1">
-                    {{ t('users.email') }}
-                    @if (sortKey() === 'appUser.email') {
-                      <i class="fa-solid text-xs" [class.fa-arrow-up]="sortDirection() === 'ASC'" [class.fa-arrow-down]="sortDirection() === 'DESC'"></i>
-                    }
-                  </span>
-                </th>
                 <th tuiTh scope="col">{{ t('users.age') }}</th>
-                 <th tuiTh scope="col">{{ t('users.weight') }}</th>
-                 <th tuiTh scope="col">{{ t('users.bmi') }}</th>
-                 <th tuiTh scope="col">{{ t('users.status') }}</th>
-                 <th tuiTh scope="col" class="text-center" style="width: 10rem;">{{ t('common.actions') }}</th>
+                <th tuiTh scope="col">{{ t('users.status') }}</th>
+                <th tuiTh scope="col" class="text-center" style="width: 10rem;">{{ t('common.actions') }}</th>
               </tr>
             </thead>
             <tbody tuiTbody>
@@ -68,7 +58,6 @@
                 <tr tuiTr class="table-row" [class.opacity-60]="user.enabled === false">
                   <td tuiTd class="font-medium">{{ user.firstName }}</td>
                   <td tuiTd>{{ user.lastName }}</td>
-                  <td tuiTd class="text-sm text-surface-500">{{ user.email }}</td>
                   <td tuiTd>
                     <span class="text-sm font-mono">
                       {{ user.age ?? '—' }}
@@ -77,8 +66,6 @@
                       }
                     </span>
                   </td>
-                  <td tuiTd class="text-sm font-mono">{{ user.lastMeasurement?.weightKg ?? '—' }}</td>
-                  <td tuiTd class="text-sm font-mono">{{ user.lastMeasurement?.bmi ?? '—' }}</td>
                   <td tuiTd>
                     <span tuiBadge
                       [appearance]="user.enabled !== false ? 'success' : 'error'">

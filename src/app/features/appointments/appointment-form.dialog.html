@@ -1,16 +1,40 @@
 <div *transloco="let t" xmlns="http://www.w3.org/1999/html">
   <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
 
-    <tui-textfield tuiChevron>
-      <label tuiLabel for="formPatientId">{{ t('appointments.patient') }}</label>
-      <input
-        id="formPatientId"
-        tuiComboBox
-        formControlName="patientId">
-      <tui-data-list-wrapper
-        *tuiDropdown
-        [items]="patientLabels() | tuiFilterByInput" />
-    </tui-textfield>
+    @if (isFirstConsultation()) {
+      <tui-textfield class="w-full">
+        <label tuiLabel for="formNewPatientName">{{ t('appointments.new_patient_name') }}</label>
+        <input
+          id="formNewPatientName"
+          tuiInput
+          formControlName="newPatientName"
+          [placeholder]="t('appointments.new_patient_name_placeholder')"
+          maxlength="100">
+      </tui-textfield>
+    } @else {
+      <tui-textfield tuiChevron>
+        <label tuiLabel for="formPatientId">{{ t('appointments.patient_optional') }}</label>
+        <input
+          id="formPatientId"
+          tuiComboBox
+          formControlName="patientId">
+        <tui-data-list-wrapper
+          *tuiDropdown
+          [items]="patientLabels() | tuiFilterByInput" />
+      </tui-textfield>
+    }
+
+    <label class="flex items-center gap-2 cursor-pointer select-none w-fit">
+      <input type="checkbox" tuiCheckbox formControlName="isFirstConsultation" />
+      <span class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('appointments.first_consultation_checkbox') }}</span>
+    </label>
+
+    @if (isFirstConsultation()) {
+      <div class="flex items-center gap-2 p-3 rounded bg-primary-50 dark:bg-primary-500/10 border border-primary-200 dark:border-primary-800">
+        <i class="fa-solid fa-user-plus text-primary-500"></i>
+        <span class="text-sm text-primary-700 dark:text-primary-300">{{ t('appointments.first_consultation_hint') }}</span>
+      </div>
+    }
 
     <tui-textfield tuiChevron>
       <label tuiLabel for="formTypeId">{{ t('appointments.type') }}</label>

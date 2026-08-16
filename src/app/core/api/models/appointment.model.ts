@@ -5,8 +5,8 @@ export interface AppointmentDto {
   tenantId: string;
   nutritionistId: string;
   nutritionistName: string;
-  patientId: string;
-  patientName: string;
+  patientId?: string | null;
+  patientName?: string | null;
   typeId: string | null;
   typeName: string | null;
   startTime: string;
@@ -18,7 +18,8 @@ export interface AppointmentDto {
 
 export interface CreateAppointmentRequest {
   nutritionistId: string;
-  patientId: string;
+  patientId?: string;
+  patientName?: string;
   startTime: string;
   endTime?: string;
   typeId?: string;

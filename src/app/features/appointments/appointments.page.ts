@@ -232,7 +232,7 @@ export default class AppointmentsPage implements OnInit {
     (appointments || []).forEach(a => {
       events.push({
         id: a.id,
-        title: `${a.patientName}`,
+        title: a.patientName ?? this.transloco.translate('appointments.no_patient'),
         start: a.startTime,
         end: a.endTime,
         backgroundColor: statusColor(a.status) + '20',
@@ -269,7 +269,7 @@ export default class AppointmentsPage implements OnInit {
         this.modal.open<boolean, { appointment: AppointmentDto }>(
           AppointmentActionDialog,
           {
-            label: `${appointment.patientName} — ${this.getStatusLabel(appointment.status)}`,
+            label: `${appointment.patientName ?? this.transloco.translate('appointments.no_patient')} — ${this.getStatusLabel(appointment.status)}`,
             size: 'm',
             data: { appointment }
           }
@@ -281,8 +281,9 @@ export default class AppointmentsPage implements OnInit {
         });
       }
     } else {
+      const patientName = (props['patientName'] as string) || this.transloco.translate('appointments.no_patient');
       this.notify.info(
-        `${props['patientName'] as string}: ${(props['typeName'] as string) || 'Cita'} — ${this.getStatusLabel(props['status'] as string)}`
+        `${patientName}: ${(props['typeName'] as string) || 'Cita'} — ${this.getStatusLabel(props['status'] as string)}`
       );
     }
   }

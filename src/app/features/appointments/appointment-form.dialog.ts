@@ -1,6 +1,6 @@
 import {Component, inject, signal, OnInit, computed, ChangeDetectionStrategy} from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TuiDropdown, TuiTextfield, TuiLabel, TuiFilterByInputPipe, TuiButton } from '@taiga-ui/core';
+import { TuiDropdown, TuiTextfield, TuiLabel, TuiFilterByInputPipe, TuiButton, TuiCheckbox, TuiInput } from '@taiga-ui/core';
 import {
   TuiTextarea,
   TuiComboBox,
@@ -21,6 +21,7 @@ import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { AppointmentTypeDto } from '../../core/api/models/appointment-type.model';
+import { CreateAppointmentRequest } from '../../core/api/models/appointment.model';
 import { AppUserDto } from '../../core/api/models/user.model';
 import { NotificationService } from '../../core/ui';
 import { ScheduleAvailabilityService } from '../../core/api/services/schedule-availability.service';
@@ -42,7 +43,9 @@ import { ScheduleAvailabilityService } from '../../core/api/services/schedule-av
     TuiFilterByInputPipe,
     TuiLabel,
     TuiButton,
-    TuiChevron
+    TuiChevron,
+    TuiCheckbox,
+    TuiInput
   ],
   templateUrl: './appointment-form.dialog.html',
   styleUrls: ['./appointment-form.dialog.scss'],
@@ -86,8 +89,12 @@ export class AppointmentFormDialog implements OnInit {
     return found ? found.label : value;
   };
 
+  isFirstConsultation = signal(false);
+
   form = this.fb.group({
-    patientId: ['', Validators.required],
+    patientId: [''],
+    isFirstConsultation: [false],
+    newPatientName: [''],
     typeId: ['', Validators.required],
     date: [null as TuiDay | null, Validators.required],
     time: [null as TuiTime | null, Validators.required],
@@ -106,6 +113,13 @@ export class AppointmentFormDialog implements OnInit {
     // Subscribe to date changes to update schedule info
     this.form.get('date')?.valueChanges.subscribe(() => {
       this.updateScheduleInfo();
+    });
+
+    this.form.get('isFirstConsultation')?.valueChanges.subscribe((checked) => {
+      this.isFirstConsultation.set(!!checked);
+      if (!checked) {
+        this.form.get('newPatientName')?.setValue('');
+      }
     });
 
     if (this.context.data?.startTime) {
@@ -198,8 +212,16 @@ export class AppointmentFormDialog implements OnInit {
     const selectedPatient = this.patients().find(p => p.label === raw.patientId);
     const selectedType = this.appointmentTypes().find(t => t.label === raw.typeId);
 
-    if (!selectedPatient || !selectedType) {
-      this.error.set('Por favor, selecciona un paciente y tipo válidos de la lista.');
+    if (!selectedType) {
+      this.error.set('Por favor, selecciona un tipo válido de la lista.');
+      return;
+    }
+
+    const isFirstConsultation = !!raw.isFirstConsultation;
+    const newPatientName = (raw.newPatientName || '').trim();
+
+    if (isFirstConsultation && !newPatientName) {
+      this.error.set(this.transloco.translate('appointments.new_patient_name_required'));
       return;
     }
 
@@ -212,13 +234,19 @@ export class AppointmentFormDialog implements OnInit {
     const startDate = day.toLocalNativeDate();
     startDate.setHours(time.hours, time.minutes, 0, 0);
 
-    this.appointmentService.create(tenantId, {
+    const request: CreateAppointmentRequest = {
       nutritionistId,
-      patientId: selectedPatient.value,
       typeId: selectedType.value,
       startTime: startDate.toISOString(),
       notes: raw.notes || undefined
-    }).subscribe({
+    };
+    if (isFirstConsultation) {
+      request.patientName = newPatientName;
+    } else if (selectedPatient?.value) {
+      request.patientId = selectedPatient.value;
+    }
+
+    this.appointmentService.create(tenantId, request).subscribe({
       next: () => {
         this.notify.success(
           this.transloco.translate('appointments.create_success'),

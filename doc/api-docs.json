@@ -4483,6 +4483,11 @@
             "maxLength": 100,
             "minLength": 0
           },
+          "phone": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 0
+          },
           "email": {
             "type": "string",
             "format": "email"
@@ -4545,6 +4550,9 @@
           },
           "enabled": {
             "type": "boolean"
+          },
+          "phone": {
+            "type": "string"
           },
           "menus": {
             "type": "array",
@@ -4667,6 +4675,11 @@
           },
           "snack": {
             "type": "string"
+          },
+          "lunch": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 0
           }
         }
       },
@@ -4713,6 +4726,9 @@
             "type": "string"
           },
           "snack": {
+            "type": "string"
+          },
+          "lunch": {
             "type": "string"
           }
         }
@@ -5406,12 +5422,22 @@
             "type": "string",
             "minLength": 1
           },
+          "phone": {
+            "type": "string"
+          },
           "birthDate": {
             "type": "string",
             "format": "date"
           },
           "heightCm": {
             "type": "number"
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "MALE",
+              "FEMALE"
+            ]
           }
         },
         "required": [
@@ -5801,7 +5827,6 @@
         },
         "required": [
           "nutritionistId",
-          "patientId",
           "startTime"
         ]
       },
@@ -5994,6 +6019,9 @@
           "language": {
             "type": "string"
           },
+          "phone": {
+            "type": "string"
+          },
           "age": {
             "type": "integer",
             "format": "int32"
@@ -6148,6 +6176,9 @@
             "type": "string"
           },
           "lastName": {
+            "type": "string"
+          },
+          "phone": {
             "type": "string"
           },
           "enabled": {

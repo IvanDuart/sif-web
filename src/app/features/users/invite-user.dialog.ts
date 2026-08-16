@@ -8,6 +8,7 @@ import { UserTenantRoleService, InviteUserRequest } from '../../core/api/service
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { UserType, Gender } from '../../core/api/models/user.model';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { PhoneInput } from '../../shared/ui/phone-input';
 
 export interface InviteUserDialogInput {
   lockedUserType?: UserType;
@@ -26,7 +27,8 @@ export interface InviteUserDialogInput {
     TuiInputDate,
     TuiSelect,
     TuiDataListWrapper,
-    TuiChevron
+    TuiChevron,
+    PhoneInput
   ],
   templateUrl: './invite-user.dialog.html'
 })
@@ -92,7 +94,8 @@ export class InviteUserDialog {
     roleCode: [{ value: '', disabled: false }, Validators.required],
     birthDate: [null as TuiDay | null],
     heightCm: [null as number | null],
-    gender: ['']
+    gender: [''],
+    phone: [null as string | null]
   });
 
   constructor() {
@@ -128,6 +131,9 @@ export class InviteUserDialog {
     }
     if (raw.gender) {
       request.gender = raw.gender;
+    }
+    if (raw.phone) {
+      request.phone = raw.phone;
     }
 
     this.saving.set(true);

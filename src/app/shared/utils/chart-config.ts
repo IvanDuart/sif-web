@@ -58,9 +58,36 @@ function createGradientFill(color: string, context: { chart: Chart }): CanvasGra
   return gradient;
 }
 
+export interface ChartDatasetInput {
+  label: string;
+  data: (number | null)[];
+  borderColor: string;
+  backgroundColor: string;
+  yAxisID?: 'y' | 'y1';
+  fill?: boolean;
+  /** Unit suffix appended in the tooltip, e.g. ' kg', ' %', ' cm'. */
+  unit?: string;
+}
+
+export interface ChartAxisTitles {
+  y?: string;
+  y1?: string;
+}
+
+function axisTitleConfig(text: string, color: string) {
+  return {
+    display: true,
+    text,
+    color,
+    font: { family: "'system-ui', '-apple-system', 'Segoe UI', Roboto, sans-serif", size: 11, weight: 600 as const },
+    padding: { top: 0, bottom: 4 },
+  };
+}
+
 export function buildChartConfig(
   labels: string[],
-  datasets: { label: string; data: (number | null)[]; borderColor: string; backgroundColor: string }[]
+  datasets: ChartDatasetInput[],
+  axisTitles?: ChartAxisTitles
 ): ChartConfiguration<'line'> {
   // Get CSS variables from root (Taiga UI theme colors)
   const cssVariables = getComputedStyle(document.documentElement);
@@ -96,6 +123,12 @@ export function buildChartConfig(
         boxPadding: 8,
         titleFont: { weight: 'bold' as const, size: 12 },
         bodyFont: { size: 12 },
+        callbacks: {
+          label: (item) => {
+            const unit = (item.dataset as { unit?: string }).unit ?? '';
+            return ` ${item.dataset.label}: ${item.formattedValue}${unit}`;
+          },
+        },
       },
     },
     scales: {
@@ -114,14 +147,32 @@ export function buildChartConfig(
           color: textSecondary,
           font: { family: "'system-ui', '-apple-system', 'Segoe UI', Roboto, sans-serif", size: 12 },
         },
+        ...(axisTitles?.y ? { title: axisTitleConfig(axisTitles.y, textSecondary) } : {}),
       },
+      // Secondary axis — only created when any dataset opts in via yAxisID: 'y1'.
+      // Used to plot % / index metrics (BMI, % fat, % water) on a readable scale
+      // alongside kg-scale series (weight, muscle mass) on the left.
+      ...(datasets.some(d => d.yAxisID === 'y1')
+        ? {
+            y1: {
+              position: 'right' as const,
+              beginAtZero: false,
+              grid: { drawOnChartArea: false },
+              ticks: {
+                color: textSecondary,
+                font: { family: "'system-ui', '-apple-system', 'Segoe UI', Roboto, sans-serif", size: 12 },
+              },
+              ...(axisTitles?.y1 ? { title: axisTitleConfig(axisTitles.y1, textSecondary) } : {}),
+            },
+          }
+        : {}),
     },
   };
 
   // Transform datasets to add fill gradient and point styling
   const styledDatasets = datasets.map(dataset => ({
     ...dataset,
-    fill: true,
+    fill: dataset.fill ?? true,
     tension: 0.3,
     backgroundColor: (context: { chart: Chart }) => createGradientFill(dataset.borderColor, context),
     borderWidth: 2,

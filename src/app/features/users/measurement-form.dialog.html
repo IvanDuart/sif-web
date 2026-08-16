@@ -19,22 +19,22 @@
     <div class="flex flex-col gap-4 pt-2">
        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
          <tui-textfield class="w-full">
-           <label tuiLabel for="measurementWeight">{{ t('measurements.weight') }} (kg)</label>
+           <label tuiLabel for="measurementWeight">{{ t('measurements.weight') }}</label>
            <input id="measurementWeight" type="number" formControlName="weightKg" tuiInput step="0.01" min="0" max="999.99" />
          </tui-textfield>
 
          <tui-textfield class="w-full">
-           <label tuiLabel for="measurementBodyFat">{{ t('measurements.body_fat') }} (%)</label>
+           <label tuiLabel for="measurementBodyFat">{{ t('measurements.body_fat') }}</label>
            <input id="measurementBodyFat" type="number" formControlName="bodyFatPct" tuiInput step="0.1" min="0" max="99.9" />
          </tui-textfield>
 
          <tui-textfield class="w-full">
-           <label tuiLabel for="measurementMuscleMass">{{ t('measurements.muscle_mass') }} (kg)</label>
+           <label tuiLabel for="measurementMuscleMass">{{ t('measurements.muscle_mass') }}</label>
            <input id="measurementMuscleMass" type="number" formControlName="muscleMassKg" tuiInput step="0.01" min="0" max="999.99" />
          </tui-textfield>
 
          <tui-textfield class="w-full">
-           <label tuiLabel for="measurementBodyWater">{{ t('measurements.body_water') }} (%)</label>
+           <label tuiLabel for="measurementBodyWater">{{ t('measurements.body_water') }}</label>
            <input id="measurementBodyWater" type="number" formControlName="bodyWaterPct" tuiInput step="0.1" min="0" max="99.9" />
          </tui-textfield>
        </div>
@@ -49,27 +49,27 @@
     <div class="flex flex-col gap-4 pt-2">
        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
          <tui-textfield class="w-full">
-           <label tuiLabel for="measurementWaist">{{ t('measurements.waist') }} (cm)</label>
+           <label tuiLabel for="measurementWaist">{{ t('measurements.waist') }}</label>
            <input id="measurementWaist" type="number" formControlName="waistCm" tuiInput step="0.1" min="0" max="999.9" />
          </tui-textfield>
 
          <tui-textfield class="w-full">
-           <label tuiLabel for="measurementChest">{{ t('measurements.chest') }} (cm)</label>
+           <label tuiLabel for="measurementChest">{{ t('measurements.chest') }}</label>
            <input id="measurementChest" type="number" formControlName="chestCm" tuiInput step="0.1" min="0" max="999.9" />
          </tui-textfield>
 
          <tui-textfield class="w-full">
-           <label tuiLabel for="measurementHips">{{ t('measurements.hips') }} (cm)</label>
+           <label tuiLabel for="measurementHips">{{ t('measurements.hips') }}</label>
            <input id="measurementHips" type="number" formControlName="hipsCm" tuiInput step="0.1" min="0" max="999.9" />
          </tui-textfield>
 
          <tui-textfield class="w-full">
-           <label tuiLabel for="measurementContour">{{ t('measurements.contour') }} (cm)</label>
+           <label tuiLabel for="measurementContour">{{ t('measurements.contour') }}</label>
            <input id="measurementContour" type="number" formControlName="contourCm" tuiInput step="0.1" min="0" max="999.9" />
          </tui-textfield>
 
          <tui-textfield class="w-full sm:col-span-2">
-           <label tuiLabel for="measurementArm">{{ t('measurements.arm') }} (cm)</label>
+           <label tuiLabel for="measurementArm">{{ t('measurements.arm') }}</label>
            <input id="measurementArm" type="number" formControlName="armCm" tuiInput step="0.1" min="0" max="999.9" />
          </tui-textfield>
        </div>
@@ -95,10 +95,12 @@
          </tui-textfield>
        </div>
 
-       <tui-textfield class="w-full">
-         <label tuiLabel for="measurementNotes">{{ t('measurements.notes') }}</label>
-         <textarea id="measurementNotes" formControlName="notes" tuiTextarea rows="3" [placeholder]="t('measurements.notes_placeholder')"></textarea>
-       </tui-textfield>
+       <div class="flex flex-col gap-1.5">
+         <label for="measurementNotes" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('measurements.notes') }}</label>
+         <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+           <textarea id="measurementNotes" formControlName="notes" tuiTextarea [min]="3" [placeholder]="t('measurements.notes_placeholder')"></textarea>
+         </tui-textfield>
+       </div>
 
       <div class="flex justify-between gap-2 pt-4 border-t border-surface-200 dark:border-surface-700 mt-4">
         <button type="button" tuiButton appearance="secondary" size="m" (click)="prevStep()"><i class="fa-solid fa-arrow-left mr-1"></i> {{ t('common.previous') }}</button>

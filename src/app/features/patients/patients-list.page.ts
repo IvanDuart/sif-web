@@ -125,11 +125,15 @@ export default class PatientsListPage implements OnInit {
   }
 
   editUser(user: AppUserDto) {
-    this.modal.open<boolean, EditUserDialogInput>(EditUserDialog, {
-      label: this.transloco.translate('users.edit_user_title'),
-      size: 'm',
-      data: { user }
-    }).subscribe(() => this.loadUsers());
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    this.userTenantRoleService.getUser(tenantId, user.id).subscribe(fullUser => {
+      this.modal.open<boolean, EditUserDialogInput>(EditUserDialog, {
+        label: this.transloco.translate('users.edit_user_title'),
+        size: 'm',
+        data: { user: fullUser }
+      }).subscribe(() => this.loadUsers());
+    });
   }
 
   revokeAccess(user: AppUserDto) {

@@ -7,10 +7,13 @@ import { BodyMeasurementService } from '../../../../core/api/services/body-measu
 import { TenantContextService } from '../../../../core/tenant/tenant-context.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { MeasurementPoint } from '../../../../core/api/models/body-measurement.model';
-import { buildChartConfig, hexToRgba, themePrimary } from '../../../../shared/utils/chart-config';
+import { buildChartConfig, METRIC_SERIES } from '../../../../shared/utils/chart-config';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
+
+const KG_FIELDS = new Set<string>(['weightKg']);
+const PCT_FIELDS = new Set<string>(['bodyFatPct', 'bodyWaterPct']);
 
 @Component({
   selector: 'app-patient-weight-chart',
@@ -30,6 +33,8 @@ export class PatientWeightChart implements OnInit, OnDestroy {
   hasData = signal(false);
   startDate = '';
   endDate = '';
+
+  private readonly selectedFields = new Set<string>(['weightKg', 'bmi', 'bodyFatPct', 'bodyWaterPct']);
 
   private chartInstance: Chart | null = null;
   private rawPoints: MeasurementPoint[] = [];
@@ -106,22 +111,20 @@ export class PatientWeightChart implements OnInit, OnDestroy {
       return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
     });
 
-    const weightData = filtered.map(p => p.weightKg);
+    const datasets = METRIC_SERIES
+      .filter(series => this.selectedFields.has(series.field))
+      .filter(series => filtered.some(p => p[series.field] != null))
+      .map(series => ({
+        label: this.transloco.translate(series.label),
+        data: filtered.map(p => p[series.field]),
+        borderColor: series.color,
+        backgroundColor: series.color,
+        yAxisID: KG_FIELDS.has(series.field) ? 'y' as const : 'y1' as const,
+        fill: KG_FIELDS.has(series.field),
+        unit: KG_FIELDS.has(series.field) ? ' kg' : (PCT_FIELDS.has(series.field) ? ' %' : ''),
+      }));
 
-    const datasets = [
-      {
-        label: this.transloco.translate('measurements.series.weight', { defaultValue: 'Peso (Kg)' }),
-        data: weightData,
-        borderColor: themePrimary(),
-        backgroundColor: hexToRgba(themePrimary(), 0.1),
-        tension: 0.3,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        spanGaps: true,
-      }
-    ];
-
-    const config = buildChartConfig(labels, datasets);
+    const config = buildChartConfig(labels, datasets, { y: 'kg', y1: '% / IMC' });
 
     if (this.chartInstance) {
       this.chartInstance.destroy();

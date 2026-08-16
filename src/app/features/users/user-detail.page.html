@@ -115,6 +115,12 @@
                 </span>
                 <p class="font-medium">{{ u.heightCm !== null ? (u.heightCm + ' cm') : '—' }}</p>
               </div>
+              <div class="flex flex-col gap-1.5">
+                <span class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                  <i class="fa-solid fa-phone w-4 text-center"></i>{{ t('users.phone') }}
+                </span>
+                <p class="font-medium">{{ u.phone ?? '—' }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -235,7 +241,7 @@
                           <th tuiTh>{{ t('measurements.hips') }}</th>
                           <th tuiTh>{{ t('measurements.contour') }}</th>
                           <th tuiTh>{{ t('measurements.arm') }}</th>
-                          <th tuiTh>{{ t('measurements.notes') }}</th>
+                          <th tuiTh class="min-w-40">{{ t('measurements.notes') }}</th>
                           <th tuiTh>{{ t('measurements.recorded_by') }}</th>
                           <th tuiTh class="text-center" style="width: 5rem;">{{ t('common.actions') }}</th>
                         </tr>
@@ -254,7 +260,7 @@
                             <td tuiTd class="font-mono">{{ m.hipsCm ?? '—' }}</td>
                             <td tuiTd class="font-mono">{{ m.contourCm ?? '—' }}</td>
                             <td tuiTd class="font-mono">{{ m.armCm ?? '—' }}</td>
-                            <td tuiTd class="text-surface-400 text-sm max-w-32 truncate">{{ m.notes ?? '—' }}</td>
+                            <td tuiTd class="text-surface-400 text-sm whitespace-pre-wrap min-w-40">{{ m.notes ?? '—' }}</td>
                             <td tuiTd class="text-sm">{{ m.recordedBy ?? '—' }}</td>
                             <td tuiTd class="text-center">
                               <button
@@ -470,13 +476,19 @@
                   <div class="flex flex-col gap-1.5">
                     <label for="breakfast" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('patient_profile.breakfast') }}</label>
                     <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-                      <textarea id="breakfast" tuiTextarea [ngModel]="editBreakfast()" (ngModelChange)="editBreakfast.set($event)" [min]="3"></textarea>
+                      <textarea id="breakfast" tuiTextarea [ngModel]="editBreakfast()" (ngModelChange)="editBreakfast.set($event)" [min]="3" maxlength="150"></textarea>
+                    </tui-textfield>
+                  </div>
+                  <div class="flex flex-col gap-1.5">
+                    <label for="lunch" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('patient_profile.lunch') }}</label>
+                    <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                      <textarea id="lunch" tuiTextarea [ngModel]="editLunch()" (ngModelChange)="editLunch.set($event)" [min]="3" maxlength="150"></textarea>
                     </tui-textfield>
                   </div>
                   <div class="flex flex-col gap-1.5">
                     <label for="snack" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('patient_profile.snack') }}</label>
                     <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-                      <textarea id="snack" tuiTextarea [ngModel]="editSnack()" (ngModelChange)="editSnack.set($event)" [min]="3"></textarea>
+                      <textarea id="snack" tuiTextarea [ngModel]="editSnack()" (ngModelChange)="editSnack.set($event)" [min]="3" maxlength="150"></textarea>
                     </tui-textfield>
                   </div>
                   <div class="flex justify-end gap-2 mt-2 pt-4 border-t border-surface-200 dark:border-surface-700">
@@ -485,7 +497,7 @@
                   </div>
                 </div>
               } @else {
-                @if (profile.breakfast || profile.snack) {
+                @if (profile.breakfast || profile.lunch || profile.snack) {
                   <div class="data-card">
                     <div class="flex items-center gap-2 mb-2">
                       <i class="fa-solid fa-apple-whole text-primary-500"></i>
@@ -499,6 +511,15 @@
                             <span>{{ t('patient_profile.breakfast') }}</span>
                           </div>
                           <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.breakfast }}</p>
+                        </div>
+                      }
+                      @if (profile.lunch) {
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
+                          <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                            <i class="fa-solid fa-hamburger text-primary-500 w-4 text-center"></i>
+                            <span>{{ t('patient_profile.lunch') }}</span>
+                          </div>
+                          <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.lunch }}</p>
                         </div>
                       }
                       @if (profile.snack) {

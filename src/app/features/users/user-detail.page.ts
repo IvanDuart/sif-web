@@ -117,6 +117,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   editingGuidelines = signal(false);
   savingGuidelines = signal(false);
   editBreakfast = signal('');
+  editLunch = signal('');
   editSnack = signal('');
 
   patientEvents = signal<PatientEventDto[]>([]);
@@ -354,18 +355,36 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     });
 
     const selectedFields = this.chartType() === 'composition' ? this.COMPOSITION_FIELDS : this.ANTHROPOMETRY_FIELDS;
+    const pctFields = new Set<string>(['bmi', 'bodyFatPct', 'bodyWaterPct']);
+    const kgFields = new Set<string>(['weightKg', 'muscleMassKg']);
+    const cmFields = new Set<string>(['waistCm', 'chestCm', 'hipsCm', 'contourCm', 'armCm']);
+
+    const unitFor = (field: string): string => {
+      if (kgFields.has(field)) return ' kg';
+      if (pctFields.has(field)) return field === 'bmi' ? '' : ' %';
+      if (cmFields.has(field)) return ' cm';
+      return '';
+    };
 
     const transloco = this.transloco;
     const datasets = METRIC_SERIES
       .filter(series => selectedFields.has(series.field))
+      .filter(series => sorted.some(p => p[series.field] != null))
       .map(series => ({
         label: transloco.translate(series.label),
         data: sorted.map(p => p[series.field]),
         borderColor: series.color,
         backgroundColor: series.color, // Will be transformed to gradient in buildChartConfig
+        yAxisID: this.chartType() === 'composition' && pctFields.has(series.field) ? 'y1' as const : 'y' as const,
+        fill: !(this.chartType() === 'composition' && pctFields.has(series.field)),
+        unit: unitFor(series.field),
       }));
 
-    const config = buildChartConfig(labels, datasets);
+    const axisTitles = this.chartType() === 'composition'
+      ? { y: 'kg', y1: '% / IMC' }
+      : { y: 'cm' };
+
+    const config = buildChartConfig(labels, datasets, axisTitles);
     this.chartData = config.data;
     this.chartOptions = config.options;
     this.chartLoaded.set(true);
@@ -516,6 +535,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   startEditGuidelines() {
     const profile = this.patientProfile();
     this.editBreakfast.set(profile?.breakfast ?? '');
+    this.editLunch.set(profile?.lunch ?? '');
     this.editSnack.set(profile?.snack ?? '');
     this.editingGuidelines.set(true);
   }
@@ -534,6 +554,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     const request: UserTenantProfileDto = {
       ...profile,
       breakfast: this.editBreakfast() || null,
+      lunch: this.editLunch() || null,
       snack: this.editSnack() || null
     };
     this.userTenantRoleService.updatePatientProfile(tenantId, this.userId, request).subscribe({

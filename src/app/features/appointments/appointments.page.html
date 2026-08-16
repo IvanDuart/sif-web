@@ -100,10 +100,10 @@
                     <div class="flex items-center gap-3">
                       <div
                         class="w-10 h-10 rounded-full bg-surface-200 dark:bg-surface-600 flex items-center justify-center text-sm font-bold text-primary-600 dark:text-primary-300">
-                        {{ getInitials(appt.patientName) }}
+                        {{ appt.patientName ? getInitials(appt.patientName) : t('appointments.no_patient') }}
                       </div>
                       <div>
-                        <p class="text-sm font-medium text-surface-900 dark:text-surface-0">{{ appt.patientName }}</p>
+                        <p class="text-sm font-medium text-surface-900 dark:text-surface-0">{{ appt.patientName ?? t('appointments.no_patient') }}</p>
                         <p class="text-xs text-surface-500 dark:text-surface-400">{{ appt.typeName || '—' }}</p>
                       </div>
                     </div>

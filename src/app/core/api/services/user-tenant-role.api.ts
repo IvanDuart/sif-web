@@ -16,6 +16,7 @@ export interface UpdateUserRequest {
   firstName?: string | null;
   lastName?: string | null;
   email?: string | null;
+  phone?: string | null;
   birthDate?: string | null;
   heightCm?: number | null;
   gender?: string | null;
@@ -26,6 +27,7 @@ export interface InviteUserRequest {
   firstName: string;
   lastName?: string;
   roleCode: string;
+  phone?: string | null;
   birthDate?: string | null;
   heightCm?: number | null;
   gender?: string | null;

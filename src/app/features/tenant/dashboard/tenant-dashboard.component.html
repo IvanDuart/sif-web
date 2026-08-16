@@ -81,11 +81,28 @@
                   <div
                     class="p-4 rounded-xl bg-surface-50 dark:bg-surface-800 border border-surface-100 dark:border-surface-800 hover:border-primary-300 dark:hover:border-primary-600 transition-colors duration-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div class="flex items-center gap-4">
-                      <div class="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-base font-bold text-primary-700 dark:text-primary-300">
-                        {{ getInitials(appt.patientName) }}
-                      </div>
+                      @if (appt.patientId) {
+                        <a
+                          [routerLink]="['/users', appt.patientId]"
+                          class="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-base font-bold text-primary-700 dark:text-primary-300 hover:ring-2 hover:ring-primary-300 dark:hover:ring-primary-600 transition-shadow shrink-0"
+                          [title]="appt.patientName">
+                          {{ getInitials(appt.patientName ?? '') }}
+                        </a>
+                      } @else {
+                        <div class="w-12 h-12 rounded-full bg-surface-200 dark:bg-surface-700 flex items-center justify-center text-base font-bold text-surface-500 shrink-0">
+                          <i class="fa-solid fa-user"></i>
+                        </div>
+                      }
                       <div>
-                        <p class="text-base font-semibold text-surface-900 dark:text-surface-0">{{ appt.patientName }}</p>
+                        @if (appt.patientId) {
+                          <a
+                            [routerLink]="['/users', appt.patientId]"
+                            class="text-base font-semibold text-surface-900 dark:text-surface-0 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
+                            {{ appt.patientName }}
+                          </a>
+                        } @else {
+                          <p class="text-base font-semibold text-surface-500 dark:text-surface-400 mb-0">{{ t('appointments.no_patient') }}</p>
+                        }
                         <div class="flex flex-wrap items-center gap-2 mt-1">
                           <span class="text-xs text-surface-500 dark:text-surface-400 bg-surface-200 dark:bg-surface-700 px-2 py-0.5 rounded">
                             {{ appt.typeName || t('tenant_dashboard.general_appointment') }}

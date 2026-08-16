@@ -11,6 +11,7 @@ import { AppUserDto, Gender } from '../../core/api/models/user.model';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { HttpErrorResponse } from '@angular/common/http';
 import { switchMap, map, catchError, of } from 'rxjs';
+import { PhoneInput } from '../../shared/ui/phone-input';
 
 export interface EditUserDialogInput {
   user: AppUserDto;
@@ -19,7 +20,7 @@ export interface EditUserDialogInput {
 @Component({
   selector: 'app-edit-user',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton, TuiInput, TuiDropdown, TuiInputDate, TuiSelect, TuiDataListWrapper, TuiChevron],
+  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton, TuiInput, TuiDropdown, TuiInputDate, TuiSelect, TuiDataListWrapper, TuiChevron, PhoneInput],
   templateUrl: './edit-user.dialog.html'
 })
 export class EditUserDialog {
@@ -80,7 +81,8 @@ export class EditUserDialog {
     birthDate: [this.toTuiDay(this.user.birthDate)],
     heightCm: [this.user.heightCm ?? null],
     gender: [this.user.gender ?? null],
-    roleCode: [this.initialRoleCode]
+    roleCode: [this.initialRoleCode],
+    phone: [this.user.phone ?? null]
   });
 
   private toTuiDay(value?: string | null): TuiDay | null {
@@ -106,6 +108,7 @@ export class EditUserDialog {
       firstName: raw.firstName ?? null,
       lastName: raw.lastName ?? null,
       email: raw.email ?? null,
+      phone: raw.phone ?? null,
     };
 
     if (this.isStaff()) {

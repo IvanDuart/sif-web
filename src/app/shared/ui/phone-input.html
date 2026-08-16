@@ -1,0 +1,11 @@
+<div class="flex items-start gap-2" *transloco="let t">
+  <tui-textfield class="w-48 shrink-0" tuiChevron [stringify]="countryStringify">
+    <label tuiLabel for="phoneCountry">{{ t('users.phone_country') }}</label>
+    <input id="phoneCountry" tuiSelect [formControl]="countryControl" />
+    <tui-data-list-wrapper *tuiDropdown [items]="countryCodes"></tui-data-list-wrapper>
+  </tui-textfield>
+  <tui-textfield class="w-full">
+    <label tuiLabel for="phoneNumber">{{ t('users.phone') }}</label>
+    <input id="phoneNumber" tuiInput [formControl]="numberControl" [maskito]="phoneMask()" (blur)="onNumberBlur()" />
+  </tui-textfield>
+</div>

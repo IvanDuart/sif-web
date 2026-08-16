@@ -18,6 +18,8 @@
     }
   </tui-textfield>
 
+  <app-phone-input formControlName="phone" class="w-full"></app-phone-input>
+
   @if (isStaff()) {
     <tui-textfield class="w-full" tuiChevron [stringify]="roleStringify">
       <label tuiLabel for="roleCode">{{ t('users.role') }}</label>

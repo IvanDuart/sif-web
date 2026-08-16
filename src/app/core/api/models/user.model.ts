@@ -25,6 +25,7 @@ export interface UserTenantProfileDto {
   gastrointestinalStatus: string | null;
   hormonalCycle: string | null;
   breakfast: string | null;
+  lunch: string | null;
   snack: string | null;
 }
 
@@ -35,6 +36,7 @@ export interface AppUserDto {
   email: string;
   firstName: string;
   lastName: string;
+  phone?: string | null;
   createdAt: string;
   memberships: TenantMembershipDto[];
   enabled?: boolean;
