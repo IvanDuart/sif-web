@@ -49,8 +49,8 @@
                   </span>
                 </th>
                 <th tuiTh scope="col">{{ t('users.age') }}</th>
-                <th tuiTh scope="col">{{ t('users.email') }}</th>
-                <th tuiTh scope="col">{{ t('users.phone') }}</th>
+                <th tuiTh scope="col" class="hidden sm:table-cell">{{ t('users.email') }}</th>
+                <th tuiTh scope="col" class="hidden sm:table-cell">{{ t('users.phone') }}</th>
                 <th tuiTh scope="col">{{ t('users.status') }}</th>
                 <th tuiTh scope="col" class="text-center" style="width: 10rem;">{{ t('common.actions') }}</th>
               </tr>
@@ -68,12 +68,12 @@
                       }
                     </span>
                   </td>
-                  <td tuiTd>
-                    <span class="text-sm">{{ user.email }}</span>
-                  </td>
-                  <td tuiTd>
-                    <span class="text-sm">{{ user.phone ?? '—' }}</span>
-                  </td>
+                   <td tuiTd class="hidden sm:table-cell">
+                     <span class="text-sm">{{ user.email }}</span>
+                   </td>
+                   <td tuiTd class="hidden sm:table-cell">
+                     <span class="text-sm">{{ user.phone ?? '—' }}</span>
+                   </td>
                   <td tuiTd>
                     <span tuiBadge
                       [appearance]="user.enabled !== false ? 'success' : 'error'">

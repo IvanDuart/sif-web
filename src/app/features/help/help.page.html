@@ -1,0 +1,77 @@
+<div class="help-page min-h-screen bg-surface-0 dark:bg-surface-900 p-4 lg:p-6" *transloco="let t">
+  <!-- Header Section -->
+  <div class="mb-8">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
+      <div>
+        <h1 class="text-3xl font-display font-bold text-surface-900 dark:text-surface-0 mb-2">
+          {{ t('help.title') }}
+        </h1>
+        <p class="text-surface-600 dark:text-surface-300 text-sm">
+          {{ t('help.subtitle') }}
+        </p>
+      </div>
+      <app-help-search 
+        [query]="searchQuery()" 
+        (queryChange)="onSearchChange($event)"
+        [placeholder]="t('help.search_placeholder')"
+      />
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="border-b border-surface-200 dark:border-surface-700 overflow-x-auto">
+      <div class="flex gap-0">
+        @for (tab of tabs(); track tab.id) {
+          <button 
+            type="button"
+            (click)="onTabChange(tab.id)"
+            class="flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap"
+            [class.border-primary-500]="activeTab() === tab.id"
+            [class.border-transparent]="activeTab() !== tab.id"
+            [class.text-primary-600]="activeTab() === tab.id"
+            [class.text-surface-600]="activeTab() !== tab.id"
+            [class.dark:text-primary-400]="activeTab() === tab.id"
+            [class.dark:text-surface-400]="activeTab() !== tab.id"
+          >
+            <i [class]="tab.icon + ' w-4 h-4'"></i>
+            <span>{{ tab.label }}</span>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="space-y-4" role="region" [attr.aria-label]="t('help.content_region')">
+    @if (hasNoResults()) {
+      <!-- No Results State -->
+      <div class="py-16 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-surface-100 dark:bg-surface-800 mb-4">
+          <i class="fa-solid fa-magnifying-glass text-2xl text-surface-400 dark:text-surface-500"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-2">
+          {{ t('help.no_results_title') }}
+        </h3>
+        <p class="text-surface-600 dark:text-surface-300 mb-4">
+          {{ t('help.no_results_desc') }}
+        </p>
+        <button 
+          type="button" 
+          (click)="onSearchChange('')"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors"
+        >
+          <i class="fa-solid fa-arrow-rotate-left"></i>
+          {{ t('help.clear_search') }}
+        </button>
+      </div>
+    } @else {
+      <!-- Accordion Sections -->
+      @for (section of filteredSections(); track section.id) {
+        <app-help-accordion 
+          [section]="section"
+          [deepLinkId]="section.id"
+          (openSection)="onSectionOpen(section.id)"
+        />
+      }
+    }
+  </div>
+</div>

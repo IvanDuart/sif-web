@@ -1,0 +1,32 @@
+::ng-deep {
+  .help-page {
+    // Use design tokens from DESIGN-TOKENS.md
+    --help-spacing-section: var(--spacing-6, 1.5rem);
+    --help-spacing-item: var(--spacing-4, 1rem);
+  }
+
+  app-help-accordion {
+    display: block;
+    margin-bottom: var(--help-spacing-section);
+  }
+
+  // Ensure smooth scrolling for deep links
+  html {
+    scroll-behavior: smooth;
+  }
+
+  // Override Taiga tabs if needed
+  tui-tabs {
+    tui-tab {
+      @apply text-surface-700 dark:text-surface-200;
+      
+      &:hover {
+        @apply text-surface-900 dark:text-surface-0;
+      }
+    }
+
+    tui-tab[ng-reflect-active="true"] {
+      @apply text-primary-600 dark:text-primary-400 border-b-2 border-primary-500;
+    }
+  }
+}

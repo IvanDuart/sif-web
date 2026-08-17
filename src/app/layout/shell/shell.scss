@@ -14,8 +14,6 @@
   position: absolute;
   top: -40px;
   left: 0;
-  background: #000;
-  color: white;
   padding: 8px;
   z-index: 100;
   transition: top 0.2s;
@@ -41,15 +39,15 @@
   left: 0;
   right: 0;
   height: 72px;
-  background: #ffffff;
+  background: color-mix(in srgb, var(--brand-primary) 3%, #ffffff);
   border-bottom: 1px solid #e2e8f0;
   z-index: 1000;
   display: flex;
   align-items: center;
 
   :host-context(.dark) & {
-    background: #0f172a;
-    border-bottom-color: #1e293b;
+    background: color-mix(in srgb, var(--brand-primary) 3%, #0f172a);
+    border-bottom-color: color-mix(in srgb, var(--brand-primary) 10%, #1e293b);
   }
 }
 
@@ -118,7 +116,7 @@
   letter-spacing: 0.05em;
   white-space: nowrap;
   border: 1px solid transparent;
-  transition: color 0.2s ease, border-color 0.2s ease, gap 0.2s ease;
+  transition: color 0.2s ease, border-color 0.2s ease, gap 0.2s ease, background 0.2s ease;
 
   :host-context(.dark) & {
     color: #cbd5e1;
@@ -132,11 +130,18 @@
   &:hover {
     color: var(--tui-primary, #059669);
     gap: 12px;
+    background: color-mix(in srgb, var(--brand-primary) 4%, transparent);
   }
 
   &.active-link {
     color: var(--tui-primary, #059669);
     border-color: var(--tui-primary, #059669);
+    background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+
+    :host-context(.dark) & {
+      background: color-mix(in srgb, var(--brand-primary) 18%, transparent);
+      box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--tui-primary, #059669) 40%, transparent);
+    }
   }
 }
 
@@ -172,7 +177,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: #1e293b;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 
   :host-context(.dark) & {
@@ -183,7 +188,17 @@
 
   &:not(.static):hover {
     border-color: var(--tui-primary, #059669);
-    box-shadow: 0 2px 8px color-mix(in srgb, var(--tui-primary, #059669) 12%, transparent);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--tui-primary, #059669) 15%, transparent);
+    background: color-mix(in srgb, var(--brand-primary) 5%, white);
+
+    :host-context(.dark) & {
+      background: color-mix(in srgb, var(--brand-primary) 8%, #1e293b);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tui-primary, #059669);
+    outline-offset: 2px;
   }
 
   i {
@@ -213,8 +228,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  min-width: 44px;
+  min-height: 44px;
   border: none;
   background: transparent;
   border-radius: 50%;
@@ -227,12 +242,17 @@
   }
 
   &:hover {
-    background: rgba(0, 0, 0, 0.06);
+    background: color-mix(in srgb, var(--brand-primary) 4%, transparent);
     color: var(--tui-primary, #059669);
 
     :host-context(.dark) & {
-      background: rgba(255, 255, 255, 0.08);
+      background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
     }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tui-primary, #059669);
+    outline-offset: 2px;
   }
 
   i {
@@ -256,6 +276,11 @@
     border-color: var(--tui-primary, #059669);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--tui-primary, #059669) 15%, transparent);
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--tui-primary, #059669);
+    outline-offset: 2px;
+  }
 }
 
 .user-avatar {
@@ -276,12 +301,12 @@
 .dropdown-menu-content {
   min-width: 220px;
   padding: 6px;
-  background: white;
+  background: color-mix(in srgb, var(--brand-primary) 2%, white);
   border-radius: 14px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
 
   :host-context(.dark) & {
-    background: #1e293b;
+    background: color-mix(in srgb, var(--brand-primary) 4%, #1e293b);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   }
 }
@@ -289,12 +314,12 @@
 .user-menu-popover {
   min-width: 260px;
   padding: 8px;
-  background: white;
+  background: color-mix(in srgb, var(--brand-primary) 2%, white);
   border-radius: 14px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
 
   :host-context(.dark) & {
-    background: #1e293b;
+    background: color-mix(in srgb, var(--brand-primary) 4%, #1e293b);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   }
 }
@@ -329,11 +354,16 @@
   }
 
   &:hover {
-    background: #f1f5f9;
+    background: color-mix(in srgb, var(--brand-primary) 4%, transparent);
 
     :host-context(.dark) & {
-      background: #334155;
+      background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
     }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tui-primary, #059669);
+    outline-offset: -2px;
   }
 }
 

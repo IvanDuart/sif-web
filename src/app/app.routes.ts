@@ -67,6 +67,10 @@ export const routes: Routes = [
       {
         path: 'settings',
         loadComponent: () => import('./features/settings/branding-settings.page').then(m => m.default)
+      },
+      {
+        path: 'help',
+        loadComponent: () => import('./features/help/help.page').then(m => m.default)
       }
     ]
   },

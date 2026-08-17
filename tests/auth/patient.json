@@ -1,0 +1,71 @@
+{
+  "cookies": [
+    {
+      "name": "AUTH_SESSION_ID",
+      "value": "azlpbEpNOGxwVTRRQ3h3elZUc25ULUJqLmloS3IxbnVaMWs4djZ3NWhhVmxWSlpLQzNOZzIxandEMFVJRXpDMVBPOHExdzM2dlNXQmV3emc1RWlMSHB0enF0Z0hCS1hTM1JUa0JTSWk3elJ6eVhB.d8f26e26f59e-56719",
+      "domain": "192.168.1.5",
+      "path": "/realms/master/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "KC_AUTH_SESSION_HASH",
+      "value": "\"xjiSl9ElMvW7bCv7Z2/K9yg5np51k1RLGW5jPm47THY\"",
+      "domain": "192.168.1.5",
+      "path": "/realms/master/",
+      "expires": 1786994060.466656,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "KEYCLOAK_IDENTITY",
+      "value": "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ZWExOGMyYy00MmY3LTQ0YWItOWFkNC0yNTAzZDU5MDZhY2YifQ.eyJleHAiOjE3ODcwMzAwMTUsImlhdCI6MTc4Njk5NDAxNSwianRpIjoiMzk5ZDUzMjYtYzlhOC04M2YxLWMzNDItZGJmODUzM2RiZTJiIiwiaXNzIjoiaHR0cDovLzE5Mi4xNjguMS41OjgwODgvcmVhbG1zL21hc3RlciIsInN1YiI6ImRiOTk2YzQ3LWI1YjEtNDBhMC05NzIzLTVjOTZiOGY2NDEzNyIsInR5cCI6IlNlcmlhbGl6ZWQtSUQiLCJzaWQiOiJrOWlsSk04bHBVNFFDeHd6VlRzblQtQmoiLCJzdGF0ZV9jaGVja2VyIjoiNnM1RzB6VHF0NzJua3VGV2xTcE95THlmU1E4UExJSDZ6Q0tUNVZRZXFhayJ9.P5Qv_cO8VCaNwzcfIyuUZThqWCcE52T55kn8BpIUZpIlLgCowYuvUkv5NZW-tV8AGQ2KTigd8qckMzE2riKuvA",
+      "domain": "192.168.1.5",
+      "path": "/realms/master/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "KEYCLOAK_SESSION",
+      "value": "xjiSl9ElMvW7bCv7Z2_K9yg5np51k1RLGW5jPm47THY",
+      "domain": "192.168.1.5",
+      "path": "/realms/master/",
+      "expires": 1787030016.459126,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:4200",
+      "localStorage": [
+        {
+          "name": "kc-callback-aa37862e-d91a-4d67-980c-62d70da7a8e4",
+          "value": "{\"state\":\"aa37862e-d91a-4d67-980c-62d70da7a8e4\",\"nonce\":\"e72fc58a-fe6f-4497-8ab5-5dd280bc029d\",\"redirectUri\":\"http://localhost:4200/\",\"pkceCodeVerifier\":\"6rxWcTCxvgff2FbD0mUctq3BXrKpLgi1YUuPrMFC2V3FsjUnIFnBs1XAVEP0YFG7G66hANBDIiWtg9AhkATs35TVLWOP96fY\",\"expires\":1786997600458}"
+        },
+        {
+          "name": "tuiDark",
+          "value": "false"
+        },
+        {
+          "name": "preferredLanguage",
+          "value": "es"
+        },
+        {
+          "name": "active-tenant",
+          "value": "00000000-0000-0000-0000-000000000001"
+        },
+        {
+          "name": "active-user",
+          "value": "4b2b2481-6238-4f6a-8d9a-b5446cf6d397"
+        }
+      ]
+    }
+  ]
+}

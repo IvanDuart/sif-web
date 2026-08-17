@@ -1,0 +1,619 @@
+{
+  "help": {
+    "title": "Centro de Ayuda SIF",
+    "subtitle": "Guías paso a paso para gestionar pacientes, citas y planes de nutrición",
+    "search_placeholder": "Buscar en la ayuda...",
+    "content_region": "Contenido de ayuda",
+    "common": "General",
+    "nutritionist": "Nutricionista",
+    "patient": "Paciente",
+    "patient_for_nutri": "Paciente (Nutri)",
+    "steps_label": "Pasos",
+    "screenshot_label": "Ver captura de pantalla",
+    "go_to_app": "Ir a la aplicación",
+    "no_results_title": "No se encontraron resultados",
+    "no_results_desc": "No encontramos ayuda que coincida con tu búsqueda. Intenta con otros términos.",
+    "clear_search": "Limpiar búsqueda",
+    "sections": {
+      "getting_started": "Primeros Pasos",
+      "dashboard": "Panel de Control",
+      "users_permissions": "Usuarios y Permisos",
+      "appointments": "Citas y Calendario",
+      "patients": "Gestión de Pacientes",
+      "staff": "Gestión de Personal",
+      "revenue": "Ingresos y Análisis",
+      "nutrition": "Nutrición y Menús",
+      "shopping": "Listas de Compra",
+      "templates": "Plantillas",
+      "settings": "Configuración",
+      "profile": "Perfil y Cuenta",
+      "tracking": "Seguimiento y Mediciones",
+      "recipes": "Recetas",
+      "reports": "Reportes y Exportación",
+      "support": "Soporte"
+    },
+    "topics": {
+      "dashboard_overview": {
+        "title": "Descripción General del Panel",
+        "description": "Aprende a navegar por el panel principal de SIF y accede a todas tus herramientas de gestión.",
+        "steps": [
+          "Inicia sesión con tu cuenta de SIF",
+          "El panel principal muestra widgets con estadísticas clave de tu clínica",
+          "Visualiza el calendario de citas, ingresos recientes y pacientes pendientes",
+          "Haz clic en cualquier widget para acceder a detalles específicos"
+        ]
+      },
+      "navigation_basics": {
+        "title": "Conceptos Básicos de Navegación",
+        "description": "Domina el menú lateral y accede rápidamente a todas las secciones principales.",
+        "steps": [
+          "Localiza el menú lateral izquierdo con iconos de navegación",
+          "Cada icono representa una sección: Pacientes, Citas, Nutrición, etc.",
+          "Haz clic en un icono para expandir el menú y ver subcategorías",
+          "Usa el botón de hamburguesa para contraer/expandir el menú y ganar espacio"
+        ]
+      },
+      "user_profile": {
+        "title": "Gestión del Perfil de Usuario",
+        "description": "Accede y edita tu información personal, foto de perfil y datos de contacto.",
+        "steps": [
+          "Haz clic en tu avatar o nombre en la esquina superior derecha",
+          "Selecciona 'Mi Perfil' del menú desplegable",
+          "Edita tu nombre, email, teléfono y foto de perfil",
+          "Guarda los cambios haciendo clic en 'Guardar'"
+        ]
+      },
+      "tenant_switching": {
+        "title": "Cambiar Entre Clínicas (Tenants)",
+        "description": "Cambia fácilmente entre las diferentes clínicas o consultorios donde trabajas.",
+        "steps": [
+          "Si tienes acceso a múltiples clínicas, verás un selector en el menú superior",
+          "Haz clic en el nombre de la clínica actual",
+          "Selecciona la clínica a la que deseas cambiar",
+          "La aplicación se recargará con el contexto de la nueva clínica"
+        ]
+      },
+      "role_based_access": {
+        "title": "Entender Control de Acceso Basado en Roles",
+        "description": "Conoce qué funciones están disponibles según tu rol en la clínica.",
+        "steps": [
+          "Cada usuario tiene un rol asignado (Propietario, Administrador, Nutricionista, etc.)",
+          "Tu rol determina qué secciones y funciones puedes ver",
+          "Los roles con permisos limitados verán menos opciones en el menú",
+          "Si necesitas acceder a una función bloqueada, contacta al administrador de la clínica"
+        ]
+      },
+      "notifications_alerts": {
+        "title": "Gestionar Notificaciones y Alertas",
+        "description": "Configura y controla las notificaciones de citas, mensajes y actualizaciones.",
+        "steps": [
+          "Haz clic en el icono de campana en la barra superior",
+          "Visualiza todas tus notificaciones activas",
+          "Haz clic en cualquier notificación para ir al item relacionado",
+          "Ve a Configuración > Notificaciones para personalizar qué alertas recibes"
+        ]
+      },
+      "search_filters": {
+        "title": "Usar Búsqueda y Filtros Avanzados",
+        "description": "Encuentra rápidamente pacientes, citas y otros datos usando búsqueda y filtros.",
+        "steps": [
+          "Usa la barra de búsqueda rápida en la parte superior para resultados globales",
+          "En las listas (Pacientes, Citas, etc.), usa el campo 'Buscar' específico",
+          "Aplica filtros adicionales como rango de fechas, estado, especialidad",
+          "Combina múltiples filtros para refinar los resultados"
+        ]
+      },
+      "settings_overview": {
+        "title": "Descripción General de Configuración",
+        "description": "Accede a todas las opciones de configuración para personalizar tu experiencia.",
+        "steps": [
+          "Haz clic en el icono de engranaje en la esquina superior derecha",
+          "Selecciona 'Configuración'",
+          "Navega entre tabs: Cuenta, Notificaciones, Privacidad, Clínica",
+          "Realiza cambios y guarda haciendo clic en 'Guardar'"
+        ]
+      },
+      "password_security": {
+        "title": "Cambiar Contraseña y Seguridad",
+        "description": "Mantén tu cuenta segura actualizando tu contraseña regularmente.",
+        "steps": [
+          "Ve a Configuración > Cuenta",
+          "Selecciona 'Cambiar Contraseña'",
+          "Ingresa tu contraseña actual",
+          "Ingresa y confirma tu nueva contraseña",
+          "Haz clic en 'Actualizar Contraseña'"
+        ]
+      },
+      "language_preferences": {
+        "title": "Cambiar Idioma e Idioma Preferido",
+        "description": "Configura el idioma de la interfaz según tu preferencia.",
+        "steps": [
+          "Haz clic en el icono de idioma en la esquina superior derecha",
+          "Selecciona entre Español (ES) e Inglés (EN)",
+          "La interfaz se actualiza inmediatamente",
+          "Tu preferencia se guarda automáticamente"
+        ]
+      },
+      "patient_management": {
+        "title": "Gestión Básica de Pacientes",
+        "description": "Crea, edita y organiza el registro de tus pacientes.",
+        "steps": [
+          "Ve a Pacientes en el menú principal",
+          "Haz clic en '+ Nuevo Paciente' para crear uno",
+          "Completa datos personales: nombre, edad, género, contacto",
+          "Añade alergias, condiciones médicas y medicamentos actuales",
+          "Guarda el paciente"
+        ]
+      },
+      "patient_advanced_search": {
+        "title": "Búsqueda Avanzada de Pacientes",
+        "description": "Encuentra pacientes específicos usando múltiples criterios de búsqueda.",
+        "steps": [
+          "En la lista de Pacientes, abre el panel de 'Filtros Avanzados'",
+          "Busca por nombre, email, teléfono o número de ID",
+          "Filtra por rango de edad, género, estado de suscripción",
+          "Filtra por fecha de creación o última cita",
+          "Guarda filtros frecuentes para reutilizarlos"
+        ]
+      },
+      "patient_import": {
+        "title": "Importar Pacientes en Lote",
+        "description": "Carga múltiples pacientes desde un archivo CSV.",
+        "steps": [
+          "Ve a Pacientes > Importar",
+          "Descarga la plantilla CSV de ejemplo",
+          "Completa el archivo con datos de tus pacientes",
+          "Sube el archivo usando el botón 'Seleccionar Archivo'",
+          "Revisa los datos y confirma la importación"
+        ]
+      },
+      "staff_management": {
+        "title": "Gestionar Equipo de Personal",
+        "description": "Añade y gestiona nutricionistas y otro personal de la clínica.",
+        "steps": [
+          "Ve a Configuración > Equipo",
+          "Haz clic en '+ Añadir Miembro'",
+          "Ingresa email y selecciona el rol (Nutricionista, Admin, etc.)",
+          "Envía invitación al nuevo miembro",
+          "El miembro aceptará la invitación y se unirá al equipo"
+        ]
+      },
+      "staff_permissions": {
+        "title": "Configurar Permisos del Personal",
+        "description": "Controla qué funciones puede realizar cada miembro del equipo.",
+        "steps": [
+          "Ve a Configuración > Equipo",
+          "Haz clic en un miembro para editar su perfil",
+          "En la sección 'Permisos', marca/desmarca funcionalidades",
+          "Las opciones incluyen: Ver Pacientes, Crear Citas, Gestionar Menús, etc.",
+          "Guarda los cambios"
+        ]
+      },
+      "appointments_calendar": {
+        "title": "Usar el Calendario de Citas",
+        "description": "Visualiza, crea y gestiona citas en el calendario interactivo.",
+        "steps": [
+          "Ve a Citas > Calendario",
+          "Cambia entre vistas: Día, Semana, Mes",
+          "Haz clic en una franja horaria para crear una nueva cita",
+          "Selecciona paciente, tipo de cita y duración",
+          "Guarda la cita en el calendario"
+        ]
+      },
+      "appointments_creation": {
+        "title": "Crear y Programar Citas",
+        "description": "Programa citas con tus pacientes asignando fecha, hora y detalles.",
+        "steps": [
+          "Ve a Citas > Nueva Cita",
+          "Selecciona un paciente existente o crea uno nuevo",
+          "Elige la fecha, hora y duración de la cita",
+          "Selecciona el tipo (Nutrición, Seguimiento, etc.)",
+          "Añade notas especiales y guarda"
+        ]
+      },
+      "appointments_confirmation": {
+        "title": "Confirmar y Recordar Citas",
+        "description": "Envía confirmaciones y recordatorios automáticos a tus pacientes.",
+        "steps": [
+          "En la sección Citas, abre una cita próxima",
+          "Haz clic en 'Enviar Confirmación'",
+          "Configura el tipo de recordatorio (24h antes, 2h antes, etc.)",
+          "El sistema enviará notificaciones automáticas al paciente",
+          "Monitorea confirmaciones en 'Estado de Citas'"
+        ]
+      },
+      "revenue_dashboard": {
+        "title": "Ver Dashboard de Ingresos",
+        "description": "Monitorea ingresos totales, ganancias por paciente y tendencias.",
+        "steps": [
+          "Ve a Ingresos en el menú principal",
+          "Visualiza el gráfico de ingresos del período actual",
+          "Ve desglose por tipo de servicio (nutrición, seguimiento, etc.)",
+          "Filtra por rango de fechas para ver tendencias",
+          "Descarga reportes en PDF o Excel"
+        ]
+      },
+      "revenue_tracking": {
+        "title": "Rastrear Pagos y Facturas",
+        "description": "Registra y controla pagos de pacientes y emite facturas.",
+        "steps": [
+          "Ve a Ingresos > Facturas",
+          "Haz clic en '+ Nueva Factura'",
+          "Selecciona paciente y servicios prestados",
+          "Establece monto, impuestos y condiciones de pago",
+          "Envía factura al paciente o descárgala en PDF"
+        ]
+      },
+      "revenue_analytics": {
+        "title": "Analizar Ingresos y Rentabilidad",
+        "description": "Obtén insights sobre tu desempeño financiero y pacientes más rentables.",
+        "steps": [
+          "Ve a Ingresos > Análisis",
+          "Visualiza gráficos de ingresos mensuales/anuales",
+          "Identifica pacientes con mayor valor en el tiempo",
+          "Analiza margen de ganancia por servicio",
+          "Exporta datos para análisis adicional"
+        ]
+      },
+      "menus_creation": {
+        "title": "Crear y Diseñar Menús de Nutrición",
+        "description": "Diseña menús personalizados para tus pacientes basados en sus objetivos.",
+        "steps": [
+          "Ve a Nutrición > Menús",
+          "Haz clic en '+ Nuevo Menú'",
+          "Selecciona tipo (Pérdida de peso, Ganancia muscular, Mantenimiento, etc.)",
+          "Define macronutrientes objetivo (proteína, carbohidratos, grasas)",
+          "Añade comidas diarias desde la biblioteca de recetas"
+        ]
+      },
+      "menus_templates": {
+        "title": "Usar Plantillas de Menús",
+        "description": "Acelera la creación de menús usando plantillas prediseñadas.",
+        "steps": [
+          "Ve a Nutrición > Plantillas de Menú",
+          "Revisa las plantillas disponibles (Vegetariana, Sin gluten, etc.)",
+          "Haz clic en 'Duplicar' para crear una copia personalizable",
+          "Edita comidas, porciones y macronutrientes",
+          "Guarda como plantilla nueva o asígna a un paciente"
+        ]
+      },
+      "menus_assignment": {
+        "title": "Asignar Menús a Pacientes",
+        "description": "Entrega menús creados a tus pacientes para que los sigan.",
+        "steps": [
+          "Crea o selecciona un menú existente",
+          "Haz clic en 'Asignar a Paciente'",
+          "Selecciona el paciente y fecha de inicio",
+          "Define duración (1 semana, 2 semanas, personalizado)",
+          "El paciente recibirá el menú en su panel"
+        ]
+      },
+      "menus_macro_tracking": {
+        "title": "Rastrear Macronutrientes y Calorías",
+        "description": "Monitorea que los menús cumplan con los objetivos nutricionales.",
+        "steps": [
+          "En Nutrición > Menús, abre un menú",
+          "Visualiza el desglose de calorías y macronutrientes",
+          "El sistema calcula automáticamente totales por comida/día",
+          "Ajusta porciones si se requiere alcanzar objetivos específicos",
+          "Genera reportes de balance nutricional"
+        ]
+      },
+      "shopping_lists_creation": {
+        "title": "Crear Listas de Compra",
+        "description": "Genera listas de compra basadas en menús para facilitar el almacenamiento.",
+        "steps": [
+          "Ve a Nutrición > Listas de Compra",
+          "Selecciona un menú o crea una lista personalizada",
+          "Haz clic en 'Generar Lista'",
+          "El sistema agrega todos los ingredientes necesarios",
+          "Guarda o exporta la lista en PDF"
+        ]
+      },
+      "shopping_lists_management": {
+        "title": "Organizar y Gestionar Listas de Compra",
+        "description": "Reorganiza ingredientes, agrupa por pasillo y comparte con pacientes.",
+        "steps": [
+          "Abre una lista de compra existente",
+          "Marca ingredientes como 'Comprado' mientras compras",
+          "Agrupa ingredientes por categoría (Frutas, Proteínas, etc.)",
+          "Añade o elimina items según sea necesario",
+          "Comparte la lista con el paciente mediante enlace"
+        ]
+      },
+      "shopping_lists_export": {
+        "title": "Exportar y Compartir Listas de Compra",
+        "description": "Descarga listas en PDF o comparte digitalmente con tus pacientes.",
+        "steps": [
+          "En tu lista de compra, haz clic en 'Exportar'",
+          "Selecciona formato: PDF o Excel",
+          "Opcionalmente, incluye precios estimados",
+          "O usa 'Compartir' para enviar un enlace al paciente",
+          "El paciente recibirá una versión de solo lectura"
+        ]
+      },
+      "templates_nutrition": {
+        "title": "Crear Plantillas de Nutrición Personalizadas",
+        "description": "Diseña plantillas reutilizables para casos específicos.",
+        "steps": [
+          "Ve a Nutrición > Plantillas",
+          "Haz clic en '+ Nueva Plantilla'",
+          "Define nombre, descripción y categoría",
+          "Configura macronutrientes por defecto",
+          "Añade grupos de alimentos frecuentes",
+          "Guarda para usar en futuros menús"
+        ]
+      },
+      "templates_plans": {
+        "title": "Plantillas de Planes de Nutrición",
+        "description": "Crea planes de nutrición reutilizables para objetivos comunes.",
+        "steps": [
+          "Ve a Nutrición > Plantillas de Planes",
+          "Haz clic en '+ Nuevo Plan'",
+          "Define duración (4 semanas, 8 semanas, etc.)",
+          "Estructura semana a semana (qué cambia cada semana)",
+          "Configura objetivos nutricionales progresivos",
+          "Guarda como plantilla para asignar a nuevos pacientes"
+        ]
+      },
+      "templates_management": {
+        "title": "Administrar y Actualizar Plantillas",
+        "description": "Mantén tus plantillas organizadas, actualizadas y fáciles de encontrar.",
+        "steps": [
+          "Ve a Nutrición > Plantillas",
+          "Visualiza todas tus plantillas disponibles",
+          "Haz clic en una para editar contenido",
+          "Usa tags para categorizar (Vegetariano, Bajo carbohidrato, etc.)",
+          "Marca como favoritas las más utilizadas para acceso rápido"
+        ]
+      },
+      "settings_clinic": {
+        "title": "Configurar Información de la Clínica",
+        "description": "Personaliza el nombre, logo y datos principales de tu clínica.",
+        "steps": [
+          "Ve a Configuración > Clínica",
+          "Edita nombre oficial y nombre corto",
+          "Sube el logo en formato PNG o JPG (recomendado 512x512px)",
+          "Ingresa dirección, teléfono y email de contacto",
+          "Guarda cambios"
+        ]
+      },
+      "settings_branding": {
+        "title": "Personalizar Marca y Apariencia",
+        "description": "Aplica colores y estilos personalizados a tu clínica.",
+        "steps": [
+          "Ve a Configuración > Marca",
+          "Selecciona color primario de tu marca",
+          "Opta entre tema claro u oscuro",
+          "Personaliza fuentes (opcional)",
+          "Vista previa los cambios",
+          "Guarda para aplicar en toda la plataforma"
+        ]
+      },
+      "settings_notifications": {
+        "title": "Configurar Notificaciones Automáticas",
+        "description": "Personaliza qué notificaciones reciben tú y tus pacientes.",
+        "steps": [
+          "Ve a Configuración > Notificaciones",
+          "Marca/desmarca tipos de notificación",
+          "Opciones: Nuevos pacientes, Citas próximas, Pagos recibidos, etc.",
+          "Configura frecuencia de resúmenes por email",
+          "Establece 'Horario silencioso' si lo deseas"
+        ]
+      },
+      "settings_integrations": {
+        "title": "Conectar Integraciones Externas",
+        "description": "Vincula aplicaciones externas como Google Calendar, Stripe, etc.",
+        "steps": [
+          "Ve a Configuración > Integraciones",
+          "Selecciona la integración que deseas habilitar",
+          "Haz clic en 'Conectar'",
+          "Autoriza SIF a acceder a tu cuenta externa",
+          "Configura opciones de sincronización si aplica"
+        ]
+      },
+      "reports_generation": {
+        "title": "Generar Reportes de Progreso",
+        "description": "Crea reportes detallados del progreso de tus pacientes.",
+        "steps": [
+          "Ve a Reportes > Generar Reporte",
+          "Selecciona tipo: Progreso del Paciente, Nutrición, Citas, etc.",
+          "Especifica rango de fechas",
+          "Selecciona pacientes (uno o múltiples)",
+          "Visualiza datos y haz clic en 'Descargar PDF'"
+        ]
+      },
+      "reports_export": {
+        "title": "Exportar Datos en Múltiples Formatos",
+        "description": "Descarga datos en PDF, Excel o CSV para análisis externo.",
+        "steps": [
+          "En cualquier lista (Pacientes, Citas, Ingresos), haz clic en 'Exportar'",
+          "Selecciona formato deseado: PDF, Excel o CSV",
+          "Elige qué columnas incluir",
+          "Personaliza el rango de fechas si aplica",
+          "Descarga el archivo en tu computadora"
+        ]
+      },
+      "nutrition_plans_basics": {
+        "title": "Crear Planes de Nutrición Básicos",
+        "description": "Diseña planes de nutrición personalizados para objetivos específicos.",
+        "steps": [
+          "Ve a Nutrición > Planes",
+          "Haz clic en '+ Nuevo Plan'",
+          "Selecciona tipo (Pérdida de peso, Ganancia, Mantenimiento, Rendimiento)",
+          "Define duración y objetivos principales",
+          "Crea o asigna menús para cada semana",
+          "Guarda el plan"
+        ]
+      },
+      "nutrition_plans_advanced": {
+        "title": "Planes de Nutrición Avanzados y Personalización",
+        "description": "Ajusta planes según análisis bioquímicos y resultados específicos.",
+        "steps": [
+          "Abre un plan existente para editar",
+          "Configura objetivos específicos por macronutriente",
+          "Define rotación de alimentos (si aplica)",
+          "Establece 'días de recarga' si el plan incluye variaciones",
+          "Añade notas de seguimiento personalizado",
+          "Guarda versión actualizada"
+        ]
+      },
+      "patient_dashboard_basics": {
+        "title": "Entender tu Panel de Paciente",
+        "description": "Conoce los widgets principales y navega tu zona de paciente.",
+        "steps": [
+          "Inicia sesión como paciente",
+          "Tu panel muestra resumen de citas próximas",
+          "Visualiza menús activos asignados",
+          "Accede a tus medidas corporales registradas",
+          "Ve historial reciente de actividades"
+        ]
+      },
+      "patient_profile_management": {
+        "title": "Gestionar tu Perfil de Paciente",
+        "description": "Actualiza tu información personal y preferencias.",
+        "steps": [
+          "Haz clic en tu avatar en la esquina superior derecha",
+          "Selecciona 'Mi Perfil'",
+          "Edita nombre, email, teléfono y foto",
+          "Actualiza alergias y condiciones médicas",
+          "Guarda cambios"
+        ]
+      },
+      "patient_menus_view": {
+        "title": "Ver y Seguir Tus Menús",
+        "description": "Accede a los menús asignados por tu nutricionista.",
+        "steps": [
+          "Ve a 'Mis Menús'",
+          "Visualiza menús activos y pasados",
+          "Abre un menú para ver detalle de comidas",
+          "Accede a información nutricional y recetas",
+          "Marca comidas completadas (opcional)"
+        ]
+      },
+      "patient_nutrition_plans": {
+        "title": "Seguir tu Plan de Nutrición",
+        "description": "Monitorea tu progreso y objetivos de nutrición asignados.",
+        "steps": [
+          "Ve a 'Mi Plan de Nutrición'",
+          "Visualiza objetivos de tu plan actual",
+          "Ve desglose semanal de cambios esperados",
+          "Accede a recursos y guías del plan",
+          "Reporta tu progreso semanalmente"
+        ]
+      },
+      "patient_shopping_lists": {
+        "title": "Acceder a Listas de Compra Compartidas",
+        "description": "Usa las listas de compra que tu nutricionista te compartió.",
+        "steps": [
+          "Ve a 'Listas de Compra'",
+          "Abre listas compartidas por tu nutricionista",
+          "Marca items conforme los compras",
+          "Suma precios estimados para presupuestar",
+          "Descarga versión imprimible si lo necesitas"
+        ]
+      },
+      "patient_recipes": {
+        "title": "Explorar Recetas y Preparación",
+        "description": "Accede a recetas con instrucciones paso a paso y ingredientes.",
+        "steps": [
+          "Ve a 'Recetas'",
+          "Navega por categoría o búsqueda",
+          "Abre una receta para ver instrucciones detalladas",
+          "Visualiza información nutricional y porciones",
+          "Marca como favorita para acceso rápido"
+        ]
+      },
+      "patient_hydration_tracking": {
+        "title": "Rastrear tu Consumo de Agua",
+        "description": "Registra diariamente tu consumo de agua e hidratación.",
+        "steps": [
+          "Ve a 'Seguimiento > Hidratación'",
+          "Ingresa cantidad de agua consumida (en vasos o ml)",
+          "Establece meta diaria recomendada",
+          "El sistema muestra progreso visual del día",
+          "Visualiza historiales semanales y mensuales"
+        ]
+      },
+      "patient_measurements": {
+        "title": "Registrar Medidas Corporales",
+        "description": "Documenta peso, medidas y análisis físicos para seguimiento.",
+        "steps": [
+          "Ve a 'Seguimiento > Medidas Corporales'",
+          "Haz clic en '+ Nueva Medición'",
+          "Ingresa peso, altura y perímetros (cintura, cadera, etc.)",
+          "El sistema calcula automáticamente IMC",
+          "Registra porcentaje de grasa corporal si dispones",
+          "Guarda para futuro seguimiento"
+        ]
+      },
+      "patient_appointment_booking": {
+        "title": "Reservar Citas Disponibles",
+        "description": "Selecciona y reserva citas disponibles con tu nutricionista.",
+        "steps": [
+          "Ve a 'Mis Citas' en tu panel",
+          "Haz clic en 'Reservar Nueva Cita'",
+          "Visualiza disponibilidad de tu nutricionista",
+          "Selecciona fecha y hora preferida",
+          "Confirma la reserva",
+          "Recibirás recordatorio automático 24h antes"
+        ]
+      },
+      "patient_appointment_history": {
+        "title": "Ver Historial de Citas",
+        "description": "Revisa todas tus citas pasadas, notas y recomendaciones.",
+        "steps": [
+          "Ve a 'Mis Citas > Historial'",
+          "Visualiza citas completadas en orden cronológico",
+          "Haz clic en una cita para ver notas de tu nutricionista",
+          "Accede a documentos y recomendaciones compartidas",
+          "Descarga resúmenes si lo necesitas"
+        ]
+      },
+      "nutri_patient_overview": {
+        "title": "Panel de Paciente (Vista Nutricionista)",
+        "description": "Accede a información completa del paciente en una sola vista.",
+        "steps": [
+          "Ve a Pacientes > selecciona un paciente",
+          "Visualiza perfil: datos personales, alergias, medicamentos",
+          "Ve historial de citas, menús asignados y progreso",
+          "Accede a medidas corporales y seguimiento histórico",
+          "Visualiza documentos compartidos"
+        ]
+      },
+      "nutri_progress_tracking": {
+        "title": "Rastrear Progreso del Paciente",
+        "description": "Monitorea avance de tus pacientes hacia sus objetivos.",
+        "steps": [
+          "Abre perfil del paciente",
+          "Ve pestaña 'Progreso'",
+          "Visualiza gráficos de peso, medidas y seguimiento",
+          "Compara metricas con objetivos establecidos",
+          "Genera reportes de progreso para compartir con paciente"
+        ]
+      },
+      "nutri_meal_recommendations": {
+        "title": "Hacer Recomendaciones de Comidas",
+        "description": "Proporciona sugerencias personalizadas basadas en preferencias.",
+        "steps": [
+          "En el menú del paciente, haz clic en 'Sugerir Comida'",
+          "Filtra por alergias, preferencias y tipo de comida",
+          "Revisa opciones en la biblioteca de recetas",
+          "Haz clic para añadir al menú del paciente",
+          "La comida se añade con macronutrientes automáticos"
+        ]
+      },
+      "nutri_education_resources": {
+        "title": "Compartir Recursos Educativos",
+        "description": "Envía guías, artículos y videos a tus pacientes.",
+        "steps": [
+          "Ve a Nutrición > Recursos",
+          "Selecciona artículos, videos o guías disponibles",
+          "Haz clic en 'Compartir con Paciente'",
+          "Selecciona paciente o grupo",
+          "Recursos aparecerán en panel del paciente"
+        ]
+      }
+    }
+  }
+}

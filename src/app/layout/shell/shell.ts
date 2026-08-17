@@ -34,6 +34,7 @@ const NAV_ITEMS: NavItem[] = [
   { labelKey: 'templates', icon: 'fa-solid fa-clipboard-list', route: '/templates', permission: 'MANAGE_TEMPLATE' },
   { labelKey: 'settings', icon: 'fa-solid fa-gear', route: '/settings', permission: 'MANAGE_TENANT_BRANDING' },
   { labelKey: 'admin', icon: 'fa-solid fa-shield-halved', route: '/admin', permission: 'MANAGE_TENANT' },
+  { labelKey: 'help', icon: 'fa-solid fa-circle-question', route: '/help' },
 ];
 
 @Component({

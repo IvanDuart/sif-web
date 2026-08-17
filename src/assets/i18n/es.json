@@ -42,7 +42,8 @@
     "shopping_list": "Lista de la Compra",
     "settings": "Configuración",
     "revenue": "Ingresos",
-    "admin": "Administración"
+    "admin": "Administración",
+    "help": "Ayuda"
   },
   "auth": {
     "select_tenant": "Seleccionar Clínica",
@@ -173,14 +174,14 @@
     "empty_title": "Sin menús aún",
     "view": "Ver detalle"
   },
-   "measurements": {
-     "title": "Mediciones Corporales",
-     "register": "Registrar Medición",
-     "edit": "Editar Medición",
-     "measured_at": "Fecha de Medición",
-     "measured_date": "Fecha",
-     "measured_time": "Hora",
-     "weight": "Peso (kg)",
+  "measurements": {
+    "title": "Mediciones Corporales",
+    "register": "Registrar Medición",
+    "edit": "Editar Medición",
+    "measured_at": "Fecha de Medición",
+    "measured_date": "Fecha",
+    "measured_time": "Hora",
+    "weight": "Peso (kg)",
     "bmi": "IMC",
     "body_fat": "% Grasa Corporal",
     "muscle_mass": "Masa Muscular (kg)",
@@ -896,5 +897,512 @@
     "menu_created": "Menú asignado al paciente correctamente",
     "template_assigned": "Plantilla asignada al paciente correctamente",
     "meal_deleted": "Plato eliminado"
+  },
+  "help": {
+    "title": "Centro de Ayuda",
+    "subtitle": "Guías detalladas para nutricionistas y pacientes",
+    "search_placeholder": "Buscar en la ayuda...",
+    "content_region": "Contenido de ayuda",
+    "common": "General",
+    "nutritionist": "Para Nutricionistas",
+    "patient": "Para Pacientes",
+    "patient_for_nutri": "Guía de Pacientes",
+    "steps_label": "Pasos",
+    "screenshot_label": "Capturas de pantalla",
+    "go_to_app": "Ir a la sección",
+    "no_results_title": "Sin resultados",
+    "no_results_desc": "No encontramos coincidencias para tu búsqueda. Intenta con otros términos.",
+    "clear_search": "Limpiar búsqueda",
+    "sections": {
+      "access": "Acceso y Contraseña",
+      "preferences": "Preferencias",
+      "shortcuts": "Atajos",
+      "dashboard_nutri": "Panel Principal (Nutricionista)",
+      "patients": "Gestión de Pacientes",
+      "patient_detail": "Detalle del Paciente",
+      "staff": "Gestión del Equipo",
+      "appointments": "Citas y Calendario",
+      "revenue": "Ingresos y Análisis",
+      "menus_templates": "Menús y Plantillas",
+      "settings": "Configuración",
+      "dashboard_patient": "Panel Principal (Paciente)",
+      "my_diets": "Mis Dietas",
+      "shopping_list": "Lista de la Compra",
+      "my_profile": "Mi Perfil",
+      "patient_settings": "Configuración"
+    },
+    "topics": {
+      "access": {
+        "login": {
+          "title": "Iniciar Sesión",
+          "desc": "Aprende cómo acceder a la plataforma con tu email y contraseña",
+          "step1": "Abre la página de login",
+          "step2": "Ingresa tu email registrado",
+          "step3": "Ingresa tu contraseña"
+        },
+        "switch_tenant": {
+          "title": "Cambiar Entre Clínicas",
+          "desc": "Si tienes acceso a múltiples clínicas, aprende a cambiar entre ellas",
+          "step1": "Haz clic en el selector de clínica en la barra superior",
+          "step2": "Selecciona la clínica deseada",
+          "step3": "La aplicación se recargará con los datos de la nueva clínica"
+        },
+        "recover_password": {
+          "title": "Recuperar Contraseña",
+          "desc": "Restaura el acceso a tu cuenta si olvidaste tu contraseña",
+          "step1": "Haz clic en 'Olvidé mi contraseña' en la página de login",
+          "step2": "Ingresa tu email registrado",
+          "step3": "Sigue las instrucciones en el email recibido"
+        }
+      },
+      "preferences": {
+        "theme": {
+          "title": "Cambiar Tema (Claro/Oscuro)",
+          "desc": "Personaliza el aspecto visual de la aplicación con modo claro u oscuro",
+          "step1": "Haz clic en el icono del tema en la barra superior",
+          "step2": "Selecciona claro u oscuro según tu preferencia"
+        },
+        "language": {
+          "title": "Cambiar Idioma",
+          "desc": "Selecciona el idioma de la interfaz (Español o Inglés)",
+          "step1": "Ve a Configuración desde el menú lateral",
+          "step2": "Selecciona tu idioma preferido"
+        },
+        "notifications": {
+          "title": "Gestionar Notificaciones",
+          "desc": "Configura cómo recibes notificaciones de la plataforma",
+          "step1": "Abre Configuración > Notificaciones",
+          "step2": "Activa o desactiva tipos de notificaciones según prefieras"
+        }
+      },
+      "shortcuts": {
+        "keyboard": {
+          "title": "Atajos de Teclado",
+          "desc": "Aprende los atajos de teclado para navegar más rápidamente",
+          "step1": "Presiona Ctrl+K para abrir búsqueda rápida",
+          "step2": "Escribe para buscar funciones o páginas",
+          "step3": "Presiona Enter para ir a la sección"
+        },
+        "search": {
+          "title": "Búsqueda Global",
+          "desc": "Usa la búsqueda global para encontrar pacientes, citas y más",
+          "step1": "Presiona Ctrl+K desde cualquier página",
+          "step2": "Comienza a escribir lo que buscas"
+        },
+        "breadcrumbs": {
+          "title": "Navegación por Migas de Pan",
+          "desc": "Usa el rastro de navegación para volver a secciones anteriores",
+          "step1": "Observa el rastro de navegación en la parte superior"
+        }
+      },
+      "dashboard_nutri": {
+        "overview": {
+          "title": "Visión General del Panel",
+          "desc": "Conoce los elementos principales del panel de control"
+        },
+        "widgets": {
+          "title": "Widgets y Tarjetas",
+          "desc": "Entiende cada widget del panel de control",
+          "step1": "Observa los widgets con métricas clave",
+          "step2": "Haz clic en un widget para profundizar en los datos"
+        },
+        "quick_actions": {
+          "title": "Acciones Rápidas",
+          "desc": "Usa los botones rápidos para tareas comunes",
+          "step1": "Observa los botones en el panel",
+          "step2": "Haz clic para crear citas, pacientes, menús, etc"
+        },
+        "appointments_proposed": {
+          "title": "Propuestas de Citas",
+          "desc": "Revisa las propuestas automáticas de citas del sistema",
+          "step1": "Ve a la campana de notificaciones",
+          "step2": "Revisa propuestas de citas sugeridas por el sistema"
+        }
+      },
+      "patients": {
+        "list_view": {
+          "title": "Lista de Pacientes",
+          "desc": "Accede y gestiona todos tus pacientes"
+        },
+        "search_filter": {
+          "title": "Buscar y Filtrar Pacientes",
+          "desc": "Encuentra rápidamente pacientes usando búsqueda y filtros",
+          "step1": "Usa el campo de búsqueda para buscar por nombre o email",
+          "step2": "Aplica filtros por estado, fecha de registro, etc"
+        },
+        "invite_patient": {
+          "title": "Invitar Nuevo Paciente",
+          "desc": "Invita nuevos pacientes a la plataforma",
+          "step1": "Haz clic en 'Invitar Paciente' en la lista",
+          "step2": "Ingresa el email del paciente",
+          "step3": "El paciente recibirá una invitación por email"
+        },
+        "edit_patient": {
+          "title": "Editar Datos del Paciente",
+          "desc": "Actualiza la información personal de un paciente",
+          "step1": "Abre la ficha del paciente",
+          "step2": "Haz clic en 'Editar' en la pestaña Perfil",
+          "step3": "Actualiza los datos y guarda"
+        },
+        "activate_deactivate": {
+          "title": "Activar/Desactivar Paciente",
+          "desc": "Cambia el estado activo/inactivo de un paciente",
+          "step1": "Abre la ficha del paciente",
+          "step2": "Haz clic en 'Desactivar' o 'Activar' según sea necesario"
+        },
+        "view_details": {
+          "title": "Ver Detalle del Paciente",
+          "desc": "Accede a toda la información del paciente",
+          "step1": "Desde la lista, haz clic en el paciente",
+          "step2": "Se abre la ficha completa del paciente"
+        }
+      },
+      "patient_detail": {
+        "profile_tab": {
+          "title": "Pestaña Perfil",
+          "desc": "Datos personales y de contacto del paciente"
+        },
+        "measurements_tab": {
+          "title": "Pestaña Mediciones",
+          "desc": "Registra y visualiza mediciones corporales del paciente",
+          "step1": "Ve a la pestaña 'Mediciones'",
+          "step2": "Haz clic en 'Registrar Medición' para agregar nuevos datos"
+        },
+        "menus_assigned": {
+          "title": "Menús Asignados",
+          "desc": "Ve y gestiona menús asignados al paciente",
+          "step1": "Abre la pestaña 'Menús'",
+          "step2": "Visualiza menús activos e histórico"
+        },
+        "water_tab": {
+          "title": "Consumo de Agua",
+          "desc": "Monitorea el consumo de agua del paciente"
+        },
+        "clinical_profile": {
+          "title": "Perfil Clínico",
+          "desc": "Datos médicos, alergias y hábitos del paciente",
+          "step1": "Ve a la pestaña 'Perfil Médico'",
+          "step2": "Visualiza información clínica completa"
+        },
+        "fixed_guidelines": {
+          "title": "Pautas Fijas",
+          "desc": "Directrices nutricionales específicas para este paciente"
+        },
+        "events_tab": {
+          "title": "Eventos",
+          "desc": "Visualiza el historial de eventos y cambios del paciente",
+          "step1": "Abre la pestaña 'Eventos'",
+          "step2": "Revisa el timeline de actividades"
+        },
+        "appointments_history": {
+          "title": "Historial de Citas",
+          "desc": "Visualiza todas las citas pasadas y próximas"
+        }
+      },
+      "staff": {
+        "list_view": {
+          "title": "Lista del Equipo",
+          "desc": "Visualiza todos los miembros del equipo"
+        },
+        "invite_staff": {
+          "title": "Invitar Miembro del Equipo",
+          "desc": "Añade nuevos nutricionistas o personal administrativo",
+          "step1": "Haz clic en 'Invitar Miembro'",
+          "step2": "Ingresa el email y selecciona el rol",
+          "step3": "El usuario recibirá invitación por email"
+        },
+        "edit_roles": {
+          "title": "Editar Roles y Permisos",
+          "desc": "Modifica los roles y permisos de un miembro del equipo",
+          "step1": "Abre la ficha del miembro",
+          "step2": "Edita rol y permisos específicos"
+        },
+        "remove_staff": {
+          "title": "Remover Miembro del Equipo",
+          "desc": "Revoca el acceso a un miembro del equipo",
+          "step1": "Abre la ficha del miembro",
+          "step2": "Haz clic en 'Revocar acceso'"
+        }
+      },
+      "appointments": {
+        "calendar_view": {
+          "title": "Calendario de Citas",
+          "desc": "Visualiza y gestiona citas en el calendario"
+        },
+        "create_appointment": {
+          "title": "Crear Nueva Cita",
+          "desc": "Agenda una cita con un paciente",
+          "step1": "Haz clic en 'Nueva Cita' o en una fecha del calendario",
+          "step2": "Selecciona el paciente y tipo de cita",
+          "step3": "Elige fecha, hora y duración"
+        },
+        "attend_appointment": {
+          "title": "Marcar Cita como Asistida",
+          "desc": "Registra que un paciente asistió a su cita",
+          "step1": "Abre la cita en el calendario",
+          "step2": "Haz clic en 'Marcar como Asistida'"
+        },
+        "cancel_appointment": {
+          "title": "Cancelar Cita",
+          "desc": "Cancela una cita programada",
+          "step1": "Abre la cita",
+          "step2": "Haz clic en 'Cancelar Cita'"
+        },
+        "no_show": {
+          "title": "Registrar No Show",
+          "desc": "Marca una cita como no asistida",
+          "step1": "Abre la cita",
+          "step2": "Marca como 'No Asistió'"
+        },
+        "proposed_appointments": {
+          "title": "Propuestas de Citas",
+          "desc": "Revisa y aprueba propuestas automáticas del sistema",
+          "step1": "Ve a la sección de propuestas",
+          "step2": "Revisa y aprueba o rechaza sugerencias"
+        }
+      },
+      "revenue": {
+        "overview": {
+          "title": "Visión General de Ingresos",
+          "desc": "Visualiza tus ingresos totales y tendencias"
+        },
+        "charts_metrics": {
+          "title": "Gráficos y Métricas",
+          "desc": "Analiza ingresos con gráficos detallados",
+          "step1": "Observa el gráfico principal de ingresos",
+          "step2": "Interpreta las métricas mostradas"
+        },
+        "time_granularity": {
+          "title": "Agrupar por Período",
+          "desc": "Visualiza ingresos por día, semana o mes",
+          "step1": "Selecciona granularidad (día, semana, mes)",
+          "step2": "El gráfico se actualiza automáticamente"
+        },
+        "filter_by_staff": {
+          "title": "Filtrar por Nutricionista",
+          "desc": "Visualiza ingresos de nutricionistas específicos",
+          "step1": "Selecciona un nutricionista en el filtro",
+          "step2": "Se muestran solo sus ingresos"
+        }
+      },
+      "menus_templates": {
+        "menus_list": {
+          "title": "Lista de Menús",
+          "desc": "Visualiza todos los menús creados"
+        },
+        "create_manual_menu": {
+          "title": "Crear Menú Manualmente",
+          "desc": "Diseña un menú personalizado desde cero",
+          "step1": "Haz clic en 'Crear Menú'",
+          "step2": "Selecciona duración y macros objetivo",
+          "step3": "Añade platos día a día"
+        },
+        "upload_ai_menu": {
+          "title": "Cargar Menú con IA",
+          "desc": "Sube una imagen/PDF y la IA crea el menú automáticamente",
+          "step1": "Haz clic en 'Importar'",
+          "step2": "Sube un PDF o imagen de dieta",
+          "step3": "La IA procesa y crea el menú"
+        },
+        "edit_meals": {
+          "title": "Editar Platos",
+          "desc": "Modifica platos de un menú",
+          "step1": "Abre el menú en detalle",
+          "step2": "Haz clic en un plato para editar"
+        },
+        "assign_menu": {
+          "title": "Asignar Menú a Paciente",
+          "desc": "Vincula un menú a un paciente",
+          "step1": "En el menú, haz clic en 'Asignar a Paciente'",
+          "step2": "Selecciona el paciente y fecha de inicio"
+        },
+        "templates_list": {
+          "title": "Lista de Plantillas",
+          "desc": "Visualiza plantillas reutilizables"
+        },
+        "create_template": {
+          "title": "Crear Plantilla",
+          "desc": "Diseña una plantilla reutilizable",
+          "step1": "Haz clic en 'Crear Plantilla'",
+          "step2": "Diseña la plantilla con platos reusables"
+        },
+        "instantiate_template": {
+          "title": "Usar Plantilla",
+          "desc": "Crea un menú basado en una plantilla",
+          "step1": "Selecciona una plantilla",
+          "step2": "Haz clic en 'Usar Plantilla' para crear menú"
+        }
+      },
+      "settings": {
+        "branding": {
+          "title": "Personalización de Marca",
+          "desc": "Configura logo y colores de tu clínica",
+          "step1": "Ve a Configuración > Personalización",
+          "step2": "Sube logo y elige color principal"
+        },
+        "appointment_types": {
+          "title": "Tipos de Cita",
+          "desc": "Define tipos de citas y duración",
+          "step1": "Ve a Configuración > Tipos de Cita",
+          "step2": "Crea o edita tipos personalizados"
+        },
+        "anamnesis": {
+          "title": "Campos de Anamnesis",
+          "desc": "Selecciona campos médicos para perfiles de pacientes",
+          "step1": "Ve a Configuración > Anamnesis",
+          "step2": "Activa/desactiva campos según necesidad"
+        },
+        "schedule": {
+          "title": "Horario de Trabajo",
+          "desc": "Define horarios y jornadas de tu clínica",
+          "step1": "Ve a Configuración > Horarios",
+          "step2": "Define bloques de trabajo por día"
+        },
+        "clinic_address": {
+          "title": "Dirección de la Clínica",
+          "desc": "Actualiza ubicación y datos de contacto",
+          "step1": "Ve a Configuración > Dirección",
+          "step2": "Ingresa dirección completa"
+        }
+      },
+      "dashboard_patient": {
+        "overview": {
+          "title": "Mi Panel de Control",
+          "desc": "Visualiza tu información de salud consolidada"
+        },
+        "water_tracking": {
+          "title": "Seguimiento de Agua",
+          "desc": "Registra tu consumo diario de agua",
+          "step1": "En el panel, visualiza el widget de agua",
+          "step2": "Haz clic para registrar consumo"
+        },
+        "upcoming_appointment": {
+          "title": "Próxima Cita",
+          "desc": "Visualiza tu siguiente cita agendada"
+        },
+        "todays_meals": {
+          "title": "Comidas de Hoy",
+          "desc": "Ve qué está planificado comer hoy"
+        },
+        "weight_graph": {
+          "title": "Gráfico de Peso",
+          "desc": "Visualiza la evolución de tu peso"
+        },
+        "shopping_list_widget": {
+          "title": "Widget Lista de Compra",
+          "desc": "Acceso rápido a tu lista de compra"
+        }
+      },
+      "my_diets": {
+        "view_menus": {
+          "title": "Mis Dietas",
+          "desc": "Visualiza todos los menús asignados"
+        },
+        "weekly_detail": {
+          "title": "Detalle Semanal",
+          "desc": "Ve en detalle las comidas de cada día",
+          "step1": "Abre un menú asignado",
+          "step2": "Visualiza día a día las comidas"
+        },
+        "download_pdf": {
+          "title": "Descargar PDF",
+          "desc": "Descarga tu menú en formato PDF",
+          "step1": "En un menú, haz clic en 'Descargar PDF'",
+          "step2": "Se descarga el archivo para imprimir"
+        },
+        "meal_details": {
+          "title": "Detalles de Comidas",
+          "desc": "Ve información nutricional de cada plato",
+          "step1": "Haz clic en una comida",
+          "step2": "Visualiza ingredientes y macros"
+        }
+      },
+      "shopping_list": {
+        "view_list": {
+          "title": "Mi Lista de Compra",
+          "desc": "Visualiza tu lista de compras"
+        },
+        "grouped_by_store": {
+          "title": "Agrupar por Supermercado",
+          "desc": "Organiza items por tienda",
+          "step1": "Selecciona opción de agrupar",
+          "step2": "Los items se reorganizan por supermercado"
+        },
+        "mark_purchased": {
+          "title": "Marcar como Comprado",
+          "desc": "Marca items mientras compras",
+          "step1": "Haz clic en un item",
+          "step2": "Marca como 'Comprado'"
+        },
+        "share_list": {
+          "title": "Compartir Lista",
+          "desc": "Comparte tu lista con otro usuario",
+          "step1": "Haz clic en 'Compartir'",
+          "step2": "Ingresa email del destinatario"
+        }
+      },
+      "my_profile": {
+        "personal_data": {
+          "title": "Datos Personales",
+          "desc": "Ve y edita tu información personal"
+        },
+        "measurements": {
+          "title": "Mis Mediciones",
+          "desc": "Registra tu peso, altura y otras medidas",
+          "step1": "Ve a 'Mediciones'",
+          "step2": "Haz clic en 'Registrar Medición'"
+        },
+        "water_consumption": {
+          "title": "Consumo de Agua",
+          "desc": "Registra tu consumo diario de agua",
+          "step1": "Ve a 'Mi Consumo de Agua'",
+          "step2": "Registra ml consumidos"
+        },
+        "clinical_info": {
+          "title": "Información Clínica",
+          "desc": "Datos médicos, alergias y antecedentes",
+          "step1": "Ve a 'Información Clínica'",
+          "step2": "Completa información médica personal"
+        },
+        "fixed_guidelines": {
+          "title": "Mis Pautas",
+          "desc": "Directrices personales nutricionales"
+        },
+        "events": {
+          "title": "Mi Timeline",
+          "desc": "Visualiza evento de tu historial",
+          "step1": "Ve a 'Eventos'",
+          "step2": "Revisa cambios y actividad"
+        },
+        "my_appointments": {
+          "title": "Mis Citas",
+          "desc": "Visualiza todas tus citas"
+        }
+      },
+      "patient_settings": {
+        "theme_preference": {
+          "title": "Preferencia de Tema",
+          "desc": "Elige entre modo claro u oscuro",
+          "step1": "Ve a Configuración > Tema",
+          "step2": "Selecciona tu preferencia"
+        },
+        "language_preference": {
+          "title": "Idioma",
+          "desc": "Selecciona tu idioma preferido",
+          "step1": "Ve a Configuración > Idioma",
+          "step2": "Elige Español o Inglés"
+        },
+        "notifications": {
+          "title": "Notificaciones",
+          "desc": "Configura cómo recibes notificaciones",
+          "step1": "Ve a Configuración > Notificaciones",
+          "step2": "Activa/desactiva notificaciones"
+        },
+        "account_info": {
+          "title": "Información de Cuenta",
+          "desc": "Ve y cambia datos de tu cuenta"
+        }
+      }
+    }
   }
 }
