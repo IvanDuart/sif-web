@@ -16,6 +16,7 @@ import { IfPermissionDirective } from '../../core/permissions/if-permission.dire
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { NotificationService, ModalService, ConfirmService } from '../../core/ui';
 import { MealFormDialog, MealFormDialogInput } from './meal-form.dialog';
+import { MenuRenameDialog, MenuRenameDialogInput } from './menu-rename.dialog';
 import { TenantBrandingService } from '../../core/api/services/tenant-branding.api';
 import { ShoppingListService } from '../../core/api/services/shopping-list.api';
 import { ShoppingListDialog, ShoppingListDialogInput } from './shopping-list.dialog';
@@ -67,7 +68,11 @@ export default class MenuDetailPage implements OnInit {
   supermarkets = SUPERMARKETS;
   supermarketMenuOpen = signal(false);
   canManageMeal = computed(() => this.permissionsService.has('MANAGE_MEAL'));
+  canManageMenu = computed(() => this.permissionsService.has('MANAGE_MENU'));
   canViewMenu = computed(() => this.permissionsService.has('VIEW_MENU'));
+  canActivateMenu = computed(() =>
+    this.canManageMenu() || this.tenantCtx.currentMembership()?.userType === 'PATIENT'
+  );
   downloadingPdf = signal(false);
   printingPdf = signal(false);
   isAiEnabled = signal(false);
@@ -134,6 +139,37 @@ export default class MenuDetailPage implements OnInit {
 
   dayLabel(day: string): string {
     return this.transloco.translate(`diet_detail.days.${day.toLowerCase()}`);
+  }
+
+  toggleActiveMenu() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    const menu = this.menu();
+    if (!tenantId || !menu) return;
+
+    this.menuService.update(tenantId, this.menuId, { isActive: !menu.isActive }).subscribe(() => {
+      this.notify.success(
+        !menu.isActive
+          ? this.transloco.translate('menu_history.activated')
+          : this.transloco.translate('menu_history.deactivated')
+      );
+      this.loadData();
+    });
+  }
+
+  renameMenu() {
+    const menu = this.menu();
+    if (!menu) return;
+
+    this.modal.open<Menu, MenuRenameDialogInput>(MenuRenameDialog, {
+      label: this.transloco.translate('diets.rename_title'),
+      size: 'm',
+      data: { menu }
+    }).subscribe(result => {
+      if (result) {
+        this.notify.success(this.transloco.translate('diets.renamed'));
+        this.loadData();
+      }
+    });
   }
 
   addMeal(day?: string, mealType?: string) {

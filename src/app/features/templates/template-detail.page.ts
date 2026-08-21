@@ -1,6 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TranslocoDirective, TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
 import { TuiButton } from '@taiga-ui/core';
@@ -14,6 +14,7 @@ import { PermissionsService } from '../../core/permissions/permissions.service';
 import { NotificationService, ModalService, ConfirmService } from '../../core/ui';
 import { MealTemplateFormDialog, MealTemplateFormDialogInput } from './meal-template-form.dialog';
 import { InstantiateTemplateDialog, InstantiateTemplateDialogInput } from './instantiate-template.dialog';
+import { Menu } from '../../core/api/models/menu.model';
 
 const ALL_DAYS = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'] as const;
 const MEAL_ORDER: Record<string, number> = { COMIDA: 0, CENA: 1 };
@@ -27,6 +28,7 @@ const MEAL_ORDER: Record<string, number> = { COMIDA: 0, CENA: 1 };
 })
 export default class TemplateDetailPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly templateService = inject(MenuTemplateService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly modal = inject(ModalService);
@@ -139,14 +141,14 @@ export default class TemplateDetailPage implements OnInit {
     const currentTemplate = this.template();
     if (!currentTemplate) return;
 
-    this.modal.open<boolean, InstantiateTemplateDialogInput>(InstantiateTemplateDialog, {
+    this.modal.open<Menu, InstantiateTemplateDialogInput>(InstantiateTemplateDialog, {
       label: this.transloco.translate('templates.assign'),
       size: 'm',
       data: { template: currentTemplate }
-    }).subscribe(result => {
-      if (result) {
-        this.notify.success('La plantilla fue instanciada y asignada al paciente.');
-      }
+    }).subscribe(menu => {
+      if (!menu?.id) return;
+      this.notify.success('La plantilla fue instanciada y asignada al paciente.');
+      this.router.navigate(['/menus', menu.id]);
     });
   }
 }

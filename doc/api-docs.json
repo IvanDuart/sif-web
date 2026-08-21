@@ -2150,7 +2150,7 @@
         "tags": [
           "MenuUploadController"
         ],
-        "description": "Upload a PDF or image of a weekly diet menu to extract and persist its meals",
+        "description": "Upload a PDF, Word document (.docx/.doc), or image of a weekly diet menu to extract and persist its meals",
         "operationId": "uploadMenu",
         "parameters": [
           {
@@ -2428,7 +2428,7 @@
         "tags": [
           "MenuTemplateUploadController"
         ],
-        "description": "Upload a PDF or image to create a weekly menu template. Requires AI to be enabled for the tenant.",
+        "description": "Upload a PDF, Word document (.docx/.doc), or image to create a weekly menu template. Requires AI to be enabled for the tenant.",
         "operationId": "uploadMenuTemplate",
         "parameters": [
           {
@@ -2991,6 +2991,128 @@
         }
       }
     },
+    "/tenant/{tenantId}/menu/{id}": {
+      "get": {
+        "tags": [
+          "MenuController"
+        ],
+        "description": "Get menu by id",
+        "operationId": "getById_2",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Menu_Full"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "MenuController"
+        ],
+        "description": "Delete menu",
+        "operationId": "delete_4",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "MenuController"
+        ],
+        "description": "Update an existing menu (name and/or active status)",
+        "operationId": "update_4",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMenuRequest_Public"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Menu_Public"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/appointments/{appointmentId}": {
       "patch": {
         "tags": [
@@ -3496,79 +3618,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/tenant/{tenantId}/menu/{id}": {
-      "get": {
-        "tags": [
-          "MenuController"
-        ],
-        "description": "Get menu by id",
-        "operationId": "getById_2",
-        "parameters": [
-          {
-            "name": "tenantId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/Menu_Full"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "MenuController"
-        ],
-        "description": "Delete menu",
-        "operationId": "delete_4",
-        "parameters": [
-          {
-            "name": "tenantId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
           }
         }
       }
@@ -5809,6 +5858,11 @@
             "type": "string",
             "format": "uuid"
           },
+          "patientName": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 0
+          },
           "startTime": {
             "type": "string",
             "format": "date-time"
@@ -5940,6 +5994,17 @@
         "required": [
           "checked"
         ]
+      },
+      "UpdateMenuRequest_Public": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
       },
       "RescheduleAppointmentRequest": {
         "type": "object",

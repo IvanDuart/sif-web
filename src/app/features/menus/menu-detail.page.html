@@ -8,11 +8,31 @@
 
       <div class="flex justify-between items-start">
         <div>
-          <h1 class="text-3xl font-display font-bold tracking-tight text-balance mb-2">{{ menu()?.name }}</h1>
+          <div class="flex items-center gap-2 mb-2">
+            <h1 class="text-3xl font-display font-bold tracking-tight text-balance">{{ menu()?.name }}</h1>
+            <button
+              *appIfPermission="'MANAGE_MENU'"
+              tuiButton appearance="flat" size="s" type="button"
+              (click)="renameMenu()"
+              [title]="t('common.edit')">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+          </div>
           <div class="flex gap-2 items-center">
             <span tuiBadge [appearance]="menu()?.isActive ? 'positive' : 'neutral'">
               {{ menu()?.isActive ? t('diets.active_badge') : t('diets.inactive_badge') }}
             </span>
+            @if (canActivateMenu()) {
+              <button
+                type="button"
+                tuiButton appearance="flat" size="s"
+                [class.text-emerald-600]="menu()?.isActive"
+                [class.text-surface-400]="!menu()?.isActive"
+                (click)="toggleActiveMenu()"
+                [title]="menu()?.isActive ? t('menu_history.deactivate') : t('menu_history.activate')">
+                <i class="fa-solid" [class.fa-toggle-on]="menu()?.isActive" [class.fa-toggle-off]="!menu()?.isActive"></i>
+              </button>
+            }
             <span class="text-surface-500 text-sm">{{ t('diets.created') }} {{ menu()?.createdAt | date:'longDate' }}</span>
           </div>
         </div>

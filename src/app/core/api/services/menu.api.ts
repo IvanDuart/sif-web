@@ -54,6 +54,10 @@ export class MenuService {
     return this.http.delete<void>(`${this.baseUrl}/tenant/${tenantId}/menu/${id}`);
   }
 
+  update(tenantId: string, id: string, request: { name?: string; isActive?: boolean }): Observable<Menu> {
+    return this.http.patch<Menu>(`${this.baseUrl}/tenant/${tenantId}/menu/${id}`, request);
+  }
+
   searchByUser(
     tenantId: string,
     userId: string,

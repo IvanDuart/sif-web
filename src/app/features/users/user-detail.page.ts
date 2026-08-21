@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ModalService, NotificationService, ConfirmService } from '../../core/ui';
+import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/branding/theme.service';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -70,6 +71,7 @@ Chart.register(...registerables);
 })
 export default class UserDetailPage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
+  private readonly authService = inject(AuthService);
   private readonly userTenantRoleService = inject(UserTenantRoleService);
   private readonly measurementService = inject(BodyMeasurementService);
   private readonly menuService = inject(MenuService);
@@ -106,6 +108,11 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   canManageMenu = computed(() => this.permissionsService.has('MANAGE_MENU'));
   canViewPatientEvents = computed(() => this.permissionsService.has('VIEW_PATIENT_EVENTS'));
   canManagePatientEvents = computed(() => this.permissionsService.has('MANAGE_PATIENT_EVENTS'));
+
+  canActivateMenus = computed(() =>
+    this.canManageMenu() ||
+    (this.user()?.userType === 'PATIENT' && this.authService.user()?.id === this.userId)
+  );
 
   patientProfile = signal<UserTenantProfileDto | null>(null);
   activeAnamnesisFields = signal<string[]>([]);
@@ -422,6 +429,20 @@ export default class UserDetailPage implements OnInit, OnDestroy {
         this.loadingMenus.set(false);
       },
       error: () => this.loadingMenus.set(false)
+    });
+  }
+
+  toggleActiveMenu(menu: Menu) {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+
+    this.menuService.update(tenantId, menu.id, { isActive: !(menu.isActive || menu.active) }).subscribe(() => {
+      this.notify.success(
+        !(menu.isActive || menu.active)
+          ? this.transloco.translate('menu_history.activated')
+          : this.transloco.translate('menu_history.deactivated')
+      );
+      this.loadMenuHistory();
     });
   }
 

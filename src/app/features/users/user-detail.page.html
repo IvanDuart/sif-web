@@ -633,6 +633,17 @@
                             <span tuiBadge [appearance]="(menu.isActive || menu.active) ? 'positive' : 'neutral'">
                               {{ (menu.isActive || menu.active) ? t('menu_history.active') : t('menu_history.inactive') }}
                             </span>
+                            @if (canActivateMenus()) {
+                              <button
+                                type="button"
+                                tuiButton appearance="flat" size="s"
+                                [class.text-emerald-600]="menu.isActive || menu.active"
+                                [class.text-surface-400]="!(menu.isActive || menu.active)"
+                                (click)="toggleActiveMenu(menu)"
+                                [title]="(menu.isActive || menu.active) ? t('menu_history.deactivate') : t('menu_history.activate')">
+                                <i class="fa-solid" [class.fa-toggle-on]="menu.isActive || menu.active" [class.fa-toggle-off]="!(menu.isActive || menu.active)"></i>
+                              </button>
+                            }
                             <button
                               type="button"
                               class="text-surface-500 hover:text-surface-700 transition-colors p-1 rounded-full"

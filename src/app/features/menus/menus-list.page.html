@@ -87,6 +87,23 @@
                         <button tuiButton appearance="flat" size="s" type="button" (click)="viewMenu(menu)" [title]="t('diets.view')">
                           <i class="fa-solid fa-eye"></i>
                         </button>
+                        @if (canActivateMenu()) {
+                          <button
+                            tuiButton appearance="flat" size="s" type="button"
+                            [class.text-emerald-600]="menu.isActive"
+                            [class.text-surface-400]="!menu.isActive"
+                            (click)="toggleActiveMenu(menu)"
+                            [title]="menu.isActive ? t('menu_history.deactivate') : t('menu_history.activate')">
+                            <i class="fa-solid" [class.fa-toggle-on]="menu.isActive" [class.fa-toggle-off]="!menu.isActive"></i>
+                          </button>
+                        }
+                        <button
+                          *appIfPermission="'MANAGE_MENU'"
+                          tuiButton appearance="flat" size="s" type="button"
+                          (click)="renameMenu(menu)"
+                          [title]="t('common.edit')">
+                          <i class="fa-solid fa-pen"></i>
+                        </button>
                         <button
                           *appIfPermission="'MANAGE_MENU'"
                           tuiButton appearance="flat" size="s" type="button"

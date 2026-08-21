@@ -18,6 +18,7 @@ import { IfPermissionDirective } from '../../core/permissions/if-permission.dire
 import { NotificationService, ModalService, ConfirmService } from '../../core/ui';
 import { MenuFormDialog } from './menu-form.dialog';
 import { MenuUploadDialog } from './menu-upload.dialog';
+import { MenuRenameDialog, MenuRenameDialogInput } from './menu-rename.dialog';
 import { EmptyState } from '../../shared/ui/empty-state';
 
 @Component({
@@ -38,6 +39,9 @@ export default class MenusListPage implements OnInit {
   private readonly transloco = inject(TranslocoService);
 
   canManageMenu = computed(() => this.permissionsService.has('MANAGE_MENU'));
+  canActivateMenu = computed(() =>
+    this.canManageMenu() || this.tenantCtx.currentMembership()?.userType === 'PATIENT'
+  );
 
   menus = signal<Menu[]>([]);
   loading = signal(false);
@@ -160,6 +164,33 @@ export default class MenusListPage implements OnInit {
             this.loadMenus(this.lastPage, this.lastSize);
           });
         }
+      }
+    });
+  }
+
+  toggleActiveMenu(menu: Menu) {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+
+    this.menuService.update(tenantId, menu.id, { isActive: !menu.isActive }).subscribe(() => {
+      this.notify.success(
+        !menu.isActive
+          ? this.transloco.translate('menu_history.activated')
+          : this.transloco.translate('menu_history.deactivated')
+      );
+      this.loadMenus(this.lastPage, this.lastSize);
+    });
+  }
+
+  renameMenu(menu: Menu) {
+    this.modal.open<Menu, MenuRenameDialogInput>(MenuRenameDialog, {
+      label: this.transloco.translate('diets.rename_title'),
+      size: 'm',
+      data: { menu }
+    }).subscribe(result => {
+      if (result) {
+        this.notify.success(this.transloco.translate('diets.renamed'));
+        this.loadMenus(this.lastPage, this.lastSize);
       }
     });
   }

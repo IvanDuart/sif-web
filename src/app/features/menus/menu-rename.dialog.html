@@ -1,0 +1,18 @@
+@if (menu) {
+  <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2" *transloco="let t">
+    <div class="field flex flex-col gap-1.5">
+      <label for="name" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('diets.name_label') }}</label>
+      <input id="name" formControlName="name" class="form-input" [placeholder]="t('diets.form_name_placeholder')" />
+    </div>
+
+    <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+      <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ t('common.cancel') }}</button>
+      <button type="submit" tuiButton size="m" [disabled]="form.invalid || saving()">
+        @if (saving()) {
+          <i class="fa-solid fa-spinner fa-spin animate-spin mr-1"></i>
+        }
+        {{ t('common.save') }}
+      </button>
+    </div>
+  </form>
+}
