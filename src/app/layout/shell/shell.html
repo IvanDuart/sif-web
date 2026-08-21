@@ -163,6 +163,10 @@
               </div>
             </div>
             <div class="user-menu-divider"></div>
+            <a [routerLink]="'/help'" class="user-menu-item" (click)="userMenuOpen.set(false)">
+              <i class="fa-solid fa-circle-question"></i>
+              <span>{{ 'common.help' | transloco }}</span>
+            </a>
             <button type="button" class="user-menu-item logout-item" (click)="logout()">
               <i class="fa-solid fa-right-from-bracket"></i>
               <span>{{ authTranslations()['logout'] }}</span>

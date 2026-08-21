@@ -9,610 +9,675 @@
     "patient": "Patient",
     "patient_for_nutri": "Patient (Nutri)",
     "steps_label": "Steps",
-    "screenshot_label": "View screenshot",
     "go_to_app": "Go to app",
     "no_results_title": "No results found",
     "no_results_desc": "We couldn't find help matching your search. Try using different keywords.",
     "clear_search": "Clear search",
     "sections": {
-      "getting_started": "Getting Started",
-      "dashboard": "Dashboard",
-      "users_permissions": "Users & Permissions",
-      "appointments": "Appointments & Calendar",
-      "patients": "Patient Management",
-      "staff": "Staff Management",
-      "revenue": "Revenue & Analytics",
-      "nutrition": "Nutrition & Menus",
-      "shopping": "Shopping Lists",
-      "templates": "Templates",
+      "access": "Access",
+      "preferences": "Preferences",
+      "shortcuts": "Shortcuts",
+      "dashboard_nutri": "Nutritionist Dashboard",
+      "patients": "Patients",
+      "patient_detail": "Patient Detail",
+      "staff": "Staff",
+      "appointments": "Appointments",
+      "revenue": "Revenue",
+      "menus_templates": "Menus & Templates",
       "settings": "Settings",
-      "profile": "Profile & Account",
-      "tracking": "Tracking & Measurements",
-      "recipes": "Recipes",
-      "reports": "Reports & Export",
-      "support": "Support"
+      "dashboard_patient": "Patient Dashboard",
+      "my_diets": "My Diets",
+      "shopping_list": "Shopping List",
+      "my_profile": "My Profile",
+      "patient_settings": "Patient Settings"
     },
     "topics": {
-      "dashboard_overview": {
-        "title": "Dashboard Overview",
-        "description": "Learn how to navigate your SIF dashboard and access all your management tools.",
-        "steps": [
-          "Log in with your SIF account",
-          "The main dashboard displays widgets with key clinic statistics",
-          "View your appointment calendar, recent revenue, and pending patients",
-          "Click any widget to access specific details"
-        ]
+      "access": {
+        "login": {
+          "title": "Sign In",
+          "description": "Access SIF using your Keycloak credentials.",
+          "steps": [
+            "Open the SIF sign-in page",
+            "Enter your Keycloak username and password",
+            "Click 'Sign In' to access the dashboard"
+          ]
+        },
+        "switch_tenant": {
+          "title": "Switch Clinic",
+          "description": "Switch between different clinics you belong to.",
+          "steps": [
+            "Click your avatar in the top right corner",
+            "Select 'Switch Clinic' from the dropdown menu",
+            "Choose the desired clinic and the page will reload"
+          ]
+        },
+        "recover_password": {
+          "title": "Recover Password",
+          "description": "Reset your password if you forgot it.",
+          "steps": [
+            "On the login screen, click 'Forgot your password?'",
+            "Enter your registered email address",
+            "Check your inbox and follow the link to reset it"
+          ]
+        }
       },
-      "navigation_basics": {
-        "title": "Navigation Basics",
-        "description": "Master the side menu and quickly access all main sections.",
-        "steps": [
-          "Locate the left sidebar with navigation icons",
-          "Each icon represents a section: Patients, Appointments, Nutrition, etc.",
-          "Click an icon to expand the menu and see subcategories",
-          "Use the hamburger button to collapse/expand menu and gain screen space"
-        ]
+      "preferences": {
+        "theme": {
+          "title": "Dark / Light Theme",
+          "description": "Change the application appearance.",
+          "steps": [
+            "Click your avatar in the top right corner",
+            "Select 'Theme' and choose Light, Dark, or System"
+          ]
+        },
+        "language": {
+          "title": "Change Language",
+          "description": "Select the interface language.",
+          "steps": [
+            "Click the language icon in the top right corner",
+            "Select 'English' or 'Español' as preferred"
+          ]
+        },
+        "notifications": {
+          "title": "Notification Preferences",
+          "description": "Configure how you receive alerts and notices.",
+          "steps": [
+            "Click your avatar → Preferences → Notifications",
+            "Enable or disable email, push, and in-app alerts"
+          ]
+        }
       },
-      "user_profile": {
-        "title": "Manage Your User Profile",
-        "description": "Access and edit your personal information, profile picture, and contact details.",
-        "steps": [
-          "Click your avatar or name in the top right corner",
-          "Select 'My Profile' from the dropdown menu",
-          "Edit your name, email, phone, and profile photo",
-          "Save changes by clicking 'Save'"
-        ]
+      "shortcuts": {
+        "keyboard": {
+          "title": "Keyboard Shortcuts",
+          "description": "Navigate faster with global shortcuts.",
+          "steps": [
+            "Press Ctrl+K (Cmd+K on Mac) to open global search",
+            "Use Tab and arrows to move between elements",
+            "Press Escape to close dialogs and menus"
+          ]
+        },
+        "search": {
+          "title": "Global Search",
+          "description": "Find anything instantly.",
+          "steps": [
+            "Press Ctrl+K to open the search bar",
+            "Type a patient name, appointment, or section"
+          ]
+        },
+        "breadcrumbs": {
+          "title": "Breadcrumb Navigation",
+          "description": "Breadcrumbs show your current location. The top breadcrumb trail lets you return to previous sections with one click."
+        }
       },
-      "tenant_switching": {
-        "title": "Switch Between Clinics (Tenants)",
-        "description": "Easily switch between different clinics or practices where you work.",
-        "steps": [
-          "If you have access to multiple clinics, you'll see a selector in the top menu",
-          "Click the current clinic name",
-          "Select the clinic you want to switch to",
-          "The application will reload with the new clinic's context"
-        ]
+      "dashboard_nutri": {
+        "overview": {
+          "title": "Dashboard Overview",
+          "description": "Main view with key metrics for your clinic.",
+          "tags": ["dashboard", "overview", "home", "widgets"]
+        },
+        "widgets": {
+          "title": "Dashboard Widgets",
+          "description": "Cards with stats: patients, appointments, revenue.",
+          "steps": [
+            "Each widget shows a main KPI",
+            "Click a widget to view full details"
+          ]
+        },
+        "quick_actions": {
+          "title": "Quick Actions",
+          "description": "Shortcut buttons for frequent tasks.",
+          "steps": [
+            "On the dashboard, locate the quick actions bar",
+            "Click 'New Patient', 'New Appointment', or 'New Menu'"
+          ]
+        },
+        "appointments_proposed": {
+          "title": "Appointment Proposals",
+          "description": "Manage appointment requests from patients.",
+          "steps": [
+            "On the dashboard, check the 'Appointment Proposals' widget",
+            "Accept, reschedule, or reject each proposal"
+          ]
+        }
       },
-      "role_based_access": {
-        "title": "Understand Role-Based Access Control",
-        "description": "Learn what features are available based on your role in the clinic.",
-        "steps": [
-          "Each user has an assigned role (Owner, Admin, Nutritionist, etc.)",
-          "Your role determines which sections and features you can access",
-          "Users with limited permissions will see fewer menu options",
-          "If you need to access a blocked feature, contact your clinic administrator"
-        ]
+      "patients": {
+        "list_view": {
+          "title": "Patient List View",
+          "description": "Main table with all your patients.",
+          "tags": ["list", "table", "patients", "view"]
+        },
+        "search_filter": {
+          "title": "Search and Filter Patients",
+          "description": "Find patients quickly.",
+          "steps": [
+            "Use the top search bar for name or email",
+            "Apply filters: status, assigned nutritionist, dates"
+          ]
+        },
+        "invite_patient": {
+          "title": "Invite New Patient",
+          "description": "Add a patient by sending an invitation.",
+          "steps": [
+            "Click 'New Patient' in the top bar",
+            "Fill in name, email, and optional data",
+            "The patient receives an email to complete registration"
+          ]
+        },
+        "edit_patient": {
+          "title": "Edit Patient Data",
+          "description": "Update a patient's information.",
+          "steps": [
+            "In the list, click the menu (⋮) for the patient",
+            "Select 'Edit' and modify the needed fields",
+            "Save changes"
+          ]
+        },
+        "activate_deactivate": {
+          "title": "Activate / Deactivate Patient",
+          "description": "Control a patient's active status.",
+          "steps": [
+            "In the patient menu, choose 'Activate' or 'Deactivate'",
+            "Confirm the action in the dialog"
+          ]
+        },
+        "view_details": {
+          "title": "View Patient Detail",
+          "description": "Access the full profile with tabs.",
+          "steps": [
+            "Click the patient name in the list",
+            "Navigate tabs: Profile, Measurements, Menus, History"
+          ]
+        }
       },
-      "notifications_alerts": {
-        "title": "Manage Notifications and Alerts",
-        "description": "Configure and control notifications for appointments, messages, and updates.",
-        "steps": [
-          "Click the bell icon in the top bar",
-          "View all your active notifications",
-          "Click any notification to go to the related item",
-          "Go to Settings > Notifications to customize which alerts you receive"
-        ]
+      "patient_detail": {
+        "profile_tab": {
+          "title": "Profile Tab",
+          "description": "Patient personal and contact data.",
+          "tags": ["profile", "personal", "data", "information"]
+        },
+        "measurements_tab": {
+          "title": "Measurements Tab",
+          "description": "Weight, height, BMI history and charts.",
+          "steps": [
+            "In patient detail, go to the 'Measurements' tab",
+            "View evolution charts and add new records"
+          ]
+        },
+        "menus_assigned": {
+          "title": "Assigned Menus",
+          "description": "Active nutrition plans for the patient.",
+          "steps": [
+            "In the 'Menus' tab, view assigned plans",
+            "Click one to see details or edit"
+          ]
+        },
+        "history_tab": {
+          "title": "History Tab",
+          "description": "Chronological log of all actions.",
+          "tags": ["history", "timeline", "audit", "log"]
+        }
       },
-      "search_filters": {
-        "title": "Use Search and Advanced Filters",
-        "description": "Quickly find patients, appointments, and other data using search and filters.",
-        "steps": [
-          "Use the quick search bar at the top for global results",
-          "In lists (Patients, Appointments, etc.), use the specific 'Search' field",
-          "Apply additional filters like date range, status, specialty",
-          "Combine multiple filters to refine your results"
-        ]
+      "staff": {
+        "list_view": {
+          "title": "Staff List",
+          "description": "View the entire clinic team.",
+          "tags": ["staff", "team", "list", "users"]
+        },
+        "invite_staff": {
+          "title": "Invite Staff",
+          "description": "Add nutritionists, receptionists, or other roles.",
+          "steps": [
+            "In Staff, click 'Invite Staff'",
+            "Enter email, select role and permissions",
+            "The invitee receives an email to join the clinic"
+          ]
+        },
+        "edit_permissions": {
+          "title": "Edit Permissions",
+          "description": "Adjust what each member can see and do.",
+          "steps": [
+            "In the list, click the menu (⋮) for the user",
+            "Select 'Permissions' and check/uncheck access",
+            "Save changes"
+          ]
+        },
+        "remove_staff": {
+          "title": "Remove Staff",
+          "description": "Remove a team member.",
+          "steps": [
+            "In the user menu, choose 'Remove'",
+            "Confirm the action (irreversible)"
+          ]
+        }
       },
-      "settings_overview": {
-        "title": "Settings Overview",
-        "description": "Access all configuration options to personalize your experience.",
-        "steps": [
-          "Click the gear icon in the top right corner",
-          "Select 'Settings'",
-          "Navigate between tabs: Account, Notifications, Privacy, Clinic",
-          "Make changes and save by clicking 'Save'"
-        ]
+      "appointments": {
+        "calendar_view": {
+          "title": "Calendar View",
+          "description": "Weekly/monthly calendar with all appointments.",
+          "tags": ["calendar", "week", "month", "schedule"]
+        },
+        "create_appointment": {
+          "title": "Create Appointment",
+          "description": "Schedule a new appointment manually.",
+          "steps": [
+            "In the calendar, click a free time slot",
+            "Select patient, type, duration, and notes",
+            "Save the appointment"
+          ]
+        },
+        "edit_appointment": {
+          "title": "Edit Appointment",
+          "description": "Modify an existing appointment.",
+          "steps": [
+            "Click the appointment in the calendar",
+            "Change time, patient, type, or notes",
+            "Save"
+          ]
+        },
+        "cancel_appointment": {
+          "title": "Cancel Appointment",
+          "description": "Cancel a scheduled appointment.",
+          "steps": [
+            "Click the appointment → 'Cancel'",
+            "Optionally add a reason and confirm"
+          ]
+        },
+        "proposals": {
+          "title": "Appointment Proposals",
+          "description": "Manage patient appointment requests.",
+          "steps": [
+            "In the notification bell or dashboard, see 'Proposals'",
+            "Accept, reschedule, or reject each one"
+          ]
+        },
+        "recurring": {
+          "title": "Recurring Appointments",
+          "description": "Create repeating appointment series.",
+          "steps": [
+            "When creating an appointment, enable 'Repeat'",
+            "Define frequency (weekly, biweekly, monthly) and end",
+            "Save the series"
+          ]
+        },
+        "waitlist": {
+          "title": "Waitlist",
+          "description": "Manage patients waiting for an opening.",
+          "steps": [
+            "On a full appointment, add patient to 'Waitlist'",
+            "If a slot opens, notify the patient from there"
+          ]
+        }
       },
-      "password_security": {
-        "title": "Change Password and Security",
-        "description": "Keep your account secure by updating your password regularly.",
-        "steps": [
-          "Go to Settings > Account",
-          "Select 'Change Password'",
-          "Enter your current password",
-          "Enter and confirm your new password",
-          "Click 'Update Password'"
-        ]
-      },
-      "language_preferences": {
-        "title": "Change Language and Preferences",
-        "description": "Set your interface language according to your preference.",
-        "steps": [
-          "Click the language icon in the top right corner",
-          "Choose between Spanish (ES) and English (EN)",
-          "The interface updates immediately",
-          "Your preference is saved automatically"
-        ]
-      },
-      "patient_management": {
-        "title": "Basic Patient Management",
-        "description": "Create, edit, and organize your patient records.",
-        "steps": [
-          "Go to Patients in the main menu",
-          "Click '+ New Patient' to create one",
-          "Complete personal data: name, age, gender, contact",
-          "Add allergies, medical conditions, and current medications",
-          "Save the patient"
-        ]
-      },
-      "patient_advanced_search": {
-        "title": "Advanced Patient Search",
-        "description": "Find specific patients using multiple search criteria.",
-        "steps": [
-          "In the Patients list, open the 'Advanced Filters' panel",
-          "Search by name, email, phone, or ID number",
-          "Filter by age range, gender, subscription status",
-          "Filter by creation date or last appointment",
-          "Save frequently used filters for reuse"
-        ]
-      },
-      "patient_import": {
-        "title": "Bulk Import Patients",
-        "description": "Upload multiple patients from a CSV file.",
-        "steps": [
-          "Go to Patients > Import",
-          "Download the sample CSV template",
-          "Fill the file with your patients' data",
-          "Upload the file using the 'Select File' button",
-          "Review data and confirm import"
-        ]
-      },
-      "staff_management": {
-        "title": "Manage Your Clinic Staff",
-        "description": "Add and manage nutritionists and other clinic staff.",
-        "steps": [
-          "Go to Settings > Team",
-          "Click '+ Add Member'",
-          "Enter email and select role (Nutritionist, Admin, etc.)",
-          "Send invitation to new member",
-          "Member will accept invitation and join the team"
-        ]
-      },
-      "staff_permissions": {
-        "title": "Configure Staff Permissions",
-        "description": "Control what functions each team member can perform.",
-        "steps": [
-          "Go to Settings > Team",
-          "Click on a member to edit their profile",
-          "In the 'Permissions' section, check/uncheck functionalities",
-          "Options include: View Patients, Create Appointments, Manage Menus, etc.",
-          "Save changes"
-        ]
-      },
-      "appointments_calendar": {
-        "title": "Use the Appointment Calendar",
-        "description": "View, create, and manage appointments in the interactive calendar.",
-        "steps": [
-          "Go to Appointments > Calendar",
-          "Switch between views: Day, Week, Month",
-          "Click a time slot to create a new appointment",
-          "Select patient, appointment type, and duration",
-          "Save the appointment to the calendar"
-        ]
-      },
-      "appointments_creation": {
-        "title": "Create and Schedule Appointments",
-        "description": "Schedule appointments with your patients by setting date, time, and details.",
-        "steps": [
-          "Go to Appointments > New Appointment",
-          "Select an existing patient or create a new one",
-          "Choose appointment date, time, and duration",
-          "Select type (Nutrition, Follow-up, etc.)",
-          "Add special notes and save"
-        ]
-      },
-      "appointments_confirmation": {
-        "title": "Confirm and Remind Appointments",
-        "description": "Send automatic confirmations and reminders to your patients.",
-        "steps": [
-          "In Appointments, open an upcoming appointment",
-          "Click 'Send Confirmation'",
-          "Set reminder type (24h before, 2h before, etc.)",
-          "The system will send automatic notifications to the patient",
-          "Monitor confirmations in 'Appointment Status'"
-        ]
-      },
-      "revenue_dashboard": {
-        "title": "View Revenue Dashboard",
-        "description": "Monitor total revenue, earnings per patient, and trends.",
-        "steps": [
-          "Go to Revenue in the main menu",
-          "View the revenue chart for the current period",
-          "See breakdown by service type (nutrition, follow-up, etc.)",
-          "Filter by date range to see trends",
-          "Download reports in PDF or Excel"
-        ]
-      },
-      "revenue_tracking": {
-        "title": "Track Payments and Invoices",
-        "description": "Record and monitor patient payments and issue invoices.",
-        "steps": [
-          "Go to Revenue > Invoices",
-          "Click '+ New Invoice'",
-          "Select patient and services provided",
-          "Set amount, taxes, and payment terms",
-          "Send invoice to patient or download as PDF"
-        ]
-      },
-      "revenue_analytics": {
-        "title": "Analyze Revenue and Profitability",
-        "description": "Get insights into your financial performance and most profitable patients.",
-        "steps": [
-          "Go to Revenue > Analytics",
-          "View charts of monthly/annual revenue",
-          "Identify patients with highest lifetime value",
-          "Analyze profit margin by service",
-          "Export data for further analysis"
-        ]
-      },
-      "menus_creation": {
-        "title": "Create and Design Nutrition Menus",
-        "description": "Design personalized menus for your patients based on their goals.",
-        "steps": [
-          "Go to Nutrition > Menus",
-          "Click '+ New Menu'",
-          "Select type (Weight Loss, Muscle Gain, Maintenance, etc.)",
-          "Define target macronutrients (protein, carbs, fats)",
-          "Add daily meals from the recipe library"
-        ]
+      "revenue": {
+        "overview": {
+          "title": "Revenue Overview",
+          "description": "General view of clinic billing.",
+          "tags": ["revenue", "income", "billing", "overview"]
+        },
+        "invoices_list": {
+          "title": "Invoices List",
+          "description": "All issued invoices with filters.",
+          "steps": [
+            "Go to Revenue → Invoices",
+            "Filter by date, patient, status, amount"
+          ]
+        },
+        "create_invoice": {
+          "title": "Create Invoice",
+          "description": "Issue an invoice manually.",
+          "steps": [
+            "In Invoices, click 'New Invoice'",
+            "Select patient, line items, amount, and VAT",
+            "Generate and send by email"
+          ]
+        },
+        "charts_metrics": {
+          "title": "Charts and Metrics",
+          "description": "Visual analysis of revenue by period.",
+          "steps": [
+            "In Revenue, go to the 'Charts' tab",
+            "Select period and grouping (day/week/month)"
+          ]
+        },
+        "time_granularity": {
+          "title": "Time Granularity",
+          "description": "Change the time scale in charts.",
+          "steps": [
+            "In charts, use the selector: Day, Week, Month",
+            "Data aggregates automatically"
+          ]
+        },
+        "filter_by_staff": {
+          "title": "Filter by Professional",
+          "description": "View revenue attributed to each nutritionist.",
+          "steps": [
+            "In list or charts, open the 'Professional' filter",
+            "Select one or more to see their billing"
+          ]
+        },
+        "export_data": {
+          "title": "Export Data",
+          "description": "Download reports as CSV or PDF.",
+          "steps": [
+            "In any list or chart, click 'Export'",
+            "Choose CSV (raw data) or PDF (visual report)"
+          ]
+        }
       },
       "menus_templates": {
-        "title": "Use Menu Templates",
-        "description": "Speed up menu creation using pre-designed templates.",
-        "steps": [
-          "Go to Nutrition > Menu Templates",
-          "Review available templates (Vegetarian, Gluten-free, etc.)",
-          "Click 'Duplicate' to create a customizable copy",
-          "Edit meals, portions, and macronutrients",
-          "Save as new template or assign to a patient"
-        ]
+        "create_menu": {
+          "title": "Create Menu",
+          "description": "Design a nutrition plan from scratch.",
+          "steps": [
+            "Go to Nutrition → Menus → 'New Menu'",
+            "Define name, patient, days, and target calories",
+            "Add meals by dragging recipes or creating free ones"
+          ]
+        },
+        "menu_from_template": {
+          "title": "Menu from Template",
+          "description": "Use a base template to save time.",
+          "steps": [
+            "In 'New Menu', choose 'From template'",
+            "Select template and target patient",
+            "Customize days and meals as needed"
+          ]
+        },
+        "edit_menu": {
+          "title": "Edit Menu",
+          "description": "Modify an existing menu.",
+          "steps": [
+            "In the menus list, click the menu (⋮) → Edit",
+            "Change recipes, quantities, days, or targets",
+            "Save"
+          ]
+        },
+        "assign_menu": {
+          "title": "Assign Menu to Patient",
+          "description": "Link a menu to a specific patient.",
+          "steps": [
+            "In the menu, click 'Assign'",
+            "Search and select the patient",
+            "Set start date and duration"
+          ]
+        },
+        "create_template": {
+          "title": "Create Template",
+          "description": "Save a menu as a reusable template.",
+          "steps": [
+            "In an edited menu, click 'Save as template'",
+            "Provide name, description, and category",
+            "The template will be available for new menus"
+          ]
+        },
+        "template_library": {
+          "title": "Template Library",
+          "description": "Manage your saved templates.",
+          "steps": [
+            "Go to Nutrition → Templates",
+            "Search, edit, duplicate, or delete templates"
+          ]
+        },
+        "meal_suggestions": {
+          "title": "Meal Suggestions",
+          "description": "Get automatic proposals based on preferences.",
+          "steps": [
+            "In the patient's menu, click 'Suggest Meal'",
+            "Filter by allergies, preferences, and meal type",
+            "Review options in the recipe library",
+            "Click to add to patient's menu",
+            "Meal is added with automatic macronutrients"
+          ]
+        },
+        "education_resources": {
+          "title": "Share Educational Resources",
+          "description": "Send guides, articles, and videos to your patients.",
+          "steps": [
+            "Go to Nutrition → Resources",
+            "Select available articles, videos, or guides",
+            "Click 'Share with Patient'",
+            "Select patient or group",
+            "Resources appear in patient's dashboard"
+          ]
+        }
       },
-      "menus_assignment": {
-        "title": "Assign Menus to Patients",
-        "description": "Deliver created menus to your patients for them to follow.",
-        "steps": [
-          "Create or select an existing menu",
-          "Click 'Assign to Patient'",
-          "Select the patient and start date",
-          "Define duration (1 week, 2 weeks, custom)",
-          "Patient will receive menu in their dashboard"
-        ]
+      "settings": {
+        "clinic_profile": {
+          "title": "Clinic Profile",
+          "description": "Tax data, logo, and contact for the clinic.",
+          "steps": [
+            "Go to Settings → Clinic Profile",
+            "Fill in name, tax ID, address, phone, email",
+            "Upload logo (used on invoices and patient portal)"
+          ]
+        },
+        "branding": {
+          "title": "Visual Branding",
+          "description": "Colors, typography, and clinic brand.",
+          "steps": [
+            "In Settings → Branding",
+            "Choose primary color, secondary color, and dark mode",
+            "Preview and save"
+          ]
+        },
+        "user_management": {
+          "title": "User Management",
+          "description": "Administer team permissions and roles.",
+          "tags": ["users", "roles", "permissions", "team"]
+        },
+        "billing_settings": {
+          "title": "Billing Settings",
+          "description": "Series, numbering, VAT, and invoice templates.",
+          "steps": [
+            "In Settings → Billing",
+            "Define series, counter, default VAT",
+            "Upload custom invoice template (optional)"
+          ]
+        },
+        "appointment_settings": {
+          "title": "Appointment Settings",
+          "description": "Durations, types, reminders, and time slots.",
+          "steps": [
+            "In Settings → Appointments",
+            "Define appointment types, durations, and colors",
+            "Configure automatic reminders (email/SMS)"
+          ]
+        },
+        "nutrition_settings": {
+          "title": "Nutrition Settings",
+          "description": "Default targets, libraries, and units.",
+          "steps": [
+            "In Settings → Nutrition",
+            "Set default macros, units (g/kcal)",
+            "Manage food library and base recipes"
+          ]
+        }
       },
-      "menus_macro_tracking": {
-        "title": "Track Macronutrients and Calories",
-        "description": "Monitor that menus meet nutritional goals.",
-        "steps": [
-          "In Nutrition > Menus, open a menu",
-          "View breakdown of calories and macronutrients",
-          "System automatically calculates totals per meal/day",
-          "Adjust portions if needed to reach specific goals",
-          "Generate nutritional balance reports"
-        ]
+      "dashboard_patient": {
+        "overview": {
+          "title": "My Dashboard",
+          "description": "Personal summary: next appointment, active menu, progress.",
+          "tags": ["dashboard", "home", "summary", "patient"]
+        },
+        "next_appointment": {
+          "title": "Next Appointment",
+          "description": "View and manage your upcoming appointment.",
+          "steps": [
+            "On the dashboard, your next appointment is highlighted",
+            "Click to view details, confirm, or cancel"
+          ]
+        },
+        "active_menu": {
+          "title": "Active Menu",
+          "description": "Your current nutrition plan day by day.",
+          "steps": [
+            "On the dashboard, the 'Active Menu' card shows today",
+            "Click to see the full week and details"
+          ]
+        },
+        "progress_charts": {
+          "title": "Progress Charts",
+          "description": "Weight, BMI, and adherence evolution.",
+          "steps": [
+            "On the dashboard, scroll to 'My Progress'",
+            "Select time range and metric to visualize"
+          ]
+        }
       },
-      "shopping_lists_creation": {
-        "title": "Create Shopping Lists",
-        "description": "Generate shopping lists based on menus to ease grocery shopping.",
-        "steps": [
-          "Go to Nutrition > Shopping Lists",
-          "Select a menu or create a custom list",
-          "Click 'Generate List'",
-          "System adds all necessary ingredients",
-          "Save or export list as PDF"
-        ]
+      "my_diets": {
+        "view_menu": {
+          "title": "View My Menu",
+          "description": "Check your weekly meal plan.",
+          "steps": [
+            "Go to 'My Diets' in the main menu",
+            "Select the active menu to see days and meals"
+          ]
+        },
+        "meal_detail": {
+          "title": "Meal Detail",
+          "description": "Ingredients, macros, and preparation.",
+          "steps": [
+            "In your menu, click any meal",
+            "See recipe, ingredients, macros, and instructions"
+          ]
+        },
+        "swap_meal": {
+          "title": "Swap Meal",
+          "description": "Replace a meal with another from the library.",
+          "steps": [
+            "In a meal detail, click 'Swap'",
+            "Choose alternative filtering by type and preferences",
+            "Confirm the change"
+          ]
+        },
+        "adherence": {
+          "title": "Adherence Tracking",
+          "description": "Mark meals as done and see your compliance %.",
+          "steps": [
+            "In your menu, mark each meal as 'Done'",
+            "The dashboard shows your weekly adherence percentage"
+          ]
+        },
+        "history": {
+          "title": "Diet History",
+          "description": "Access previous menus and their results.",
+          "steps": [
+            "In My Diets, use the 'Previous Menus' selector",
+            "Review past menus, adherence, and evolution"
+          ]
+        }
       },
-      "shopping_lists_management": {
-        "title": "Organize and Manage Shopping Lists",
-        "description": "Reorganize ingredients, group by aisle, and share with patients.",
-        "steps": [
-          "Open an existing shopping list",
-          "Check off ingredients as you shop",
-          "Group ingredients by category (Fruits, Proteins, etc.)",
-          "Add or remove items as needed",
-          "Share list with patient via link"
-        ]
+      "shopping_list": {
+        "view_list": {
+          "title": "View Shopping List",
+          "description": "Consolidated ingredients from your weekly menu.",
+          "tags": ["shopping", "list", "groceries", "ingredients"]
+        },
+        "grouped_by_store": {
+          "title": "Grouped by Store",
+          "description": "Organize the list by supermarket or section.",
+          "steps": [
+            "In the list, enable 'Group by store/section'",
+            "Items sort for an efficient shopping route"
+          ]
+        },
+        "mark_purchased": {
+          "title": "Mark Purchased",
+          "description": "Check off items as you buy them.",
+          "steps": [
+            "Tap the checkbox next to each ingredient",
+            "The top counter shows pending/bought"
+          ]
+        },
+        "share_list": {
+          "title": "Share List",
+          "description": "Send the list via email or WhatsApp.",
+          "steps": [
+            "In the list, click 'Share'",
+            "Choose an app or copy the link to send"
+          ]
+        }
       },
-      "shopping_lists_export": {
-        "title": "Export and Share Shopping Lists",
-        "description": "Download lists as PDF or share digitally with your patients.",
-        "steps": [
-          "In your shopping list, click 'Export'",
-          "Select format: PDF or Excel",
-          "Optionally include estimated prices",
-          "Or use 'Share' to send a link to the patient",
-          "Patient will receive a read-only version"
-        ]
+      "my_profile": {
+        "personal_data": {
+          "title": "Personal Data",
+          "description": "Name, email, phone, date of birth.",
+          "tags": ["profile", "personal", "data", "information", "edit"]
+        },
+        "measurements": {
+          "title": "My Measurements",
+          "description": "Log weight, height, and see automatic BMI.",
+          "steps": [
+            "Go to My Profile → Measurements → 'New Record'",
+            "Enter weight and height, BMI calculates automatically"
+          ]
+        },
+        "water_consumption": {
+          "title": "Water Consumption",
+          "description": "Track daily hydration.",
+          "steps": [
+            "In My Profile → Water, use the +/− buttons",
+            "Daily goal configurable in Settings"
+          ]
+        },
+        "clinical_info": {
+          "title": "Clinical Information",
+          "description": "Allergies, habits, conditions, and medication.",
+          "steps": [
+            "In My Profile → Clinical, fill in each section",
+            "Your nutritionist sees this to personalize your plan"
+          ]
+        },
+        "fixed_guidelines": {
+          "title": "Fixed Guidelines",
+          "description": "Permanent instructions from your nutritionist.",
+          "tags": ["guideline", "rule", "instruction", "protocol"]
+        },
+        "events": {
+          "title": "My Timeline",
+          "description": "Chronological history of appointments, measurements, and changes.",
+          "steps": [
+            "In My Profile → Events, filter by type and date",
+            "Each entry shows what, when, and who"
+          ]
+        },
+        "my_appointments": {
+          "title": "My Appointments",
+          "description": "List of all your past and future appointments.",
+          "tags": ["appointment", "cita", "session", "visit", "history"]
+        }
       },
-      "templates_nutrition": {
-        "title": "Create Custom Nutrition Templates",
-        "description": "Design reusable templates for specific cases.",
-        "steps": [
-          "Go to Nutrition > Templates",
-          "Click '+ New Template'",
-          "Define name, description, and category",
-          "Set default macronutrient targets",
-          "Add frequently used food groups",
-          "Save for use in future menus"
-        ]
-      },
-      "templates_plans": {
-        "title": "Nutrition Plan Templates",
-        "description": "Create reusable nutrition plans for common goals.",
-        "steps": [
-          "Go to Nutrition > Plan Templates",
-          "Click '+ New Plan'",
-          "Define duration (4 weeks, 8 weeks, etc.)",
-          "Structure week by week (what changes each week)",
-          "Set progressive nutritional goals",
-          "Save as template to assign to new patients"
-        ]
-      },
-      "templates_management": {
-        "title": "Manage and Update Templates",
-        "description": "Keep your templates organized, updated, and easy to find.",
-        "steps": [
-          "Go to Nutrition > Templates",
-          "View all your available templates",
-          "Click a template to edit content",
-          "Use tags to categorize (Vegetarian, Low Carb, etc.)",
-          "Mark most-used as favorites for quick access"
-        ]
-      },
-      "settings_clinic": {
-        "title": "Configure Clinic Information",
-        "description": "Customize your clinic's name, logo, and main data.",
-        "steps": [
-          "Go to Settings > Clinic",
-          "Edit official name and short name",
-          "Upload logo in PNG or JPG format (recommended 512x512px)",
-          "Enter address, phone, and contact email",
-          "Save changes"
-        ]
-      },
-      "settings_branding": {
-        "title": "Customize Brand and Appearance",
-        "description": "Apply custom colors and styles to your clinic.",
-        "steps": [
-          "Go to Settings > Branding",
-          "Select your brand's primary color",
-          "Choose between light or dark theme",
-          "Customize fonts (optional)",
-          "Preview changes",
-          "Save to apply throughout the platform"
-        ]
-      },
-      "settings_notifications": {
-        "title": "Configure Automatic Notifications",
-        "description": "Customize which notifications you and your patients receive.",
-        "steps": [
-          "Go to Settings > Notifications",
-          "Check/uncheck notification types",
-          "Options: New Patients, Upcoming Appointments, Payments Received, etc.",
-          "Set email summary frequency",
-          "Establish 'Quiet Hours' if desired"
-        ]
-      },
-      "settings_integrations": {
-        "title": "Connect External Integrations",
-        "description": "Link external applications like Google Calendar, Stripe, etc.",
-        "steps": [
-          "Go to Settings > Integrations",
-          "Select the integration you want to enable",
-          "Click 'Connect'",
-          "Authorize SIF to access your external account",
-          "Configure sync options if applicable"
-        ]
-      },
-      "reports_generation": {
-        "title": "Generate Progress Reports",
-        "description": "Create detailed reports of your patients' progress.",
-        "steps": [
-          "Go to Reports > Generate Report",
-          "Select type: Patient Progress, Nutrition, Appointments, etc.",
-          "Specify date range",
-          "Select patients (single or multiple)",
-          "View data and click 'Download PDF'"
-        ]
-      },
-      "reports_export": {
-        "title": "Export Data in Multiple Formats",
-        "description": "Download data in PDF, Excel, or CSV for external analysis.",
-        "steps": [
-          "In any list (Patients, Appointments, Revenue), click 'Export'",
-          "Select desired format: PDF, Excel, or CSV",
-          "Choose which columns to include",
-          "Customize date range if applicable",
-          "Download file to your computer"
-        ]
-      },
-      "nutrition_plans_basics": {
-        "title": "Create Basic Nutrition Plans",
-        "description": "Design personalized nutrition plans for specific goals.",
-        "steps": [
-          "Go to Nutrition > Plans",
-          "Click '+ New Plan'",
-          "Select type (Weight Loss, Gain, Maintenance, Performance)",
-          "Define duration and main objectives",
-          "Create or assign menus for each week",
-          "Save the plan"
-        ]
-      },
-      "nutrition_plans_advanced": {
-        "title": "Advanced Nutrition Plans and Personalization",
-        "description": "Adjust plans based on biochemical analysis and specific results.",
-        "steps": [
-          "Open an existing plan to edit",
-          "Set specific macronutrient targets",
-          "Define food rotation (if applicable)",
-          "Establish 'refeed days' if plan includes variations",
-          "Add personalized follow-up notes",
-          "Save updated version"
-        ]
-      },
-      "patient_dashboard_basics": {
-        "title": "Understand Your Patient Dashboard",
-        "description": "Learn the main widgets and navigate your patient zone.",
-        "steps": [
-          "Log in as a patient",
-          "Your dashboard shows summary of upcoming appointments",
-          "View active menus assigned to you",
-          "Access your registered body measurements",
-          "See recent activity history"
-        ]
-      },
-      "patient_profile_management": {
-        "title": "Manage Your Patient Profile",
-        "description": "Update your personal information and preferences.",
-        "steps": [
-          "Click your avatar in the top right corner",
-          "Select 'My Profile'",
-          "Edit name, email, phone, and photo",
-          "Update allergies and medical conditions",
-          "Save changes"
-        ]
-      },
-      "patient_menus_view": {
-        "title": "View and Follow Your Menus",
-        "description": "Access menus assigned by your nutritionist.",
-        "steps": [
-          "Go to 'My Menus'",
-          "View active and past menus",
-          "Open a menu to see meal details",
-          "Access nutritional information and recipes",
-          "Mark meals as completed (optional)"
-        ]
-      },
-      "patient_nutrition_plans": {
-        "title": "Follow Your Nutrition Plan",
-        "description": "Monitor your progress and assigned nutrition goals.",
-        "steps": [
-          "Go to 'My Nutrition Plan'",
-          "View your current plan's objectives",
-          "See weekly breakdown of expected changes",
-          "Access plan resources and guides",
-          "Report your progress weekly"
-        ]
-      },
-      "patient_shopping_lists": {
-        "title": "Access Shared Shopping Lists",
-        "description": "Use shopping lists shared by your nutritionist.",
-        "steps": [
-          "Go to 'Shopping Lists'",
-          "Open lists shared by your nutritionist",
-          "Check off items as you shop",
-          "Sum estimated prices for budgeting",
-          "Download printable version if needed"
-        ]
-      },
-      "patient_recipes": {
-        "title": "Explore Recipes and Preparation",
-        "description": "Access recipes with step-by-step instructions and ingredients.",
-        "steps": [
-          "Go to 'Recipes'",
-          "Browse by category or search",
-          "Open a recipe to see detailed instructions",
-          "View nutritional information and servings",
-          "Mark as favorite for quick access"
-        ]
-      },
-      "patient_hydration_tracking": {
-        "title": "Track Your Water Intake",
-        "description": "Record daily water consumption and hydration.",
-        "steps": [
-          "Go to 'Tracking > Hydration'",
-          "Enter amount of water consumed (in cups or ml)",
-          "Set recommended daily goal",
-          "System shows visual progress for the day",
-          "View weekly and monthly history"
-        ]
-      },
-      "patient_measurements": {
-        "title": "Record Body Measurements",
-        "description": "Document weight, measurements, and physical analysis for tracking.",
-        "steps": [
-          "Go to 'Tracking > Body Measurements'",
-          "Click '+ New Measurement'",
-          "Enter weight, height, and circumferences (waist, hips, etc.)",
-          "System automatically calculates BMI",
-          "Record body fat percentage if available",
-          "Save for future tracking"
-        ]
-      },
-      "patient_appointment_booking": {
-        "title": "Book Available Appointments",
-        "description": "Select and book available appointments with your nutritionist.",
-        "steps": [
-          "Go to 'My Appointments' in your dashboard",
-          "Click 'Book New Appointment'",
-          "View your nutritionist's availability",
-          "Select preferred date and time",
-          "Confirm the booking",
-          "Receive automatic reminder 24h before"
-        ]
-      },
-      "patient_appointment_history": {
-        "title": "View Appointment History",
-        "description": "Review all past appointments, notes, and recommendations.",
-        "steps": [
-          "Go to 'My Appointments > History'",
-          "View completed appointments in chronological order",
-          "Click an appointment to see your nutritionist's notes",
-          "Access shared documents and recommendations",
-          "Download summaries if needed"
-        ]
-      },
-      "nutri_patient_overview": {
-        "title": "Patient Panel (Nutritionist View)",
-        "description": "Access complete patient information in a single view.",
-        "steps": [
-          "Go to Patients > select a patient",
-          "View profile: personal data, allergies, medications",
-          "See appointment history, assigned menus, and progress",
-          "Access body measurements and historical tracking",
-          "View shared documents"
-        ]
-      },
-      "nutri_progress_tracking": {
-        "title": "Track Patient Progress",
-        "description": "Monitor your patients' advancement toward their goals.",
-        "steps": [
-          "Open patient profile",
-          "Go to 'Progress' tab",
-          "View charts of weight, measurements, and tracking",
-          "Compare metrics with established goals",
-          "Generate progress reports to share with patient"
-        ]
-      },
-      "nutri_meal_recommendations": {
-        "title": "Make Meal Recommendations",
-        "description": "Provide personalized suggestions based on preferences.",
-        "steps": [
-          "In patient's menu, click 'Suggest Meal'",
-          "Filter by allergies, preferences, and meal type",
-          "Review options in the recipe library",
-          "Click to add meal to patient's menu",
-          "Meal is added with automatic macronutrient calculation"
-        ]
-      },
-      "nutri_education_resources": {
-        "title": "Share Educational Resources",
-        "description": "Send guides, articles, and videos to your patients.",
-        "steps": [
-          "Go to Nutrition > Resources",
-          "Select articles, videos, or guides available",
-          "Click 'Share with Patient'",
-          "Select patient or group",
-          "Resources appear in patient's dashboard"
-        ]
+      "patient_settings": {
+        "theme_preference": {
+          "title": "Theme Preference",
+          "description": "Choose light, dark, or follow system.",
+          "steps": [
+            "Go to Settings → Theme",
+            "Select Light, Dark, or System"
+          ]
+        },
+        "language_preference": {
+          "title": "Language Preference",
+          "description": "Select Spanish or English.",
+          "steps": [
+            "Go to Settings → Language",
+            "Choose your preferred language"
+          ]
+        },
+        "notifications": {
+          "title": "Notifications",
+          "description": "Configure appointment, menu, and reminder alerts.",
+          "steps": [
+            "In Settings → Notifications",
+            "Enable/disable email, push, and in-app reminders"
+          ]
+        },
+        "account_info": {
+          "title": "Account Information",
+          "description": "View your email, change password, and access data.",
+          "tags": ["account", "email", "password", "security"]
+        }
       }
     }
   }

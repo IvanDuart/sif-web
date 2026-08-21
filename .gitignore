@@ -44,3 +44,9 @@ __screenshots__/
 Thumbs.db
 .playwright-mcp
 
+# Playwright test artifacts
+/tests/auth/*.json
+/capture-output.txt
+/playwright-report/
+/test-results/
+

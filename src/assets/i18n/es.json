@@ -314,9 +314,9 @@
     "form_description_optional": "Descripción (opcional)",
     "form_description_placeholder": "Describe brevemente esta plantilla...",
     "form_save": "Guardar Plantilla",
-    "upload_description": "Sube un PDF o imagen de una dieta. La IA extraerá los platos y creará la plantilla automáticamente.",
+    "upload_description": "Sube un PDF, imagen, DOC o DOCX de una dieta. La IA extraerá los platos y creará la plantilla automáticamente.",
     "upload_drop_here": "Suelta el archivo aquí",
-    "upload_hint": "Haz clic o arrastra un PDF o imagen aquí",
+    "upload_hint": "Haz clic o arrastra un PDF, imagen, DOC o DOCX aquí",
     "creating_from": "Creando menú a partir de:",
     "delete_confirm_msg": "¿Estás seguro de que quieres eliminar la plantilla '{{name}}'?",
     "upload_ai_checking": "Verificando disponibilidad de IA...",
@@ -325,7 +325,7 @@
     "upload_error_ai_not_enabled": "IA no habilitada. Contacta al administrador del tenant.",
     "upload_error_no_api_key": "La API Key de Gemini no está configurada. Contacta al administrador para configurarla en Preferencias del Sistema.",
     "upload_file_too_large": "Archivo demasiado grande (máx 10MB)",
-    "upload_file_invalid_type": "Tipo de archivo no soportado. Usa PDF, JPG o PNG.",
+    "upload_file_invalid_type": "Tipo de archivo no soportado. Usa PDF, JPG, PNG, DOC o DOCX.",
     "upload_error_network": "Error de conexión. Verifica tu conexión e intenta de nuevo.",
     "upload_error_server": "Error del servidor. Intenta de nuevo más tarde."
   },
@@ -908,7 +908,6 @@
     "patient": "Para Pacientes",
     "patient_for_nutri": "Guía de Pacientes",
     "steps_label": "Pasos",
-    "screenshot_label": "Capturas de pantalla",
     "go_to_app": "Ir a la sección",
     "no_results_title": "Sin resultados",
     "no_results_desc": "No encontramos coincidencias para tu búsqueda. Intenta con otros términos.",
@@ -965,7 +964,7 @@
         "language": {
           "title": "Cambiar Idioma",
           "desc": "Selecciona el idioma de la interfaz (Español o Inglés)",
-          "step1": "Ve a Configuración desde el menú lateral",
+          "step1": "Haz clic en el icono de engranaje en la esquina superior derecha → Configuración",
           "step2": "Selecciona tu idioma preferido"
         },
         "notifications": {

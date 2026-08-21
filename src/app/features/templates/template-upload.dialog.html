@@ -37,7 +37,7 @@
     <div class="flex flex-col gap-2 mt-2">
       <p class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ 'diets.document_label' | transloco }}</p>
       <label tuiInputFiles class="w-full">
-        <input tuiInputFiles accept="image/*,application/pdf" [ngModel]="null" (ngModelChange)="onFileSelected($event)" [disabled]="isUploading()" />
+        <input tuiInputFiles accept="image/*,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" [ngModel]="null" (ngModelChange)="onFileSelected($event)" [disabled]="isUploading()" />
         <ng-template let-dragged>
           @if (dragged) {
             <div class="border-2 border-primary-500 border-dashed rounded-lg p-6 text-center bg-primary-50 dark:bg-brand-tint-20">

@@ -2,7 +2,7 @@
   "cookies": [
     {
       "name": "AUTH_SESSION_ID",
-      "value": "cmQyZlllcVBValRVb2FJcGpnY1FPekJPLjB2Q1FDZzlTejZJVlIxY0JUck9CT0Q2dG5DTmlUeERjRElLNldyZUpHOFZCdjFOTmhLcE41QzNielVqaGJwYV93VUsxaXV3M0xYdDlnR1R3Y0FqbUtB.d8f26e26f59e-56719",
+      "value": "OGhIdEg1V0dnazZEYkdKbnE0R0tfV0EzLmtuaFJrWjg1NUIxb25iS05YX2FNaEE1NHRsME41emZFel9jQl9sUTJaeUhhRDJHX2pwYnJDMWU4NW1ReUF2dFk5NmRubmxoeER2ajB0VS1YWktfRjdn.d8f26e26f59e-56719",
       "domain": "192.168.1.5",
       "path": "/realms/master/",
       "expires": -1,
@@ -12,17 +12,17 @@
     },
     {
       "name": "KC_AUTH_SESSION_HASH",
-      "value": "\"59FD0UmiXvByHoDSF9AlA3I6QKXBfLMqswY5/5kHyOI\"",
+      "value": "\"dghN/jzdF79OTflG0zMiX5X8uf0yuDxdvy+XNt0cE8c\"",
       "domain": "192.168.1.5",
       "path": "/realms/master/",
-      "expires": 1786994042.726253,
+      "expires": 1787159986.965325,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "KEYCLOAK_IDENTITY",
-      "value": "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ZWExOGMyYy00MmY3LTQ0YWItOWFkNC0yNTAzZDU5MDZhY2YifQ.eyJleHAiOjE3ODcwMjk5OTcsImlhdCI6MTc4Njk5Mzk5NywianRpIjoiNzdkYjU1YjYtZGZhOS0yMTQ5LTIxNzgtYmQ3M2JkMGU1N2E5IiwiaXNzIjoiaHR0cDovLzE5Mi4xNjguMS41OjgwODgvcmVhbG1zL21hc3RlciIsInN1YiI6ImRlODlmNzkxLThjMTQtNGEyOS1iMWMwLTQ2ZGFmM2I2MjQ1ZSIsInR5cCI6IlNlcmlhbGl6ZWQtSUQiLCJzaWQiOiJyZDJmWWVxUFVqVFVvYUlwamdjUU96Qk8iLCJzdGF0ZV9jaGVja2VyIjoiM0hHQk1GNFNzZXVHbk8wRjNhYnB0MzhxRThhaUZjYmh2SEVIeDdEVzRzUSJ9.L4PueDRwHvjTQbloA37n8yKzRY4a4Vt1nxey1R-DcuovIYZzZCdQUEMRQr8RpOVFRTsancYMUN6TlVHYeZpo2Q",
+      "value": "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ZWExOGMyYy00MmY3LTQ0YWItOWFkNC0yNTAzZDU5MDZhY2YifQ.eyJleHAiOjE3ODcxOTU5MjcsImlhdCI6MTc4NzE1OTkyNywianRpIjoiMmE3ZWRkNTMtZTM3Yy0xNDZiLWRkZGMtYTg3NTFiNGUwNjlkIiwiaXNzIjoiaHR0cDovLzE5Mi4xNjguMS41OjgwODgvcmVhbG1zL21hc3RlciIsInN1YiI6ImRlODlmNzkxLThjMTQtNGEyOS1iMWMwLTQ2ZGFmM2I2MjQ1ZSIsInR5cCI6IlNlcmlhbGl6ZWQtSUQiLCJzaWQiOiI4aEh0SDVXR2drNkRiR0pucTRHS19XQTMiLCJzdGF0ZV9jaGVja2VyIjoiTzJSMWNvNVE5d2lMOWUwQ2RYVFh0WXNNVWtZVXlYMkIybDBxYnJINjNaWSJ9.7TLeGaQpX3zPp7gQ337DBQ0MckUaBabSTJxL3gSTyXoKAwVRKck56ZatAWhLTLQepfml9Z2fqIh68xvqm6HTcA",
       "domain": "192.168.1.5",
       "path": "/realms/master/",
       "expires": -1,
@@ -32,10 +32,10 @@
     },
     {
       "name": "KEYCLOAK_SESSION",
-      "value": "59FD0UmiXvByHoDSF9AlA3I6QKXBfLMqswY5_5kHyOI",
+      "value": "dghN_jzdF79OTflG0zMiX5X8uf0yuDxdvy-XNt0cE8c",
       "domain": "192.168.1.5",
       "path": "/realms/master/",
-      "expires": 1787029998.699149,
+      "expires": 1787195928.000249,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
@@ -45,10 +45,6 @@
     {
       "origin": "http://localhost:4200",
       "localStorage": [
-        {
-          "name": "kc-callback-23e3e9ea-3d76-44cf-9484-57d0f794f7b1",
-          "value": "{\"state\":\"23e3e9ea-3d76-44cf-9484-57d0f794f7b1\",\"nonce\":\"1d69d80c-d676-4ae9-ac96-46a0ad037b82\",\"redirectUri\":\"http://localhost:4200/\",\"pkceCodeVerifier\":\"BI8HvuNGqIf9LZ5HvhNAnd0l2L76HOZ7FJOPN6jcgJP6LQAh9LHxZP4n1ScBzHENkmOsZ0CG7FNmPEYuNIF0ScukFWziVrGr\",\"expires\":1786997582717}"
-        },
         {
           "name": "tuiDark",
           "value": "false"
@@ -60,6 +56,10 @@
         {
           "name": "active-tenant",
           "value": "00000000-0000-0000-0000-000000000001"
+        },
+        {
+          "name": "kc-callback-b2aa3051-9c96-44d4-804e-85460056af85",
+          "value": "{\"state\":\"b2aa3051-9c96-44d4-804e-85460056af85\",\"nonce\":\"4a8f6112-4185-416f-aede-02583c253bf7\",\"redirectUri\":\"http://localhost:4200/\",\"pkceCodeVerifier\":\"izbjhSFbHVgWmwycBPkKF3bsH7fG32b9EVmxU2eMMOQX1dAHLQmxCQ08vvlKiY5Ksg6HC5jrHm6dlyh09Hc0s3W3V9x3hWlK\",\"expires\":1787163526951}"
         },
         {
           "name": "active-user",

@@ -314,9 +314,9 @@
     "form_description_optional": "Description (optional)",
     "form_description_placeholder": "Briefly describe this template...",
     "form_save": "Save Template",
-    "upload_description": "Upload a PDF or image of a diet. The AI will extract the meals and create the template automatically.",
+    "upload_description": "Upload a PDF, image, DOC, or DOCX of a diet. The AI will extract the meals and create the template automatically.",
     "upload_drop_here": "Drop the file here",
-    "upload_hint": "Click or drag a PDF or image here",
+    "upload_hint": "Click or drag a PDF, image, DOC, or DOCX here",
     "creating_from": "Creating menu from:",
     "delete_confirm_msg": "Are you sure you want to delete the template '{{name}}'?",
     "upload_ai_checking": "Checking AI availability...",
@@ -325,7 +325,7 @@
     "upload_error_ai_not_enabled": "AI not enabled. Contact your tenant admin.",
     "upload_error_no_api_key": "Gemini API Key not configured. Contact your tenant admin to set it up in System Preferences.",
     "upload_file_too_large": "File too large (max 10MB)",
-    "upload_file_invalid_type": "Unsupported file type. Use PDF, JPG, or PNG.",
+    "upload_file_invalid_type": "Unsupported file type. Use PDF, JPG, PNG, DOC, or DOCX.",
     "upload_error_network": "Connection error. Check your connection and try again.",
     "upload_error_server": "Server error. Please try again later."
   },
@@ -908,7 +908,6 @@
     "patient": "For Patients",
     "patient_for_nutri": "Patient Guide",
     "steps_label": "Steps",
-    "screenshot_label": "Screenshots",
     "go_to_app": "Go to section",
     "no_results_title": "No results",
     "no_results_desc": "We couldn't find matches for your search. Try different terms.",
@@ -965,7 +964,7 @@
         "language": {
           "title": "Change Language",
           "desc": "Select the interface language (Spanish or English)",
-          "step1": "Go to Settings from the sidebar menu",
+          "step1": "Click the gear icon in the top right → Settings",
           "step2": "Select your preferred language"
         },
         "notifications": {

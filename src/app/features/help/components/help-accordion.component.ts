@@ -3,12 +3,11 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { HelpSection } from '../content/help-content';
-import { HelpScreenshotComponent } from './help-screenshot.component';
 
 @Component({
   selector: 'app-help-accordion',
   standalone: true,
-  imports: [CommonModule, RouterModule, TranslocoModule, HelpScreenshotComponent],
+  imports: [CommonModule, RouterModule, TranslocoModule],
   template: `
     <div class="help-accordion" *transloco="let t">
       <div class="space-y-2">
@@ -21,7 +20,7 @@ import { HelpScreenshotComponent } from './help-screenshot.component';
               class="w-full px-6 py-4 flex items-start gap-3 hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors text-left"
               [attr.aria-expanded]="isTopicOpen(topic.id)"
             >
-              <i 
+              <i
                 class="fa-solid transition-transform duration-200"
                 [class.fa-chevron-down]="!isTopicOpen(topic.id)"
                 [class.fa-chevron-up]="isTopicOpen(topic.id)"
@@ -57,21 +56,11 @@ import { HelpScreenshotComponent } from './help-screenshot.component';
                   </div>
                 }
 
-                <!-- Screenshot (if available) -->
-                @if (topic.screenshot) {
-                  <div class="space-y-2">
-                    <p class="text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wider">
-                      {{ t('help.screenshot_label') }}
-                    </p>
-                    <app-help-screenshot [screenshot]="topic.screenshot" [alt]="t(topic.titleKey)" />
-                  </div>
-                }
-
                 <!-- Related Routes (if available) -->
                 @if (topic.relatedRoutes && topic.relatedRoutes.length > 0) {
                   <div class="flex flex-wrap gap-2">
                     @for (route of topic.relatedRoutes; track route) {
-                      <a 
+                      <a
                         [routerLink]="route"
                         class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs font-medium hover:bg-primary-200 dark:hover:bg-primary-900/50 transition-colors"
                       >

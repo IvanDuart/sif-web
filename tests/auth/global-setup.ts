@@ -1,15 +1,21 @@
 import { chromium, FullConfig } from '@playwright/test';
 
 const NUTRITIONIST_EMAIL = 'nelson@carajillolabs.com';
-const NUTRITIONIST_PASSWORD = process.env.NUTRITIONIST_PASSWORD || 'nelson1234';
+const NUTRITIONIST_PASSWORD = process.env.NUTRITIONIST_PASSWORD;
 const PATIENT_EMAIL = 'frink@carajillolabs.com';
-const PATIENT_PASSWORD = process.env.PATIENT_PASSWORD || 'frink1234';
+const PATIENT_PASSWORD = process.env.PATIENT_PASSWORD;
 
 /**
  * Global setup: Authenticate both users before running tests
  */
 async function globalSetup(config: FullConfig) {
   console.log('🔐 Starting global auth setup...');
+
+  if (!NUTRITIONIST_PASSWORD || !PATIENT_PASSWORD) {
+    throw new Error(
+      'Missing required env vars: NUTRITIONIST_PASSWORD and PATIENT_PASSWORD must be set'
+    );
+  }
 
   // Authenticate nutritionist
   await authenticateUser(
@@ -53,17 +59,23 @@ async function authenticateUser(
     await page.goto(baseURL);
     await page.waitForLoadState('networkidle');
 
-    // Check if already logged in
-    if (page.url().includes('/shell') || page.url().includes('/dashboard')) {
-      console.log(`✓ ${role} already authenticated`);
-      await context.storageState({ path: storageFile });
-      await browser.close();
-      return;
+    // Check if already logged in (has dashboard in URL and tenant loaded)
+    if (page.url().includes('/dashboard')) {
+      // Verify tenant is loaded by checking for localStorage or app state
+      const tenantLoaded = await page.evaluate(() => {
+        return localStorage.getItem('active-tenant') !== null;
+      });
+      if (tenantLoaded) {
+        console.log(`✓ ${role} already authenticated`);
+        await context.storageState({ path: storageFile });
+        await browser.close();
+        return;
+      }
     }
 
-    // Wait for login redirect
+    // Wait for Keycloak login redirect - correct KC 26 path
     try {
-      await page.waitForURL('**/auth/realms/**login**', { timeout: 15000 });
+      await page.waitForURL('**/realms/master/protocol/openid-connect/auth*', { timeout: 15000 });
     } catch {
       console.log(`ℹ No Keycloak redirect detected; attempting direct login elements`);
     }
@@ -94,10 +106,13 @@ async function authenticateUser(
     await submitButton.click();
     await page.waitForLoadState('networkidle');
 
-    // Wait for auth to complete or error
+    // Wait for auth to complete - redirect back to app
     let attempts = 0;
     let currentUrl = page.url();
-    while (currentUrl.includes('/realms/') && currentUrl.includes('login-actions') && attempts < 3) {
+    while (
+      (currentUrl.includes('/realms/') && currentUrl.includes('login-actions')) &&
+      attempts < 3
+    ) {
       attempts++;
       console.log(`  Attempt ${attempts}: Still on Keycloak, waiting...`);
       await page.waitForTimeout(2000);
@@ -116,7 +131,19 @@ async function authenticateUser(
 
     console.log(`  ✓ Redirected from Keycloak to: ${currentUrl.substring(0, 50)}...`);
 
-    // Save session (authentication redirect to dashboard confirmed working)
+    // Wait for app to fully load and tenant context to be established
+    // The app navigates to /dashboard after auth, then authGuard waits for isTenantLoaded$
+    await page.waitForURL('**/dashboard', { timeout: 30000 });
+    await page.waitForLoadState('networkidle');
+
+    // Additional wait for tenant context (localStorage active-tenant)
+    await page.waitForFunction(() => {
+      return localStorage.getItem('active-tenant') !== null;
+    }, {}, 10000);
+
+    console.log(`  ✓ Tenant context loaded`);
+
+    // Save session
     await context.storageState({ path: storageFile });
     console.log(`✓ ${role} authenticated successfully`);
   } catch (error) {

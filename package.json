@@ -7,13 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint",
-    "help:auth": "playwright test tests/auth/setup-nutritionist.ts tests/auth/setup-patient.ts",
-    "help:capture": "playwright test tests/help-screenshots",
-    "help:capture:headed": "playwright test tests/help-screenshots --headed",
-    "help:optimize": "node scripts/optimize-help-images.js",
-    "help:report": "playwright show-report",
-    "help:full": "npm run help:auth && npm run help:capture && npm run help:optimize"
+    "lint": "ng lint"
   },
   "private": true,
   "dependencies": {
@@ -85,6 +79,7 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "less": "^4.8.0",
     "postcss": "^8.5.15",
+    "sharp": "^0.35.3",
     "tailwindcss": "^3.4.19",
     "typescript": "~5.9.0",
     "typescript-eslint": "8.59.2"

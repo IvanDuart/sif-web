@@ -9,10 +9,6 @@ export interface HelpTopic {
   titleKey: string;           // i18n key in help.topics.{section_id}.{topic_id}.title
   descKey: string;            // i18n key in help.topics.{section_id}.{topic_id}.desc
   steps?: string[];           // i18n keys for numbered steps (optional)
-  screenshot?: {              // relative paths to assets/help/screenshots/
-    light: string;
-    dark: string;
-  };
   relatedRoutes?: string[];   // Angular routes related to this topic
   tags?: string[];            // search tags (optional, for better UX)
 }
@@ -49,8 +45,7 @@ export const HELP_CONTENT: HelpSection[] = [
           'help.topics.access.login.step2',
           'help.topics.access.login.step3',
         ],
-        screenshot: { light: 'help-overview/light/desktop/nutritionist.png', dark: 'help-overview/dark/desktop/nutritionist.png' },
-        tags: ['login', 'keycloak', 'password'],
+                tags: ['login', 'keycloak', 'password'],
       },
       {
         id: 'switch_tenant',
@@ -61,9 +56,8 @@ export const HELP_CONTENT: HelpSection[] = [
           'help.topics.access.switch_tenant.step2',
           'help.topics.access.switch_tenant.step3',
         ],
-        screenshot: { light: 'common-getting-started/light/desktop/nutritionist.png', dark: 'common-getting-started/dark/desktop/nutritionist.png' },
         tags: ['switch', 'clinic', 'tenant', 'organization'],
-        relatedRoutes: ['/shell'],
+        relatedRoutes: ['/dashboard'],
       },
       {
         id: 'recover_password',
@@ -94,7 +88,6 @@ export const HELP_CONTENT: HelpSection[] = [
           'help.topics.preferences.theme.step1',
           'help.topics.preferences.theme.step2',
         ],
-        screenshot: { light: 'common/light/desktop/theme-light.png', dark: 'common/dark/desktop/theme-dark.png' },
         tags: ['dark', 'light', 'mode', 'theme', 'appearance'],
       },
       {
@@ -170,9 +163,8 @@ export const HELP_CONTENT: HelpSection[] = [
         id: 'overview',
         titleKey: 'help.topics.dashboard_nutri.overview.title',
         descKey: 'help.topics.dashboard_nutri.overview.desc',
-        screenshot: { light: 'nutritionist/light/desktop/dashboard.png', dark: 'nutritionist/dark/desktop/dashboard.png' },
         tags: ['dashboard', 'overview', 'home', 'widgets'],
-        relatedRoutes: ['/shell/tenant-dashboard'],
+        relatedRoutes: ['/dashboard'],
       },
       {
         id: 'widgets',
@@ -203,7 +195,7 @@ export const HELP_CONTENT: HelpSection[] = [
           'help.topics.dashboard_nutri.appointments_proposed.step2',
         ],
         tags: ['appointment', 'proposal', 'suggestion', 'calendar'],
-        relatedRoutes: ['/shell/appointments'],
+        relatedRoutes: ['/appointments'],
       },
     ],
   },
@@ -219,9 +211,8 @@ export const HELP_CONTENT: HelpSection[] = [
         id: 'list_view',
         titleKey: 'help.topics.patients.list_view.title',
         descKey: 'help.topics.patients.list_view.desc',
-        screenshot: { light: 'nutritionist/light/desktop/patients.png', dark: 'nutritionist/dark/desktop/patients.png' },
         tags: ['list', 'table', 'patients', 'view'],
-        relatedRoutes: ['/shell/users/PATIENT'],
+        relatedRoutes: ['/patients'],
       },
       {
         id: 'search_filter',
@@ -242,9 +233,8 @@ export const HELP_CONTENT: HelpSection[] = [
           'help.topics.patients.invite_patient.step2',
           'help.topics.patients.invite_patient.step3',
         ],
-        screenshot: { light: 'nutritionist/light/desktop/patients-invite-modal.png', dark: 'nutritionist/dark/desktop/patients-invite-modal.png' },
         tags: ['invite', 'add', 'create', 'new', 'patient', 'email'],
-        relatedRoutes: ['/shell/users/PATIENT'],
+        relatedRoutes: ['/patients'],
       },
       {
         id: 'edit_patient',
@@ -276,7 +266,7 @@ export const HELP_CONTENT: HelpSection[] = [
           'help.topics.patients.view_details.step2',
         ],
         tags: ['view', 'detail', 'profile', 'information'],
-        relatedRoutes: ['/shell/users/:id'],
+        relatedRoutes: ['/dashboard/users/:id'],
       },
     ],
   },
@@ -292,7 +282,6 @@ export const HELP_CONTENT: HelpSection[] = [
         id: 'profile_tab',
         titleKey: 'help.topics.patient_detail.profile_tab.title',
         descKey: 'help.topics.patient_detail.profile_tab.desc',
-        screenshot: { light: 'nutritionist/light/desktop/patient-detail.png', dark: 'nutritionist/dark/desktop/patient-detail.png' },
         tags: ['profile', 'personal', 'data', 'information'],
       },
       {
@@ -367,9 +356,8 @@ export const HELP_CONTENT: HelpSection[] = [
         id: 'list_view',
         titleKey: 'help.topics.staff.list_view.title',
         descKey: 'help.topics.staff.list_view.desc',
-        screenshot: { light: 'nutritionist/light/desktop/staff.png', dark: 'nutritionist/dark/desktop/staff.png' },
         tags: ['staff', 'team', 'list', 'members'],
-        relatedRoutes: ['/shell/users/STAFF'],
+        relatedRoutes: ['/staff'],
       },
       {
         id: 'invite_staff',
@@ -380,7 +368,6 @@ export const HELP_CONTENT: HelpSection[] = [
           'help.topics.staff.invite_staff.step2',
           'help.topics.staff.invite_staff.step3',
         ],
-        screenshot: { light: 'nutritionist/light/desktop/staff-invite-modal.png', dark: 'nutritionist/dark/desktop/staff-invite-modal.png' },
         tags: ['invite', 'add', 'staff', 'team', 'member'],
       },
       {
@@ -417,9 +404,8 @@ export const HELP_CONTENT: HelpSection[] = [
         id: 'calendar_view',
         titleKey: 'help.topics.appointments.calendar_view.title',
         descKey: 'help.topics.appointments.calendar_view.desc',
-        screenshot: { light: 'nutritionist/light/desktop/appointments.png', dark: 'nutritionist/dark/desktop/appointments.png' },
         tags: ['calendar', 'view', 'month', 'week', 'day'],
-        relatedRoutes: ['/shell/appointments'],
+        relatedRoutes: ['/appointments'],
       },
       {
         id: 'create_appointment',
@@ -430,7 +416,6 @@ export const HELP_CONTENT: HelpSection[] = [
           'help.topics.appointments.create_appointment.step2',
           'help.topics.appointments.create_appointment.step3',
         ],
-        screenshot: { light: 'nutritionist/light/desktop/appointments-create-modal.png', dark: 'nutritionist/dark/desktop/appointments-create-modal.png' },
         tags: ['create', 'new', 'appointment', 'schedule', 'session'],
       },
       {
@@ -487,9 +472,8 @@ export const HELP_CONTENT: HelpSection[] = [
         id: 'overview',
         titleKey: 'help.topics.revenue.overview.title',
         descKey: 'help.topics.revenue.overview.desc',
-        screenshot: { light: 'nutritionist/light/desktop/revenue.png', dark: 'nutritionist/dark/desktop/revenue.png' },
         tags: ['revenue', 'income', 'earnings', 'chart'],
-        relatedRoutes: ['/shell/revenue'],
+        relatedRoutes: ['/revenue'],
       },
       {
         id: 'charts_metrics',
@@ -535,9 +519,8 @@ export const HELP_CONTENT: HelpSection[] = [
         id: 'menus_list',
         titleKey: 'help.topics.menus_templates.menus_list.title',
         descKey: 'help.topics.menus_templates.menus_list.desc',
-        screenshot: { light: 'nutritionist/light/desktop/menus.png', dark: 'nutritionist/dark/desktop/menus.png' },
         tags: ['menu', 'list', 'view', 'diet'],
-        relatedRoutes: ['/shell/menus'],
+        relatedRoutes: ['/menus'],
       },
       {
         id: 'create_manual_menu',
@@ -548,7 +531,6 @@ export const HELP_CONTENT: HelpSection[] = [
           'help.topics.menus_templates.create_manual_menu.step2',
           'help.topics.menus_templates.create_manual_menu.step3',
         ],
-        screenshot: { light: 'nutritionist/light/desktop/menus-create-modal.png', dark: 'nutritionist/dark/desktop/menus-create-modal.png' },
         tags: ['create', 'menu', 'manual', 'new'],
       },
       {
@@ -560,7 +542,6 @@ export const HELP_CONTENT: HelpSection[] = [
           'help.topics.menus_templates.upload_ai_menu.step2',
           'help.topics.menus_templates.upload_ai_menu.step3',
         ],
-        screenshot: { light: 'nutritionist/light/desktop/menus-upload-modal.png', dark: 'nutritionist/dark/desktop/menus-upload-modal.png' },
         tags: ['upload', 'ai', 'menu', 'file'],
       },
       {
@@ -571,7 +552,6 @@ export const HELP_CONTENT: HelpSection[] = [
           'help.topics.menus_templates.edit_meals.step1',
           'help.topics.menus_templates.edit_meals.step2',
         ],
-        screenshot: { light: 'nutritionist/light/desktop/menus-detail.png', dark: 'nutritionist/dark/desktop/menus-detail.png' },
         tags: ['edit', 'meal', 'food', 'ingredient'],
       },
       {
@@ -588,9 +568,8 @@ export const HELP_CONTENT: HelpSection[] = [
         id: 'templates_list',
         titleKey: 'help.topics.menus_templates.templates_list.title',
         descKey: 'help.topics.menus_templates.templates_list.desc',
-        screenshot: { light: 'nutritionist/light/desktop/templates.png', dark: 'nutritionist/dark/desktop/templates.png' },
         tags: ['template', 'list', 'view', 'reusable'],
-        relatedRoutes: ['/shell/templates'],
+        relatedRoutes: ['/templates'],
       },
       {
         id: 'create_template',
@@ -630,9 +609,8 @@ export const HELP_CONTENT: HelpSection[] = [
           'help.topics.settings.branding.step1',
           'help.topics.settings.branding.step2',
         ],
-        screenshot: { light: 'nutritionist/light/desktop/settings.png', dark: 'nutritionist/dark/desktop/settings.png' },
         tags: ['branding', 'logo', 'color', 'theme', 'clinic'],
-        relatedRoutes: ['/shell/settings'],
+        relatedRoutes: ['/settings'],
       },
       {
         id: 'appointment_types',
@@ -691,9 +669,8 @@ export const HELP_CONTENT: HelpSection[] = [
         id: 'overview',
         titleKey: 'help.topics.dashboard_patient.overview.title',
         descKey: 'help.topics.dashboard_patient.overview.desc',
-        screenshot: { light: 'patient/light/desktop/dashboard.png', dark: 'patient/dark/desktop/dashboard.png' },
         tags: ['dashboard', 'overview', 'home', 'patient'],
-        relatedRoutes: ['/shell/tenant-dashboard'],
+        relatedRoutes: ['/dashboard'],
       },
       {
         id: 'water_tracking',
@@ -743,9 +720,8 @@ export const HELP_CONTENT: HelpSection[] = [
         id: 'view_menus',
         titleKey: 'help.topics.my_diets.view_menus.title',
         descKey: 'help.topics.my_diets.view_menus.desc',
-        screenshot: { light: 'patient/light/desktop/menus.png', dark: 'patient/dark/desktop/menus.png' },
         tags: ['menu', 'diet', 'view', 'list'],
-        relatedRoutes: ['/shell/menus'],
+        relatedRoutes: ['/menus'],
       },
       {
         id: 'weekly_detail',
@@ -755,7 +731,6 @@ export const HELP_CONTENT: HelpSection[] = [
           'help.topics.my_diets.weekly_detail.step1',
           'help.topics.my_diets.weekly_detail.step2',
         ],
-        screenshot: { light: 'patient/light/desktop/menu-detail.png', dark: 'patient/dark/desktop/menu-detail.png' },
         tags: ['weekly', 'detail', 'meal', 'day', 'week'],
       },
       {
@@ -792,9 +767,8 @@ export const HELP_CONTENT: HelpSection[] = [
         id: 'view_list',
         titleKey: 'help.topics.shopping_list.view_list.title',
         descKey: 'help.topics.shopping_list.view_list.desc',
-        screenshot: { light: 'patient/light/desktop/shopping-list.png', dark: 'patient/dark/desktop/shopping-list.png' },
         tags: ['shopping', 'list', 'groceries', 'ingredients'],
-        relatedRoutes: ['/shell/shopping-lists'],
+        relatedRoutes: ['/shopping-lists'],
       },
       {
         id: 'grouped_by_store',
@@ -840,7 +814,6 @@ export const HELP_CONTENT: HelpSection[] = [
         id: 'personal_data',
         titleKey: 'help.topics.my_profile.personal_data.title',
         descKey: 'help.topics.my_profile.personal_data.desc',
-        screenshot: { light: 'patient/light/desktop/profile.png', dark: 'patient/dark/desktop/profile.png' },
         tags: ['profile', 'personal', 'data', 'information', 'edit'],
       },
       {

@@ -35,7 +35,13 @@ export class TemplateUploadDialog implements OnInit {
   hasFile = computed(() => this.selectedFile() !== null);
 
   private readonly MAX_FILE_SIZE = 10 * 1024 * 1024;
-  private readonly VALID_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+  private readonly VALID_FILE_TYPES = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
 
   ngOnInit() {
     this.checkAiAvailability();
@@ -66,7 +72,7 @@ export class TemplateUploadDialog implements OnInit {
       return 'Archivo demasiado grande (máx 10MB)';
     }
     if (!this.VALID_FILE_TYPES.includes(file.type)) {
-      return 'Tipo de archivo no soportado. Usá PDF, JPG o PNG.';
+      return 'Tipo de archivo no soportado. Usá PDF, JPG, PNG, DOC o DOCX.';
     }
     return null;
   }
@@ -120,7 +126,7 @@ export class TemplateUploadDialog implements OnInit {
             this.notify.error('No tenés permisos para realizar esta acción.');
           }
         } else if (error.status === 400) {
-          this.notify.error('Archivo inválido. Subí un PDF o imagen válida.');
+          this.notify.error('Archivo inválido. Subí un PDF, imagen, DOC o DOCX válido.');
         } else if (error.status === 500) {
           this.notify.error('Error del servidor al procesar el archivo. Intentá de nuevo.');
         } else {
