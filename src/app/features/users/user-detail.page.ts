@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, OnInit, ViewChild, ElementRef, OnD
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { Subject, Subscription, debounceTime } from 'rxjs';
 import { ModalService, NotificationService, ConfirmService } from '../../core/ui';
 import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/branding/theme.service';
@@ -15,7 +16,6 @@ import { PatientEventService } from '../../core/api/services/patient-event.api';
 import { BodyMeasurementService } from '../../core/api/services/body-measurement.api';
 import { MenuService } from '../../core/api/services/menu.api';
 import { AppointmentService } from '../../core/api/services/appointment.api';
-import { TenantBrandingService } from '../../core/api/services/tenant-branding.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppUserDto, UserTenantProfileDto } from '../../core/api/models/user.model';
 import { PatientEventDto } from '../../core/api/models/patient-event.model';
@@ -29,7 +29,6 @@ import { EmptyState } from '../../shared/ui/empty-state';
 import { MeasurementFormDialog } from './measurement-form.dialog';
 import { EditUserDialog } from './edit-user.dialog';
 import { WaterIntakeWidget } from '../tenant/dashboard/components/water-intake-widget';
-import { PatientProfileFormDialog } from './patient-profile-form.dialog';
 import { PatientEventFormDialog } from './patient-event-form.dialog';
 import { AssignMenuTemplateDialog } from './assign-menu-template.dialog';
 import { MenuFormDialog } from '../menus/menu-form.dialog';
@@ -40,7 +39,7 @@ import type { ChartConfiguration } from 'chart.js/auto';
 import { Chart, registerables } from 'chart.js';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
-import { TuiButton, TuiTextfield } from '@taiga-ui/core';
+import { TuiButton, TuiCheckbox, TuiTextfield } from '@taiga-ui/core';
 import { TuiBadge, TuiTabs, TuiTextarea } from '@taiga-ui/kit';
 import { TuiTable } from '@taiga-ui/addon-table';
 
@@ -64,7 +63,8 @@ Chart.register(...registerables);
     TuiTable,
     TuiTabs,
     TuiTextfield,
-    TuiTextarea
+    TuiTextarea,
+    TuiCheckbox
   ],
   templateUrl: './user-detail.page.html',
   styleUrls: ['./user-detail.page.scss']
@@ -78,13 +78,42 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   private readonly appointmentService = inject(AppointmentService);
   private readonly patientEventService = inject(PatientEventService);
   private readonly tenantCtx = inject(TenantContextService);
-  private readonly tenantBrandingService = inject(TenantBrandingService);
   private readonly confirm = inject(ConfirmService);
   private readonly notify = inject(NotificationService);
   private readonly modal = inject(ModalService);
   private readonly transloco = inject(TranslocoService);
   private readonly permissionsService = inject(PermissionsService);
   private readonly themeService = inject(ThemeService);
+
+  // Metadata describing the structured medical checklist and lifestyle/nutrition fields rendered in the profile tab.
+  readonly checklistFields = [
+    { id: 'hasDiabetes', notesId: 'diabetesNotes', icon: 'fa-solid fa-droplet' },
+    { id: 'hasHypertension', notesId: 'hypertensionNotes', icon: 'fa-solid fa-heart-pulse' },
+    { id: 'hasHeartDisease', notesId: 'heartDiseaseNotes', icon: 'fa-solid fa-heart' },
+    { id: 'hasCholesterol', notesId: 'cholesterolNotes', icon: 'fa-solid fa-droplet' },
+    { id: 'hasAllergiesAsthma', notesId: 'allergiesAsthmaNotes', icon: 'fa-solid fa-allergies' },
+    { id: 'hasLiverDisease', notesId: 'liverDiseaseNotes', icon: 'fa-solid fa-filter' },
+    { id: 'hasGallbladderDisease', notesId: 'gallbladderDiseaseNotes', icon: 'fa-solid fa-vial' },
+    { id: 'hasKidneyDisease', notesId: 'kidneyDiseaseNotes', icon: 'fa-solid fa-water' },
+    { id: 'hasStomachDisease', notesId: 'stomachDiseaseNotes', icon: 'fa-solid fa-bowl-food' },
+    { id: 'hasUricAcidGout', notesId: 'uricAcidGoutNotes', icon: 'fa-solid fa-shoe-prints' },
+    { id: 'hasCirculationIssues', notesId: 'circulationIssuesNotes', icon: 'fa-solid fa-wave-square' },
+    { id: 'hasThyroidIssues', notesId: 'thyroidIssuesNotes', icon: 'fa-solid fa-ankh' },
+    { id: 'hasAnemia', notesId: 'anemiaNotes', icon: 'fa-solid fa-disease' },
+    { id: 'hasConstipation', notesId: 'constipationNotes', icon: 'fa-solid fa-toilet' },
+    { id: 'hasMusculoskeletalIssues', notesId: 'musculoskeletalIssuesNotes', icon: 'fa-solid fa-bone' },
+    { id: 'hasSurgeries', notesId: 'surgeriesNotes', icon: 'fa-solid fa-scissors' },
+    { id: 'hasMenstrualCycleIssues', notesId: 'menstrualCycleIssuesNotes', icon: 'fa-solid fa-venus' },
+    { id: 'hasSleepIssues', notesId: 'sleepIssuesNotes', icon: 'fa-solid fa-moon' }
+  ];
+
+  readonly lifestyleTextFields = [
+    { id: 'habits', icon: 'fa-solid fa-mug-hot' },
+    { id: 'lifestyle', icon: 'fa-solid fa-bed' },
+    { id: 'exercise', icon: 'fa-solid fa-dumbbell' },
+    { id: 'psyche', icon: 'fa-solid fa-face-smile' },
+    { id: 'foodPreferences', icon: 'fa-solid fa-utensils' }
+  ];
 
   user = signal<AppUserDto | null>(null);
   measurements = signal<BodyMeasurementDto[]>([]);
@@ -115,17 +144,95 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   );
 
   patientProfile = signal<UserTenantProfileDto | null>(null);
-  activeAnamnesisFields = signal<string[]>([]);
-  isAnamnesisFieldActive(field: string): boolean {
-    const active = this.activeAnamnesisFields();
-    return active.length === 0 || active.includes(field);
-  }
   loadingProfile = signal(false);
   editingGuidelines = signal(false);
   savingGuidelines = signal(false);
   editBreakfast = signal('');
   editLunch = signal('');
   editSnack = signal('');
+
+  saveStatus = signal<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  private readonly saveSubject = new Subject<void>();
+  private saveSub?: Subscription;
+  private lastSavedPayload = '';
+  private savedStatusTimeout?: ReturnType<typeof setTimeout>;
+
+  editProfileData = signal<Partial<UserTenantProfileDto>>({});
+
+  getChecklistValue(field: string): boolean {
+    const data = this.editProfileData() as Record<string, unknown>;
+    return Boolean(data[field]);
+  }
+
+  onCheckboxToggle(field: string, value: boolean) {
+    this.editProfileData.update(d => ({ ...d, [field]: value }));
+    this.persistProfile();
+  }
+
+  getChecklistNotes(field: string): string {
+    const data = this.editProfileData() as Record<string, unknown>;
+    const value = data[field];
+    return typeof value === 'string' ? value : '';
+  }
+
+  onNotesChange(field: string, value: string) {
+    this.editProfileData.update(d => ({ ...d, [field]: value || null }));
+    this.saveStatus.set('saving');
+    this.saveSubject.next();
+  }
+
+  onNotesBlur() {
+    this.persistProfile();
+  }
+
+  persistProfile() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId || !this.canManagePatientProfile()) return;
+
+    const data = this.editProfileData();
+    const current = this.patientProfile() || {};
+    const request: UserTenantProfileDto = {
+      ...current,
+      ...data
+    } as UserTenantProfileDto;
+
+    const serialized = JSON.stringify(request);
+    if (serialized === this.lastSavedPayload) {
+      if (this.saveStatus() === 'saving') {
+        this.saveStatus.set('idle');
+      }
+      return;
+    }
+
+    this.saveStatus.set('saving');
+    this.userTenantRoleService.updatePatientProfile(tenantId, this.userId, request).subscribe({
+      next: (updatedProfile) => {
+        this.lastSavedPayload = serialized;
+        this.patientProfile.set(updatedProfile || request);
+        this.saveStatus.set('saved');
+
+        if (this.savedStatusTimeout) {
+          clearTimeout(this.savedStatusTimeout);
+        }
+        this.savedStatusTimeout = setTimeout(() => {
+          if (this.saveStatus() === 'saved') {
+            this.saveStatus.set('idle');
+          }
+        }, 3000);
+      },
+      error: () => {
+        this.saveStatus.set('error');
+        this.notify.error(
+          this.transloco.translate('patient_profile.save_error'),
+          this.transloco.translate('common.error')
+        );
+      }
+    });
+  }
+
+  camelToSnake(str: string): string {
+    return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`).replace(/^_/, '');
+  }
 
   patientEvents = signal<PatientEventDto[]>([]);
   loadingEvents = signal(false);
@@ -243,8 +350,11 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     this.userId = this.route.snapshot.paramMap.get('id') || '';
     if (this.userId) {
       this.loadUser();
-      this.loadTenantPreferences();
     }
+
+    this.saveSub = this.saveSubject.pipe(debounceTime(1000)).subscribe(() => {
+      this.persistProfile();
+    });
 
     // Subscribe to theme changes and rebuild chart when theme toggles
     effect(() => {
@@ -259,8 +369,6 @@ export default class UserDetailPage implements OnInit, OnDestroy {
         });
       }
     });
-
-
   }
 
   private onUserLoaded() {
@@ -288,16 +396,6 @@ export default class UserDetailPage implements OnInit, OnDestroy {
         this.onUserLoaded();
       },
       error: () => this.loadingUser.set(false)
-    });
-  }
-
-  private loadTenantPreferences() {
-    const tenantId = this.tenantCtx.currentTenantId();
-    if (!tenantId) return;
-    this.tenantBrandingService.getBranding(tenantId).subscribe({
-      next: (branding) => {
-        this.activeAnamnesisFields.set(branding.preferences?.active_anamnesis_fields || []);
-      }
     });
   }
 
@@ -453,6 +551,8 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     this.userTenantRoleService.getPatientProfile(tenantId, this.userId).subscribe({
       next: (profile) => {
         this.patientProfile.set(profile);
+        this.editProfileData.set({ ...(profile || {}) });
+        this.lastSavedPayload = JSON.stringify(profile || {});
         this.loadingProfile.set(false);
       },
       error: () => this.loadingProfile.set(false)
@@ -592,18 +692,6 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     });
   }
 
-  showEditProfileDialog() {
-    const tenantId = this.tenantCtx.currentTenantId();
-    if (!tenantId) return;
-    this.modal.open(PatientProfileFormDialog, {
-      label: this.transloco.translate('patient_profile.edit'),
-      size: 'm',
-      data: { profile: this.patientProfile(), userId: this.userId }
-    }).subscribe(() => {
-      this.loadPatientProfile();
-    });
-  }
-
   showRegisterDialog() {
     this.modal.open(MeasurementFormDialog, {
       label: this.transloco.translate('measurements.register'),
@@ -673,10 +761,16 @@ export default class UserDetailPage implements OnInit, OnDestroy {
      });
    }
 
-   ngOnDestroy() {
-     if (this.chartInstance) {
-       this.chartInstance.destroy();
-       this.chartInstance = null;
-     }
-   }
+  ngOnDestroy() {
+    if (this.chartInstance) {
+      this.chartInstance.destroy();
+      this.chartInstance = null;
+    }
+    if (this.saveSub) {
+      this.saveSub.unsubscribe();
+    }
+    if (this.savedStatusTimeout) {
+      clearTimeout(this.savedStatusTimeout);
+    }
+  }
  }

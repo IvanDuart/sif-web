@@ -310,157 +310,135 @@
         @if (activeTabId() === 'patient_profile') {
           <div class="py-4">
             <boneyard-skeleton name="user-medical-profile" [loading]="loadingProfile()">
-              @if (patientProfile(); as profile) {
-                @if ((profile.consultationReason && isAnamnesisFieldActive('consultationReason')) ||
-                     (profile.diseases && isAnamnesisFieldActive('diseases')) ||
-                     (profile.medicalHistory && isAnamnesisFieldActive('medicalHistory')) ||
-                     (profile.habits && isAnamnesisFieldActive('habits')) ||
-                     (profile.lifestyle && isAnamnesisFieldActive('lifestyle')) ||
-                     (profile.exercise && isAnamnesisFieldActive('exercise')) ||
-                     (profile.psyche && isAnamnesisFieldActive('psyche')) ||
-                     (profile.allergiesIntolerances && isAnamnesisFieldActive('allergiesIntolerances')) ||
-                     (profile.foodPreferences && isAnamnesisFieldActive('foodPreferences')) ||
-                     (profile.medicationSupplements && isAnamnesisFieldActive('medicationSupplements')) ||
-                     (profile.gastrointestinalStatus && isAnamnesisFieldActive('gastrointestinalStatus')) ||
-                     (profile.hormonalCycle && isAnamnesisFieldActive('hormonalCycle'))) {
-                  <div class="data-card">
-                    <div class="flex items-center gap-2 mb-2">
-                      <i class="fa-solid fa-notes-medical text-primary-500"></i>
-                      <h2 class="text-lg font-semibold m-0">{{ t('users.tab_patient_profile') }}</h2>
-                    </div>
-                    <div class="divide-y divide-surface-200 dark:divide-surface-700">
-                    @if (profile.consultationReason && isAnamnesisFieldActive('consultationReason')) {
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4 first:pt-0">
-                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                          <i class="fa-solid fa-bullseye text-primary-500 w-4 text-center"></i>
-                          <span>{{ t('patient_profile.consultation_reason') }}</span>
-                        </div>
-                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.consultationReason }}</p>
-                      </div>
+              <div class="flex flex-col gap-6">
+                <!-- Status indicator -->
+                <div class="flex items-center justify-end min-h-[20px] -mb-2">
+                  @if (canManagePatientProfile()) {
+                    @if (saveStatus() === 'saving') {
+                      <span class="text-xs text-surface-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-spinner fa-spin text-primary-500"></i>
+                        {{ t('patient_profile.saving') }}
+                      </span>
+                    } @else if (saveStatus() === 'saved') {
+                      <span class="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i>
+                        {{ t('patient_profile.saved') }}
+                      </span>
+                    } @else if (saveStatus() === 'error') {
+                      <span class="text-xs text-red-500 flex items-center gap-1.5">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        {{ t('patient_profile.save_error') }}
+                      </span>
                     }
-                    @if (profile.diseases && isAnamnesisFieldActive('diseases')) {
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
-                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                          <i class="fa-solid fa-disease text-primary-500 w-4 text-center"></i>
-                          <span>{{ t('patient_profile.diseases') }}</span>
-                        </div>
-                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.diseases }}</p>
-                      </div>
-                    }
-                    @if (profile.medicalHistory && isAnamnesisFieldActive('medicalHistory')) {
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
-                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                          <i class="fa-solid fa-notes-medical text-primary-500 w-4 text-center"></i>
-                          <span>{{ t('patient_profile.medical_history') }}</span>
-                        </div>
-                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.medicalHistory }}</p>
-                      </div>
-                    }
-                    @if (profile.habits && isAnamnesisFieldActive('habits')) {
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
-                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                          <i class="fa-solid fa-mug-hot text-primary-500 w-4 text-center"></i>
-                          <span>{{ t('patient_profile.habits') }}</span>
-                        </div>
-                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.habits }}</p>
-                      </div>
-                    }
-                    @if (profile.lifestyle && isAnamnesisFieldActive('lifestyle')) {
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
-                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                          <i class="fa-solid fa-bed text-primary-500 w-4 text-center"></i>
-                          <span>{{ t('patient_profile.lifestyle') }}</span>
-                        </div>
-                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.lifestyle }}</p>
-                      </div>
-                    }
-                    @if (profile.exercise && isAnamnesisFieldActive('exercise')) {
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
-                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                          <i class="fa-solid fa-dumbbell text-primary-500 w-4 text-center"></i>
-                          <span>{{ t('patient_profile.exercise') }}</span>
-                        </div>
-                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.exercise }}</p>
-                      </div>
-                    }
-                    @if (profile.psyche && isAnamnesisFieldActive('psyche')) {
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
-                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                          <i class="fa-solid fa-face-smile text-primary-500 w-4 text-center"></i>
-                          <span>{{ t('patient_profile.psyche') }}</span>
-                        </div>
-                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.psyche }}</p>
-                      </div>
-                    }
-                    @if (profile.allergiesIntolerances && isAnamnesisFieldActive('allergiesIntolerances')) {
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
-                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                          <i class="fa-solid fa-allergies text-primary-500 w-4 text-center"></i>
-                          <span>{{ t('patient_profile.allergies_intolerances') }}</span>
-                        </div>
-                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.allergiesIntolerances }}</p>
-                      </div>
-                    }
-                    @if (profile.foodPreferences && isAnamnesisFieldActive('foodPreferences')) {
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
-                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                          <i class="fa-solid fa-utensils text-primary-500 w-4 text-center"></i>
-                          <span>{{ t('patient_profile.food_preferences') }}</span>
-                        </div>
-                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.foodPreferences }}</p>
-                      </div>
-                    }
-                    @if (profile.medicationSupplements && isAnamnesisFieldActive('medicationSupplements')) {
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
-                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                          <i class="fa-solid fa-pills text-primary-500 w-4 text-center"></i>
-                          <span>{{ t('patient_profile.medication_supplements') }}</span>
-                        </div>
-                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.medicationSupplements }}</p>
-                      </div>
-                    }
-                    @if (profile.gastrointestinalStatus && isAnamnesisFieldActive('gastrointestinalStatus')) {
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
-                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                          <i class="fa-solid fa-bacteria text-primary-500 w-4 text-center"></i>
-                          <span>{{ t('patient_profile.gastrointestinal_status') }}</span>
-                        </div>
-                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.gastrointestinalStatus }}</p>
-                      </div>
-                    }
-                    @if (profile.hormonalCycle && isAnamnesisFieldActive('hormonalCycle')) {
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4 last:pb-0">
-                        <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                          <i class="fa-solid fa-venus text-primary-500 w-4 text-center"></i>
-                          <span>{{ t('patient_profile.hormonal_cycle') }}</span>
-                        </div>
-                        <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.hormonalCycle }}</p>
-                      </div>
-                    }
-                    </div>
-                  </div>
-                } @else {
-                  <app-empty-state
-                    icon="fa-solid fa-notes-medical"
-                    [title]="t('patient_profile.empty_title')"
-                    [description]="t('patient_profile.empty')"
-                    [actionLabel]="canManagePatientProfile() ? t('patient_profile.fill_profile') : undefined"
-                    (action)="showEditProfileDialog()">
-                  </app-empty-state>
-                }
+                  }
+                </div>
 
-                @if (canManagePatientProfile()) {
-                  <div class="flex justify-end mt-4">
-                    <button
-                      type="button"
-                      tuiButton appearance="secondary" size="m"
-                      (click)="showEditProfileDialog()">
-                      <i class="fa-solid fa-pen-to-square"></i>
-                      {{ t('patient_profile.edit') }}
-                    </button>
+                <!-- Top Section: Motivo de consulta -->
+                <div class="data-card">
+                  <div class="flex items-center gap-2 mb-2">
+                    <i class="fa-solid fa-bullseye text-primary-500"></i>
+                    <h2 class="text-lg font-semibold m-0">{{ t('patient_profile.consultation_reason') }}</h2>
                   </div>
-                }
-              }
+                  <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                    <textarea
+                      tuiTextarea
+                      [disabled]="!canManagePatientProfile()"
+                      [ngModel]="getChecklistNotes('consultationReason')"
+                      (ngModelChange)="onNotesChange('consultationReason', $event)"
+                      (blur)="onNotesBlur()"
+                      [min]="3"
+                      maxlength="500"></textarea>
+                  </tui-textfield>
+                </div>
+
+                <!-- Top Section: Medicación y Suplementación -->
+                <div class="data-card">
+                  <div class="flex items-center gap-2 mb-2">
+                    <i class="fa-solid fa-pills text-primary-500"></i>
+                    <h2 class="text-lg font-semibold m-0">{{ t('patient_profile.medication_supplements') }}</h2>
+                  </div>
+                  <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                    <textarea
+                      tuiTextarea
+                      [disabled]="!canManagePatientProfile()"
+                      [ngModel]="getChecklistNotes('medicationSupplements')"
+                      (ngModelChange)="onNotesChange('medicationSupplements', $event)"
+                      (blur)="onNotesBlur()"
+                      [min]="3"
+                      maxlength="500"></textarea>
+                  </tui-textfield>
+                </div>
+
+                <!-- Checklist Section: Condiciones Médicas (2 columnas) -->
+                <div class="data-card">
+                  <div class="flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-notes-medical text-primary-500"></i>
+                    <h2 class="text-lg font-semibold m-0">{{ t('patient_profile.medical_conditions') }}</h2>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @for (field of checklistFields; track field.id) {
+                      <div class="p-3 rounded-lg border border-surface-200 dark:border-surface-700">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            tuiCheckbox
+                            [disabled]="!canManagePatientProfile()"
+                            [ngModel]="getChecklistValue(field.id)"
+                            (ngModelChange)="onCheckboxToggle(field.id, $event)" />
+                          <div class="flex items-center gap-2">
+                            <i [class]="field.icon + ' text-primary-500'"></i>
+                            <span class="font-medium text-sm text-surface-900 dark:text-surface-0">
+                              {{ t('patient_profile.' + camelToSnake(field.id)) }}
+                            </span>
+                          </div>
+                        </label>
+                        @if (getChecklistValue(field.id)) {
+                          <div class="mt-2">
+                            <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                              <textarea
+                                tuiTextarea
+                                [disabled]="!canManagePatientProfile()"
+                                [ngModel]="getChecklistNotes(field.notesId)"
+                                (ngModelChange)="onNotesChange(field.notesId, $event)"
+                                (blur)="onNotesBlur()"
+                                [maxlength]="500"></textarea>
+                            </tui-textfield>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Lifestyle & Habits Section (2 columns) -->
+                <div class="data-card">
+                  <div class="flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-heart-pulse text-primary-500"></i>
+                    <h2 class="text-lg font-semibold m-0">{{ t('patient_profile.lifestyle_and_habits') }}</h2>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @for (field of lifestyleTextFields; track field.id) {
+                      <div class="flex flex-col gap-1.5">
+                        <label [for]="'profile-' + field.id" class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                          <i [class]="field.icon + ' text-primary-500 w-4 text-center'"></i>
+                          <span>{{ t('patient_profile.' + camelToSnake(field.id)) }}</span>
+                        </label>
+                        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                          <textarea
+                            [id]="'profile-' + field.id"
+                            tuiTextarea
+                            [disabled]="!canManagePatientProfile()"
+                            [ngModel]="getChecklistNotes(field.id)"
+                            (ngModelChange)="onNotesChange(field.id, $event)"
+                            (blur)="onNotesBlur()"
+                            [min]="3"
+                            maxlength="500"></textarea>
+                        </tui-textfield>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
             </boneyard-skeleton>
           </div>
         }

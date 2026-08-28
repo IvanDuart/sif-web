@@ -85,7 +85,7 @@ export default class HelpPage {
     const searchQ = this.searchQuery().toLowerCase().trim();
 
     // Filter by role and tab
-    let sections = HELP_CONTENT.filter(section => {
+    const sections = HELP_CONTENT.filter(section => {
       const canSeeSection = section.roles.includes(role) || section.roles.includes('common');
       const isInActiveTab =
         activeTab === 'common'

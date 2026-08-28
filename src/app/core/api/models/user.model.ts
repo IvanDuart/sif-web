@@ -27,6 +27,44 @@ export interface UserTenantProfileDto {
   breakfast: string | null;
   lunch: string | null;
   snack: string | null;
+
+  // Checklist fields
+  hasDiabetes: boolean;
+  diabetesNotes: string | null;
+  hasHypertension: boolean;
+  hypertensionNotes: string | null;
+  hasHeartDisease: boolean;
+  heartDiseaseNotes: string | null;
+  hasCholesterol: boolean;
+  cholesterolNotes: string | null;
+  hasAllergiesAsthma: boolean;
+  allergiesAsthmaNotes: string | null;
+  hasLiverDisease: boolean;
+  liverDiseaseNotes: string | null;
+  hasGallbladderDisease: boolean;
+  gallbladderDiseaseNotes: string | null;
+  hasKidneyDisease: boolean;
+  kidneyDiseaseNotes: string | null;
+  hasStomachDisease: boolean;
+  stomachDiseaseNotes: string | null;
+  hasUricAcidGout: boolean;
+  uricAcidGoutNotes: string | null;
+  hasCirculationIssues: boolean;
+  circulationIssuesNotes: string | null;
+  hasThyroidIssues: boolean;
+  thyroidIssuesNotes: string | null;
+  hasAnemia: boolean;
+  anemiaNotes: string | null;
+  hasConstipation: boolean;
+  constipationNotes: string | null;
+  hasMusculoskeletalIssues: boolean;
+  musculoskeletalIssuesNotes: string | null;
+  hasSurgeries: boolean;
+  surgeriesNotes: string | null;
+  hasMenstrualCycleIssues: boolean;
+  menstrualCycleIssuesNotes: string | null;
+  hasSleepIssues: boolean;
+  sleepIssuesNotes: string | null;
 }
 
 export type UpdateUserTenantProfileRequest = UserTenantProfileDto;

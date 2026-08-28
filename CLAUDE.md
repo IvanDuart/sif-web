@@ -20,6 +20,7 @@ npm run watch          # rebuild on change (development config)
 npm test               # Karma + Jasmine unit tests (opens headless Chrome; needs Chrome installed)
 npm run lint           # eslint via angular-eslint
 npx boneyard-js build  # regenerate src/bones/registry.ts from the *.bones.json files
+ng generate component component-name  # Generate a new Angular component
 ```
 
 - Run a single test file: Karma is configured without a file filter flag, so use `npm test -- --include=<path-glob>` (e.g. `npm test -- --include=**/menu*.spec.ts`), or temporarily focus with `fdescribe`/`fit`. Tests are Jasmine `*.spec.ts` colocated with source.
@@ -92,3 +93,7 @@ npx boneyard-js build  # regenerate src/bones/registry.ts from the *.bones.json 
 - **Default exports for pages**: keep `export default` on lazy-loaded page components or route imports break.
 - **No custom native controls**: a `<table>`, `<button>`, `<input>`, `<span tuiBadge>` etc. must come from Taiga UI (`tuiTable`/`tuiTh`/`tuiTr`/`tuiTd`, `tuiButton`/`tuiIconButton`, `tui-textfield` wrapper with `tuiLabel`/`tuiInput`).
 - **Lint**: ESLint enforces `app` selector prefixes (kebab-case components, camelCase attributes) and prefers Angular control flow (`@if`/`@for`) over `*ngIf`/`*ngFor` (warn).
+
+## Testing Credentials
+- **Nutritionist role:** User: nelson@carajillolabs.com | Password: nelson1234
+- **Patient role:** User: frink@carajillolabs.com | Password: frink1234

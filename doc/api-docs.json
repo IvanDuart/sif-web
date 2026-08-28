@@ -4729,6 +4729,114 @@
             "type": "string",
             "maxLength": 150,
             "minLength": 0
+          },
+          "hasDiabetes": {
+            "type": "boolean"
+          },
+          "diabetesNotes": {
+            "type": "string"
+          },
+          "hasHypertension": {
+            "type": "boolean"
+          },
+          "hypertensionNotes": {
+            "type": "string"
+          },
+          "hasHeartDisease": {
+            "type": "boolean"
+          },
+          "heartDiseaseNotes": {
+            "type": "string"
+          },
+          "hasCholesterol": {
+            "type": "boolean"
+          },
+          "cholesterolNotes": {
+            "type": "string"
+          },
+          "hasAllergiesAsthma": {
+            "type": "boolean"
+          },
+          "allergiesAsthmaNotes": {
+            "type": "string"
+          },
+          "hasLiverDisease": {
+            "type": "boolean"
+          },
+          "liverDiseaseNotes": {
+            "type": "string"
+          },
+          "hasGallbladderDisease": {
+            "type": "boolean"
+          },
+          "gallbladderDiseaseNotes": {
+            "type": "string"
+          },
+          "hasKidneyDisease": {
+            "type": "boolean"
+          },
+          "kidneyDiseaseNotes": {
+            "type": "string"
+          },
+          "hasStomachDisease": {
+            "type": "boolean"
+          },
+          "stomachDiseaseNotes": {
+            "type": "string"
+          },
+          "hasUricAcidGout": {
+            "type": "boolean"
+          },
+          "uricAcidGoutNotes": {
+            "type": "string"
+          },
+          "hasCirculationIssues": {
+            "type": "boolean"
+          },
+          "circulationIssuesNotes": {
+            "type": "string"
+          },
+          "hasThyroidIssues": {
+            "type": "boolean"
+          },
+          "thyroidIssuesNotes": {
+            "type": "string"
+          },
+          "hasAnemia": {
+            "type": "boolean"
+          },
+          "anemiaNotes": {
+            "type": "string"
+          },
+          "hasConstipation": {
+            "type": "boolean"
+          },
+          "constipationNotes": {
+            "type": "string"
+          },
+          "hasMusculoskeletalIssues": {
+            "type": "boolean"
+          },
+          "musculoskeletalIssuesNotes": {
+            "type": "string"
+          },
+          "hasSurgeries": {
+            "type": "boolean"
+          },
+          "surgeriesNotes": {
+            "type": "string"
+          },
+          "hasMenstrualCycleIssues": {
+            "type": "boolean"
+          },
+          "menstrualCycleIssuesNotes": {
+            "type": "string"
+          },
+          "hasSleepIssues": {
+            "type": "boolean"
+          },
+          "sleepIssuesNotes": {
+            "type": "string"
           }
         }
       },
@@ -4778,6 +4886,114 @@
             "type": "string"
           },
           "lunch": {
+            "type": "string"
+          },
+          "hasDiabetes": {
+            "type": "boolean"
+          },
+          "diabetesNotes": {
+            "type": "string"
+          },
+          "hasHypertension": {
+            "type": "boolean"
+          },
+          "hypertensionNotes": {
+            "type": "string"
+          },
+          "hasHeartDisease": {
+            "type": "boolean"
+          },
+          "heartDiseaseNotes": {
+            "type": "string"
+          },
+          "hasCholesterol": {
+            "type": "boolean"
+          },
+          "cholesterolNotes": {
+            "type": "string"
+          },
+          "hasAllergiesAsthma": {
+            "type": "boolean"
+          },
+          "allergiesAsthmaNotes": {
+            "type": "string"
+          },
+          "hasLiverDisease": {
+            "type": "boolean"
+          },
+          "liverDiseaseNotes": {
+            "type": "string"
+          },
+          "hasGallbladderDisease": {
+            "type": "boolean"
+          },
+          "gallbladderDiseaseNotes": {
+            "type": "string"
+          },
+          "hasKidneyDisease": {
+            "type": "boolean"
+          },
+          "kidneyDiseaseNotes": {
+            "type": "string"
+          },
+          "hasStomachDisease": {
+            "type": "boolean"
+          },
+          "stomachDiseaseNotes": {
+            "type": "string"
+          },
+          "hasUricAcidGout": {
+            "type": "boolean"
+          },
+          "uricAcidGoutNotes": {
+            "type": "string"
+          },
+          "hasCirculationIssues": {
+            "type": "boolean"
+          },
+          "circulationIssuesNotes": {
+            "type": "string"
+          },
+          "hasThyroidIssues": {
+            "type": "boolean"
+          },
+          "thyroidIssuesNotes": {
+            "type": "string"
+          },
+          "hasAnemia": {
+            "type": "boolean"
+          },
+          "anemiaNotes": {
+            "type": "string"
+          },
+          "hasConstipation": {
+            "type": "boolean"
+          },
+          "constipationNotes": {
+            "type": "string"
+          },
+          "hasMusculoskeletalIssues": {
+            "type": "boolean"
+          },
+          "musculoskeletalIssuesNotes": {
+            "type": "string"
+          },
+          "hasSurgeries": {
+            "type": "boolean"
+          },
+          "surgeriesNotes": {
+            "type": "string"
+          },
+          "hasMenstrualCycleIssues": {
+            "type": "boolean"
+          },
+          "menstrualCycleIssuesNotes": {
+            "type": "string"
+          },
+          "hasSleepIssues": {
+            "type": "boolean"
+          },
+          "sleepIssuesNotes": {
             "type": "string"
           }
         }
@@ -6112,15 +6328,15 @@
               "type": "string"
             }
           },
-          "roleCode": {
-            "type": "string"
-          },
           "userType": {
             "type": "string",
             "enum": [
               "STAFF",
               "PATIENT"
             ]
+          },
+          "roleCode": {
+            "type": "string"
           },
           "tenantName": {
             "type": "string"
