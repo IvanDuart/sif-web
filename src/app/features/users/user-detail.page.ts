@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, OnInit, ViewChild, ElementRef, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject, Subscription, debounceTime } from 'rxjs';
 import { ModalService, NotificationService, ConfirmService } from '../../core/ui';
 import { AuthService } from '../../core/auth/auth.service';
@@ -17,11 +17,14 @@ import { BodyMeasurementService } from '../../core/api/services/body-measurement
 import { MenuService } from '../../core/api/services/menu.api';
 import { AppointmentService } from '../../core/api/services/appointment.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
+import { TenantBrandingService } from '../../core/api/services/tenant-branding.api';
+import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { AppUserDto, UserTenantProfileDto } from '../../core/api/models/user.model';
 import { PatientEventDto } from '../../core/api/models/patient-event.model';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { BodyMeasurementDto, MeasurementHistoryDto } from '../../core/api/models/body-measurement.model';
 import { Menu } from '../../core/api/models/menu.model';
+import { MenuTemplate } from '../../core/api/models/menu-template.model';
 import { AppointmentDto } from '../../core/api/models/appointment.model';
 import { Page } from '../../core/api/models/page.model';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
@@ -31,6 +34,7 @@ import { EditUserDialog } from './edit-user.dialog';
 import { WaterIntakeWidget } from '../tenant/dashboard/components/water-intake-widget';
 import { PatientEventFormDialog } from './patient-event-form.dialog';
 import { AssignMenuTemplateDialog } from './assign-menu-template.dialog';
+import { TemplateUploadDialog } from '../templates/template-upload.dialog';
 import { MenuFormDialog } from '../menus/menu-form.dialog';
 import { formatInstant, formatInstantWithTime } from '../../shared/utils/date';
 import { METRIC_SERIES, buildChartConfig, hexToRgba, themePrimary } from '../../shared/utils/chart-config';
@@ -71,10 +75,13 @@ Chart.register(...registerables);
 })
 export default class UserDetailPage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   private readonly userTenantRoleService = inject(UserTenantRoleService);
   private readonly measurementService = inject(BodyMeasurementService);
   private readonly menuService = inject(MenuService);
+  private readonly templateService = inject(MenuTemplateService);
+  private readonly tenantBrandingService = inject(TenantBrandingService);
   private readonly appointmentService = inject(AppointmentService);
   private readonly patientEventService = inject(PatientEventService);
   private readonly tenantCtx = inject(TenantContextService);
@@ -84,6 +91,8 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   private readonly transloco = inject(TranslocoService);
   private readonly permissionsService = inject(PermissionsService);
   private readonly themeService = inject(ThemeService);
+
+  aiEnabled = signal(false);
 
   // Metadata describing the structured medical checklist and lifestyle/nutrition fields rendered in the profile tab.
   readonly checklistFields = [
@@ -347,6 +356,14 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (tenantId) {
+      this.tenantBrandingService.getBranding(tenantId).subscribe({
+        next: (branding) => this.aiEnabled.set(branding.aiEnabled === true),
+        error: () => this.aiEnabled.set(false)
+      });
+    }
+
     this.userId = this.route.snapshot.paramMap.get('id') || '';
     if (this.userId) {
       this.loadUser();
@@ -701,6 +718,34 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       this.notify.success(this.transloco.translate('notifications.measurement_registered'), this.transloco.translate('common.success'));
       this.loadMeasurements(0, this.size());
       this.loadEvolution();
+    });
+  }
+
+  showUploadTemplateDialog() {
+    this.modal.open<MenuTemplate>(TemplateUploadDialog, {
+      label: this.transloco.translate('templates.upload_ocr'),
+      size: 'l'
+    }).subscribe((createdTemplate) => {
+      if (!createdTemplate?.id) return;
+      const tenantId = this.tenantCtx.currentTenantId();
+      if (!tenantId) return;
+
+      this.templateService.instantiate(tenantId, createdTemplate.id, {
+        appUserId: this.userId,
+        name: createdTemplate.name,
+        isActive: true
+      }).subscribe({
+        next: (createdMenu) => {
+          this.notify.success(this.transloco.translate('notifications.menu_created'));
+          this.loadMenuHistory();
+          if (createdMenu?.id) {
+            this.router.navigate(['/menus', createdMenu.id]);
+          }
+        },
+        error: () => {
+          this.notify.error(this.transloco.translate('common.error'));
+        }
+      });
     });
   }
 

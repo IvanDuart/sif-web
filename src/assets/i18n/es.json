@@ -241,6 +241,7 @@
     "view_detail": "Ver Detalle",
     "empty": "No hay menús asignados a este usuario.",
     "empty_title": "Sin menús asignados",
+    "import_menu": "Importar",
     "assign_template": "Desde Plantilla",
     "create_menu": "Crear de Cero",
     "create_menu_dialog": "Crear Menú",
@@ -925,7 +926,8 @@
     "measurement_deleted": "Medición eliminada",
     "menu_created": "Menú asignado al paciente correctamente",
     "template_assigned": "Plantilla asignada al paciente correctamente",
-    "meal_deleted": "Plato eliminado"
+    "meal_deleted": "Plato eliminado",
+    "meal_updated": "Plato actualizado correctamente"
   },
   "help": {
     "title": "Centro de Ayuda",

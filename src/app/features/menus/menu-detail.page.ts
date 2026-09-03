@@ -1,10 +1,11 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { DatePipe, Location } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
-import { TuiButton, TuiDropdown, TuiDataList } from '@taiga-ui/core';
-import { TuiBadge } from '@taiga-ui/kit';
+import { TuiButton, TuiDropdown, TuiDataList, TuiTextfield } from '@taiga-ui/core';
+import { TuiBadge, TuiTextarea } from '@taiga-ui/kit';
 import { TuiTable } from '@taiga-ui/addon-table';
 
 import { MenuService } from '../../core/api/services/menu.api';
@@ -41,7 +42,7 @@ const SUPERMARKETS = [
 @Component({
   selector: 'app-menu-detail',
   standalone: true,
-  imports: [DatePipe, RouterModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, TuiButton, TuiBadge, TuiDropdown, TuiDataList, TuiTable],
+  imports: [DatePipe, RouterModule, FormsModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, TuiButton, TuiBadge, TuiDropdown, TuiDataList, TuiTable, TuiTextfield, TuiTextarea],
   templateUrl: './menu-detail.page.html',
   styleUrls: ['./menu-detail.page.scss'],
 })
@@ -63,6 +64,10 @@ export default class MenuDetailPage implements OnInit {
   meals = signal<Meal[]>([]);
   loading = signal(true);
   menuId = '';
+
+  editingMealId = signal<string | null>(null);
+  editingDescription = signal<string>('');
+  savingInline = signal<boolean>(false);
 
   allDays = ALL_DAYS;
   supermarkets = SUPERMARKETS;
@@ -186,14 +191,50 @@ export default class MenuDetailPage implements OnInit {
     return this.groupedMeals().get(day)?.find(m => m.mealType === mealType);
   }
 
-  editMeal(meal: Meal) {
-    this.modal.open<Meal, MealFormDialogInput>(MealFormDialog, {
-      label: this.transloco.translate('common.edit'),
-      size: 'm',
-      data: { meal }
-    }).subscribe(result => {
-      if (result) this.loadData();
+  startEditMeal(meal: Meal) {
+    this.editingMealId.set(meal.id);
+    this.editingDescription.set(meal.description);
+  }
+
+  cancelInlineEdit() {
+    this.editingMealId.set(null);
+    this.editingDescription.set('');
+  }
+
+  saveInlineEdit(meal: Meal) {
+    const desc = this.editingDescription().trim();
+    if (!desc) return;
+
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+
+    this.savingInline.set(true);
+    this.mealService.update(tenantId, meal.id, { description: desc }).subscribe({
+      next: (updatedMeal) => {
+        this.savingInline.set(false);
+        this.editingMealId.set(null);
+        this.editingDescription.set('');
+        this.notify.success(this.transloco.translate('notifications.meal_updated'));
+        const newDesc = updatedMeal?.description ?? desc;
+        this.meals.update(list => list.map(m => m.id === meal.id ? { ...m, description: newDesc } : m));
+      },
+      error: () => {
+        this.savingInline.set(false);
+        this.notify.error(this.transloco.translate('common.error'));
+      }
     });
+  }
+
+  onKeydownEnter(event: Event, meal: Meal): void {
+    const keyboardEvent = event as KeyboardEvent;
+    if (!keyboardEvent.shiftKey) {
+      keyboardEvent.preventDefault();
+      this.saveInlineEdit(meal);
+    }
+  }
+
+  editMeal(meal: Meal) {
+    this.startEditMeal(meal);
   }
 
   deleteMeal(meal: Meal) {

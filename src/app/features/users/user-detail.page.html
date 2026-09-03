@@ -454,19 +454,19 @@
                   <div class="flex flex-col gap-1.5">
                     <label for="breakfast" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('patient_profile.breakfast') }}</label>
                     <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-                      <textarea id="breakfast" tuiTextarea [ngModel]="editBreakfast()" (ngModelChange)="editBreakfast.set($event)" [min]="3" maxlength="150"></textarea>
+                      <textarea id="breakfast" tuiTextarea [ngModel]="editBreakfast()" (ngModelChange)="editBreakfast.set($event)" [min]="3" maxlength="2000"></textarea>
                     </tui-textfield>
                   </div>
                   <div class="flex flex-col gap-1.5">
                     <label for="lunch" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('patient_profile.lunch') }}</label>
                     <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-                      <textarea id="lunch" tuiTextarea [ngModel]="editLunch()" (ngModelChange)="editLunch.set($event)" [min]="3" maxlength="150"></textarea>
+                      <textarea id="lunch" tuiTextarea [ngModel]="editLunch()" (ngModelChange)="editLunch.set($event)" [min]="3" maxlength="2000"></textarea>
                     </tui-textfield>
                   </div>
                   <div class="flex flex-col gap-1.5">
                     <label for="snack" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('patient_profile.snack') }}</label>
                     <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-                      <textarea id="snack" tuiTextarea [ngModel]="editSnack()" (ngModelChange)="editSnack.set($event)" [min]="3" maxlength="150"></textarea>
+                      <textarea id="snack" tuiTextarea [ngModel]="editSnack()" (ngModelChange)="editSnack.set($event)" [min]="3" maxlength="2000"></textarea>
                     </tui-textfield>
                   </div>
                   <div class="flex justify-end gap-2 mt-2 pt-4 border-t border-surface-200 dark:border-surface-700">
@@ -543,6 +543,15 @@
           <div class="py-4 flex flex-col gap-4">
             <div class="flex justify-end gap-2 mb-2">
               @if (canManageMenu()) {
+              @if (aiEnabled()) {
+              <button
+                type="button"
+                tuiButton appearance="secondary" size="m"
+                (click)="showUploadTemplateDialog()">
+                <i class="fa-solid fa-file-arrow-up"></i>
+                {{ t('menu_history.import_menu') }}
+              </button>
+              }
               <button
                 type="button"
                 tuiButton appearance="secondary" size="m"

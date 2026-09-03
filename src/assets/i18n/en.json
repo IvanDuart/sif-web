@@ -241,6 +241,7 @@
     "view_detail": "View Detail",
     "empty": "No menus assigned to this user.",
     "empty_title": "No menus assigned",
+    "import_menu": "Import",
     "assign_template": "From Template",
     "create_menu": "Create from Scratch",
     "create_menu_dialog": "Create Menu",
@@ -898,7 +899,8 @@
     "measurement_deleted": "Measurement deleted",
     "menu_created": "Menu assigned to patient successfully",
     "template_assigned": "Template assigned to patient successfully",
-    "meal_deleted": "Meal deleted"
+    "meal_deleted": "Meal deleted",
+    "meal_updated": "Meal updated successfully"
   },
   "revenue": {
     "title": "Revenue",

@@ -1,9 +1,11 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
-import { TuiButton } from '@taiga-ui/core';
+import { TuiButton, TuiTextfield } from '@taiga-ui/core';
+import { TuiTextarea } from '@taiga-ui/kit';
 import { TuiTable } from '@taiga-ui/addon-table';
 
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
@@ -22,7 +24,7 @@ const MEAL_ORDER: Record<string, number> = { COMIDA: 0, CENA: 1 };
 @Component({
   selector: 'app-template-detail',
   standalone: true,
-  imports: [DatePipe, RouterModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, TuiButton, TuiTable],
+  imports: [DatePipe, RouterModule, FormsModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, TuiButton, TuiTable, TuiTextfield, TuiTextarea],
   templateUrl: './template-detail.page.html',
   styleUrls: ['./template-detail.page.scss'],
 })
@@ -41,6 +43,10 @@ export default class TemplateDetailPage implements OnInit {
   meals = signal<MealTemplate[]>([]);
   loading = signal(true);
   templateId = '';
+
+  editingMealId = signal<string | null>(null);
+  editingDescription = signal<string>('');
+  savingInline = signal<boolean>(false);
 
   allDays = ALL_DAYS;
   canManageTemplate = computed(() => this.permissionsService.has('MANAGE_TEMPLATE'));
@@ -105,17 +111,54 @@ export default class TemplateDetailPage implements OnInit {
     });
   }
 
-  editMeal(meal: MealTemplate) {
-    this.modal.open<MealTemplate, MealTemplateFormDialogInput>(MealTemplateFormDialog, {
-      label: this.transloco.translate('common.edit'),
-      size: 'm',
-      data: { templateId: this.templateId, meal }
-    }).subscribe(result => {
-      if (result) {
-        this.notify.success('Plato actualizado correctamente');
-        this.loadData();
+  startEditMeal(meal: MealTemplate) {
+    this.editingMealId.set(meal.id);
+    this.editingDescription.set(meal.description);
+  }
+
+  cancelInlineEdit() {
+    this.editingMealId.set(null);
+    this.editingDescription.set('');
+  }
+
+  saveInlineEdit(meal: MealTemplate) {
+    const desc = this.editingDescription().trim();
+    if (!desc) return;
+
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+
+    this.savingInline.set(true);
+    this.templateService.updateMeal(tenantId, this.templateId, meal.id, {
+      dayOfWeek: meal.dayOfWeek,
+      mealType: meal.mealType,
+      description: desc,
+    }).subscribe({
+      next: (updatedMeal) => {
+        this.savingInline.set(false);
+        this.editingMealId.set(null);
+        this.editingDescription.set('');
+        this.notify.success(this.transloco.translate('notifications.meal_updated'));
+        const newDesc = updatedMeal?.description ?? desc;
+        this.meals.update(list => list.map(m => m.id === meal.id ? { ...m, description: newDesc } : m));
+      },
+      error: () => {
+        this.savingInline.set(false);
+        this.notify.error(this.transloco.translate('common.error'));
       }
     });
+  }
+
+  onKeydownEnter(event: Event, meal: MealTemplate): void {
+    const keyboardEvent = event as KeyboardEvent;
+    if (!keyboardEvent.shiftKey) {
+      keyboardEvent.preventDefault();
+      this.saveInlineEdit(meal);
+    }
+  }
+
+  editMeal(meal: MealTemplate) {
+    this.startEditMeal(meal);
   }
 
   deleteMeal(meal: MealTemplate) {
