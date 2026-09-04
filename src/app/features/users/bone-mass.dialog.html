@@ -1,0 +1,28 @@
+<form [formGroup]="form" (ngSubmit)="submit()" *transloco="let t" class="flex flex-col gap-4">
+  <p class="text-sm text-surface-600 dark:text-surface-400">
+    {{ t('measurements.bone_mass_dialog_hint') }}
+  </p>
+
+  <tui-textfield class="w-full">
+    <label tuiLabel for="boneMassInput">{{ t('measurements.bone_mass') }} (kg)</label>
+    <input
+      id="boneMassInput"
+      type="number"
+      formControlName="boneMassKg"
+      tuiInput
+      step="0.01"
+      min="0.5"
+      max="10.0"
+      placeholder="ej. 2.85"
+    />
+  </tui-textfield>
+
+  <div class="flex justify-end gap-2 pt-4 border-t border-surface-200 dark:border-surface-700 mt-2">
+    <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">
+      {{ t('common.cancel') }}
+    </button>
+    <button type="submit" tuiButton size="m" [disabled]="form.invalid" [class.loading]="saving()">
+      {{ t('common.save') }}
+    </button>
+  </div>
+</form>

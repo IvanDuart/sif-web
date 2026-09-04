@@ -22,7 +22,7 @@ import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { AppUserDto, UserTenantProfileDto } from '../../core/api/models/user.model';
 import { PatientEventDto } from '../../core/api/models/patient-event.model';
 import { PermissionsService } from '../../core/permissions/permissions.service';
-import { BodyMeasurementDto, MeasurementHistoryDto } from '../../core/api/models/body-measurement.model';
+import { BodyMeasurementDto, MeasurementHistoryDto, BodyCompositionReport, SegmentalResult } from '../../core/api/models/body-measurement.model';
 import { Menu } from '../../core/api/models/menu.model';
 import { MenuTemplate } from '../../core/api/models/menu-template.model';
 import { AppointmentDto } from '../../core/api/models/appointment.model';
@@ -30,6 +30,7 @@ import { Page } from '../../core/api/models/page.model';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
 import { EmptyState } from '../../shared/ui/empty-state';
 import { MeasurementFormDialog } from './measurement-form.dialog';
+import { BoneMassDialog, BoneMassDialogInput } from './bone-mass.dialog';
 import { EditUserDialog } from './edit-user.dialog';
 import { WaterIntakeWidget } from '../tenant/dashboard/components/water-intake-widget';
 import { PatientEventFormDialog } from './patient-event-form.dialog';
@@ -44,7 +45,7 @@ import { Chart, registerables } from 'chart.js';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
 import { TuiButton, TuiCheckbox, TuiTextfield } from '@taiga-ui/core';
-import { TuiBadge, TuiTabs, TuiTextarea } from '@taiga-ui/kit';
+import { TuiBadge, TuiProgress, TuiTabs, TuiTextarea } from '@taiga-ui/kit';
 import { TuiTable } from '@taiga-ui/addon-table';
 
 Chart.register(...registerables);
@@ -64,6 +65,7 @@ Chart.register(...registerables);
     SkeletonComponent,
     TuiButton,
     TuiBadge,
+    TuiProgress,
     TuiTable,
     TuiTabs,
     TuiTextfield,
@@ -154,6 +156,21 @@ export default class UserDetailPage implements OnInit, OnDestroy {
 
   patientProfile = signal<UserTenantProfileDto | null>(null);
   loadingProfile = signal(false);
+  calculatingComposition = signal(false);
+
+  activeCompositionReport = computed<BodyCompositionReport | null>(() => {
+    return this.patientProfile()?.bodyCompositionReport
+      || this.user()?.lastMeasurement?.bodyCompositionReport
+      || this.measurements()[0]?.bodyCompositionReport
+      || null;
+  });
+
+  segmentalList = computed<SegmentalResult[]>(() => {
+    const report = this.activeCompositionReport();
+    if (!report?.segmentalAnalysis) return [];
+    return Object.values(report.segmentalAnalysis);
+  });
+
   editingGuidelines = signal(false);
   savingGuidelines = signal(false);
   editBreakfast = signal('');
@@ -291,6 +308,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
 
     if (!isStaff) {
       items.push({ id: 'measurements', label: 'users.tab_measurements', icon: 'fa-solid fa-chart-line' });
+      items.push({ id: 'body_composition', label: 'users.tab_body_composition', defaultValue: 'Composición Corporal', icon: 'fa-solid fa-child' });
       items.push({ id: 'menus', label: 'users.tab_menus', icon: 'fa-solid fa-utensils' });
       items.push({ id: 'water', label: 'users.tab_water', defaultValue: 'Agua', icon: 'fa-solid fa-droplet' });
     }
@@ -709,6 +727,68 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     });
   }
 
+  showBoneMassDialog() {
+    const currentBoneMass = this.patientProfile()?.boneMassKg ?? null;
+    this.modal.open<boolean, BoneMassDialogInput>(BoneMassDialog, {
+      label: this.transloco.translate('measurements.bone_mass_dialog_title'),
+      size: 's',
+      data: {
+        userId: this.userId,
+        boneMassKg: currentBoneMass,
+        currentProfile: this.patientProfile()
+      }
+    }).subscribe((saved) => {
+      if (saved) {
+        this.loadPatientProfile();
+      }
+    });
+  }
+
+  calculateBodyComposition() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId || !this.userId) return;
+
+    this.calculatingComposition.set(true);
+    this.measurementService.calculateComposition(tenantId, this.userId).subscribe({
+      next: () => {
+        this.calculatingComposition.set(false);
+        this.notify.success(
+          this.transloco.translate('measurements.composition_calculated'),
+          this.transloco.translate('common.success')
+        );
+        this.loadPatientProfile();
+        this.loadMeasurements(this.page(), this.size());
+        this.loadEvolution();
+        this.loadUser();
+      },
+      error: () => {
+        this.calculatingComposition.set(false);
+        this.notify.error(
+          this.transloco.translate('measurements.composition_calc_error'),
+          this.transloco.translate('common.error')
+        );
+      }
+    });
+  }
+
+  getFrameBadgeAppearance(frame?: string): 'info' | 'positive' | 'primary' | 'neutral' {
+    switch (frame) {
+      case 'SMALL': return 'info';
+      case 'MEDIUM': return 'positive';
+      case 'LARGE': return 'primary';
+      default: return 'neutral';
+    }
+  }
+
+  getBoneEvalBadgeAppearance(evalType?: string): 'positive' | 'warning' | 'info' | 'neutral' {
+    switch (evalType) {
+      case 'NORMAL': return 'positive';
+      case 'LOW': return 'warning';
+      case 'HIGH': return 'info';
+      default: return 'neutral';
+    }
+  }
+
   showRegisterDialog() {
     this.modal.open(MeasurementFormDialog, {
       label: this.transloco.translate('measurements.register'),
@@ -718,6 +798,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       this.notify.success(this.transloco.translate('notifications.measurement_registered'), this.transloco.translate('common.success'));
       this.loadMeasurements(0, this.size());
       this.loadEvolution();
+      this.loadPatientProfile();
     });
   }
 

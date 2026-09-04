@@ -1,43 +1,67 @@
 <form [formGroup]="form" (ngSubmit)="submit()" *transloco="let t">
   <!-- Step indicator -->
   <div class="flex items-center gap-2 mb-6">
-    @for (step of [1, 2, 3]; track step) {
-      <button type="button" (click)="activeStep.set(step)" [class.bg-primary-500]="activeStep() >= step" [class.text-white]="activeStep() >= step" [class.bg-surface-200]="activeStep() < step" class="w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center transition-colors">{{ step }}</button>
-      @if (step < 3) {
-        <div class="flex-1 h-0.5 rounded" [class.bg-primary-500]="activeStep() > step" [class.bg-surface-200]="activeStep() <= step"></div>
+    @for (step of [1, 2, 3, 4]; track step) {
+      <button
+        type="button"
+        (click)="activeStep.set(step)"
+        [class.bg-primary-500]="activeStep() >= step"
+        [class.text-white]="activeStep() >= step"
+        [class.bg-surface-200]="activeStep() < step"
+        [class.dark:bg-surface-700]="activeStep() < step"
+        class="w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center transition-colors"
+      >
+        {{ step }}
+      </button>
+      @if (step < 4) {
+        <div
+          class="flex-1 h-0.5 rounded"
+          [class.bg-primary-500]="activeStep() > step"
+          [class.bg-surface-200]="activeStep() <= step"
+          [class.dark:bg-surface-700]="activeStep() <= step"
+        ></div>
       }
     }
   </div>
+
   <!-- Step labels -->
-  <div class="flex justify-between text-xs text-surface-500 mb-4 font-medium">
+  <div class="grid grid-cols-4 text-center text-xs text-surface-500 mb-4 font-medium">
     <span [class.font-semibold]="activeStep() === 1" [class.text-primary-600]="activeStep() === 1">{{ t('measurements.step_composition') }}</span>
     <span [class.font-semibold]="activeStep() === 2" [class.text-primary-600]="activeStep() === 2">{{ t('measurements.step_circumferences') }}</span>
-    <span [class.font-semibold]="activeStep() === 3" [class.text-primary-600]="activeStep() === 3">{{ t('measurements.step_details') }}</span>
+    <span [class.font-semibold]="activeStep() === 3" [class.text-primary-600]="activeStep() === 3">{{ t('measurements.step_segmental') }}</span>
+    <span [class.font-semibold]="activeStep() === 4" [class.text-primary-600]="activeStep() === 4">{{ t('measurements.step_details') }}</span>
   </div>
 
+  <!-- Step 1: Composición General -->
   @if (activeStep() === 1) {
     <div class="flex flex-col gap-4 pt-2">
-       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-         <tui-textfield class="w-full">
-           <label tuiLabel for="measurementWeight">{{ t('measurements.weight') }}</label>
-           <input id="measurementWeight" type="number" formControlName="weightKg" tuiInput step="0.01" min="0" max="999.99" />
-         </tui-textfield>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <tui-textfield class="w-full">
+          <label tuiLabel for="measurementWeight">{{ t('measurements.weight') }} (kg)</label>
+          <input id="measurementWeight" type="number" formControlName="weightKg" tuiInput step="0.01" min="0" max="999.99" />
+        </tui-textfield>
 
-         <tui-textfield class="w-full">
-           <label tuiLabel for="measurementBodyFat">{{ t('measurements.body_fat') }}</label>
-           <input id="measurementBodyFat" type="number" formControlName="bodyFatPct" tuiInput step="0.1" min="0" max="99.9" />
-         </tui-textfield>
+        <tui-textfield class="w-full">
+          <label tuiLabel for="measurementBodyFat">{{ t('measurements.body_fat') }} (%)</label>
+          <input id="measurementBodyFat" type="number" formControlName="bodyFatPct" tuiInput step="0.1" min="0" max="99.9" />
+        </tui-textfield>
 
-         <tui-textfield class="w-full">
-           <label tuiLabel for="measurementMuscleMass">{{ t('measurements.muscle_mass') }}</label>
-           <input id="measurementMuscleMass" type="number" formControlName="muscleMassKg" tuiInput step="0.01" min="0" max="999.99" />
-         </tui-textfield>
+        <tui-textfield class="w-full">
+          <label tuiLabel for="measurementMuscleMass">{{ t('measurements.muscle_mass') }} (kg)</label>
+          <input id="measurementMuscleMass" type="number" formControlName="muscleMassKg" tuiInput step="0.01" min="0" max="999.99" />
+        </tui-textfield>
 
-         <tui-textfield class="w-full">
-           <label tuiLabel for="measurementBodyWater">{{ t('measurements.body_water') }}</label>
-           <input id="measurementBodyWater" type="number" formControlName="bodyWaterPct" tuiInput step="0.1" min="0" max="99.9" />
-         </tui-textfield>
-       </div>
+        <tui-textfield class="w-full">
+          <label tuiLabel for="measurementBodyWater">{{ t('measurements.body_water') }} (%)</label>
+          <input id="measurementBodyWater" type="number" formControlName="bodyWaterPct" tuiInput step="0.1" min="0" max="99.9" />
+        </tui-textfield>
+
+        <tui-textfield class="w-full sm:col-span-2">
+          <label tuiLabel for="measurementBoneMass">{{ t('measurements.bone_mass') }} (kg)</label>
+          <input id="measurementBoneMass" type="number" formControlName="boneMassKg" tuiInput step="0.01" min="0" max="99.99" />
+        </tui-textfield>
+      </div>
+
       <div class="flex justify-end gap-2 pt-4 border-t border-surface-200 dark:border-surface-700 mt-4">
         <button type="button" tuiButton appearance="secondary" size="m" (click)="ref.close()">{{ t('common.cancel') }}</button>
         <button type="button" tuiButton size="m" (click)="nextStep()">{{ t('common.next') }} <i class="fa-solid fa-arrow-right ml-1"></i></button>
@@ -45,34 +69,41 @@
     </div>
   }
 
+  <!-- Step 2: Perímetros -->
   @if (activeStep() === 2) {
     <div class="flex flex-col gap-4 pt-2">
-       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-         <tui-textfield class="w-full">
-           <label tuiLabel for="measurementWaist">{{ t('measurements.waist') }}</label>
-           <input id="measurementWaist" type="number" formControlName="waistCm" tuiInput step="0.1" min="0" max="999.9" />
-         </tui-textfield>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <tui-textfield class="w-full">
+          <label tuiLabel for="measurementWaist">{{ t('measurements.waist') }} (cm)</label>
+          <input id="measurementWaist" type="number" formControlName="waistCm" tuiInput step="0.1" min="0" max="999.9" />
+        </tui-textfield>
 
-         <tui-textfield class="w-full">
-           <label tuiLabel for="measurementChest">{{ t('measurements.chest') }}</label>
-           <input id="measurementChest" type="number" formControlName="chestCm" tuiInput step="0.1" min="0" max="999.9" />
-         </tui-textfield>
+        <tui-textfield class="w-full">
+          <label tuiLabel for="measurementChest">{{ t('measurements.chest') }} (cm)</label>
+          <input id="measurementChest" type="number" formControlName="chestCm" tuiInput step="0.1" min="0" max="999.9" />
+        </tui-textfield>
 
-         <tui-textfield class="w-full">
-           <label tuiLabel for="measurementHips">{{ t('measurements.hips') }}</label>
-           <input id="measurementHips" type="number" formControlName="hipsCm" tuiInput step="0.1" min="0" max="999.9" />
-         </tui-textfield>
+        <tui-textfield class="w-full">
+          <label tuiLabel for="measurementHips">{{ t('measurements.hips') }} (cm)</label>
+          <input id="measurementHips" type="number" formControlName="hipsCm" tuiInput step="0.1" min="0" max="999.9" />
+        </tui-textfield>
 
-         <tui-textfield class="w-full">
-           <label tuiLabel for="measurementContour">{{ t('measurements.contour') }}</label>
-           <input id="measurementContour" type="number" formControlName="contourCm" tuiInput step="0.1" min="0" max="999.9" />
-         </tui-textfield>
+        <tui-textfield class="w-full">
+          <label tuiLabel for="measurementContour">{{ t('measurements.contour') }} (cm)</label>
+          <input id="measurementContour" type="number" formControlName="contourCm" tuiInput step="0.1" min="0" max="999.9" />
+        </tui-textfield>
 
-         <tui-textfield class="w-full sm:col-span-2">
-           <label tuiLabel for="measurementArm">{{ t('measurements.arm') }}</label>
-           <input id="measurementArm" type="number" formControlName="armCm" tuiInput step="0.1" min="0" max="999.9" />
-         </tui-textfield>
-       </div>
+        <tui-textfield class="w-full">
+          <label tuiLabel for="measurementArm">{{ t('measurements.arm') }} (cm)</label>
+          <input id="measurementArm" type="number" formControlName="armCm" tuiInput step="0.1" min="0" max="999.9" />
+        </tui-textfield>
+
+        <tui-textfield class="w-full">
+          <label tuiLabel for="measurementWrist">{{ t('measurements.wrist_circumference') }} (cm)</label>
+          <input id="measurementWrist" type="number" formControlName="wristCircumferenceCm" tuiInput step="0.1" min="0" max="99.9" />
+        </tui-textfield>
+      </div>
+
       <div class="flex justify-between gap-2 pt-4 border-t border-surface-200 dark:border-surface-700 mt-4">
         <button type="button" tuiButton appearance="secondary" size="m" (click)="prevStep()"><i class="fa-solid fa-arrow-left mr-1"></i> {{ t('common.previous') }}</button>
         <button type="button" tuiButton size="m" (click)="nextStep()">{{ t('common.next') }} <i class="fa-solid fa-arrow-right ml-1"></i></button>
@@ -80,27 +111,125 @@
     </div>
   }
 
+  <!-- Step 3: Bioimpedancia Segmental -->
   @if (activeStep() === 3) {
     <div class="flex flex-col gap-4 pt-2">
-       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-         <tui-textfield class="w-full">
-           <label tuiLabel for="measurementDate">{{ t('measurements.measured_date') }}</label>
-           <input id="measurementDate" tuiInputDate formControlName="measuredDate" />
-           <tui-calendar *tuiDropdown />
-         </tui-textfield>
+      <p class="text-xs text-surface-500 mb-1">
+        {{ t('measurements.step_segmental_hint') }}
+      </p>
 
-         <tui-textfield class="w-full">
-           <label tuiLabel for="measurementTime">{{ t('measurements.measured_time') }}</label>
-           <input id="measurementTime" tuiInputTime formControlName="measuredTime" />
-         </tui-textfield>
-       </div>
+      <!-- Tronco -->
+      <div class="p-3 rounded-lg bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
+        <span class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
+          <i class="fa-solid fa-child text-primary-500"></i> {{ t('measurements.trunk') }}
+        </span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <tui-textfield class="w-full">
+            <label tuiLabel for="trunkFatPct">{{ t('measurements.fat_pct') }} (%)</label>
+            <input id="trunkFatPct" type="number" formControlName="trunkFatPct" tuiInput step="0.1" min="0" max="99.9" />
+          </tui-textfield>
+          <tui-textfield class="w-full">
+            <label tuiLabel for="trunkMassKg">{{ t('measurements.total_mass') }} (kg)</label>
+            <input id="trunkMassKg" type="number" formControlName="trunkMassKg" tuiInput step="0.01" min="0" max="999.99" />
+          </tui-textfield>
+        </div>
+      </div>
 
-       <div class="flex flex-col gap-1.5">
-         <label for="measurementNotes" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('measurements.notes') }}</label>
-         <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-           <textarea id="measurementNotes" formControlName="notes" tuiTextarea [min]="3" [placeholder]="t('measurements.notes_placeholder')"></textarea>
-         </tui-textfield>
-       </div>
+      <!-- Brazos -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <!-- Brazo Derecho -->
+        <div class="p-3 rounded-lg bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
+          <span class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-hand text-primary-500"></i> {{ t('measurements.right_arm') }}
+          </span>
+          <tui-textfield class="w-full">
+            <label tuiLabel for="rightArmFatPct">{{ t('measurements.fat_pct') }} (%)</label>
+            <input id="rightArmFatPct" type="number" formControlName="rightArmFatPct" tuiInput step="0.1" min="0" max="99.9" />
+          </tui-textfield>
+          <tui-textfield class="w-full">
+            <label tuiLabel for="rightArmMassKg">{{ t('measurements.total_mass') }} (kg)</label>
+            <input id="rightArmMassKg" type="number" formControlName="rightArmMassKg" tuiInput step="0.01" min="0" max="99.99" />
+          </tui-textfield>
+        </div>
+
+        <!-- Brazo Izquierdo -->
+        <div class="p-3 rounded-lg bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
+          <span class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-hand text-primary-500"></i> {{ t('measurements.left_arm') }}
+          </span>
+          <tui-textfield class="w-full">
+            <label tuiLabel for="leftArmFatPct">{{ t('measurements.fat_pct') }} (%)</label>
+            <input id="leftArmFatPct" type="number" formControlName="leftArmFatPct" tuiInput step="0.1" min="0" max="99.9" />
+          </tui-textfield>
+          <tui-textfield class="w-full">
+            <label tuiLabel for="leftArmMassKg">{{ t('measurements.total_mass') }} (kg)</label>
+            <input id="leftArmMassKg" type="number" formControlName="leftArmMassKg" tuiInput step="0.01" min="0" max="99.99" />
+          </tui-textfield>
+        </div>
+      </div>
+
+      <!-- Piernas -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <!-- Pierna Derecha -->
+        <div class="p-3 rounded-lg bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
+          <span class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-socks text-primary-500"></i> {{ t('measurements.right_leg') }}
+          </span>
+          <tui-textfield class="w-full">
+            <label tuiLabel for="rightLegFatPct">{{ t('measurements.fat_pct') }} (%)</label>
+            <input id="rightLegFatPct" type="number" formControlName="rightLegFatPct" tuiInput step="0.1" min="0" max="99.9" />
+          </tui-textfield>
+          <tui-textfield class="w-full">
+            <label tuiLabel for="rightLegMassKg">{{ t('measurements.total_mass') }} (kg)</label>
+            <input id="rightLegMassKg" type="number" formControlName="rightLegMassKg" tuiInput step="0.01" min="0" max="99.99" />
+          </tui-textfield>
+        </div>
+
+        <!-- Pierna Izquierda -->
+        <div class="p-3 rounded-lg bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
+          <span class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-socks text-primary-500"></i> {{ t('measurements.left_leg') }}
+          </span>
+          <tui-textfield class="w-full">
+            <label tuiLabel for="leftLegFatPct">{{ t('measurements.fat_pct') }} (%)</label>
+            <input id="leftLegFatPct" type="number" formControlName="leftLegFatPct" tuiInput step="0.1" min="0" max="99.9" />
+          </tui-textfield>
+          <tui-textfield class="w-full">
+            <label tuiLabel for="leftLegMassKg">{{ t('measurements.total_mass') }} (kg)</label>
+            <input id="leftLegMassKg" type="number" formControlName="leftLegMassKg" tuiInput step="0.01" min="0" max="99.99" />
+          </tui-textfield>
+        </div>
+      </div>
+
+      <div class="flex justify-between gap-2 pt-4 border-t border-surface-200 dark:border-surface-700 mt-4">
+        <button type="button" tuiButton appearance="secondary" size="m" (click)="prevStep()"><i class="fa-solid fa-arrow-left mr-1"></i> {{ t('common.previous') }}</button>
+        <button type="button" tuiButton size="m" (click)="nextStep()">{{ t('common.next') }} <i class="fa-solid fa-arrow-right ml-1"></i></button>
+      </div>
+    </div>
+  }
+
+  <!-- Step 4: Fecha y Notas -->
+  @if (activeStep() === 4) {
+    <div class="flex flex-col gap-4 pt-2">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <tui-textfield class="w-full">
+          <label tuiLabel for="measurementDate">{{ t('measurements.measured_date') }}</label>
+          <input id="measurementDate" tuiInputDate formControlName="measuredDate" />
+          <tui-calendar *tuiDropdown />
+        </tui-textfield>
+
+        <tui-textfield class="w-full">
+          <label tuiLabel for="measurementTime">{{ t('measurements.measured_time') }}</label>
+          <input id="measurementTime" tuiInputTime formControlName="measuredTime" />
+        </tui-textfield>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label for="measurementNotes" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('measurements.notes') }}</label>
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <textarea id="measurementNotes" formControlName="notes" tuiTextarea [min]="3" [placeholder]="t('measurements.notes_placeholder')"></textarea>
+        </tui-textfield>
+      </div>
 
       <div class="flex justify-between gap-2 pt-4 border-t border-surface-200 dark:border-surface-700 mt-4">
         <button type="button" tuiButton appearance="secondary" size="m" (click)="prevStep()"><i class="fa-solid fa-arrow-left mr-1"></i> {{ t('common.previous') }}</button>

@@ -1664,6 +1664,47 @@
         }
       }
     },
+    "/tenant/{tenantId}/users/{userId}/measurements/calculate-composition": {
+      "post": {
+        "tags": [
+          "BodyMeasurementController"
+        ],
+        "description": "Calculate and persist body composition report for the user's latest measurement",
+        "operationId": "calculateComposition",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BodyCompositionReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/users/invite": {
       "post": {
         "tags": [
@@ -4726,9 +4767,7 @@
             "type": "string"
           },
           "lunch": {
-            "type": "string",
-            "maxLength": 150,
-            "minLength": 0
+            "type": "string"
           },
           "hasDiabetes": {
             "type": "boolean"
@@ -4837,6 +4876,216 @@
           },
           "sleepIssuesNotes": {
             "type": "string"
+          },
+          "boneMassKg": {
+            "type": "number",
+            "maximum": 10,
+            "minimum": 0.5
+          }
+        }
+      },
+      "BodyCompositionReport": {
+        "type": "object",
+        "properties": {
+          "patient": {
+            "$ref": "#/components/schemas/PatientData"
+          },
+          "global": {
+            "$ref": "#/components/schemas/GlobalCompositionResult"
+          },
+          "bodyFrame": {
+            "$ref": "#/components/schemas/BodyFrameResult"
+          },
+          "segmentalAnalysis": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SegmentalResult"
+            }
+          },
+          "symmetry": {
+            "$ref": "#/components/schemas/SymmetryAnalysisResult"
+          },
+          "language": {
+            "type": "string"
+          },
+          "calculatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BodyFrameResult": {
+        "type": "object",
+        "properties": {
+          "rIndex": {
+            "type": "number"
+          },
+          "frame": {
+            "type": "string",
+            "enum": [
+              "SMALL",
+              "MEDIUM",
+              "LARGE",
+              "UNKNOWN"
+            ]
+          },
+          "localizedDescription": {
+            "type": "string"
+          }
+        }
+      },
+      "BoneCompositionResult": {
+        "type": "object",
+        "properties": {
+          "boneMassKg": {
+            "type": "number"
+          },
+          "boneMassPctOfWeight": {
+            "type": "number"
+          },
+          "evaluation": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "NORMAL",
+              "HIGH",
+              "NOT_EVALUATED"
+            ]
+          },
+          "localizedDescription": {
+            "type": "string"
+          }
+        }
+      },
+      "GlobalCompositionResult": {
+        "type": "object",
+        "properties": {
+          "bmi": {
+            "type": "number"
+          },
+          "bmiClassification": {
+            "type": "string",
+            "enum": [
+              "UNDERWEIGHT",
+              "NORMAL",
+              "OVERWEIGHT",
+              "OBESITY_CLASS_I",
+              "OBESITY_CLASS_II",
+              "OBESITY_CLASS_III"
+            ]
+          },
+          "localizedBmiClassification": {
+            "type": "string"
+          },
+          "fatMassKg": {
+            "type": "number"
+          },
+          "fatFreeMassKg": {
+            "type": "number"
+          },
+          "waterMassKg": {
+            "type": "number"
+          },
+          "boneComposition": {
+            "$ref": "#/components/schemas/BoneCompositionResult"
+          }
+        }
+      },
+      "LateralSymmetryResult": {
+        "type": "object",
+        "properties": {
+          "extremityType": {
+            "type": "string"
+          },
+          "rightLeanMassKg": {
+            "type": "number"
+          },
+          "leftLeanMassKg": {
+            "type": "number"
+          },
+          "diffKg": {
+            "type": "number"
+          },
+          "diffPct": {
+            "type": "number"
+          },
+          "asymmetricAlert": {
+            "type": "boolean"
+          },
+          "localizedObservation": {
+            "type": "string"
+          }
+        }
+      },
+      "PatientData": {
+        "type": "object",
+        "properties": {
+          "gender": {
+            "type": "string",
+            "enum": [
+              "MALE",
+              "FEMALE"
+            ]
+          },
+          "ageYears": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "heightCm": {
+            "type": "number"
+          },
+          "weightKg": {
+            "type": "number"
+          },
+          "wristCircumferenceCm": {
+            "type": "number"
+          }
+        }
+      },
+      "SegmentalResult": {
+        "type": "object",
+        "properties": {
+          "segment": {
+            "type": "string",
+            "enum": [
+              "TRUNK",
+              "RIGHT_ARM",
+              "LEFT_ARM",
+              "RIGHT_LEG",
+              "LEFT_LEG"
+            ]
+          },
+          "localizedSegmentName": {
+            "type": "string"
+          },
+          "fatPct": {
+            "type": "number"
+          },
+          "totalMassKg": {
+            "type": "number"
+          },
+          "fatMassKg": {
+            "type": "number"
+          },
+          "leanMassKg": {
+            "type": "number"
+          }
+        }
+      },
+      "SymmetryAnalysisResult": {
+        "type": "object",
+        "properties": {
+          "upperLimbs": {
+            "$ref": "#/components/schemas/LateralSymmetryResult"
+          },
+          "lowerLimbs": {
+            "$ref": "#/components/schemas/LateralSymmetryResult"
+          },
+          "thresholdPct": {
+            "type": "number"
+          },
+          "hasAnyAsymmetryAlert": {
+            "type": "boolean"
           }
         }
       },
@@ -4995,6 +5244,12 @@
           },
           "sleepIssuesNotes": {
             "type": "string"
+          },
+          "boneMassKg": {
+            "type": "number"
+          },
+          "bodyCompositionReport": {
+            "$ref": "#/components/schemas/BodyCompositionReport"
           }
         }
       },
@@ -5606,6 +5861,42 @@
           "bodyWaterPct": {
             "type": "number"
           },
+          "wristCircumferenceCm": {
+            "type": "number"
+          },
+          "boneMassKg": {
+            "type": "number"
+          },
+          "trunkFatPct": {
+            "type": "number"
+          },
+          "trunkMassKg": {
+            "type": "number"
+          },
+          "rightArmFatPct": {
+            "type": "number"
+          },
+          "rightArmMassKg": {
+            "type": "number"
+          },
+          "leftArmFatPct": {
+            "type": "number"
+          },
+          "leftArmMassKg": {
+            "type": "number"
+          },
+          "rightLegFatPct": {
+            "type": "number"
+          },
+          "rightLegMassKg": {
+            "type": "number"
+          },
+          "leftLegFatPct": {
+            "type": "number"
+          },
+          "leftLegMassKg": {
+            "type": "number"
+          },
           "measuredAt": {
             "type": "string",
             "format": "date-time"
@@ -5653,8 +5944,47 @@
           "bodyWaterPct": {
             "type": "number"
           },
+          "wristCircumferenceCm": {
+            "type": "number"
+          },
+          "boneMassKg": {
+            "type": "number"
+          },
+          "trunkFatPct": {
+            "type": "number"
+          },
+          "trunkMassKg": {
+            "type": "number"
+          },
+          "rightArmFatPct": {
+            "type": "number"
+          },
+          "rightArmMassKg": {
+            "type": "number"
+          },
+          "leftArmFatPct": {
+            "type": "number"
+          },
+          "leftArmMassKg": {
+            "type": "number"
+          },
+          "rightLegFatPct": {
+            "type": "number"
+          },
+          "rightLegMassKg": {
+            "type": "number"
+          },
+          "leftLegFatPct": {
+            "type": "number"
+          },
+          "leftLegMassKg": {
+            "type": "number"
+          },
           "bmi": {
             "type": "number"
+          },
+          "bodyCompositionReport": {
+            "$ref": "#/components/schemas/BodyCompositionReport"
           },
           "notes": {
             "type": "string"
@@ -6328,15 +6658,15 @@
               "type": "string"
             }
           },
+          "roleCode": {
+            "type": "string"
+          },
           "userType": {
             "type": "string",
             "enum": [
               "STAFF",
               "PATIENT"
             ]
-          },
-          "roleCode": {
-            "type": "string"
           },
           "tenantName": {
             "type": "string"
@@ -6568,6 +6898,42 @@
             "type": "number"
           },
           "bodyWaterPct": {
+            "type": "number"
+          },
+          "wristCircumferenceCm": {
+            "type": "number"
+          },
+          "boneMassKg": {
+            "type": "number"
+          },
+          "trunkFatPct": {
+            "type": "number"
+          },
+          "trunkMassKg": {
+            "type": "number"
+          },
+          "rightArmFatPct": {
+            "type": "number"
+          },
+          "rightArmMassKg": {
+            "type": "number"
+          },
+          "leftArmFatPct": {
+            "type": "number"
+          },
+          "leftArmMassKg": {
+            "type": "number"
+          },
+          "rightLegFatPct": {
+            "type": "number"
+          },
+          "rightLegMassKg": {
+            "type": "number"
+          },
+          "leftLegFatPct": {
+            "type": "number"
+          },
+          "leftLegMassKg": {
             "type": "number"
           },
           "bmi": {

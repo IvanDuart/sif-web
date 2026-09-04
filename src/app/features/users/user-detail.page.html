@@ -187,14 +187,28 @@
       @if (!isStaff()) {
         @if (activeTabId() === 'measurements') {
           <div class="py-4">
-            <div class="flex justify-end mb-4" *appIfPermission="'MANAGE_USER'">
-              <button
-                type="button"
-                tuiButton size="m"
-                (click)="showRegisterDialog()">
-                <i class="fa-solid fa-plus"></i>
-                {{ t('measurements.register') }}
-              </button>
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4" *appIfPermission="'MANAGE_USER'">
+              <div></div>
+
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  tuiButton
+                  size="m"
+                  appearance="secondary"
+                  (click)="showBoneMassDialog()">
+                  <i class="fa-solid fa-bone mr-1"></i>
+                  {{ patientProfile()?.boneMassKg !== null && patientProfile()?.boneMassKg !== undefined ? t('measurements.edit_bone_mass') : t('measurements.add_bone_mass') }}
+                </button>
+                <button
+                  type="button"
+                  tuiButton
+                  size="m"
+                  (click)="showRegisterDialog()">
+                  <i class="fa-solid fa-plus mr-1"></i>
+                  {{ t('measurements.register') }}
+                </button>
+              </div>
             </div>
 
             @if (chartLoaded() && chartData) {
@@ -301,6 +315,295 @@
                 }
               </boneyard-skeleton>
             </div>
+          </div>
+        }
+      }
+
+      <!-- TAB: Composición Corporal -->
+      @if (!isStaff()) {
+        @if (activeTabId() === 'body_composition') {
+          <div class="py-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4" *appIfPermission="'MANAGE_USER'">
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  tuiButton
+                  size="m"
+                  appearance="primary"
+                  (click)="calculateBodyComposition()"
+                  [disabled]="calculatingComposition() || measurements().length === 0"
+                  [class.loading]="calculatingComposition()">
+                  <i class="fa-solid fa-calculator mr-1"></i>
+                  {{ calculatingComposition() ? t('measurements.calculating') : t('measurements.calculate_composition') }}
+                </button>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  tuiButton
+                  size="m"
+                  appearance="secondary"
+                  (click)="showBoneMassDialog()">
+                  <i class="fa-solid fa-bone mr-1"></i>
+                  {{ patientProfile()?.boneMassKg !== null && patientProfile()?.boneMassKg !== undefined ? t('measurements.edit_bone_mass') : t('measurements.add_bone_mass') }}
+                </button>
+              </div>
+            </div>
+
+            @if (activeCompositionReport(); as report) {
+              <div class="data-card mb-4">
+                <div class="flex flex-wrap items-center justify-between px-4 pt-4 pb-2 border-b border-surface-200 dark:border-surface-700">
+                  <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-notes-medical text-primary-500"></i>
+                    <h2 class="text-base font-semibold m-0">{{ t('measurements.composition_report_title') }}</h2>
+                  </div>
+                  @if (report.calculatedAt) {
+                    <span class="text-xs text-surface-400">
+                      {{ t('measurements.calculated_at') }}: {{ formatInstantWithTime(report.calculatedAt) }}
+                    </span>
+                  }
+                </div>
+
+                <div class="p-4 flex flex-col gap-5">
+                  <!-- Grant Frame & Bone Mass Row -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Complexión Física (Grant Index) -->
+                    @if (report.bodyFrame) {
+                      <div class="p-4 rounded-xl bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                          <span class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-ruler-combined text-primary-500"></i>
+                            {{ t('measurements.body_frame_title') }}
+                          </span>
+                          <span tuiBadge [appearance]="getFrameBadgeAppearance(report.bodyFrame.frame)">
+                            {{ t('measurements.frame_' + (report.bodyFrame.frame ? report.bodyFrame.frame.toLowerCase() : 'unknown')) }}
+                          </span>
+                        </div>
+                        <div class="flex items-baseline gap-2 mt-1">
+                          <span class="text-xs text-surface-500">{{ t('measurements.r_index') }}:</span>
+                          <span class="font-mono text-base font-bold text-surface-800 dark:text-surface-200">{{ report.bodyFrame.rIndex }}</span>
+                        </div>
+                        <p class="text-xs text-surface-500 m-0">
+                          {{ report.bodyFrame.localizedDescription }}
+                        </p>
+                      </div>
+                    }
+
+                    <!-- Evaluación de Masa Ósea -->
+                    @if (report.global.boneComposition; as bone) {
+                      <div class="p-4 rounded-xl bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                          <span class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-bone text-primary-500"></i>
+                            {{ t('measurements.bone_evaluation_title') }}
+                          </span>
+                          <span tuiBadge [appearance]="getBoneEvalBadgeAppearance(bone.evaluation)">
+                            {{ t('measurements.bone_' + (bone.evaluation ? bone.evaluation.toLowerCase() : 'not_evaluated')) }}
+                          </span>
+                        </div>
+                        <div class="flex items-baseline gap-3 mt-1">
+                          <div>
+                            <span class="text-xs text-surface-500">{{ t('measurements.bone_mass') }}:</span>
+                            <span class="font-mono text-base font-bold ml-1 text-surface-800 dark:text-surface-200">{{ bone.boneMassKg }} kg</span>
+                          </div>
+                          <div>
+                            <span class="text-xs text-surface-500">(</span>
+                            <span class="font-mono text-xs font-semibold text-surface-600 dark:text-surface-400">{{ bone.boneMassPctOfWeight }}%</span>
+                            <span class="text-xs text-surface-500">)</span>
+                          </div>
+                        </div>
+                        <p class="text-xs text-surface-500 m-0">
+                          {{ bone.localizedDescription }}
+                        </p>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Desglose Global (Grasa, Libre de Grasa / Magra, Agua, IMC) -->
+                  @if (report.global) {
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center p-3 rounded-xl bg-surface-50/50 dark:bg-surface-800/30 border border-surface-200 dark:border-surface-700">
+                      <div>
+                        <span class="text-xs text-surface-400">{{ t('measurements.fat_mass') }}</span>
+                        <p class="text-base font-bold font-mono text-amber-600 dark:text-amber-400 mt-0.5 mb-0">
+                          {{ report.global.fatMassKg }} kg
+                        </p>
+                      </div>
+                      <div>
+                        <span class="text-xs text-surface-400">{{ t('measurements.lean_mass') }}</span>
+                        <p class="text-base font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-0.5 mb-0">
+                          {{ report.global.fatFreeMassKg }} kg
+                        </p>
+                      </div>
+                      <div>
+                        <span class="text-xs text-surface-400">{{ t('measurements.body_water') }}</span>
+                        <p class="text-base font-bold font-mono text-cyan-600 dark:text-cyan-400 mt-0.5 mb-0">
+                          {{ report.global.waterMassKg }} kg
+                        </p>
+                      </div>
+                      <div>
+                        <span class="text-xs text-surface-400">{{ t('measurements.bmi') }}</span>
+                        <p class="text-base font-bold font-mono text-primary-600 dark:text-primary-400 mt-0.5 mb-0">
+                          {{ report.global.bmi }}
+                        </p>
+                        <span class="text-[11px] text-surface-400 block truncate" [title]="report.global.localizedBmiClassification">
+                          {{ report.global.localizedBmiClassification }}
+                        </span>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Análisis Segmental (5 zonas) -->
+                  @if (segmentalList().length > 0) {
+                    <div>
+                      <h3 class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5 mb-2.5">
+                        <i class="fa-solid fa-chart-pie text-primary-500"></i>
+                        {{ t('measurements.segmental_analysis_title') }}
+                      </h3>
+                      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                        @for (seg of segmentalList(); track seg.segment) {
+                          <div class="p-3 rounded-lg bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col justify-between">
+                            <div>
+                              <span class="text-xs font-semibold text-surface-800 dark:text-surface-200 block mb-2">
+                                {{ seg.localizedSegmentName }}
+                              </span>
+                              <div class="flex items-center justify-between text-xs mb-1">
+                                <span class="text-surface-500">{{ t('measurements.fat_pct') }}:</span>
+                                <span class="font-mono font-bold text-amber-600 dark:text-amber-400">{{ seg.fatPct }}%</span>
+                              </div>
+                              <div class="flex items-center justify-between text-xs mb-1">
+                                <span class="text-surface-500">{{ t('measurements.fat_mass') }}:</span>
+                                <span class="font-mono font-medium">{{ seg.fatMassKg }} kg</span>
+                              </div>
+                              <div class="flex items-center justify-between text-xs mb-1">
+                                <span class="text-surface-500">{{ t('measurements.lean_mass') }}:</span>
+                                <span class="font-mono font-medium text-emerald-600 dark:text-emerald-400">{{ seg.leanMassKg }} kg</span>
+                              </div>
+                            </div>
+                            <div class="pt-2 mt-2 border-t border-surface-200 dark:border-surface-700 flex items-center justify-between text-xs font-semibold text-surface-600 dark:text-surface-400">
+                              <span>{{ t('measurements.total_mass') }}:</span>
+                              <span class="font-mono">{{ seg.totalMassKg }} kg</span>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Simetría Lateral Bilateral y Alertas Clínicas -->
+                  @if (report.symmetry) {
+                    <div class="pt-2 border-t border-surface-200 dark:border-surface-700">
+                      <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5 m-0">
+                          <i class="fa-solid fa-arrows-split-up-and-left text-primary-500"></i>
+                          {{ t('measurements.symmetry_title') }}
+                        </h3>
+                        @if (report.symmetry.hasAnyAsymmetryAlert) {
+                          <span tuiBadge appearance="warning">
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                            {{ t('measurements.asymmetry_alert') }}
+                          </span>
+                        }
+                      </div>
+
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Extremidades Superiores -->
+                        @if (report.symmetry.upperLimbs; as upper) {
+                          <div class="p-3.5 rounded-xl border flex flex-col gap-2"
+                            [class.border-amber-400]="upper.asymmetricAlert"
+                            [class.bg-amber-50\/40]="upper.asymmetricAlert"
+                            [class.dark:bg-amber-950\/20]="upper.asymmetricAlert"
+                            [class.border-surface-200]="!upper.asymmetricAlert"
+                            [class.dark:border-surface-700]="!upper.asymmetricAlert"
+                            [class.bg-surface-50]="!upper.asymmetricAlert"
+                            [class.dark:bg-surface-800\/50]="!upper.asymmetricAlert">
+                            <div class="flex items-center justify-between">
+                              <span class="text-xs font-semibold text-surface-800 dark:text-surface-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-hand text-primary-500"></i>
+                                {{ t('measurements.upper_limbs') }}
+                              </span>
+                              @if (upper.asymmetricAlert) {
+                                <span tuiBadge appearance="warning">
+                                  {{ upper.diffPct }}% {{ t('measurements.diff') }}
+                                </span>
+                              } @else {
+                                <span tuiBadge appearance="positive">
+                                  {{ upper.diffPct }}% ({{ t('measurements.symmetric') }})
+                                </span>
+                              }
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs py-1">
+                              <div class="bg-surface-0 dark:bg-surface-800 p-2 rounded border border-surface-200 dark:border-surface-700">
+                                <span class="text-surface-400 block text-[11px]">{{ t('measurements.right_arm') }} ({{ t('measurements.lean') }}):</span>
+                                <span class="font-mono font-bold text-xs">{{ upper.rightLeanMassKg }} kg</span>
+                              </div>
+                              <div class="bg-surface-0 dark:bg-surface-800 p-2 rounded border border-surface-200 dark:border-surface-700">
+                                <span class="text-surface-400 block text-[11px]">{{ t('measurements.left_arm') }} ({{ t('measurements.lean') }}):</span>
+                                <span class="font-mono font-bold text-xs">{{ upper.leftLeanMassKg }} kg</span>
+                              </div>
+                            </div>
+                            <p class="text-xs text-surface-500 m-0">
+                              {{ upper.localizedObservation }}
+                            </p>
+                          </div>
+                        }
+
+                        <!-- Extremidades Inferiores -->
+                        @if (report.symmetry.lowerLimbs; as lower) {
+                          <div class="p-3.5 rounded-xl border flex flex-col gap-2"
+                            [class.border-amber-400]="lower.asymmetricAlert"
+                            [class.bg-amber-50\/40]="lower.asymmetricAlert"
+                            [class.dark:bg-amber-950\/20]="lower.asymmetricAlert"
+                            [class.border-surface-200]="!lower.asymmetricAlert"
+                            [class.dark:border-surface-700]="!lower.asymmetricAlert"
+                            [class.bg-surface-50]="!lower.asymmetricAlert"
+                            [class.dark:bg-surface-800\/50]="!lower.asymmetricAlert">
+                            <div class="flex items-center justify-between">
+                              <span class="text-xs font-semibold text-surface-800 dark:text-surface-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-socks text-primary-500"></i>
+                                {{ t('measurements.lower_limbs') }}
+                              </span>
+                              @if (lower.asymmetricAlert) {
+                                <span tuiBadge appearance="warning">
+                                  {{ lower.diffPct }}% {{ t('measurements.diff') }}
+                                </span>
+                              } @else {
+                                <span tuiBadge appearance="positive">
+                                  {{ lower.diffPct }}% ({{ t('measurements.symmetric') }})
+                                </span>
+                              }
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs py-1">
+                              <div class="bg-surface-0 dark:bg-surface-800 p-2 rounded border border-surface-200 dark:border-surface-700">
+                                <span class="text-surface-400 block text-[11px]">{{ t('measurements.right_leg') }} ({{ t('measurements.lean') }}):</span>
+                                <span class="font-mono font-bold text-xs">{{ lower.rightLeanMassKg }} kg</span>
+                              </div>
+                              <div class="bg-surface-0 dark:bg-surface-800 p-2 rounded border border-surface-200 dark:border-surface-700">
+                                <span class="text-surface-400 block text-[11px]">{{ t('measurements.left_leg') }} ({{ t('measurements.lean') }}):</span>
+                                <span class="font-mono font-bold text-xs">{{ lower.leftLeanMassKg }} kg</span>
+                              </div>
+                            </div>
+                            <p class="text-xs text-surface-500 m-0">
+                              {{ lower.localizedObservation }}
+                            </p>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div class="data-card p-6">
+                <app-empty-state
+                  icon="fa-solid fa-child"
+                  [title]="t('measurements.composition_empty_title')"
+                  [description]="t('measurements.composition_empty_desc')"
+                  [actionLabel]="t('measurements.calculate_composition')"
+                  (action)="calculateBodyComposition()">
+                </app-empty-state>
+              </div>
+            }
           </div>
         }
       }

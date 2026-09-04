@@ -1,4 +1,4 @@
-import { BodyMeasurementDto } from './body-measurement.model';
+import { BodyCompositionReport, BodyMeasurementDto } from './body-measurement.model';
 
 export type UserType = 'STAFF' | 'PATIENT';
 export type Gender = 'MALE' | 'FEMALE';
@@ -27,6 +27,8 @@ export interface UserTenantProfileDto {
   breakfast: string | null;
   lunch: string | null;
   snack: string | null;
+  boneMassKg?: number | null;
+  bodyCompositionReport?: BodyCompositionReport | null;
 
   // Checklist fields
   hasDiabetes: boolean;

@@ -1,7 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
-import { BodyMeasurementDto, CreateBodyMeasurementRequest, MeasurementHistoryDto } from '../models/body-measurement.model';
+import {
+  BodyCompositionReport,
+  BodyMeasurementDto,
+  CreateBodyMeasurementRequest,
+  MeasurementHistoryDto
+} from '../models/body-measurement.model';
 import { Page } from '../models/page.model';
 import {ConfigService} from '../../config/config.service';
 
@@ -50,6 +55,13 @@ export class BodyMeasurementService {
 
   create(tenantId: string, userId: string, request: CreateBodyMeasurementRequest): Observable<BodyMeasurementDto> {
     return this.http.post<BodyMeasurementDto>(this.endpoint(tenantId, userId), request);
+  }
+
+  calculateComposition(tenantId: string, userId: string): Observable<BodyCompositionReport> {
+    return this.http.post<BodyCompositionReport>(
+      `${this.baseUrl}/tenant/${tenantId}/users/${userId}/measurements/calculate-composition`,
+      {}
+    );
   }
 
   delete(tenantId: string, userId: string, measurementId: string): Observable<void> {
