@@ -174,6 +174,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   patientProfile = signal<UserTenantProfileDto | null>(null);
   loadingProfile = signal(false);
   calculatingComposition = signal(false);
+  isSendingResetPassword = signal(false);
 
   activeCompositionReport = computed<BodyCompositionReport | null>(() => {
     return this.patientProfile()?.bodyCompositionReport
@@ -1011,6 +1012,43 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       data: { user: current }
     }).subscribe(() => {
       this.loadUser();
+    });
+  }
+
+  resetPassword() {
+    const currentUser = this.user();
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!currentUser || !tenantId) return;
+
+    const name = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email || '';
+    const email = currentUser.email || '';
+
+    this.confirm.confirm({
+      label: this.transloco.translate('users.reset_password_confirm_title'),
+      content: this.transloco.translate('users.reset_password_confirm_msg', { name, email }),
+      yes: this.transloco.translate('users.reset_password_confirm_btn'),
+      no: this.transloco.translate('common.cancel'),
+      size: 'm'
+    }).subscribe((accepted) => {
+      if (accepted) {
+        this.isSendingResetPassword.set(true);
+        this.userTenantRoleService.sendResetPassword(tenantId, currentUser.id).subscribe({
+          next: () => {
+            this.isSendingResetPassword.set(false);
+            this.notify.success(
+              this.transloco.translate('users.reset_password_success'),
+              this.transloco.translate('common.success')
+            );
+          },
+          error: () => {
+            this.isSendingResetPassword.set(false);
+            this.notify.error(
+              this.transloco.translate('users.reset_password_error'),
+              this.transloco.translate('common.error')
+            );
+          }
+        });
+      }
     });
   }
 

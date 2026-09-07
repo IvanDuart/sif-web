@@ -123,7 +123,13 @@
     "enable_confirm_msg": "¿Estás seguro de que deseas habilitar al usuario {{name}}? Podrá volver a iniciar sesión y usar la plataforma.",
     "disable_success": "Usuario deshabilitado correctamente",
     "enable_success": "Usuario habilitado correctamente",
-    "disable_conflict": "No se puede deshabilitar a este usuario (puede ser el único administrador)"
+    "disable_conflict": "No se puede deshabilitar a este usuario (puede ser el único administrador)",
+    "reset_password": "Restablecer contraseña",
+    "reset_password_confirm_title": "Restablecer contraseña",
+    "reset_password_confirm_msg": "¿Estás seguro de que deseas enviar un correo de restablecimiento de contraseña a {{name}} ({{email}})?",
+    "reset_password_confirm_btn": "Enviar correo",
+    "reset_password_success": "Correo de restablecimiento de contraseña enviado correctamente",
+    "reset_password_error": "No se pudo enviar el correo de restablecimiento de contraseña"
   },
   "patients": {
     "title": "Pacientes",

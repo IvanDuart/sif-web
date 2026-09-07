@@ -88,6 +88,10 @@ export class UserTenantRoleService {
     );
   }
 
+  sendResetPassword(tenantId: string, userId: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/tenant/${tenantId}/users/${userId}/reset-password`, {});
+  }
+
   changeRole(tenantId: string, userId: string, request: ChangeUserRoleRequest): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/tenant/${tenantId}/users/${userId}/role`, request);
   }

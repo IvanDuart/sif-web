@@ -36,6 +36,15 @@
               *appIfPermission="'MANAGE_USER'"
               type="button"
               tuiButton appearance="secondary" size="m"
+              [disabled]="isSendingResetPassword()"
+              (click)="resetPassword()">
+              <i class="fa-solid fa-key"></i>
+              {{ t('users.reset_password') }}
+            </button>
+            <button
+              *appIfPermission="'MANAGE_USER'"
+              type="button"
+              tuiButton appearance="secondary" size="m"
               (click)="showEditDialog()">
               <i class="fa-solid fa-pen-to-square"></i>
               {{ t('users.edit') }}
@@ -251,12 +260,7 @@
                           <th tuiTh>{{ t('measurements.muscle_mass') }}</th>
                           <th tuiTh>{{ t('measurements.body_water') }}</th>
                           <th tuiTh>{{ t('measurements.waist') }}</th>
-                          <th tuiTh>{{ t('measurements.chest') }}</th>
-                          <th tuiTh>{{ t('measurements.hips') }}</th>
-                          <th tuiTh>{{ t('measurements.contour') }}</th>
-                          <th tuiTh>{{ t('measurements.arm') }}</th>
                           <th tuiTh class="min-w-40">{{ t('measurements.notes') }}</th>
-                          <th tuiTh>{{ t('measurements.recorded_by') }}</th>
                           <th tuiTh class="text-center" style="width: 5rem;">{{ t('common.actions') }}</th>
                         </tr>
                       </thead>
@@ -270,12 +274,7 @@
                             <td tuiTd class="font-mono">{{ m.muscleMassKg ?? '—' }}</td>
                             <td tuiTd class="font-mono">{{ m.bodyWaterPct ?? '—' }}</td>
                             <td tuiTd class="font-mono">{{ m.waistCm ?? '—' }}</td>
-                            <td tuiTd class="font-mono">{{ m.chestCm ?? '—' }}</td>
-                            <td tuiTd class="font-mono">{{ m.hipsCm ?? '—' }}</td>
-                            <td tuiTd class="font-mono">{{ m.contourCm ?? '—' }}</td>
-                            <td tuiTd class="font-mono">{{ m.armCm ?? '—' }}</td>
                             <td tuiTd class="text-surface-400 text-sm whitespace-pre-wrap min-w-40">{{ m.notes ?? '—' }}</td>
-                            <td tuiTd class="text-sm">{{ m.recordedBy ?? '—' }}</td>
                             <td tuiTd class="text-center">
                               <button
                                 *appIfPermission="'MANAGE_USER'"
