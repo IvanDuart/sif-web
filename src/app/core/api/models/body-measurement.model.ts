@@ -42,6 +42,19 @@ export interface BodyFrameResult {
   localizedDescription: string;
 }
 
+export interface ReferenceRangesResult {
+  normalWeightMinKg: number;
+  normalWeightMaxKg: number;
+  fatMassPctMin: number;
+  fatMassPctMax: number;
+  fatFreeMassMinKg: number;
+  fatFreeMassMaxKg: number;
+  waterMassMinKg: number;
+  waterMassMaxKg: number;
+  boneMassMinKg: number;
+  boneMassMaxKg: number;
+}
+
 export interface BodyCompositionReport {
   patient: {
     gender: 'MALE' | 'FEMALE';
@@ -62,6 +75,7 @@ export interface BodyCompositionReport {
   bodyFrame: BodyFrameResult;
   segmentalAnalysis: Record<BodySegment, SegmentalResult>;
   symmetry: SymmetryAnalysisResult;
+  referenceRanges?: ReferenceRangesResult | null;
   language: string;
   calculatedAt: string;
 }

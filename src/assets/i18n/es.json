@@ -271,7 +271,20 @@
     "upper_limbs": "Extremidades Superiores",
     "lower_limbs": "Extremidades Inferiores",
     "diff": "de diferencia",
-    "symmetric": "Simétrico"
+    "symmetric": "Simétrico",
+    "reference_ranges_title": "Rangos Clínicos de Referencia",
+    "reference_ranges_subtitle": "Valores saludables personalizados según antropometría",
+    "normal_weight_range": "Peso Normal",
+    "fat_pct_range": "% Grasa Saludable",
+    "fat_free_mass_range": "Masa Libre de Grasa",
+    "water_mass_range": "Agua Corporal",
+    "bone_mass_range": "Masa Ósea Esperada",
+    "range_status_within": "En Rango",
+    "range_status_below": "Bajo",
+    "range_status_above": "Elevado",
+    "range_status_unknown": "Sin Datos",
+    "range_target_label": "Rango óptimo",
+    "range_current_label": "Actual"
   },
   "menu_history": {
     "active_menu": "Menú Activo",

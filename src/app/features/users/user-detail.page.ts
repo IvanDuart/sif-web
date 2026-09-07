@@ -50,6 +50,23 @@ import { TuiTable } from '@taiga-ui/addon-table';
 
 Chart.register(...registerables);
 
+export type RangeStatus = 'below' | 'within' | 'above' | 'unknown';
+
+export interface ReferenceRangeCardItem {
+  id: 'normal_weight' | 'fat_pct' | 'fat_free_mass' | 'water_mass' | 'bone_mass';
+  labelKey: string;
+  icon: string;
+  iconColorClass: string;
+  currentValue: number | null;
+  displayValue: string;
+  min: number;
+  max: number;
+  unit: string;
+  status: RangeStatus;
+  badgeAppearance: 'positive' | 'warning' | 'info' | 'neutral';
+  markerPercent: number;
+}
+
 @Component({
   selector: 'app-user-detail',
   standalone: true,
@@ -169,6 +186,95 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     const report = this.activeCompositionReport();
     if (!report?.segmentalAnalysis) return [];
     return Object.values(report.segmentalAnalysis);
+  });
+
+  referenceRangeCards = computed<ReferenceRangeCardItem[]>(() => {
+    const report = this.activeCompositionReport();
+    const ranges = report?.referenceRanges;
+    if (!ranges) return [];
+
+    let currentFatPct: number | null = this.user()?.lastMeasurement?.bodyFatPct ?? null;
+    if (currentFatPct == null && report.global?.fatMassKg != null && (report.patient?.weightKg ?? 0) > 0) {
+      currentFatPct = Math.round((report.global.fatMassKg / report.patient.weightKg) * 1000) / 10;
+    }
+
+    const currentWeight = report.patient?.weightKg ?? this.user()?.lastMeasurement?.weightKg ?? null;
+    const currentFfm = report.global?.fatFreeMassKg ?? null;
+    const currentWater = report.global?.waterMassKg ?? null;
+    const currentBone = report.global?.boneComposition?.boneMassKg ?? this.patientProfile()?.boneMassKg ?? null;
+
+    const items: {
+      id: ReferenceRangeCardItem['id'];
+      labelKey: string;
+      icon: string;
+      iconColorClass: string;
+      currentValue: number | null;
+      min: number;
+      max: number;
+      unit: string;
+    }[] = [
+      {
+        id: 'normal_weight',
+        labelKey: 'measurements.normal_weight_range',
+        icon: 'fa-solid fa-weight-scale',
+        iconColorClass: 'text-blue-500 dark:text-blue-400',
+        currentValue: currentWeight,
+        min: ranges.normalWeightMinKg,
+        max: ranges.normalWeightMaxKg,
+        unit: 'kg'
+      },
+      {
+        id: 'fat_pct',
+        labelKey: 'measurements.fat_pct_range',
+        icon: 'fa-solid fa-percent',
+        iconColorClass: 'text-amber-500 dark:text-amber-400',
+        currentValue: currentFatPct,
+        min: ranges.fatMassPctMin,
+        max: ranges.fatMassPctMax,
+        unit: '%'
+      },
+      {
+        id: 'fat_free_mass',
+        labelKey: 'measurements.fat_free_mass_range',
+        icon: 'fa-solid fa-dumbbell',
+        iconColorClass: 'text-emerald-500 dark:text-emerald-400',
+        currentValue: currentFfm,
+        min: ranges.fatFreeMassMinKg,
+        max: ranges.fatFreeMassMaxKg,
+        unit: 'kg'
+      },
+      {
+        id: 'water_mass',
+        labelKey: 'measurements.water_mass_range',
+        icon: 'fa-solid fa-droplet',
+        iconColorClass: 'text-cyan-500 dark:text-cyan-400',
+        currentValue: currentWater,
+        min: ranges.waterMassMinKg,
+        max: ranges.waterMassMaxKg,
+        unit: 'kg'
+      },
+      {
+        id: 'bone_mass',
+        labelKey: 'measurements.bone_mass_range',
+        icon: 'fa-solid fa-bone',
+        iconColorClass: 'text-violet-500 dark:text-violet-400',
+        currentValue: currentBone,
+        min: ranges.boneMassMinKg,
+        max: ranges.boneMassMaxKg,
+        unit: 'kg'
+      }
+    ];
+
+    return items.map(item => {
+      const status = this.getRangeStatus(item.currentValue, item.min, item.max);
+      return {
+        ...item,
+        displayValue: item.currentValue != null ? `${item.currentValue} ${item.unit}` : '—',
+        status,
+        badgeAppearance: this.getRangeBadgeAppearance(status),
+        markerPercent: this.getMarkerPercent(item.currentValue, item.min, item.max)
+      };
+    });
   });
 
   editingGuidelines = signal(false);
@@ -786,6 +892,50 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       case 'LOW': return 'warning';
       case 'HIGH': return 'info';
       default: return 'neutral';
+    }
+  }
+
+  getRangeStatus(current: number | null | undefined, min: number | null | undefined, max: number | null | undefined): RangeStatus {
+    if (current == null || min == null || max == null) return 'unknown';
+    if (current < min) return 'below';
+    if (current > max) return 'above';
+    return 'within';
+  }
+
+  getRangeBadgeAppearance(status: RangeStatus): 'positive' | 'warning' | 'info' | 'neutral' {
+    switch (status) {
+      case 'within': return 'positive';
+      case 'below':
+      case 'above': return 'warning';
+      default: return 'neutral';
+    }
+  }
+
+  getMarkerPercent(current: number | null | undefined, min: number | null | undefined, max: number | null | undefined): number {
+    if (current == null || min == null || max == null || min >= max) return 50;
+    const rangeSpan = max - min;
+    if (current < min) {
+      const lowerSpan = Math.max(rangeSpan * 0.75, 1);
+      const dist = Math.max(0, min - current);
+      const ratio = Math.min(1, dist / lowerSpan);
+      return Math.max(3, 25 - ratio * 22);
+    }
+    if (current > max) {
+      const upperSpan = Math.max(rangeSpan * 0.75, 1);
+      const dist = Math.max(0, current - max);
+      const ratio = Math.min(1, dist / upperSpan);
+      return Math.min(97, 75 + ratio * 22);
+    }
+    const ratio = (current - min) / rangeSpan;
+    return 25 + ratio * 50;
+  }
+
+  getMarkerColorClass(status: RangeStatus): string {
+    switch (status) {
+      case 'within': return 'bg-emerald-500 ring-2 ring-emerald-300 dark:ring-emerald-700';
+      case 'below':
+      case 'above': return 'bg-amber-500 ring-2 ring-amber-300 dark:ring-amber-700';
+      default: return 'bg-surface-400 ring-2 ring-surface-200 dark:ring-surface-700';
     }
   }
 

@@ -1,8 +1,8 @@
-# Composición Corporal, Complexión Física y Análisis Segmental
+# Composición Corporal, Complexión Física, Análisis Segmental y Rangos de Referencia
 
 ## Resumen
 
-Se ha integrado en el backend de *Tus Dietas* un motor clínico de evaluación de bioimpedancia segmental (tipo Tanita / InBody), complexión física (índice de Grant), evaluación de masa ósea y análisis de asimetría lateral bilateral, con persistencia en el perfil clínico del usuario e internacionalización (i18n) completa en español e inglés.
+Se ha integrado en el backend de *Tus Dietas* un motor clínico de evaluación de bioimpedancia segmental (tipo Tanita / InBody), complexión física (índice de Grant), evaluación de masa ósea, análisis de asimetría lateral bilateral y **cálculo de rangos y valores de referencia clínicos personalizados** (peso normal, masa libre de grasa, % grasa corporal saludable, agua corporal y masa ósea esperada), con persistencia en el perfil clínico del usuario e internacionalización (i18n) completa en español e inglés.
 
 ---
 
@@ -11,12 +11,12 @@ Se ha integrado en el backend de *Tus Dietas* un motor clínico de evaluación d
 El modelo separa conceptualmente el **histórico de mediciones** temporales del **perfil clínico activo**:
 
 1. **Histórico de Mediciones (`body_measurement`)**:
-  - Almacena las lecturas periódicas del paciente (peso, % de grasa, % de agua, perímetros y las 12 métricas segmentales).
-  - **Todos los campos segmentales son opcionales / anulables** (`nullable`), permitiendo registros manuales flexibles.
+   - Almacena las lecturas periódicas del paciente (peso, % de grasa, % de agua, perímetros y las 12 métricas segmentales).
+   - **Todos los campos segmentales son opcionales / anulables** (`nullable`), permitiendo registros manuales flexibles.
 2. **Perfil del Paciente en el Tenant (`user_tenant_profile`)**:
-  - Almacena datos clínicos específicos del tenant.
-  - `boneMassKg` (numérico, precision 4, scale 2): Masa ósea del paciente (constante en adultos, editable en el perfil).
-  - `bodyCompositionReport` (`JSONB`): Almacena el **último informe consolidado de composición corporal** calculado bajo demanda, accesible directamente al consultar el perfil.
+   - Almacena datos clínicos específicos del tenant.
+   - `boneMassKg` (numérico, precision 4, scale 2): Masa ósea del paciente (constante en adultos, editable en el perfil).
+   - `bodyCompositionReport` (`JSONB`): Almacena el **último informe consolidado de composición corporal** calculado bajo demanda, accesible directamente al consultar el perfil.
 
 ---
 
@@ -227,6 +227,18 @@ A continuación se muestra el esquema exacto devuelto por `POST .../calculate-co
     "thresholdPct": 5.0,
     "hasAnyAsymmetryAlert": false
   },
+  "referenceRanges": {
+    "normalWeightMinKg": 59.9,
+    "normalWeightMaxKg": 80.7,
+    "fatFreeMassMinKg": 64.0,
+    "fatFreeMassMaxKg": 72.7,
+    "fatMassPctMin": 8.0,
+    "fatMassPctMax": 20.0,
+    "waterMassMinKg": 39.7,
+    "waterMassMaxKg": 50.9,
+    "boneMassMinKg": 3.15,
+    "boneMassMaxKg": 3.65
+  },
   "language": "es",
   "calculatedAt": "2026-09-04T08:30:00Z"
 }
@@ -272,6 +284,54 @@ Si la báscula segmental solo reporta porcentajes de grasa pero no las masas ind
 Calcula la diferencia de masa magra entre extremidades contralaterales:
 $$\text{diffPct} = \frac{|\text{Masa Magra D} - \text{Masa Magra I}|}{\max(\text{Masa Magra D}, \text{Masa Magra I})} \times 100$$
 - Si $\text{diffPct} > 5.0\%$, se activa `asymmetricAlert: true` y `hasAnyAsymmetryAlert: true` para alertar al nutricionista sobre posible atrofia, sobreuso unilateral o desbalance muscular.
+
+### 5.5. Rangos de Referencia Clínicos Personalizados (`ReferenceRangesResult`)
+
+El motor calcula 5 pares de valores de referencia (mínimo y máximo saludable) adaptados a la antropometría individual del paciente:
+
+#### 1. Rango de Peso Normal (`normalWeightMinKg` - `normalWeightMaxKg`)
+Basado en los límites de IMC normativo de la OMS ($18.5 - 24.9\text{ kg/m}^2$) para la altura del paciente y ajustado por el factor de complexión física de Grant:
+- $\text{Base Min} = 18.5 \times (\text{Altura en m})^2$
+- $\text{Base Max} = 24.9 \times (\text{Altura en m})^2$
+- **Ajuste por Complexión**:
+  - `SMALL` (Pequeña): factor $0.96$
+  - `MEDIUM` / `UNKNOWN` (Media o no aportada): factor $1.00$
+  - `LARGE` (Grande): factor $1.04$
+
+*Ejemplo*: Varón de 187 cm, complexión media $\rightarrow$ $[18.5 \times 1.87^2, 24.9 \times 1.87^2] = [64.7\text{ kg}, 87.1\text{ kg}]$ (aprox. 65 a 87 kg).
+
+#### 2. Rango de % Grasa Corporal Saludable (`fatMassPctMin` - `fatMassPctMax`)
+Establecido según sexo biológico y grupo etario (estándares Gallagher / OMS / Tanita):
+
+| Sexo | Edad | Rango % Grasa Saludable |
+|---|---|---|
+| **Hombres** | $< 40$ años | $8.0\% - 20.0\%$ |
+| **Hombres** | $40 - 59$ años | $11.0\% - 22.0\%$ |
+| **Hombres** | $\ge 60$ años | $13.0\% - 25.0\%$ |
+| **Mujeres** | $< 40$ años | $21.0\% - 33.0\%$ |
+| **Mujeres** | $40 - 59$ años | $23.0\% - 34.0\%$ |
+| **Mujeres** | $\ge 60$ años | $24.0\% - 36.0\%$ |
+
+#### 3. Rango de Masa Libre de Grasa (`fatFreeMassMinKg` - `fatFreeMassMaxKg`)
+- **Con masa ósea conocida**: Correlación fisiológica entre el contenido mineral óseo y la masa libre de grasa:
+  - En varones adultos, el mineral óseo representa entre el $4.4\%$ y el $5.0\%$ de la FFM:
+    $$\text{FFM Min} = \frac{\text{Masa Ósea}}{0.050}, \quad \text{FFM Max} = \frac{\text{Masa Ósea}}{0.044}$$
+    *Ejemplo*: Con $4.0\text{ kg}$ de masa ósea $\rightarrow [4.0 / 0.050, 4.0 / 0.044] = [80.0\text{ kg}, 90.9\text{ kg}]$ (aprox. 79 a 90 kg).
+  - En mujeres adultas, el mineral óseo representa entre el $4.5\%$ y el $5.5\%$ de la FFM:
+    $$\text{FFM Min} = \frac{\text{Masa Ósea}}{0.055}, \quad \text{FFM Max} = \frac{\text{Masa Ósea}}{0.045}$$
+- **Fallback (sin masa ósea)**: Se deriva a partir del rango de peso normal y los porcentajes límites de grasa:
+  $$\text{FFM Min} = \text{Peso Normal Min} \times (1 - \text{Grasa Max} / 100), \quad \text{FFM Max} = \text{Peso Normal Max} \times (1 - \text{Grasa Min} / 100)$$
+
+#### 4. Rango de Agua Corporal (`waterMassMinKg` - `waterMassMaxKg`)
+Calculado a partir de la fracción de hidratación fisiológica estándar del tejido magro ($62\%$ a $70\%$ de la masa libre de grasa de referencia):
+- $\text{Agua Min} = \text{fatFreeMassMinKg} \times 0.62$
+- $\text{Agua Max} = \text{fatFreeMassMaxKg} \times 0.70$
+*Ejemplo*: Para FFM de 80.0 - 90.9 kg $\rightarrow [80.0 \times 0.62, 90.9 \times 0.70] = [49.6\text{ kg}, 63.6\text{ kg}]$ (aprox. 49 a 63 kg).
+
+#### 5. Rango de Masa Ósea Esperada (`boneMassMinKg` - `boneMassMaxKg`)
+Reutiliza los rangos normativos de bioimpedancia según el peso actual y sexo biológico:
+- **Mujeres**: $<50\text{ kg} \rightarrow [1.95, 2.40\text{ kg}]$; $50-75\text{ kg} \rightarrow [2.40, 2.95\text{ kg}]$; $>75\text{ kg} \rightarrow [2.95, 3.60\text{ kg}]$
+- **Hombres**: $<65\text{ kg} \rightarrow [2.65, 3.15\text{ kg}]$; $65-95\text{ kg} \rightarrow [3.15, 3.65\text{ kg}]$; $>95\text{ kg} \rightarrow [3.65, 4.50\text{ kg}]$
 
 ---
 

@@ -275,7 +275,20 @@
     "upper_limbs": "Upper Limbs",
     "lower_limbs": "Lower Limbs",
     "diff": "difference",
-    "symmetric": "Symmetric"
+    "symmetric": "Symmetric",
+    "reference_ranges_title": "Clinical Reference Ranges",
+    "reference_ranges_subtitle": "Personalized healthy target values based on anthropometry",
+    "normal_weight_range": "Normal Weight",
+    "fat_pct_range": "Healthy Fat %",
+    "fat_free_mass_range": "Fat-Free Mass",
+    "water_mass_range": "Body Water",
+    "bone_mass_range": "Expected Bone Mass",
+    "range_status_within": "In Range",
+    "range_status_below": "Below Range",
+    "range_status_above": "Above Range",
+    "range_status_unknown": "No Data",
+    "range_target_label": "Optimal range",
+    "range_current_label": "Current"
   },
   "menu_history": {
     "active_menu": "Active Menu",
