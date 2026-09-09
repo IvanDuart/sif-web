@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { ScheduleService } from '../../../core/api/services/schedule.api';
 import { HolidayService } from '../../../core/api/services/holiday.api';
@@ -18,7 +19,7 @@ const DAY_NAMES = ['', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 @Component({
   selector: 'app-schedule-settings',
   standalone: true,
-  imports: [TranslocoDirective, TuiTabs, TuiButton, TuiTable],
+  imports: [TranslocoDirective, DatePipe, TuiTabs, TuiButton, TuiTable],
   templateUrl: './schedule-settings.html',
 })
 export class ScheduleSettings implements OnInit {

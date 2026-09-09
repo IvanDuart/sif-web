@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ShoppingListDto, ShoppingListItemDto, GenerateShoppingListRequest, UpdateShoppingListItemRequest } from '../models/shopping-list.model';
-import {ConfigService} from '../../config/config.service';
+import { ConfigService } from '../../config/config.service';
+import { IGNORE_NOT_FOUND } from '../../http/error.interceptor';
 
 @Injectable({ providedIn: 'root' })
 export class ShoppingListService {
@@ -26,7 +27,8 @@ export class ShoppingListService {
 
   getByMenuId(tenantId: string, menuId: string): Observable<ShoppingListDto> {
     return this.http.get<ShoppingListDto>(
-      `${this.baseUrl}/tenant/${tenantId}/menu/${menuId}/shopping-list`
+      `${this.baseUrl}/tenant/${tenantId}/menu/${menuId}/shopping-list`,
+      { context: new HttpContext().set(IGNORE_NOT_FOUND, true) }
     );
   }
 

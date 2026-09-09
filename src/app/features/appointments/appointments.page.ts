@@ -64,7 +64,38 @@ export default class AppointmentsPage implements OnInit {
   protected readonly closedColor = CLOSED_COLOR;
   protected readonly activeHoursDot = hexToRgba(ACTIVE_HOURS_COLOR, 0.6);
 
-  calendarOptions: CalendarOptions = {};
+  calendarOptions: CalendarOptions = {
+    plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+    initialView: typeof window !== 'undefined' && window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek',
+    headerToolbar: typeof window !== 'undefined' && window.innerWidth < 768
+      ? { left: 'prev,next today', center: 'title', right: 'timeGridDay,timeGridWeek' }
+      : { left: 'prev,next today', center: 'title', right: 'timeGridWeek,timeGridDay' },
+    locales: [esLocale],
+    locale: 'es',
+    allDaySlot: false,
+    slotMinTime: '06:00:00',
+    slotMaxTime: '22:00:00',
+    height: 'auto',
+    firstDay: 1,
+    editable: false,
+    selectable: false,
+    dateClick: (info: DateClickArg) => {
+      this.handleDateClick(info);
+    },
+    eventClick: (info: EventClickArg) => {
+      this.handleEventClick(info);
+    },
+    datesSet: (info: DatesSetArg) => {
+      this.onDatesSet(info);
+    },
+    dayCellClassNames: (arg) => {
+      const dateStr = this.toLocalDateStr(arg.date);
+      const isHoliday = this.scheduleAvailability.isHolidayCached(dateStr);
+      if (isHoliday) return ['fc-day--holiday'];
+      if (!this.scheduleAvailability.getScheduleForDate(dateStr)) return ['fc-day--closed'];
+      return [];
+    }
+  };
   calendarEvents = signal<EventSourceInput>([]);
 
   ngOnInit() {
@@ -94,41 +125,6 @@ export default class AppointmentsPage implements OnInit {
         }, 300);
       }
     });
-
-    const isMobile = globalThis.innerWidth < 768;
-
-    this.calendarOptions = {
-      plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-      initialView: isMobile ? 'timeGridDay' : 'timeGridWeek',
-      headerToolbar: isMobile
-        ? { left: 'prev,next today', center: 'title', right: 'timeGridDay,timeGridWeek' }
-        : { left: 'prev,next today', center: 'title', right: 'timeGridWeek,timeGridDay' },
-      locales: [esLocale],
-      locale: 'es',
-      allDaySlot: false,
-      slotMinTime: '06:00:00',
-      slotMaxTime: '22:00:00',
-      height: 'auto',
-      firstDay: 1,
-      editable: false,
-      selectable: false,
-      dateClick: (info: DateClickArg) => {
-        this.handleDateClick(info);
-      },
-      eventClick: (info: EventClickArg) => {
-        this.handleEventClick(info);
-      },
-      datesSet: (info: DatesSetArg) => {
-        this.onDatesSet(info);
-      },
-      dayCellClassNames: (arg) => {
-        const dateStr = this.toLocalDateStr(arg.date);
-        const isHoliday = this.scheduleAvailability.isHolidayCached(dateStr);
-        if (isHoliday) return ['fc-day--holiday'];
-        if (!this.scheduleAvailability.getScheduleForDate(dateStr)) return ['fc-day--closed'];
-        return [];
-      }
-    };
   }
 
   private computeDateRanges() {

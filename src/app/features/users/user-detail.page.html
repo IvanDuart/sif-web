@@ -435,7 +435,7 @@
                         </p>
                       </div>
                       <div>
-                        <span class="text-xs text-surface-400">{{ t('measurements.body_water') }}</span>
+                        <span class="text-xs text-surface-400">{{ t('measurements.water_mass') }}</span>
                         <p class="text-base font-bold font-mono text-cyan-600 dark:text-cyan-400 mt-0.5 mb-0">
                           {{ report.global.waterMassKg }} kg
                         </p>
@@ -947,7 +947,7 @@
               </button>
               }
             </div>
-            
+
             <boneyard-skeleton name="user-menus-history" [loading]="loadingMenus()">
               <div class="flex flex-col gap-6">
               @if (activeMenu(); as menu) {

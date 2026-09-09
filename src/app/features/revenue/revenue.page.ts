@@ -56,6 +56,15 @@ export default class RevenuePage implements OnInit, OnDestroy {
   private readonly notify = inject(NotificationService);
   private readonly themeService = inject(ThemeService);
 
+  constructor() {
+    effect(() => {
+      this.themeService.colorScheme();
+      if (this.chartLoaded()) {
+        requestAnimationFrame(() => this.buildChart());
+      }
+    });
+  }
+
   dateRange = signal(
     new TuiDayRange(
       this.dateToTuiDay(new Date(new Date().getFullYear(), new Date().getMonth(), 1)),
@@ -142,13 +151,6 @@ export default class RevenuePage implements OnInit, OnDestroy {
 
     this.loadNutritionists(tenantId);
     this.loadData();
-
-    effect(() => {
-      this.themeService.colorScheme();
-      if (this.chartLoaded()) {
-        requestAnimationFrame(() => this.buildChart());
-      }
-    });
   }
 
   private loadNutritionists(tenantId: string): void {

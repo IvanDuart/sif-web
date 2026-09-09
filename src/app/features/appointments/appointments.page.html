@@ -17,12 +17,10 @@
       </div>
 
       <div class="data-card">
-        <boneyard-skeleton name="appointments-calendar" [loading]="loadingWeek()">
-          <full-calendar #calendar
-            [options]="calendarOptions"
-            [events]="calendarEvents()">
-          </full-calendar>
-        </boneyard-skeleton>
+        <full-calendar #calendar
+          [options]="calendarOptions"
+          [events]="calendarEvents()">
+        </full-calendar>
       </div>
     </div>
 

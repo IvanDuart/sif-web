@@ -96,7 +96,7 @@ export class BrandingSettings implements OnInit, OnDestroy {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
     this.loading.set(true);
-    this.tenantService.getById(tenantId).subscribe({
+    this.tenantService.getProfile(tenantId).subscribe({
       next: (tenant) => {
         const prefs = tenant.preferences ?? {
           enable_vacation_module: false,

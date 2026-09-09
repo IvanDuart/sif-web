@@ -26,7 +26,7 @@
                 <th tuiTh scope="col">{{ t('schedule_settings.name') }}</th>
                 <th tuiTh scope="col">{{ t('schedule_settings.color') }}</th>
                 <th tuiTh scope="col">{{ t('schedule_settings.days_active') }}</th>
-                <th tuiTh scope="col">{{ t('schedule_settings.blocks_count', { count: '' }).replace('0 ', '') }}</th>
+                <th tuiTh scope="col">{{ t('schedule_settings.blocks_header') }}</th>
                 <th tuiTh scope="col" class="text-center" style="width: 8rem;">{{ t('common.actions') }}</th>
               </tr>
             </thead>
@@ -104,8 +104,8 @@
                     </div>
                   </td>
                   <td tuiTd>{{ a.year }}</td>
-                  <td tuiTd>{{ a.validFrom }}</td>
-                  <td tuiTd>{{ a.validTo ?? t('schedule_settings.no_end_date') }}</td>
+                  <td tuiTd>{{ a.validFrom | date:'dd/MM/yyyy' }}</td>
+                  <td tuiTd>{{ a.validTo ? (a.validTo | date:'dd/MM/yyyy') : t('schedule_settings.no_end_date') }}</td>
                    <td tuiTd class="text-center">
                      <div class="flex items-center gap-1 justify-center">
                        <button tuiButton appearance="flat" size="s" type="button"
@@ -172,7 +172,7 @@
             <tbody tuiTbody>
               @for (h of holidays(); track h.id) {
                 <tr tuiTr>
-                  <td tuiTd class="font-medium">{{ h.holidayDate }}</td>
+                  <td tuiTd class="font-medium">{{ h.holidayDate | date:'dd/MM/yyyy' }}</td>
                   <td tuiTd>{{ h.description }}</td>
                   <td tuiTd>
                     <span class="inline-block px-2 py-0.5 rounded text-xs font-medium"

@@ -111,6 +111,22 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   private readonly permissionsService = inject(PermissionsService);
   private readonly themeService = inject(ThemeService);
 
+  constructor() {
+    // Subscribe to theme changes and rebuild chart when theme toggles
+    effect(() => {
+      this.themeService.colorScheme(); // Reactive dependency
+      if (this.measurementHistory() && this.chartLoaded()) {
+        // Rebuild chart on next tick to allow CSS variables to update
+        requestAnimationFrame(() => {
+          const history = this.measurementHistory();
+          if (history) {
+            this.buildChart(history);
+          }
+        });
+      }
+    });
+  }
+
   aiEnabled = signal(false);
 
   // Metadata describing the structured medical checklist and lifestyle/nutrition fields rendered in the profile tab.
@@ -496,20 +512,6 @@ export default class UserDetailPage implements OnInit, OnDestroy {
 
     this.saveSub = this.saveSubject.pipe(debounceTime(1000)).subscribe(() => {
       this.persistProfile();
-    });
-
-    // Subscribe to theme changes and rebuild chart when theme toggles
-    effect(() => {
-      this.themeService.colorScheme(); // Reactive dependency
-      if (this.measurementHistory() && this.chartLoaded()) {
-        // Rebuild chart on next tick to allow CSS variables to update
-        requestAnimationFrame(() => {
-          const history = this.measurementHistory();
-          if (history) {
-            this.buildChart(history);
-          }
-        });
-      }
     });
   }
 
