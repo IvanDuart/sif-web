@@ -37,6 +37,14 @@
           </div>
         </div>
         <div class="flex gap-2">
+          @if (canManageTemplate()) {
+            <button
+              tuiButton appearance="secondary" size="m"
+              (click)="convertToTemplate()">
+              <i class="fa-solid fa-copy"></i>
+              {{ t('diets.convert_to_template') }}
+            </button>
+          }
           <button
             *appIfPermission="'VIEW_MENU'"
             tuiButton appearance="secondary" size="m"

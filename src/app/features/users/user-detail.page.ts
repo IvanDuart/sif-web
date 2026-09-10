@@ -688,6 +688,30 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     });
   }
 
+  deleteMenu(menu: Menu) {
+    this.confirm.confirm({
+      label: this.transloco.translate('common.attention'),
+      content: this.transloco.translate('menu_history.delete_confirm', { name: menu.name }),
+      yes: this.transloco.translate('common.yes'),
+      no: this.transloco.translate('common.cancel'),
+    }).subscribe((confirmed) => {
+      if (!confirmed) return;
+
+      const tenantId = this.tenantCtx.currentTenantId();
+      if (!tenantId) return;
+
+      this.menuService.delete(tenantId, menu.id).subscribe({
+        next: () => {
+          this.notify.success(this.transloco.translate('notifications.menu_deleted'));
+          this.loadMenuHistory();
+        },
+        error: () => {
+          this.notify.error(this.transloco.translate('common.error'));
+        }
+      });
+    });
+  }
+
   private loadPatientProfile() {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;

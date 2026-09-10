@@ -1,7 +1,9 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Subject, Observable, of, debounceTime, distinctUntilChanged, switchMap, map } from 'rxjs';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiButton, TuiDialogContext } from '@taiga-ui/core';
+import { TuiButton, TuiDialogContext, TuiTextfield, TuiDropdown } from '@taiga-ui/core';
+import { TuiComboBox, TuiDataListWrapper, TuiChevron } from '@taiga-ui/kit';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { MenuUploadService } from '../../core/api/services/menu-upload.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
@@ -12,41 +14,70 @@ import { NotificationService } from '../../core/ui';
 @Component({
   selector: 'app-menu-upload',
   standalone: true,
-  imports: [FormsModule, TuiButton, TranslocoPipe],
+  imports: [FormsModule, TuiButton, TranslocoPipe, TuiTextfield, TuiDropdown, TuiComboBox, TuiDataListWrapper, TuiChevron],
   templateUrl: './menu-upload.dialog.html'
 })
-export class MenuUploadDialog implements OnInit {
+export class MenuUploadDialog implements OnInit, OnDestroy {
   private readonly menuUploadService = inject(MenuUploadService);
   private readonly userRoleService = inject(UserTenantRoleService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly notify = inject(NotificationService);
   readonly context = injectContext<TuiDialogContext<unknown, void>>();
 
+  private readonly searchSubject = new Subject<string>();
+
   users = signal<(AppUserDto & { fullName: string })[]>([]);
   loadingUsers = signal(false);
-  selectedUserId: string | null = null;
+  selectedUserId: (AppUserDto & { fullName: string }) | null = null;
   selectedFile: File | null = null;
   uploading = signal(false);
 
+  userStringify = (user: AppUserDto & { fullName: string } | null): string => user?.fullName || '';
+
   ngOnInit() {
-    this.loadUsers();
-  }
+    this.loadUsers('');
 
-  loadUsers() {
-    const tenantId = this.tenantCtx.currentTenantId();
-    if (!tenantId) return;
-
-    this.loadingUsers.set(true);
-    this.userRoleService.getUsersByTenantAndType(tenantId, 'PATIENT', { size: 1000 }).subscribe({
-      next: (res) => {
-        const mapped = (res.content || []).map(u => ({
-          ...u,
-          fullName: u.firstName + ' ' + u.lastName
-        }));
+    this.searchSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap((term) => this.fetchUsers(term))
+      )
+      .subscribe((mapped) => {
         this.users.set(mapped);
         this.loadingUsers.set(false);
-      },
-      error: () => this.loadingUsers.set(false)
+      });
+  }
+
+  ngOnDestroy() {
+    this.searchSubject.complete();
+  }
+
+  onPatientSearch(value: string) {
+    this.loadingUsers.set(true);
+    this.searchSubject.next(value || '');
+  }
+
+  private fetchUsers(term: string): Observable<(AppUserDto & { fullName: string })[]> {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return of([]);
+    return this.userRoleService
+      .getUsersByTenantAndType(tenantId, 'PATIENT', { search: term || undefined, size: 50 })
+      .pipe(
+        map((res) =>
+          (res.content || []).map(u => ({
+            ...u,
+            fullName: u.firstName + ' ' + u.lastName
+          }))
+        )
+      );
+  }
+
+  loadUsers(term: string) {
+    this.loadingUsers.set(true);
+    this.fetchUsers(term).subscribe((mapped) => {
+      this.users.set(mapped);
+      this.loadingUsers.set(false);
     });
   }
 
@@ -67,7 +98,7 @@ export class MenuUploadDialog implements OnInit {
     if (!this.selectedFile) return;
 
     this.uploading.set(true);
-    this.menuUploadService.uploadMenu(tenantId, this.selectedUserId, this.selectedFile).subscribe({
+    this.menuUploadService.uploadMenu(tenantId, this.selectedUserId.id, this.selectedFile).subscribe({
       next: (createdMenu) => {
         this.notify.success('Menú extraído y creado correctamente');
         this.context.$implicit.next(createdMenu);

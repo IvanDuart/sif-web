@@ -149,6 +149,7 @@
     "title": "Dietas y Menús",
     "create": "Crear Menú",
     "upload_ocr": "Importar",
+    "convert_to_template": "Convertir en Plantilla",
     "name": "Nombre",
     "status": "Estado",
     "created_at": "Creado el",
@@ -320,7 +321,9 @@
     "set_active": "Establecer como menú activo",
     "assign_to_patient": "Asignar al Paciente",
     "target_patient": "Paciente Destino",
-    "select_patient": "Seleccionar Paciente"
+    "select_patient": "Seleccionar Paciente",
+    "delete": "Eliminar menú",
+    "delete_confirm": "¿Estás seguro de que quieres eliminar el menú \"{{name}}\"? Esta acción no se puede deshacer."
   },
   "patient_profile": {
     "title": "Perfil Médico",
@@ -995,7 +998,9 @@
     "menu_created": "Menú asignado al paciente correctamente",
     "template_assigned": "Plantilla asignada al paciente correctamente",
     "meal_deleted": "Plato eliminado",
-    "meal_updated": "Plato actualizado correctamente"
+    "meal_updated": "Plato actualizado correctamente",
+    "menu_deleted": "Menú eliminado correctamente",
+    "template_created": "Plantilla creada correctamente"
   },
   "help": {
     "title": "Centro de Ayuda",

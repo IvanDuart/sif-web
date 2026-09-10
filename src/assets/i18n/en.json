@@ -149,6 +149,7 @@
     "title": "Diets & Menus",
     "create": "Create Menu",
     "upload_ocr": "Import",
+    "convert_to_template": "Convert to Template",
     "name": "Name",
     "status": "Status",
     "created_at": "Created at",
@@ -324,7 +325,9 @@
     "set_active": "Set as active menu",
     "assign_to_patient": "Assign to Patient",
     "target_patient": "Target Patient",
-    "select_patient": "Select Patient"
+    "select_patient": "Select Patient",
+    "delete": "Delete menu",
+    "delete_confirm": "Are you sure you want to delete the menu \"{{name}}\"? This action cannot be undone."
   },
   "patient_profile": {
     "title": "Medical Profile",
@@ -972,7 +975,9 @@
     "menu_created": "Menu assigned to patient successfully",
     "template_assigned": "Template assigned to patient successfully",
     "meal_deleted": "Meal deleted",
-    "meal_updated": "Meal updated successfully"
+    "meal_updated": "Meal updated successfully",
+    "menu_deleted": "Menu deleted successfully",
+    "template_created": "Template created successfully"
   },
   "revenue": {
     "title": "Revenue",

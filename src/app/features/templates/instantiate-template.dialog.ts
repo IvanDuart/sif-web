@@ -1,7 +1,8 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, OnDestroy } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { Subject, Observable, of, debounceTime, distinctUntilChanged, switchMap, map } from 'rxjs';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext, TuiButton, TuiInput, TuiDropdown, TuiFilterByInputPipe, TuiCheckbox } from '@taiga-ui/core';
+import { TuiDialogContext, TuiButton, TuiInput, TuiDropdown, TuiCheckbox } from '@taiga-ui/core';
 import { TuiComboBox, TuiDataListWrapper, TuiChevron } from '@taiga-ui/kit';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { MenuTemplateService, InstantiateMenuTemplateRequest } from '../../core/api/services/menu-template.api';
@@ -20,15 +21,17 @@ type PatientOption = AppUserDto & { fullName: string };
 @Component({
   selector: 'app-instantiate-template',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, TuiButton, TuiInput, TuiDropdown, TuiFilterByInputPipe, TuiComboBox, TuiDataListWrapper, TuiChevron, TranslocoPipe, TuiCheckbox],
+  imports: [FormsModule, ReactiveFormsModule, TuiButton, TuiInput, TuiDropdown, TuiComboBox, TuiDataListWrapper, TuiChevron, TranslocoPipe, TuiCheckbox],
   templateUrl: './instantiate-template.dialog.html'
 })
-export class InstantiateTemplateDialog implements OnInit {
+export class InstantiateTemplateDialog implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly templateService = inject(MenuTemplateService);
   private readonly userRoleService = inject(UserTenantRoleService);
   private readonly tenantCtx = inject(TenantContextService);
   readonly context = injectContext<TuiDialogContext<Menu, InstantiateTemplateDialogInput>>();
+
+  private readonly searchSubject = new Subject<string>();
 
   template: MenuTemplate | null = null;
   users = signal<PatientOption[]>([]);
@@ -48,24 +51,49 @@ export class InstantiateTemplateDialog implements OnInit {
     if (this.template) {
       this.form.patchValue({ name: this.template.name + ' - Copia' });
     }
-    this.loadUsers();
-  }
+    this.loadUsers('');
 
-  loadUsers() {
-    const tenantId = this.tenantCtx.currentTenantId();
-    if (!tenantId) return;
-
-    this.loadingUsers.set(true);
-    this.userRoleService.getUsersByTenantAndType(tenantId, 'PATIENT', { size: 1000 }).subscribe({
-      next: (res) => {
-        const mapped = (res.content || []).map(u => ({
-          ...u,
-          fullName: u.firstName + ' ' + u.lastName
-        }));
+    this.searchSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap((term) => this.fetchUsers(term))
+      )
+      .subscribe((mapped) => {
         this.users.set(mapped);
         this.loadingUsers.set(false);
-      },
-      error: () => this.loadingUsers.set(false)
+      });
+  }
+
+  ngOnDestroy() {
+    this.searchSubject.complete();
+  }
+
+  onPatientSearch(value: string) {
+    this.loadingUsers.set(true);
+    this.searchSubject.next(value || '');
+  }
+
+  private fetchUsers(term: string): Observable<PatientOption[]> {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return of([]);
+    return this.userRoleService
+      .getUsersByTenantAndType(tenantId, 'PATIENT', { search: term || undefined, size: 50 })
+      .pipe(
+        map((res) =>
+          (res.content || []).map(u => ({
+            ...u,
+            fullName: u.firstName + ' ' + u.lastName
+          }))
+        )
+      );
+  }
+
+  loadUsers(term: string) {
+    this.loadingUsers.set(true);
+    this.fetchUsers(term).subscribe((mapped) => {
+      this.users.set(mapped);
+      this.loadingUsers.set(false);
     });
   }
 

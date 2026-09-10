@@ -17,10 +17,11 @@
         <input
           id="formPatientId"
           tuiComboBox
-          formControlName="patientId">
+          formControlName="patientId"
+          (input)="onPatientSearch($any($event).target.value)">
         <tui-data-list-wrapper
           *tuiDropdown
-          [items]="patientLabels() | tuiFilterByInput" />
+          [items]="patientLabels()" />
       </tui-textfield>
     }
 

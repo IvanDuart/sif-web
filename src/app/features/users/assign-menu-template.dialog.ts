@@ -1,9 +1,9 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext, TuiButton, TuiInput, TuiTextfield, TuiLabel } from '@taiga-ui/core';
-import { TuiSwitch } from '@taiga-ui/kit';
+import { TuiDialogContext, TuiButton, TuiInput, TuiTextfield, TuiLabel, TuiDropdown, TuiFilterByInputPipe } from '@taiga-ui/core';
+import { TuiComboBox, TuiDataListWrapper, TuiChevron, TuiSwitch } from '@taiga-ui/kit';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -13,7 +13,7 @@ import { Menu } from '../../core/api/models/menu.model';
 @Component({
   selector: 'app-assign-menu-template',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TuiButton, TuiInput, TuiTextfield, TuiLabel, TuiSwitch, TranslocoPipe],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TuiButton, TuiInput, TuiTextfield, TuiLabel, TuiDropdown, TuiFilterByInputPipe, TuiComboBox, TuiDataListWrapper, TuiChevron, TuiSwitch, TranslocoPipe],
   templateUrl: './assign-menu-template.dialog.html'
 })
 export class AssignMenuTemplateDialog implements OnInit {
@@ -28,6 +28,9 @@ export class AssignMenuTemplateDialog implements OnInit {
   loadingTemplates = signal(false);
   saving = signal(false);
 
+  templateLabels = computed(() => this.templates().map(t => t.name));
+  templateStringify = (value: string): string => value;
+
   form = this.fb.group({
     templateId: ['', Validators.required],
     name: ['', Validators.required],
@@ -36,6 +39,12 @@ export class AssignMenuTemplateDialog implements OnInit {
 
   ngOnInit() {
     this.loadTemplates();
+    this.form.get('templateId')?.valueChanges.subscribe((value) => {
+      const template = this.templates().find(t => t.name === value);
+      if (template) {
+        this.form.patchValue({ name: template.name + ' - Copia' });
+      }
+    });
   }
 
   private loadTemplates() {
@@ -52,14 +61,6 @@ export class AssignMenuTemplateDialog implements OnInit {
     });
   }
 
-  onTemplateChange(event: Event) {
-    const value = (event.target as HTMLSelectElement).value;
-    const template = this.templates().find(t => t.id === value);
-    if (template) {
-      this.form.patchValue({ name: template.name + ' - Copia' });
-    }
-  }
-
   submit() {
     if (this.form.invalid) return;
 
@@ -67,9 +68,12 @@ export class AssignMenuTemplateDialog implements OnInit {
     const userId = this.context.data?.userId;
     if (!tenantId || !userId) return;
 
-    this.saving.set(true);
     const raw = this.form.getRawValue();
-    this.templateService.instantiate(tenantId, raw.templateId!, {
+    const template = this.templates().find(t => t.name === raw.templateId);
+    if (!template) return;
+
+    this.saving.set(true);
+    this.templateService.instantiate(tenantId, template.id, {
       appUserId: userId,
       name: raw.name!,
       isActive: raw.isActive ?? true,

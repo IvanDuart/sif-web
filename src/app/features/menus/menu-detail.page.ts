@@ -10,6 +10,7 @@ import { TuiTable } from '@taiga-ui/addon-table';
 
 import { MenuService } from '../../core/api/services/menu.api';
 import { MealService } from '../../core/api/services/meal.api';
+import { MenuTemplateService, CreateMealTemplateRequest } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { Menu } from '../../core/api/models/menu.model';
 import { Meal } from '../../core/api/models/meal.model';
@@ -18,6 +19,7 @@ import { PermissionsService } from '../../core/permissions/permissions.service';
 import { NotificationService, ModalService, ConfirmService } from '../../core/ui';
 import { MealFormDialog, MealFormDialogInput } from './meal-form.dialog';
 import { MenuRenameDialog, MenuRenameDialogInput } from './menu-rename.dialog';
+import { TemplateFormDialog, TemplateFormDialogInput } from '../templates/template-form.dialog';
 import { TenantBrandingService } from '../../core/api/services/tenant-branding.api';
 import { ShoppingListService } from '../../core/api/services/shopping-list.api';
 import { ShoppingListDialog, ShoppingListDialogInput } from './shopping-list.dialog';
@@ -50,6 +52,7 @@ export default class MenuDetailPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly menuService = inject(MenuService);
   private readonly mealService = inject(MealService);
+  private readonly menuTemplateService = inject(MenuTemplateService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly modal = inject(ModalService);
   private readonly transloco = inject(TranslocoService);
@@ -74,6 +77,7 @@ export default class MenuDetailPage implements OnInit {
   supermarketMenuOpen = signal(false);
   canManageMeal = computed(() => this.permissionsService.has('MANAGE_MEAL'));
   canManageMenu = computed(() => this.permissionsService.has('MANAGE_MENU'));
+  canManageTemplate = computed(() => this.permissionsService.has('MANAGE_TEMPLATE'));
   canViewMenu = computed(() => this.permissionsService.has('VIEW_MENU'));
   canActivateMenu = computed(() =>
     this.canManageMenu() || this.tenantCtx.currentMembership()?.userType === 'PATIENT'
@@ -323,6 +327,28 @@ export default class MenuDetailPage implements OnInit {
           : this.transloco.translate('shopping_list.generation_error');
         this.notify.error(msg);
       },
+    });
+  }
+
+  convertToTemplate() {
+    const currentMenu = this.menu();
+    const currentMeals = this.meals();
+    if (!currentMenu || !currentMeals.length) return;
+
+    const initialMeals: CreateMealTemplateRequest[] = currentMeals.map(meal => ({
+      dayOfWeek: meal.dayOfWeek,
+      mealType: meal.mealType,
+      description: meal.description
+    }));
+
+    const defaultName = `${currentMenu.name} - Plantilla`;
+
+    this.modal.open<void, TemplateFormDialogInput>(TemplateFormDialog, {
+      label: this.transloco.translate('diets.convert_to_template'),
+      size: 'm',
+      data: { initialMeals, defaultName }
+    }).subscribe(() => {
+      this.notify.success(this.transloco.translate('notifications.template_created'));
     });
   }
 

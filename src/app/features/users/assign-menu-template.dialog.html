@@ -1,12 +1,8 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
-  <tui-textfield class="w-full">
+  <tui-textfield class="w-full" tuiChevron [stringify]="templateStringify">
     <label tuiLabel for="templateId">{{ 'menu_history.template_label' | transloco }}</label>
-    <select id="templateId" formControlName="templateId" (change)="onTemplateChange($event)" tuiInput>
-      <option value="" disabled>{{ 'menu_history.select_template' | transloco }}</option>
-      @for (t of templates(); track t.id) {
-        <option [value]="t.id">{{ t.name }}</option>
-      }
-    </select>
+    <input id="templateId" formControlName="templateId" tuiComboBox />
+    <tui-data-list-wrapper *tuiDropdown [items]="templateLabels() | tuiFilterByInput"></tui-data-list-wrapper>
   </tui-textfield>
 
   <tui-textfield class="w-full">

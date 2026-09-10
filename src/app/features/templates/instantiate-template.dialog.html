@@ -5,8 +5,8 @@
 
   <tui-textfield class="w-full" tuiChevron [stringify]="patientStringify">
     <label tuiLabel for="appUserId">{{ 'menu_history.target_patient' | transloco }}</label>
-    <input id="appUserId" formControlName="appUserId" tuiComboBox />
-    <tui-data-list-wrapper *tuiDropdown [items]="users() | tuiFilterByInput"></tui-data-list-wrapper>
+    <input id="appUserId" formControlName="appUserId" tuiComboBox (input)="onPatientSearch($any($event).target.value)" />
+    <tui-data-list-wrapper *tuiDropdown [items]="users()"></tui-data-list-wrapper>
   </tui-textfield>
 
   <tui-textfield class="w-full">

@@ -1,5 +1,6 @@
-import {Component, inject, signal, OnInit, computed, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject, signal, OnInit, computed, ChangeDetectionStrategy, OnDestroy} from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Subject, Observable, of, debounceTime, distinctUntilChanged, switchMap, map } from 'rxjs';
 import { TuiDropdown, TuiTextfield, TuiLabel, TuiFilterByInputPipe, TuiButton, TuiCheckbox, TuiInput } from '@taiga-ui/core';
 import {
   TuiTextarea,
@@ -51,7 +52,7 @@ import { ScheduleAvailabilityService } from '../../core/api/services/schedule-av
   styleUrls: ['./appointment-form.dialog.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AppointmentFormDialog implements OnInit {
+export class AppointmentFormDialog implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly appointmentService = inject(AppointmentService);
   private readonly appointmentTypeService = inject(AppointmentTypeService);
@@ -62,10 +63,13 @@ export class AppointmentFormDialog implements OnInit {
   private readonly transloco = inject(TranslocoService);
   private readonly scheduleAvailability = inject(ScheduleAvailabilityService);
 
+  private readonly searchSubject = new Subject<string>();
+
   readonly context = injectContext<TuiDialogContext<boolean, { nutritionistId?: string; startTime?: Date }>>();
 
   patients = signal<{ label: string; value: string }[]>([]);
   appointmentTypes = signal<{ label: string; value: string }[]>([]);
+  patientsLoading = signal(false);
   saving = signal(false);
   error = signal('');
 
@@ -102,8 +106,19 @@ export class AppointmentFormDialog implements OnInit {
   });
 
   ngOnInit() {
-    this.loadPatients();
+    this.loadPatients('');
     this.loadAppointmentTypes();
+
+    this.searchSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap((term) => this.fetchPatients(term))
+      )
+      .subscribe((users) => {
+        this.patients.set(users);
+        this.patientsLoading.set(false);
+      });
 
     this.scheduleAvailability.load().subscribe(() => {
       this.availabilityLoaded.set(true);
@@ -155,19 +170,32 @@ export class AppointmentFormDialog implements OnInit {
     }
   }
 
-  private loadPatients() {
+  ngOnDestroy() {
+    this.searchSubject.complete();
+  }
+
+  onPatientSearch(value: string) {
+    this.patientsLoading.set(true);
+    this.searchSubject.next(value || '');
+  }
+
+  private fetchPatients(term: string): Observable<{ label: string; value: string }[]> {
     const tenantId = this.tenantCtx.currentTenantId();
-    if (!tenantId) return;
-    this.userRoleService.getUsersByTenantAndType(tenantId, 'PATIENT', { size: 1000 }).subscribe({
-      next: (users) => {
-        this.patients.set(
+    if (!tenantId) return of([]);
+    return this.userRoleService
+      .getUsersByTenantAndType(tenantId, 'PATIENT', { search: term || undefined, size: 50 })
+      .pipe(
+        map((users) =>
           (users.content || []).map((u: AppUserDto) => ({
             label: `${u.firstName} ${u.lastName}`,
             value: u.id
           }))
-        );
-      }
-    });
+        )
+      );
+  }
+
+  private loadPatients(term: string) {
+    this.fetchPatients(term).subscribe((users) => this.patients.set(users));
   }
 
   private loadAppointmentTypes() {

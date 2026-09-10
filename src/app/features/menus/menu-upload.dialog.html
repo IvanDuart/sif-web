@@ -8,12 +8,10 @@
 
   <div class="field flex flex-col gap-1.5">
     <label for="appUserId" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.target_patient' | transloco }}</label>
-    <select id="appUserId" [(ngModel)]="selectedUserId" class="form-input" [class.loading]="loadingUsers()">
-      <option value="" disabled>{{ 'diets.form_select_patient' | transloco }}</option>
-      @for (u of users(); track u.id) {
-        <option [value]="u.id">{{ u.fullName }}</option>
-      }
-    </select>
+    <tui-textfield tuiChevron [stringify]="userStringify">
+      <input id="appUserId" [(ngModel)]="selectedUserId" tuiComboBox (input)="onPatientSearch($any($event).target.value)" [placeholder]="'diets.form_select_patient' | transloco" />
+      <tui-data-list-wrapper *tuiDropdown [items]="users()"></tui-data-list-wrapper>
+    </tui-textfield>
   </div>
 
   @if (selectedUserId) {

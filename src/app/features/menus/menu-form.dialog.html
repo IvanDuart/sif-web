@@ -6,12 +6,10 @@
 
   <div class="field flex flex-col gap-1.5">
     <label for="appUserId" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.form_patient_label' | transloco }}</label>
-    <select id="appUserId" formControlName="appUserId" class="form-input" [class.loading]="loadingUsers()">
-      <option value="" disabled>{{ 'diets.form_select_patient' | transloco }}</option>
-      @for (u of users(); track u.id) {
-        <option [value]="u.id">{{ u.fullName }}</option>
-      }
-    </select>
+    <tui-textfield tuiChevron [stringify]="userStringify">
+      <input id="appUserId" formControlName="appUserId" tuiComboBox (input)="onPatientSearch($any($event).target.value)" [placeholder]="'diets.form_select_patient' | transloco" />
+      <tui-data-list-wrapper *tuiDropdown [items]="users()"></tui-data-list-wrapper>
+    </tui-textfield>
   </div>
 
   <div class="flex items-center gap-2 mt-2">
