@@ -132,6 +132,19 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
 
     this.form.get('isFirstConsultation')?.valueChanges.subscribe((checked) => {
       this.isFirstConsultation.set(!!checked);
+      const patientControl = this.form.get('patientId');
+      
+      if (checked) {
+        // First consultation: patientId is not required
+        patientControl?.clearValidators();
+        patientControl?.setValue('');
+      } else {
+        // Regular appointment: patientId is required
+        patientControl?.setValidators([Validators.required]);
+      }
+      
+      patientControl?.updateValueAndValidity();
+      
       if (!checked) {
         this.form.get('newPatientName')?.setValue('');
       }
@@ -237,8 +250,8 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
       return;
     }
 
-    const selectedPatient = this.patients().find(p => p.label === raw.patientId);
-    const selectedType = this.appointmentTypes().find(t => t.label === raw.typeId);
+    const selectedPatient = this.patients().find(p => p.value === raw.patientId);
+    const selectedType = this.appointmentTypes().find(t => t.value === raw.typeId);
 
     if (!selectedType) {
       this.error.set('Por favor, selecciona un tipo válido de la lista.');
@@ -250,6 +263,12 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
 
     if (isFirstConsultation && !newPatientName) {
       this.error.set(this.transloco.translate('appointments.new_patient_name_required'));
+      return;
+    }
+
+    // Validate patient is selected when not a first consultation
+    if (!isFirstConsultation && !raw.patientId) {
+      this.error.set(this.transloco.translate('appointments.patient_required'));
       return;
     }
 
