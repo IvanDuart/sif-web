@@ -12,7 +12,7 @@
           maxlength="100">
       </tui-textfield>
     } @else {
-      <tui-textfield tuiChevron>
+      <tui-textfield tuiChevron [stringify]="patientStringify">
         <label tuiLabel for="formPatientId">{{ t('appointments.patient') }} <span class="text-red-500">*</span></label>
         <input
           id="formPatientId"
@@ -37,7 +37,7 @@
       </div>
     }
 
-    <tui-textfield tuiChevron>
+    <tui-textfield tuiChevron [stringify]="typeStringify">
       <label tuiLabel for="formTypeId">{{ t('appointments.type') }}</label>
       <input
         id="formTypeId"

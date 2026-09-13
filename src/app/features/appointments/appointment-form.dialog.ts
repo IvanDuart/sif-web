@@ -73,6 +73,8 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
   saving = signal(false);
   error = signal('');
 
+  selectedPatientRef = signal<{ label: string; value: string } | null>(null);
+
   scheduleInfo = signal<string | null>(null);
   isHolidayDate = signal(false);
   isClosedDate = signal(false);
@@ -82,16 +84,10 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
   typeLabels = computed(() => this.appointmentTypes().map(t => t.label));
 
   patientValues = computed(() => this.patients().map(p => p.value));
-  patientStringify = (value: string): string => {
-    const found = this.patients().find(p => p.value === value);
-    return found ? found.label : value;
-  };
+  patientStringify = (value: string): string => value;
 
   typeValues = computed(() => this.appointmentTypes().map(t => t.value));
-  typeStringify = (value: string): string => {
-    const found = this.appointmentTypes().find(t => t.value === value);
-    return found ? found.label : value;
-  };
+  typeStringify = (value: string): string => value;
 
   isFirstConsultation = signal(false);
 
@@ -147,6 +143,23 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
       
       if (!checked) {
         this.form.get('newPatientName')?.setValue('');
+      }
+    });
+
+    // Subscribe to patientId changes to track the selected patient object
+    this.form.get('patientId')?.valueChanges.subscribe((value) => {
+      if (!value) {
+        this.selectedPatientRef.set(null);
+        return;
+      }
+      const current = this.selectedPatientRef();
+      if (current && current.label !== value) {
+        // User edited the text without selecting from dropdown, invalidate
+        this.selectedPatientRef.set(null);
+      }
+      const match = this.patients().find(p => p.label === value);
+      if (match) {
+        this.selectedPatientRef.set(match);
       }
     });
 
@@ -250,8 +263,8 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
       return;
     }
 
-    const selectedPatient = this.patients().find(p => p.value === raw.patientId);
-    const selectedType = this.appointmentTypes().find(t => t.value === raw.typeId);
+    const selectedPatient = this.selectedPatientRef();
+    const selectedType = this.appointmentTypes().find(t => t.label === raw.typeId);
 
     if (!selectedType) {
       this.error.set('Por favor, selecciona un tipo válido de la lista.');
@@ -267,7 +280,7 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
     }
 
     // Validate patient is selected when not a first consultation
-    if (!isFirstConsultation && !raw.patientId) {
+    if (!isFirstConsultation && !selectedPatient) {
       this.error.set(this.transloco.translate('appointments.patient_required'));
       return;
     }
