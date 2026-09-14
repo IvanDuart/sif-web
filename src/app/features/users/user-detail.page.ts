@@ -199,6 +199,16 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       || null;
   });
 
+  currentBodyFatPct = computed<number | null>(() => {
+    const direct = this.user()?.lastMeasurement?.bodyFatPct ?? null;
+    if (direct != null) return direct;
+    const report = this.activeCompositionReport();
+    if (report?.global?.fatMassKg != null && (report.patient?.weightKg ?? 0) > 0) {
+      return Math.round((report.global.fatMassKg / report.patient.weightKg) * 1000) / 10;
+    }
+    return null;
+  });
+
   segmentalList = computed<SegmentalResult[]>(() => {
     const report = this.activeCompositionReport();
     if (!report?.segmentalAnalysis) return [];
@@ -210,10 +220,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     const ranges = report?.referenceRanges;
     if (!ranges) return [];
 
-    let currentFatPct: number | null = this.user()?.lastMeasurement?.bodyFatPct ?? null;
-    if (currentFatPct == null && report.global?.fatMassKg != null && (report.patient?.weightKg ?? 0) > 0) {
-      currentFatPct = Math.round((report.global.fatMassKg / report.patient.weightKg) * 1000) / 10;
-    }
+    const currentFatPct = this.currentBodyFatPct();
 
     const currentWeight = report.patient?.weightKg ?? this.user()?.lastMeasurement?.weightKg ?? null;
     const currentFfm = report.global?.fatFreeMassKg ?? null;
@@ -463,7 +470,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     { label: 'Composición Corporal', value: 'composition' as const },
     { label: 'Antropometría', value: 'anthropometry' as const },
   ];
-  private readonly COMPOSITION_FIELDS = new Set<string>(['weightKg', 'bmi', 'bodyFatPct', 'muscleMassKg', 'bodyWaterPct']);
+  private readonly COMPOSITION_FIELDS = new Set<string>(['weightKg', 'bmi', 'bodyFatPct', 'muscleMassPct', 'bodyWaterPct']);
   private readonly ANTHROPOMETRY_FIELDS = new Set<string>(['waistCm', 'chestCm', 'hipsCm', 'contourCm', 'armCm']);
 
   private _chartCanvasEl?: ElementRef<HTMLCanvasElement>;
@@ -604,8 +611,8 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     });
 
     const selectedFields = this.chartType() === 'composition' ? this.COMPOSITION_FIELDS : this.ANTHROPOMETRY_FIELDS;
-    const pctFields = new Set<string>(['bmi', 'bodyFatPct', 'bodyWaterPct']);
-    const kgFields = new Set<string>(['weightKg', 'muscleMassKg']);
+    const pctFields = new Set<string>(['bmi', 'bodyFatPct', 'bodyWaterPct', 'muscleMassPct']);
+    const kgFields = new Set<string>(['weightKg']);
     const cmFields = new Set<string>(['waistCm', 'chestCm', 'hipsCm', 'contourCm', 'armCm']);
 
     const unitFor = (field: string): string => {
@@ -918,6 +925,18 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       case 'NORMAL': return 'positive';
       case 'LOW': return 'warning';
       case 'HIGH': return 'info';
+      default: return 'neutral';
+    }
+  }
+
+  getBodyFatBadgeAppearance(classification?: string | null): 'positive' | 'warning' | 'negative' | 'info' | 'neutral' {
+    switch (classification) {
+      case 'NORMAL': return 'positive';
+      case 'LOW': return 'info';
+      case 'OBESE': return 'warning';
+      case 'OBESE_CLASS_I': return 'warning';
+      case 'OBESE_CLASS_II': return 'negative';
+      case 'OBESE_CLASS_III': return 'negative';
       default: return 'neutral';
     }
   }

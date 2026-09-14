@@ -15,18 +15,22 @@ Se añaden dos bloques de funcionalidad:
 
 ### Crear usuario
 
-Nuevo campo opcional en `POST /tenant/{tenantId}/users` (o el endpoint de creación equivalente):
+Nuevo campo opcional en `POST /tenant/{tenantId}/users/invite` (y en el endpoint de creación equivalente):
 
 ```json
 {
   "email": "paciente@example.com",
   "firstName": "María",
   "lastName": "García",
+  "roleCode": "USER",
   "birthDate": "1990-03-15",
   "heightCm": 165.0,
   "gender": "FEMALE"
 }
 ```
+
+- Si el email ya existe en el sistema (mismo email en otro tenant), `gender` **actualiza** el perfil global del usuario existente.
+- Si el usuario es nuevo, se crea con el género indicado.
 
 ### Actualizar usuario
 
@@ -59,13 +63,14 @@ Nuevos campos opcionales en `POST /tenant/{tenantId}/users/{userId}/measurements
 {
   "weightKg": 72.5,
   "bodyFatPct": 18.5,
-  "muscleMassKg": 35.0,
+  "muscleMassPct": 38.0,
   "waistCm": 80.0,
   "chestCm": 95.0,
   "hipsCm": 100.0,
   "contourCm": 88.0,
   "armCm": 32.0,
   "bodyWaterPct": 55.0,
+  "visceralFatLevel": 12,
   "measuredAt": "2026-06-15T10:30:00Z",
   "notes": "Medición matutina"
 }
@@ -73,12 +78,14 @@ Nuevos campos opcionales en `POST /tenant/{tenantId}/users/{userId}/measurements
 
 | Campo | Tipo | Validación |
 |---|---|---|
+| `muscleMassPct` | `number` (Decimal 4,1) | `@PositiveOrZero` (% de 0.0 a 100.0) |
 | `waistCm` | `number` (Decimal 5,1) | `@PositiveOrZero` |
 | `chestCm` | `number` (Decimal 5,1) | `@PositiveOrZero` |
 | `hipsCm` | `number` (Decimal 5,1) | `@PositiveOrZero` |
 | `contourCm` | `number` (Decimal 5,1) | `@PositiveOrZero` |
 | `armCm` | `number` (Decimal 5,1) | `@PositiveOrZero` |
 | `bodyWaterPct` | `number` (Decimal 4,1) | `@PositiveOrZero` |
+| `visceralFatLevel` | `integer` | `@PositiveOrZero` (rango válido 1-59) |
 
 ### Obtener última medición
 
@@ -90,13 +97,14 @@ Nuevos campos opcionales en `POST /tenant/{tenantId}/users/{userId}/measurements
   "measuredAt": "2026-06-15T10:30:00Z",
   "weightKg": 72.5,
   "bodyFatPct": 18.5,
-  "muscleMassKg": 35.0,
+  "muscleMassPct": 38.0,
   "waistCm": 80.0,
   "chestCm": 95.0,
   "hipsCm": 100.0,
   "contourCm": 88.0,
   "armCm": 32.0,
   "bodyWaterPct": 55.0,
+  "visceralFatLevel": 12,
   "bmi": 24.2,
   "notes": "Medición matutina",
   "recordedBy": "email del profesional",
@@ -118,13 +126,14 @@ Nuevos campos opcionales en `POST /tenant/{tenantId}/users/{userId}/measurements
       "measuredAt": "2026-06-15T10:30:00Z",
       "weightKg": 72.5,
       "bodyFatPct": 18.5,
-      "muscleMassKg": 35.0,
+      "muscleMassPct": 38.0,
       "waistCm": 80.0,
       "chestCm": 95.0,
       "hipsCm": 100.0,
       "contourCm": 88.0,
       "armCm": 32.0,
       "bodyWaterPct": 55.0,
+      "visceralFatLevel": 12,
       "bmi": 24.2
     }
   ]

@@ -3,7 +3,7 @@ import { Chart } from 'chart.js';
 
 export interface ChartMetricSeries {
   label: string;
-  field: 'weightKg' | 'bmi' | 'bodyFatPct' | 'muscleMassKg' | 'waistCm' | 'chestCm' | 'hipsCm' | 'contourCm' | 'armCm' | 'bodyWaterPct';
+  field: 'weightKg' | 'bmi' | 'bodyFatPct' | 'muscleMassPct' | 'waistCm' | 'chestCm' | 'hipsCm' | 'contourCm' | 'armCm' | 'bodyWaterPct';
   color: string;
   yAxisID?: string;
 }
@@ -12,7 +12,7 @@ export const METRIC_SERIES: ChartMetricSeries[] = [
   { label: 'measurements.series.weight', field: 'weightKg', color: '#059669' },
   { label: 'measurements.series.bmi', field: 'bmi', color: '#8B5CF6' },
   { label: 'measurements.series.body_fat', field: 'bodyFatPct', color: '#EF4444' },
-  { label: 'measurements.series.muscle', field: 'muscleMassKg', color: '#10B981' },
+  { label: 'measurements.series.muscle', field: 'muscleMassPct', color: '#10B981' },
   { label: 'measurements.series.waist', field: 'waistCm', color: '#F59E0B' },
   { label: 'measurements.series.chest', field: 'chestCm', color: '#06B6D4' },
   { label: 'measurements.series.hips', field: 'hipsCm', color: '#EC4899' },

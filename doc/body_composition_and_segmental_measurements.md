@@ -74,8 +74,9 @@ Calcula el informe clínico utilizando los datos más recientes del paciente (ú
     "measuredAt": "2026-09-04T08:30:00Z",
     "weightKg": 75.5,
     "bodyFatPct": 18.0,
-    "muscleMassKg": 38.0,
+    "muscleMassPct": 38.0,
     "bodyWaterPct": 55.0,
+    "visceralFatLevel": 12,
     "waistCm": 82.0,
     "wristCircumferenceCm": 17.5,
     "boneMassKg": 3.2,
@@ -116,6 +117,8 @@ Calcula el informe clínico utilizando los datos más recientes del paciente (ú
 
 | Campo | Tipo | Unidad | Descripción |
 |---|---|---|---|
+| `muscleMassPct` | `number` (Decimal 4,1) | % | Porcentaje de masa muscular reportado por la báscula (opcional) |
+| `visceralFatLevel` | `integer` | nivel (1-59) | Nivel de grasa visceral (VFL) reportado por la báscula (opcional) |
 | `wristCircumferenceCm` | `number` (Decimal 4,1) | cm | Perímetro de muñeca (opcional, para índice de Grant) |
 | `boneMassKg` | `number` (Decimal 4,2) | kg | Masa ósea estimada por bioimpedancia (opcional) |
 | `trunkFatPct` | `number` (Decimal 4,1) | % | Porcentaje de grasa en tronco |
@@ -142,15 +145,19 @@ A continuación se muestra el esquema exacto devuelto por `POST .../calculate-co
     "ageYears": 35,
     "heightCm": 170.0,
     "weightKg": 75.5,
-    "wristCircumferenceCm": 17.5
+    "wristCircumferenceCm": 17.5,
+    "waistCm": 82.0
   },
   "global": {
     "bmi": 26.1,
     "bmiClassification": "OVERWEIGHT",
     "localizedBmiClassification": "Sobrepeso",
+    "bodyFatClassification": "NORMAL",
+    "localizedBodyFatClassification": "Normo",
     "fatMassKg": 13.59,
     "fatFreeMassKg": 61.91,
     "waterMassKg": 41.53,
+    "visceralFatLevel": 12,
     "boneComposition": {
       "boneMassKg": 3.20,
       "boneMassPctOfWeight": 4.24,
@@ -335,12 +342,48 @@ Reutiliza los rangos normativos de bioimpedancia según el peso actual y sexo bi
 
 ---
 
+### 5.6. Clasificación del % de Grasa Corporal (`BodyFatClassification`)
+
+Clasifica el `bodyFatPct` de la báscula frente al rango saludable personalizado (`fatMassPctMin` - `fatMassPctMax`, calculado por sexo y edad en §5.5.2). Los grados de obesidad se determinan de forma **incremental y fija** sobre el límite superior del rango saludable (`max`):
+
+| Condición | `bodyFatClassification` | Descripción (es) |
+|---|---|---|
+| `bodyFatPct < min` | `LOW` | Bajo |
+| `min ≤ bodyFatPct ≤ max` | `NORMAL` | Normo |
+| `max < bodyFatPct ≤ max + 5` | `OBESE` | Obesidad |
+| `max + 5 < bodyFatPct ≤ max + 10` | `OBESE_CLASS_I` | Obesidad 1 |
+| `max + 10 < bodyFatPct ≤ max + 15` | `OBESE_CLASS_II` | Obesidad 2 |
+| `bodyFatPct > max + 15` | `OBESE_CLASS_III` | Obesidad 3 |
+
+*Ejemplo*: Varón < 40 años (rango 8.0 - 20.0%): `18.2%` → `NORMAL`; `22.0%` → `OBESE`; `27.0%` → `OBESE_CLASS_I`; `32.0%` → `OBESE_CLASS_II`; `40.0%` → `OBESE_CLASS_III`.
+
+El resultado se expone en `global.bodyFatClassification` (código) y `global.localizedBodyFatClassification` (texto traducido). Si falta cualquier dato (grasa, mínimo o máximo), ambos son `null`.
+
+### 5.7. Nivel de Grasa Visceral (`visceralFatLevel`)
+
+Valor entero (1-59) reportado directamente por la báscula (VFL, *Visceral Fat Level*). Se persiste en `body_measurement.visceral_fat_level` y se propaga al reporte en `global.visceralFatLevel`. Es opcional. No dispone de clasificación clínica propia en esta versión.
+
+**Estimación por ratio cintura/altura (fallback):** si la medición no trae `visceralFatLevel`, el motor lo estima a partir del *waist-to-height ratio* usando el `waistCm` de la medición y la altura del paciente (`PatientData.waistCm` + `PatientData.heightCm`):
+
+$$\text{WHtR} = \frac{\text{waistCm}}{\text{heightCm}}, \qquad \text{VFL} = \text{clamp}\left(\text{round}\left((\text{WHtR} - 0.40) \times 100\right),\ 1,\ 59\right)$$
+
+| Condición | `global.visceralFatLevel` |
+|---|---|
+| `visceralFatLevel` presente | Valor medido por la báscula |
+| Ausente + `waistCm` presente | VFL estimado por WHtR |
+| Ausente + sin `waistCm` | `null` |
+
+*Ejemplo*: altura 180 cm, cintura 90 cm → WHtR 0.50 → **VFL 10**. El valor estimado se calcula **en el reporte** (no se persiste en `body_measurement.visceral_fat_level`) y no se distingue del medido en la respuesta.
+
+---
+
 ## 6. Internacionalización (i18n)
 
 El informe se traduce automáticamente en función del campo `language` configurado en el usuario (`"es"` o `"en"`). Si el usuario no tiene idioma especificado, se utiliza español por defecto (`"es"`).
 
 Las claves de mensajes traducen:
 - Clasificaciones de IMC (`localizedBmiClassification`).
+- Clasificaciones de % de grasa corporal (`localizedBodyFatClassification`, familias `body_fat.*`).
 - Descripciones de complexión de Grant (`localizedDescription`).
 - Diagnósticos de masa ósea (`localizedDescription`).
 - Nombres de segmentos corporales (`localizedSegmentName`).

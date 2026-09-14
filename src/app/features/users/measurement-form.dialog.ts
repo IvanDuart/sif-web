@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext, TuiButton, TuiInput, TuiTextfield, TuiLabel, TuiCalendar, TuiDropdown } from '@taiga-ui/core';
 import { TuiTextarea, TuiInputDate, TuiInputTime } from '@taiga-ui/kit';
@@ -45,8 +45,9 @@ export class MeasurementFormDialog {
   form = this.fb.group({
     weightKg: [null as number | null],
     bodyFatPct: [null as number | null],
-    muscleMassKg: [null as number | null],
+    muscleMassPct: [null as number | null],
     bodyWaterPct: [null as number | null],
+    visceralFatLevel: [null as number | null, [Validators.min(1), Validators.max(59)]],
     boneMassKg: [null as number | null],
     waistCm: [null as number | null],
     chestCm: [null as number | null],
@@ -82,8 +83,8 @@ export class MeasurementFormDialog {
 
     const raw = this.form.value;
     const hasMetric =
-      raw.weightKg != null || raw.bodyFatPct != null || raw.muscleMassKg != null ||
-      raw.bodyWaterPct != null || raw.boneMassKg != null ||
+      raw.weightKg != null || raw.bodyFatPct != null || raw.muscleMassPct != null ||
+      raw.bodyWaterPct != null || raw.visceralFatLevel != null || raw.boneMassKg != null ||
       raw.waistCm != null || raw.chestCm != null || raw.hipsCm != null ||
       raw.contourCm != null || raw.armCm != null || raw.wristCircumferenceCm != null ||
       raw.trunkFatPct != null || raw.trunkMassKg != null ||
@@ -99,8 +100,9 @@ export class MeasurementFormDialog {
     const request: CreateBodyMeasurementRequest = {};
     if (raw.weightKg != null) request.weightKg = raw.weightKg;
     if (raw.bodyFatPct != null) request.bodyFatPct = raw.bodyFatPct;
-    if (raw.muscleMassKg != null) request.muscleMassKg = raw.muscleMassKg;
+    if (raw.muscleMassPct != null) request.muscleMassPct = raw.muscleMassPct;
     if (raw.bodyWaterPct != null) request.bodyWaterPct = raw.bodyWaterPct;
+    if (raw.visceralFatLevel != null) request.visceralFatLevel = raw.visceralFatLevel;
     if (raw.boneMassKg != null) request.boneMassKg = raw.boneMassKg;
     if (raw.waistCm != null) request.waistCm = raw.waistCm;
     if (raw.chestCm != null) request.chestCm = raw.chestCm;

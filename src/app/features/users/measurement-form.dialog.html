@@ -48,7 +48,7 @@
 
         <tui-textfield class="w-full">
           <label tuiLabel for="measurementMuscleMass">{{ t('measurements.muscle_mass') }}</label>
-          <input id="measurementMuscleMass" type="number" formControlName="muscleMassKg" tuiInput step="0.01" min="0" max="999.99" />
+          <input id="measurementMuscleMass" type="number" formControlName="muscleMassPct" tuiInput step="0.1" min="0" max="100" />
         </tui-textfield>
 
         <tui-textfield class="w-full">
@@ -56,7 +56,12 @@
           <input id="measurementBodyWater" type="number" formControlName="bodyWaterPct" tuiInput step="0.1" min="0" max="99.9" />
         </tui-textfield>
 
-        <tui-textfield class="w-full sm:col-span-2">
+        <tui-textfield class="w-full">
+          <label tuiLabel for="measurementVisceralFat">{{ t('measurements.visceral_fat') }}</label>
+          <input id="measurementVisceralFat" type="number" formControlName="visceralFatLevel" tuiInput step="1" min="1" max="59" />
+        </tui-textfield>
+
+        <tui-textfield class="w-full">
           <label tuiLabel for="measurementBoneMass">{{ t('measurements.bone_mass') }}</label>
           <input id="measurementBoneMass" type="number" formControlName="boneMassKg" tuiInput step="0.01" min="0" max="99.99" />
         </tui-textfield>

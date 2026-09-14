@@ -158,13 +158,17 @@
                 </div>
                 <div>
                   <span class="text-sm text-surface-400">{{ t('users.muscle_mass') }}</span>
-                  <p class="text-2xl font-bold mt-1 font-mono">{{ u.lastMeasurement.muscleMassKg ?? '—' }}</p>
+                  <p class="text-2xl font-bold mt-1 font-mono">{{ u.lastMeasurement.muscleMassPct ?? '—' }}</p>
                 </div>
               </div>
-              <div class="grid grid-cols-3 sm:grid-cols-6 gap-4 text-center mt-6 pt-6 border-t border-surface-200 dark:border-surface-700">
+              <div class="grid grid-cols-3 sm:grid-cols-7 gap-4 text-center mt-6 pt-6 border-t border-surface-200 dark:border-surface-700">
                 <div>
                   <span class="text-xs text-surface-400">{{ t('measurements.body_water') }}</span>
                   <p class="text-sm font-semibold mt-1 font-mono">{{ u.lastMeasurement.bodyWaterPct ?? '—' }}</p>
+                </div>
+                <div>
+                  <span class="text-xs text-surface-400">{{ t('measurements.visceral_fat') }}</span>
+                  <p class="text-sm font-semibold mt-1 font-mono">{{ u.lastMeasurement.visceralFatLevel ?? '—' }}</p>
                 </div>
                 <div>
                   <span class="text-xs text-surface-400">{{ t('measurements.waist') }}</span>
@@ -259,6 +263,7 @@
                           <th tuiTh>{{ t('measurements.body_fat') }}</th>
                           <th tuiTh>{{ t('measurements.muscle_mass') }}</th>
                           <th tuiTh>{{ t('measurements.body_water') }}</th>
+                          <th tuiTh>{{ t('measurements.visceral_fat') }}</th>
                           <th tuiTh>{{ t('measurements.waist') }}</th>
                           <th tuiTh class="min-w-40">{{ t('measurements.notes') }}</th>
                           <th tuiTh class="text-center" style="width: 5rem;">{{ t('common.actions') }}</th>
@@ -271,8 +276,9 @@
                             <td tuiTd class="font-mono">{{ m.weightKg ?? '—' }}</td>
                             <td tuiTd class="font-mono">{{ m.bmi ?? '—' }}</td>
                             <td tuiTd class="font-mono">{{ m.bodyFatPct ?? '—' }}</td>
-                            <td tuiTd class="font-mono">{{ m.muscleMassKg ?? '—' }}</td>
+                            <td tuiTd class="font-mono">{{ m.muscleMassPct ?? '—' }}</td>
                             <td tuiTd class="font-mono">{{ m.bodyWaterPct ?? '—' }}</td>
+                            <td tuiTd class="font-mono">{{ m.visceralFatLevel ?? '—' }}</td>
                             <td tuiTd class="font-mono">{{ m.waistCm ?? '—' }}</td>
                             <td tuiTd class="text-surface-400 text-sm whitespace-pre-wrap min-w-40">{{ m.notes ?? '—' }}</td>
                             <td tuiTd class="text-center">
@@ -421,7 +427,7 @@
 
                   <!-- Desglose Global (Grasa, Libre de Grasa / Magra, Agua, IMC) -->
                   @if (report.global) {
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center p-3 rounded-xl bg-surface-50/50 dark:bg-surface-800/30 border border-surface-200 dark:border-surface-700">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center p-3 rounded-xl bg-surface-50/50 dark:bg-surface-800/30 border border-surface-200 dark:border-surface-700">
                       <div>
                         <span class="text-xs text-surface-400">{{ t('measurements.fat_mass') }}</span>
                         <p class="text-base font-bold font-mono text-amber-600 dark:text-amber-400 mt-0.5 mb-0">
@@ -448,6 +454,23 @@
                         <span class="text-[11px] text-surface-400 block truncate" [title]="report.global.localizedBmiClassification">
                           {{ report.global.localizedBmiClassification }}
                         </span>
+                      </div>
+                      <div>
+                        <span class="text-xs text-surface-400">{{ t('measurements.body_fat') }}</span>
+                        <p class="text-base font-bold font-mono text-amber-600 dark:text-amber-400 mt-0.5 mb-0">
+                          {{ currentBodyFatPct() !== null ? currentBodyFatPct() + ' %' : '—' }}
+                        </p>
+                        @if (report.global.localizedBodyFatClassification) {
+                          <span tuiBadge [appearance]="getBodyFatBadgeAppearance(report.global.bodyFatClassification)">
+                            {{ report.global.localizedBodyFatClassification }}
+                          </span>
+                        }
+                      </div>
+                      <div>
+                        <span class="text-xs text-surface-400">{{ t('measurements.visceral_fat') }}</span>
+                        <p class="text-base font-bold font-mono text-rose-600 dark:text-rose-400 mt-0.5 mb-0">
+                          {{ report.global.visceralFatLevel ?? '—' }}
+                        </p>
                       </div>
                     </div>
                   }

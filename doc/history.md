@@ -156,12 +156,13 @@ El body ahora acepta campos opcionales:
   "firstName": "Juan",
   "lastName": "Pérez",
   "roleCode": "USER",
+  "phone": "+34 600 123 456",
   "birthDate": "2000-05-12",
   "heightCm": 175.5
 }
 ```
 
-Si el usuario ya existía en el sistema (mismo email en otro tenant), `birthDate` y `heightCm` **actualizan** su perfil global.
+Si el usuario ya existía en el sistema (mismo email en otro tenant), `birthDate`, `heightCm` y `phone` **actualizan** su perfil global.
 
 ### 4.3 GET /me — usuario logado
 
@@ -176,6 +177,7 @@ Si el usuario ya existía en el sistema (mismo email en otro tenant), `birthDate
   "birthDate": "2000-05-12",
   "age": 26,
   "heightCm": 175.5,
+  "phone": "+34 600 123 456",
   "createdAt": "2026-01-15T10:00:00Z",
   "memberships": [ ... ]
 }
@@ -374,3 +376,35 @@ ALTER TABLE menu ALTER COLUMN assigned_at SET DEFAULT CURRENT_TIMESTAMP;
 
 CREATE INDEX idx_menu_user_tenant_assigned ON menu (app_user_id, tenant_id, assigned_at DESC);
 ```
+
+---
+
+## Apéndice — Migraciones V39 / V40: masa muscular en % y grasa visceral
+
+> **Nota:** los ejemplos anteriores de este documento usan `muscleMassKg` (nomenclatura original). Ese campo quedó **renombrado y recategorizado** a `muscleMassPct` (porcentaje) en V39. Para el detalle orientado a frontend, ver `doc/cambios-composicion-corporal-frontend.md`.
+
+### V39 — `muscle_mass_kg` → `muscle_mass_pct`
+
+La masa muscular reportada por las básculas se expresa en **porcentaje**, no en kg.
+
+```sql
+ALTER TABLE body_measurement RENAME COLUMN muscle_mass_kg TO muscle_mass_pct;
+UPDATE body_measurement SET muscle_mass_pct = NULL;   -- se descartan los valores previos en kg
+ALTER TABLE body_measurement ALTER COLUMN muscle_mass_pct TYPE NUMERIC(4,1);
+-- (se recrea ck_bm_any_metric con el nuevo nombre de columna)
+```
+
+### V40 — `visceral_fat_level`
+
+Nuevo campo opcional con el **nivel de grasa visceral (VFL)** reportado por la báscula (entero 1-59).
+
+```sql
+ALTER TABLE body_measurement ADD COLUMN visceral_fat_level INTEGER;
+-- (se recrea ck_bm_any_metric incluyendo visceral_fat_level)
+```
+
+### Cambios de reporte
+
+- `bodyCompositionReport.global.bodyFatClassification` y `localizedBodyFatClassification`: clasificación del % de grasa corporal (`LOW` / `NORMAL` / `OBESE` / `OBESE_CLASS_I` / `OBESE_CLASS_II` / `OBESE_CLASS_III`), incremental sobre el rango saludable por sexo/edad (+5 / +10 / +15 puntos).
+- `bodyCompositionReport.global.visceralFatLevel`: propagación del VFL al reporte; si la báscula no lo reporta, se estima por ratio cintura/altura (WHtR) con el `waistCm` de la medición (`PatientData` gana el componente `waistCm`).
+- `muscleMassKg` → `muscleMassPct` en request, `BodyMeasurementDto` y `MeasurementHistoryDto.points[]`.

@@ -1537,6 +1537,40 @@
         }
       }
     },
+    "/tenant/{tenantId}/users/{userId}/reset-password": {
+      "post": {
+        "tags": [
+          "UserTenantRoleController"
+        ],
+        "description": "Send a password reset email to a user in the tenant via Keycloak",
+        "operationId": "sendResetPassword",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/users/{userId}/measurements": {
       "get": {
         "tags": [
@@ -4905,6 +4939,9 @@
           "symmetry": {
             "$ref": "#/components/schemas/SymmetryAnalysisResult"
           },
+          "referenceRanges": {
+            "$ref": "#/components/schemas/ReferenceRangesResult"
+          },
           "language": {
             "type": "string"
           },
@@ -4977,6 +5014,20 @@
           "localizedBmiClassification": {
             "type": "string"
           },
+          "bodyFatClassification": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "NORMAL",
+              "OBESE",
+              "OBESE_CLASS_I",
+              "OBESE_CLASS_II",
+              "OBESE_CLASS_III"
+            ]
+          },
+          "localizedBodyFatClassification": {
+            "type": "string"
+          },
           "fatMassKg": {
             "type": "number"
           },
@@ -4985,6 +5036,10 @@
           },
           "waterMassKg": {
             "type": "number"
+          },
+          "visceralFatLevel": {
+            "type": "integer",
+            "format": "int32"
           },
           "boneComposition": {
             "$ref": "#/components/schemas/BoneCompositionResult"
@@ -5038,6 +5093,41 @@
             "type": "number"
           },
           "wristCircumferenceCm": {
+            "type": "number"
+          }
+        }
+      },
+      "ReferenceRangesResult": {
+        "type": "object",
+        "properties": {
+          "normalWeightMinKg": {
+            "type": "number"
+          },
+          "normalWeightMaxKg": {
+            "type": "number"
+          },
+          "fatFreeMassMinKg": {
+            "type": "number"
+          },
+          "fatFreeMassMaxKg": {
+            "type": "number"
+          },
+          "fatMassPctMin": {
+            "type": "number"
+          },
+          "fatMassPctMax": {
+            "type": "number"
+          },
+          "waterMassMinKg": {
+            "type": "number"
+          },
+          "waterMassMaxKg": {
+            "type": "number"
+          },
+          "boneMassMinKg": {
+            "type": "number"
+          },
+          "boneMassMaxKg": {
             "type": "number"
           }
         }
@@ -5840,7 +5930,7 @@
           "bodyFatPct": {
             "type": "number"
           },
-          "muscleMassKg": {
+          "muscleMassPct": {
             "type": "number"
           },
           "waistCm": {
@@ -5860,6 +5950,10 @@
           },
           "bodyWaterPct": {
             "type": "number"
+          },
+          "visceralFatLevel": {
+            "type": "integer",
+            "format": "int32"
           },
           "wristCircumferenceCm": {
             "type": "number"
@@ -5923,7 +6017,7 @@
           "bodyFatPct": {
             "type": "number"
           },
-          "muscleMassKg": {
+          "muscleMassPct": {
             "type": "number"
           },
           "waistCm": {
@@ -5943,6 +6037,10 @@
           },
           "bodyWaterPct": {
             "type": "number"
+          },
+          "visceralFatLevel": {
+            "type": "integer",
+            "format": "int32"
           },
           "wristCircumferenceCm": {
             "type": "number"
@@ -6658,9 +6756,6 @@
               "type": "string"
             }
           },
-          "roleCode": {
-            "type": "string"
-          },
           "userType": {
             "type": "string",
             "enum": [
@@ -6669,6 +6764,9 @@
             ]
           },
           "tenantName": {
+            "type": "string"
+          },
+          "roleCode": {
             "type": "string"
           }
         }
@@ -6879,7 +6977,7 @@
           "bodyFatPct": {
             "type": "number"
           },
-          "muscleMassKg": {
+          "muscleMassPct": {
             "type": "number"
           },
           "waistCm": {
@@ -6899,6 +6997,10 @@
           },
           "bodyWaterPct": {
             "type": "number"
+          },
+          "visceralFatLevel": {
+            "type": "integer",
+            "format": "int32"
           },
           "wristCircumferenceCm": {
             "type": "number"

@@ -1,4 +1,5 @@
 export type BmiClassification = 'UNDERWEIGHT' | 'NORMAL' | 'OVERWEIGHT' | 'OBESITY_CLASS_I' | 'OBESITY_CLASS_II' | 'OBESITY_CLASS_III';
+export type BodyFatClassification = 'LOW' | 'NORMAL' | 'OBESE' | 'OBESE_CLASS_I' | 'OBESE_CLASS_II' | 'OBESE_CLASS_III';
 export type BoneMassEvaluation = 'LOW' | 'NORMAL' | 'HIGH' | 'NOT_EVALUATED';
 export type BodyFrame = 'SMALL' | 'MEDIUM' | 'LARGE' | 'UNKNOWN';
 export type BodySegment = 'TRUNK' | 'RIGHT_ARM' | 'LEFT_ARM' | 'RIGHT_LEG' | 'LEFT_LEG';
@@ -62,14 +63,18 @@ export interface BodyCompositionReport {
     heightCm: number;
     weightKg: number;
     wristCircumferenceCm?: number | null;
+    waistCm?: number | null;
   };
   global: {
     bmi: number;
     bmiClassification: BmiClassification;
     localizedBmiClassification: string;
+    bodyFatClassification?: BodyFatClassification | null;
+    localizedBodyFatClassification?: string | null;
     fatMassKg: number;
     fatFreeMassKg: number;
     waterMassKg: number;
+    visceralFatLevel?: number | null;
     boneComposition: BoneCompositionResult;
   };
   bodyFrame: BodyFrameResult;
@@ -85,13 +90,14 @@ export interface BodyMeasurementDto {
   measuredAt: string;
   weightKg: number | null;
   bodyFatPct: number | null;
-  muscleMassKg: number | null;
+  muscleMassPct: number | null;
   waistCm: number | null;
   chestCm: number | null;
   hipsCm: number | null;
   contourCm: number | null;
   armCm: number | null;
   bodyWaterPct: number | null;
+  visceralFatLevel?: number | null;
   bmi: number | null;
   wristCircumferenceCm?: number | null;
   boneMassKg?: number | null;
@@ -114,13 +120,14 @@ export interface BodyMeasurementDto {
 export interface CreateBodyMeasurementRequest {
   weightKg?: number | null;
   bodyFatPct?: number | null;
-  muscleMassKg?: number | null;
+  muscleMassPct?: number | null;
   waistCm?: number | null;
   chestCm?: number | null;
   hipsCm?: number | null;
   contourCm?: number | null;
   armCm?: number | null;
   bodyWaterPct?: number | null;
+  visceralFatLevel?: number | null;
   wristCircumferenceCm?: number | null;
   boneMassKg?: number | null;
   trunkFatPct?: number | null;
@@ -141,13 +148,14 @@ export interface MeasurementPoint {
   measuredAt: string;
   weightKg: number | null;
   bodyFatPct: number | null;
-  muscleMassKg: number | null;
+  muscleMassPct: number | null;
   waistCm: number | null;
   chestCm: number | null;
   hipsCm: number | null;
   contourCm: number | null;
   armCm: number | null;
   bodyWaterPct: number | null;
+  visceralFatLevel?: number | null;
   bmi: number | null;
   wristCircumferenceCm?: number | null;
   boneMassKg?: number | null;
