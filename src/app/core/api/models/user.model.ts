@@ -27,6 +27,7 @@ export interface UserTenantProfileDto {
   breakfast: string | null;
   lunch: string | null;
   snack: string | null;
+  observations: string | null;
   boneMassKg?: number | null;
   bodyCompositionReport?: BodyCompositionReport | null;
 

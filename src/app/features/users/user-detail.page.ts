@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed, OnInit, ViewChild, ElementRef, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject, Subscription, debounceTime } from 'rxjs';
@@ -187,9 +188,15 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     (this.user()?.userType === 'PATIENT' && this.authService.user()?.id === this.userId)
   );
 
+  canDownloadCompositionPdf = computed(() =>
+    this.permissionsService.has('VIEW_USER') ||
+    (this.user()?.userType === 'PATIENT' && this.authService.user()?.id === this.userId)
+  );
+
   patientProfile = signal<UserTenantProfileDto | null>(null);
   loadingProfile = signal(false);
   calculatingComposition = signal(false);
+  downloadingCompositionPdf = signal(false);
   isSendingResetPassword = signal(false);
 
   activeCompositionReport = computed<BodyCompositionReport | null>(() => {
@@ -306,6 +313,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   editBreakfast = signal('');
   editLunch = signal('');
   editSnack = signal('');
+  editObservations = signal('');
 
   saveStatus = signal<'idle' | 'saving' | 'saved' | 'error'>('idle');
   private readonly saveSubject = new Subject<void>();
@@ -833,6 +841,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     this.editBreakfast.set(profile?.breakfast ?? '');
     this.editLunch.set(profile?.lunch ?? '');
     this.editSnack.set(profile?.snack ?? '');
+    this.editObservations.set(profile?.observations ?? '');
     this.editingGuidelines.set(true);
   }
 
@@ -851,7 +860,8 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       ...profile,
       breakfast: this.editBreakfast() || null,
       lunch: this.editLunch() || null,
-      snack: this.editSnack() || null
+      snack: this.editSnack() || null,
+      observations: this.editObservations() || null
     };
     this.userTenantRoleService.updatePatientProfile(tenantId, this.userId, request).subscribe({
       next: () => {
@@ -909,6 +919,59 @@ export default class UserDetailPage implements OnInit, OnDestroy {
         );
       }
     });
+  }
+
+  downloadCompositionPdf() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId || !this.userId) return;
+
+    this.downloadingCompositionPdf.set(true);
+    this.measurementService.downloadCompositionPdf(tenantId, this.userId).subscribe({
+      next: (blob) => {
+        this.downloadingCompositionPdf.set(false);
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.downloadingCompositionPdf.set(false);
+        this.handleCompositionPdfError(err);
+      }
+    });
+  }
+
+  private handleCompositionPdfError(err: HttpErrorResponse) {
+    const fallback = () => this.notify.error(
+      this.transloco.translate('measurements.pdf_generic_error'),
+      this.transloco.translate('common.error')
+    );
+
+    if (!(err.error instanceof Blob)) {
+      fallback();
+      return;
+    }
+
+    err.error.text().then((text: string) => {
+      try {
+        const parsed = JSON.parse(text) as { error?: string };
+        this.notify.error(
+          this.transloco.translate(this.mapCompositionPdfErrorKey(parsed.error)),
+          this.transloco.translate('common.error')
+        );
+      } catch {
+        fallback();
+      }
+    }).catch(fallback);
+  }
+
+  private mapCompositionPdfErrorKey(message?: string): string {
+    switch (message) {
+      case 'Tenant not found': return 'measurements.pdf_error_tenant_not_found';
+      case 'User not found': return 'measurements.pdf_error_user_not_found';
+      case 'Measurement not found': return 'measurements.pdf_error_measurement_not_found';
+      case 'Body composition data unavailable': return 'measurements.pdf_error_composition_unavailable';
+      default: return 'measurements.pdf_generic_error';
+    }
   }
 
   getFrameBadgeAppearance(frame?: string): 'info' | 'positive' | 'primary' | 'neutral' {

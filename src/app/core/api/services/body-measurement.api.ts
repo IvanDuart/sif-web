@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import {
   BodyCompositionReport,
@@ -9,6 +9,7 @@ import {
 } from '../models/body-measurement.model';
 import { Page } from '../models/page.model';
 import {ConfigService} from '../../config/config.service';
+import { IGNORE_NOT_FOUND } from '../../http/error.interceptor';
 
 @Injectable({ providedIn: 'root' })
 export class BodyMeasurementService {
@@ -66,5 +67,12 @@ export class BodyMeasurementService {
 
   delete(tenantId: string, userId: string, measurementId: string): Observable<void> {
     return this.http.delete<void>(`${this.endpoint(tenantId, userId)}/${measurementId}`);
+  }
+
+  downloadCompositionPdf(tenantId: string, userId: string): Observable<Blob> {
+    return this.http.get(`${this.endpoint(tenantId, userId)}/pdf`, {
+      responseType: 'blob',
+      context: new HttpContext().set(IGNORE_NOT_FOUND, true)
+    });
   }
 }

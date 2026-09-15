@@ -3388,6 +3388,48 @@
         }
       }
     },
+    "/tenant/{tenantId}/users/{userId}/measurements/pdf": {
+      "get": {
+        "tags": [
+          "BodyMeasurementController"
+        ],
+        "description": "Generate PDF report of the user's latest body composition",
+        "operationId": "generateCompositionPdf",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/users/{userId}/measurements/latest": {
       "get": {
         "tags": [
@@ -4803,6 +4845,9 @@
           "lunch": {
             "type": "string"
           },
+          "observations": {
+            "type": "string"
+          },
           "hasDiabetes": {
             "type": "boolean"
           },
@@ -5094,6 +5139,9 @@
           },
           "wristCircumferenceCm": {
             "type": "number"
+          },
+          "waistCm": {
+            "type": "number"
           }
         }
       },
@@ -5225,6 +5273,9 @@
             "type": "string"
           },
           "lunch": {
+            "type": "string"
+          },
+          "observations": {
             "type": "string"
           },
           "hasDiabetes": {
@@ -6763,10 +6814,10 @@
               "PATIENT"
             ]
           },
-          "tenantName": {
+          "roleCode": {
             "type": "string"
           },
-          "roleCode": {
+          "tenantName": {
             "type": "string"
           }
         }

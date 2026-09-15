@@ -208,15 +208,6 @@
                   type="button"
                   tuiButton
                   size="m"
-                  appearance="secondary"
-                  (click)="showBoneMassDialog()">
-                  <i class="fa-solid fa-bone mr-1"></i>
-                  {{ patientProfile()?.boneMassKg !== null && patientProfile()?.boneMassKg !== undefined ? t('measurements.edit_bone_mass') : t('measurements.add_bone_mass') }}
-                </button>
-                <button
-                  type="button"
-                  tuiButton
-                  size="m"
                   (click)="showRegisterDialog()">
                   <i class="fa-solid fa-plus mr-1"></i>
                   {{ t('measurements.register') }}
@@ -342,19 +333,24 @@
                   {{ calculatingComposition() ? t('measurements.calculating') : t('measurements.calculate_composition') }}
                 </button>
               </div>
-
-              <div class="flex items-center gap-2">
-                <button
-                  type="button"
-                  tuiButton
-                  size="m"
-                  appearance="secondary"
-                  (click)="showBoneMassDialog()">
-                  <i class="fa-solid fa-bone mr-1"></i>
-                  {{ patientProfile()?.boneMassKg !== null && patientProfile()?.boneMassKg !== undefined ? t('measurements.edit_bone_mass') : t('measurements.add_bone_mass') }}
-                </button>
-              </div>
+              @if (canDownloadCompositionPdf()) {
+                <div class="flex justify-end mb-4">
+                  <button
+                    type="button"
+                    tuiButton
+                    size="m"
+                    appearance="secondary"
+                    (click)="downloadCompositionPdf()"
+                    [disabled]="downloadingCompositionPdf()"
+                    [class.loading]="downloadingCompositionPdf()">
+                    <i class="fa-solid fa-file-pdf mr-1"></i>
+                    {{ t('measurements.download_composition_pdf') }}
+                  </button>
+                </div>
+              }
             </div>
+
+
 
             @if (activeCompositionReport(); as report) {
               <div class="data-card mb-4">
@@ -871,13 +867,19 @@
                       <textarea id="snack" tuiTextarea [ngModel]="editSnack()" (ngModelChange)="editSnack.set($event)" [min]="3" maxlength="2000"></textarea>
                     </tui-textfield>
                   </div>
+                  <div class="flex flex-col gap-1.5">
+                    <label for="observations" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('patient_profile.observations') }}</label>
+                    <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                      <textarea id="observations" tuiTextarea [ngModel]="editObservations()" (ngModelChange)="editObservations.set($event)" [min]="3"></textarea>
+                    </tui-textfield>
+                  </div>
                   <div class="flex justify-end gap-2 mt-2 pt-4 border-t border-surface-200 dark:border-surface-700">
                     <button type="button" tuiButton appearance="secondary" size="m" (click)="cancelEditGuidelines()">{{ t('common.cancel') }}</button>
                     <button type="button" tuiButton size="m" (click)="saveGuidelines()" [class.loading]="savingGuidelines()">{{ t('common.save') }}</button>
                   </div>
                 </div>
               } @else {
-                @if (profile.breakfast || profile.lunch || profile.snack) {
+                @if (profile.breakfast || profile.lunch || profile.snack || profile.observations) {
                   <div class="data-card">
                     <div class="flex items-center gap-2 mb-2">
                       <i class="fa-solid fa-apple-whole text-primary-500"></i>
@@ -903,12 +905,21 @@
                         </div>
                       }
                       @if (profile.snack) {
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4 last:pb-0">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
                           <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
                             <i class="fa-solid fa-cookie-bite text-primary-500 w-4 text-center"></i>
                             <span>{{ t('patient_profile.snack') }}</span>
                           </div>
                           <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.snack }}</p>
+                        </div>
+                      }
+                      @if (profile.observations) {
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4 last:pb-0">
+                          <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
+                            <i class="fa-solid fa-note-sticky text-primary-500 w-4 text-center"></i>
+                            <span>{{ t('patient_profile.observations') }}</span>
+                          </div>
+                          <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.observations }}</p>
                         </div>
                       }
                     </div>
