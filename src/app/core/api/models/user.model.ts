@@ -72,6 +72,13 @@ export interface UserTenantProfileDto {
 
 export type UpdateUserTenantProfileRequest = UserTenantProfileDto;
 
+export interface UserTenantProfileFixedMealsDto {
+  breakfast: string | null;
+  snack: string | null;
+  lunch: string | null;
+  observations: string | null;
+}
+
 export interface AppUserDto {
   id: string;
   email: string;

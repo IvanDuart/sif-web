@@ -872,7 +872,8 @@
     "no_weight_history": "No weight history recorded",
     "default_appointment_type": "Nutritional Consultation",
     "shopping_list": "Shopping List",
-    "no_shopping_list": "No active shopping list"
+    "no_shopping_list": "No active shopping list",
+    "fixed_meals_title": "Fixed Guidelines"
   },
   "water_intake": {
     "title": "Water Intake",

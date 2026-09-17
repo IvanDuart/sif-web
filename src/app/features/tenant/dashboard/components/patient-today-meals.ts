@@ -3,9 +3,11 @@ import { CommonModule } from '@angular/common';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { MenuService } from '../../../../core/api/services/menu.api';
 import { MealService } from '../../../../core/api/services/meal.api';
+import { UserTenantRoleService } from '../../../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../../../core/tenant/tenant-context.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { Meal } from '../../../../core/api/models/meal.model';
+import { UserTenantProfileFixedMealsDto } from '../../../../core/api/models/user.model';
 
 const DAY_MAP = ['DOMINGO', 'LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO'];
 
@@ -18,15 +20,29 @@ const DAY_MAP = ['DOMINGO', 'LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES',
 export class PatientTodayMeals implements OnInit {
   private readonly menuService = inject(MenuService);
   private readonly mealService = inject(MealService);
+  private readonly userTenantRoleService = inject(UserTenantRoleService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly authService = inject(AuthService);
   private readonly transloco = inject(TranslocoService);
 
   loading = signal(false);
   todayMeals = signal<Meal[]>([]);
+  fixedMeals = signal<UserTenantProfileFixedMealsDto | null>(null);
 
   ngOnInit() {
     this.loadTodayMeals();
+    this.loadFixedMeals();
+  }
+
+  private loadFixedMeals() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    const userId = this.authService.user()?.id;
+    if (!tenantId || !userId) return;
+
+    this.userTenantRoleService.getPatientFixedMeals(tenantId, userId).subscribe({
+      next: (fixedMeals) => this.fixedMeals.set(fixedMeals),
+      error: () => this.fixedMeals.set(null)
+    });
   }
 
   loadTodayMeals() {
@@ -80,6 +96,11 @@ export class PatientTodayMeals implements OnInit {
     });
 
     this.todayMeals.set(filtered);
+  }
+
+  hasAnyFixedMeal(): boolean {
+    const meals = this.fixedMeals();
+    return !!meals && !!(meals.breakfast || meals.lunch || meals.snack || meals.observations);
   }
 
   todayLabel(): string {

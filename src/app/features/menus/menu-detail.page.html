@@ -6,7 +6,7 @@
         <i class="fa-solid fa-arrow-left text-xs"></i> {{ t('diet_detail.back') }}
       </a>
 
-      <div class="flex justify-between items-start">
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
         <div>
           <div class="flex items-center gap-2 mb-2">
             <h1 class="text-3xl font-display font-bold tracking-tight text-balance">{{ menu()?.name }}</h1>
@@ -36,7 +36,7 @@
             <span class="text-surface-500 text-sm">{{ t('diets.created') }} {{ menu()?.createdAt | date:'longDate' }}</span>
           </div>
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
           @if (canManageTemplate()) {
             <button
               tuiButton appearance="secondary" size="m"
@@ -109,7 +109,7 @@
       <div class="p-6">
         <h2 class="text-base font-bold mb-4 uppercase tracking-widest text-surface-400">{{ t('diet_detail.title') }}</h2>
 
-        <div class="overflow-x-auto">
+        <div class="hidden md:block overflow-x-auto">
           <table tuiTable class="w-full min-w-[640px] menu-table">
             <thead>
               <tr>
@@ -277,6 +277,165 @@
               }
             </tbody>
           </table>
+        </div>
+
+        <div class="md:hidden space-y-4">
+          @for (day of allDays; track day) {
+            <div class="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden">
+              <div class="menu-table__day px-3 py-2">
+                <i class="fa-regular fa-calendar text-xs"></i>
+                <span>{{ dayLabel(day) }}</span>
+              </div>
+
+              <div class="px-3 py-2 border-t border-surface-200 dark:border-surface-700">
+                <div class="menu-table__meal-head mb-1.5 text-surface-500">
+                  <i class="fa-solid fa-utensils text-xs"></i>
+                  {{ t('diet_detail.meal_types.lunch') }}
+                </div>
+                @if (getMeal(day, 'COMIDA'); as meal) {
+                  @if (editingMealId() === meal.id) {
+                    <div class="flex flex-col gap-1.5 py-1">
+                      <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                        <textarea
+                          tuiTextarea
+                          [ngModel]="editingDescription()"
+                          (ngModelChange)="editingDescription.set($event)"
+                          (keydown.enter)="onKeydownEnter($event, meal)"
+                          (keydown.escape)="cancelInlineEdit()"
+                          [min]="2"
+                          [max]="6"
+                          class="w-full text-xs"
+                        ></textarea>
+                      </tui-textfield>
+                      <div class="flex items-center justify-end gap-1">
+                        <button
+                          tuiIconButton
+                          appearance="flat"
+                          size="xs"
+                          type="button"
+                          [disabled]="savingInline()"
+                          (click)="cancelInlineEdit()"
+                          [title]="t('common.cancel')">
+                          <i class="fa-solid fa-xmark"></i>
+                        </button>
+                        <button
+                          tuiIconButton
+                          appearance="primary"
+                          size="xs"
+                          type="button"
+                          [disabled]="savingInline() || !editingDescription().trim()"
+                          (click)="saveInlineEdit(meal)"
+                          [title]="t('common.save')">
+                          @if (savingInline()) {
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                          } @else {
+                            <i class="fa-solid fa-check"></i>
+                          }
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="menu-table__meal">
+                      <span class="menu-table__meal-text">{{ meal.description }}</span>
+                      @if (canManageMeal()) {
+                        <span class="menu-table__meal-actions">
+                          <button tuiIconButton appearance="flat" size="xs" type="button" (click)="startEditMeal(meal)" [title]="t('common.edit')">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                          </button>
+                          <button tuiIconButton appearance="flat" size="xs" type="button" class="text-red-500 hover:text-red-700" (click)="deleteMeal(meal)" [title]="t('common.delete')">
+                            <i class="fa-solid fa-trash"></i>
+                          </button>
+                        </span>
+                      }
+                    </div>
+                  }
+                } @else {
+                  <div class="menu-table__empty">
+                    <span>{{ t('diet_detail.free_day_short') }}</span>
+                    @if (canManageMeal()) {
+                      <button tuiIconButton appearance="flat" size="xs" type="button" (click)="addMeal(day, 'COMIDA')" [title]="t('diet_detail.add_meal_short')">
+                        <i class="fa-solid fa-plus"></i>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="px-3 py-2 border-t border-surface-200 dark:border-surface-700">
+                <div class="menu-table__meal-head mb-1.5 text-surface-500">
+                  <i class="fa-solid fa-moon text-xs"></i>
+                  {{ t('diet_detail.meal_types.dinner') }}
+                </div>
+                @if (getMeal(day, 'CENA'); as meal) {
+                  @if (editingMealId() === meal.id) {
+                    <div class="flex flex-col gap-1.5 py-1">
+                      <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                        <textarea
+                          tuiTextarea
+                          [ngModel]="editingDescription()"
+                          (ngModelChange)="editingDescription.set($event)"
+                          (keydown.enter)="onKeydownEnter($event, meal)"
+                          (keydown.escape)="cancelInlineEdit()"
+                          [min]="2"
+                          [max]="6"
+                          class="w-full text-xs"
+                        ></textarea>
+                      </tui-textfield>
+                      <div class="flex items-center justify-end gap-1">
+                        <button
+                          tuiIconButton
+                          appearance="flat"
+                          size="xs"
+                          type="button"
+                          [disabled]="savingInline()"
+                          (click)="cancelInlineEdit()"
+                          [title]="t('common.cancel')">
+                          <i class="fa-solid fa-xmark"></i>
+                        </button>
+                        <button
+                          tuiIconButton
+                          appearance="primary"
+                          size="xs"
+                          type="button"
+                          [disabled]="savingInline() || !editingDescription().trim()"
+                          (click)="saveInlineEdit(meal)"
+                          [title]="t('common.save')">
+                          @if (savingInline()) {
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                          } @else {
+                            <i class="fa-solid fa-check"></i>
+                          }
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="menu-table__meal">
+                      <span class="menu-table__meal-text">{{ meal.description }}</span>
+                      @if (canManageMeal()) {
+                        <span class="menu-table__meal-actions">
+                          <button tuiIconButton appearance="flat" size="xs" type="button" (click)="startEditMeal(meal)" [title]="t('common.edit')">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                          </button>
+                          <button tuiIconButton appearance="flat" size="xs" type="button" class="text-red-500 hover:text-red-700" (click)="deleteMeal(meal)" [title]="t('common.delete')">
+                            <i class="fa-solid fa-trash"></i>
+                          </button>
+                        </span>
+                      }
+                    </div>
+                  }
+                } @else {
+                  <div class="menu-table__empty">
+                    <span>{{ t('diet_detail.free_day_short') }}</span>
+                    @if (canManageMeal()) {
+                      <button tuiIconButton appearance="flat" size="xs" type="button" (click)="addMeal(day, 'CENA')" [title]="t('diet_detail.add_meal_short')">
+                        <i class="fa-solid fa-plus"></i>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
         </div>
       </div>
     </div>

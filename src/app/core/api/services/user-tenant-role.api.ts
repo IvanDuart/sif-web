@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AppUserDto, UserType, UserTenantProfileDto, UpdateUserTenantProfileRequest } from '../models/user.model';
+import { AppUserDto, UserType, UserTenantProfileDto, UpdateUserTenantProfileRequest, UserTenantProfileFixedMealsDto } from '../models/user.model';
 import { Page } from '../models/page.model';
 import {ConfigService} from '../../config/config.service';
 
@@ -102,5 +102,9 @@ export class UserTenantRoleService {
 
   updatePatientProfile(tenantId: string, userId: string, request: UpdateUserTenantProfileRequest): Observable<UserTenantProfileDto> {
     return this.http.put<UserTenantProfileDto>(`${this.baseUrl}/tenant/${tenantId}/users/${userId}/profile`, request);
+  }
+
+  getPatientFixedMeals(tenantId: string, userId: string): Observable<UserTenantProfileFixedMealsDto> {
+    return this.http.get<UserTenantProfileFixedMealsDto>(`${this.baseUrl}/tenant/${tenantId}/users/${userId}/profile/fixed-meals`);
   }
 }

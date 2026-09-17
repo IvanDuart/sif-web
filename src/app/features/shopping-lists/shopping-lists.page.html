@@ -5,7 +5,7 @@
 
   <div class="data-card">
     <boneyard-skeleton name="shopping-lists" [loading]="loading()">
-        <div class="table-wrapper">
+        <div class="hidden md:block table-wrapper">
           <table tuiTable class="w-full">
             <thead>
               <tr>
@@ -44,6 +44,41 @@
               }
             </tbody>
           </table>
+        </div>
+
+        <div class="md:hidden space-y-3 p-2">
+          @if (lists().length === 0 && !loading()) {
+            <app-empty-state
+              icon="fa-solid fa-cart-shopping"
+              [title]="t('shopping_list.empty_title', {defaultValue: 'Sin listas de compra'})"
+              [description]="t('shopping_list.empty', {defaultValue: 'Aún no se ha generado ninguna lista de la compra'})">
+            </app-empty-state>
+          } @else {
+            @for (list of lists(); track list.id) {
+              <div class="rounded-lg border border-surface-200 dark:border-surface-700 p-3">
+                <p class="font-medium text-surface-900 dark:text-surface-0">{{ list.name }}</p>
+                <dl class="mt-2 text-sm space-y-1">
+                  <div class="flex justify-between gap-2">
+                    <dt class="text-surface-500">{{ t('shopping_list.supermarket', {defaultValue: 'Supermercado'}) }}</dt>
+                    <dd>{{ supermarketLabel(list.supermarket) }}</dd>
+                  </div>
+                  <div class="flex justify-between gap-2">
+                    <dt class="text-surface-500">{{ t('shopping_list.total_price', {defaultValue: 'Precio Total'}) }}</dt>
+                    <dd class="font-semibold text-primary-600 font-mono">{{ totalLabel(list) }}</dd>
+                  </div>
+                  <div class="flex justify-between gap-2">
+                    <dt class="text-surface-500">{{ t('shopping_list.created_at', {defaultValue: 'Creado el'}) }}</dt>
+                    <dd class="font-mono">{{ list.createdAt | date:'mediumDate' }}</dd>
+                  </div>
+                </dl>
+                <div class="flex items-center gap-1 justify-end mt-2 pt-2 border-t border-surface-100 dark:border-surface-800">
+                  <button tuiButton appearance="flat" size="s" type="button" (click)="viewList(list)" [title]="t('common.view')">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+            }
+          }
         </div>
     </boneyard-skeleton>
   </div>

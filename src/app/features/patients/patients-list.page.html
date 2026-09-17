@@ -28,7 +28,7 @@
           (action)="showInviteDialog()">
         </app-empty-state>
       } @else {
-        <div class="table-wrapper">
+        <div class="hidden md:block table-wrapper">
           <table tuiTable class="w-full">
             <thead>
               <tr>
@@ -49,8 +49,8 @@
                   </span>
                 </th>
                 <th tuiTh scope="col">{{ t('users.age') }}</th>
-                <th tuiTh scope="col" class="hidden sm:table-cell">{{ t('users.email') }}</th>
-                <th tuiTh scope="col" class="hidden sm:table-cell">{{ t('users.phone') }}</th>
+                <th tuiTh scope="col">{{ t('users.email') }}</th>
+                <th tuiTh scope="col">{{ t('users.phone') }}</th>
                 <th tuiTh scope="col">{{ t('users.status') }}</th>
                 <th tuiTh scope="col" class="text-center" style="width: 10rem;">{{ t('common.actions') }}</th>
               </tr>
@@ -68,10 +68,10 @@
                       }
                     </span>
                   </td>
-                   <td tuiTd class="hidden sm:table-cell">
+                   <td tuiTd>
                      <span class="text-sm">{{ user.email }}</span>
                    </td>
-                   <td tuiTd class="hidden sm:table-cell">
+                   <td tuiTd>
                      <span class="text-sm">{{ user.phone ?? '—' }}</span>
                    </td>
                   <td tuiTd>
@@ -110,6 +110,61 @@
             </tbody>
           </table>
         </div>
+
+        <div class="md:hidden space-y-3 p-2">
+          @for (user of users(); track user.id) {
+            <div class="rounded-lg border border-surface-200 dark:border-surface-700 p-3" [class.opacity-60]="user.enabled === false">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <p class="font-medium text-surface-900 dark:text-surface-0">{{ user.firstName }} {{ user.lastName }}</p>
+                  <p class="text-sm text-surface-500 font-mono">
+                    {{ user.age ?? '—' }}
+                    @if (user.age !== null) {
+                      <span class="text-surface-400"> años</span>
+                    }
+                  </p>
+                </div>
+                <span tuiBadge [appearance]="user.enabled !== false ? 'success' : 'error'">
+                  {{ user.enabled !== false ? t('users.status_active') : t('users.status_disabled') }}
+                </span>
+              </div>
+              <dl class="mt-2 text-sm space-y-1">
+                <div class="flex justify-between gap-2">
+                  <dt class="text-surface-500">{{ t('users.email') }}</dt>
+                  <dd class="truncate">{{ user.email }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt class="text-surface-500">{{ t('users.phone') }}</dt>
+                  <dd>{{ user.phone ?? '—' }}</dd>
+                </div>
+              </dl>
+              <div class="flex items-center gap-1 justify-end mt-2 pt-2 border-t border-surface-100 dark:border-surface-800">
+                <a tuiButton appearance="flat" size="s" [routerLink]="['/users', user.id]" [title]="t('common.view')">
+                  <i class="fa-solid fa-eye"></i>
+                </a>
+                <button *appIfPermission="'MANAGE_USER'" tuiButton appearance="flat" size="s" type="button"
+                  (click)="editUser(user)" [title]="t('users.edit')">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button *appIfPermission="'DISABLE_USER'" tuiButton appearance="flat" size="s" type="button"
+                  [class.text-red-500]="user.enabled !== false"
+                  [class.text-green-600]="user.enabled === false"
+                  (click)="toggleEnabled(user)"
+                  [title]="user.enabled !== false ? t('users.disable') : t('users.enable')">
+                  <i class="fa-solid" [class.fa-toggle-on]="user.enabled !== false" [class.fa-toggle-off]="user.enabled === false"></i>
+                </button>
+                @if (canDeleteUsers()) {
+                  <button *appIfPermission="'MANAGE_USER'" tuiButton appearance="flat" size="s" type="button"
+                    class="text-red-500 hover:text-red-700"
+                    (click)="revokeAccess(user)" [title]="t('users.revoke')">
+                    <i class="fa-solid fa-user-xmark"></i>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
         <div class="table-footer flex justify-between items-center">
           <span class="text-sm text-surface-500">
             {{ t('common.pagination_report', { first: totalRecords() === 0 ? 0 : lastPage * lastSize + 1, last: lastPage * lastSize + users().length, totalRecords: totalRecords() }) }}

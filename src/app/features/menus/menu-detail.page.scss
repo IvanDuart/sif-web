@@ -52,10 +52,12 @@
 
 .menu-table__meal-text {
   flex: 1;
+  min-width: 0;
   font-size: 0.8125rem;
   line-height: 1.45;
   color: var(--p-surface-700);
   white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 .menu-table__meal-actions {

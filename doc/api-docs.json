@@ -3388,6 +3388,47 @@
         }
       }
     },
+    "/tenant/{tenantId}/users/{userId}/profile/fixed-meals": {
+      "get": {
+        "tags": [
+          "UserTenantRoleController"
+        ],
+        "description": "Get the fixed meals (breakfast/snack/lunch) and observations for a patient",
+        "operationId": "getPatientFixedMeals",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserTenantProfileFixedMealsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/users/{userId}/measurements/pdf": {
       "get": {
         "tags": [
@@ -6807,18 +6848,18 @@
               "type": "string"
             }
           },
+          "roleCode": {
+            "type": "string"
+          },
+          "tenantName": {
+            "type": "string"
+          },
           "userType": {
             "type": "string",
             "enum": [
               "STAFF",
               "PATIENT"
             ]
-          },
-          "roleCode": {
-            "type": "string"
-          },
-          "tenantName": {
-            "type": "string"
           }
         }
       },
@@ -6976,6 +7017,23 @@
           },
           "lastMeasurement": {
             "$ref": "#/components/schemas/BodyMeasurementDto"
+          }
+        }
+      },
+      "UserTenantProfileFixedMealsDto": {
+        "type": "object",
+        "properties": {
+          "breakfast": {
+            "type": "string"
+          },
+          "snack": {
+            "type": "string"
+          },
+          "lunch": {
+            "type": "string"
+          },
+          "observations": {
+            "type": "string"
           }
         }
       },

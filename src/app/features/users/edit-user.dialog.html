@@ -1,5 +1,5 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2" *transloco="let t">
-  <div class="grid grid-cols-2 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <tui-textfield class="w-full">
       <label tuiLabel for="firstName">{{ t('users.first_name') }}</label>
       <input id="firstName" formControlName="firstName" tuiInput />

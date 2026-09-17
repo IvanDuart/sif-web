@@ -895,7 +895,8 @@
     "no_weight_history": "No hay datos de evolución de peso registrados",
     "default_appointment_type": "Consulta Nutricional",
     "shopping_list": "Lista de la Compra",
-    "no_shopping_list": "No hay lista de la compra activa"
+    "no_shopping_list": "No hay lista de la compra activa",
+    "fixed_meals_title": "Pautas Fijas"
   },
   "water_intake": {
     "title": "Consumo de Agua",

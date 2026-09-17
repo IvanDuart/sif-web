@@ -36,4 +36,36 @@
       </p>
     </div>
   }
+
+  @if (hasAnyFixedMeal()) {
+    <div class="mt-4 pt-4 border-t border-surface-100 dark:border-surface-700/50 space-y-3">
+      <h4 class="text-xs font-bold text-surface-400 uppercase tracking-wider">
+        {{ t('patient_dashboard.fixed_meals_title', { defaultValue: 'Pautas Fijas' }) }}
+      </h4>
+      @if (fixedMeals()?.breakfast; as breakfast) {
+        <div class="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-100 dark:border-surface-700/50">
+          <span class="text-xs font-bold text-primary-500 uppercase tracking-wider">{{ t('patient_profile.breakfast') }}</span>
+          <p class="text-sm text-surface-800 dark:text-surface-200 mt-1 whitespace-pre-wrap">{{ breakfast }}</p>
+        </div>
+      }
+      @if (fixedMeals()?.lunch; as lunch) {
+        <div class="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-100 dark:border-surface-700/50">
+          <span class="text-xs font-bold text-primary-500 uppercase tracking-wider">{{ t('patient_profile.lunch') }}</span>
+          <p class="text-sm text-surface-800 dark:text-surface-200 mt-1 whitespace-pre-wrap">{{ lunch }}</p>
+        </div>
+      }
+      @if (fixedMeals()?.snack; as snack) {
+        <div class="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-100 dark:border-surface-700/50">
+          <span class="text-xs font-bold text-primary-500 uppercase tracking-wider">{{ t('patient_profile.snack') }}</span>
+          <p class="text-sm text-surface-800 dark:text-surface-200 mt-1 whitespace-pre-wrap">{{ snack }}</p>
+        </div>
+      }
+      @if (fixedMeals()?.observations; as observations) {
+        <div class="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-100 dark:border-surface-700/50">
+          <span class="text-xs font-bold text-primary-500 uppercase tracking-wider">{{ t('patient_profile.observations') }}</span>
+          <p class="text-sm text-surface-800 dark:text-surface-200 mt-1 whitespace-pre-wrap">{{ observations }}</p>
+        </div>
+      }
+    </div>
+  }
 </div>

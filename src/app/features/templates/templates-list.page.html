@@ -36,7 +36,7 @@
           (action)="createTemplate()">
         </app-empty-state>
       } @else {
-        <div class="table-wrapper">
+        <div class="hidden md:block table-wrapper">
           <table tuiTable class="w-full">
             <thead>
               <tr>
@@ -100,6 +100,47 @@
             </tbody>
           </table>
         </div>
+
+        <div class="md:hidden space-y-3 p-2">
+          @for (template of templates(); track template.id) {
+            <div class="rounded-lg border border-surface-200 dark:border-surface-700 p-3">
+              <div>
+                <p class="font-medium text-surface-900 dark:text-surface-0">{{ template.name }}</p>
+              </div>
+              <dl class="mt-2 text-sm space-y-1">
+                <div class="flex justify-between gap-2">
+                  <dt class="text-surface-500">{{ t('templates.description') }}</dt>
+                  <dd class="truncate">{{ template.description }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt class="text-surface-500">{{ t('templates.created_at') }}</dt>
+                  <dd class="font-mono">{{ template.createdAt | date:'dd/MM/yyyy HH:mm' }}</dd>
+                </div>
+              </dl>
+              <div class="flex items-center gap-1 justify-end mt-2 pt-2 border-t border-surface-100 dark:border-surface-800">
+                <button type="button" tuiIconButton appearance="flat" size="s"
+                  (click)="viewTemplate(template)"
+                  [title]="t('templates.view_detail')">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <button *appIfPermission="'INSTANTIATE_TEMPLATE'"
+                  type="button" tuiIconButton appearance="flat" size="s"
+                  (click)="instantiateTemplate(template)"
+                  [title]="t('templates.assign')">
+                  <i class="fa-solid fa-user-plus"></i>
+                </button>
+                <button *appIfPermission="'MANAGE_TEMPLATE'"
+                  type="button" tuiIconButton appearance="flat" size="s"
+                  class="text-red-500 hover:text-red-700"
+                  (click)="deleteTemplate(template)"
+                  [title]="t('common.delete')">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
         <div class="table-footer flex justify-between items-center">
           <span class="text-sm text-surface-500">
             {{ t('common.pagination_report', { first: totalRecords() === 0 ? 0 : lastPage * lastSize + 1, last: lastPage * lastSize + templates().length, totalRecords: totalRecords() }) }}

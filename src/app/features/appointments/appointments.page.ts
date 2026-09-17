@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy, ViewChild } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectionStrategy, ViewChild, HostListener } from '@angular/core';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
@@ -31,7 +31,7 @@ import { ScheduleAvailabilityService } from '../../core/api/services/schedule-av
   templateUrl: './appointments.page.html',
   styleUrls: ['./appointments.page.scss'],
 })
-export default class AppointmentsPage implements OnInit {
+export default class AppointmentsPage implements OnInit, OnDestroy {
   private readonly tenantCtx = inject(TenantContextService);
   private readonly authService = inject(AuthService);
   private readonly appointmentService = inject(AppointmentService);
@@ -98,6 +98,25 @@ export default class AppointmentsPage implements OnInit {
   };
   calendarEvents = signal<EventSourceInput>([]);
 
+  private isMobileView = typeof window !== 'undefined' && window.innerWidth < 768;
+  private resizeTimeout?: ReturnType<typeof setTimeout>;
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    clearTimeout(this.resizeTimeout);
+    this.resizeTimeout = setTimeout(() => this.applyResponsiveCalendarView(), 150);
+  }
+
+  private applyResponsiveCalendarView() {
+    const isMobile = window.innerWidth < 768;
+    if (isMobile === this.isMobileView) return;
+    this.isMobileView = isMobile;
+
+    const api = this.calendarComponent?.getApi();
+    if (!api) return;
+    api.changeView(isMobile ? 'timeGridDay' : 'timeGridWeek');
+  }
+
   ngOnInit() {
     this.computeDateRanges();
     if (this.canViewAppointments() && this.currentUserId()) {
@@ -125,6 +144,10 @@ export default class AppointmentsPage implements OnInit {
         }, 300);
       }
     });
+  }
+
+  ngOnDestroy() {
+    clearTimeout(this.resizeTimeout);
   }
 
   private computeDateRanges() {
