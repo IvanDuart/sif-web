@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Subject, Subscription, debounceTime } from 'rxjs';
+import { Subject, Subscription, debounceTime, forkJoin } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { ModalService, NotificationService, ConfirmService } from '../../core/ui';
 import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/branding/theme.service';
@@ -1117,32 +1118,39 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     const name = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email || '';
     const email = currentUser.email || '';
 
-    this.confirm.confirm({
-      label: this.transloco.translate('users.reset_password_confirm_title'),
-      content: this.transloco.translate('users.reset_password_confirm_msg', { name, email }),
-      yes: this.transloco.translate('users.reset_password_confirm_btn'),
-      no: this.transloco.translate('common.cancel'),
-      size: 'm'
-    }).subscribe((accepted) => {
-      if (accepted) {
-        this.isSendingResetPassword.set(true);
-        this.userTenantRoleService.sendResetPassword(tenantId, currentUser.id).subscribe({
-          next: () => {
-            this.isSendingResetPassword.set(false);
-            this.notify.success(
-              this.transloco.translate('users.reset_password_success'),
-              this.transloco.translate('common.success')
-            );
-          },
-          error: () => {
-            this.isSendingResetPassword.set(false);
-            this.notify.error(
-              this.transloco.translate('users.reset_password_error'),
-              this.transloco.translate('common.error')
-            );
-          }
-        });
-      }
+    forkJoin({
+      title: this.transloco.selectTranslate('users.reset_password_confirm_title').pipe(take(1)),
+      msg: this.transloco.selectTranslate('users.reset_password_confirm_msg', { name, email }).pipe(take(1)),
+      yes: this.transloco.selectTranslate('users.reset_password_confirm_btn').pipe(take(1)),
+      no: this.transloco.selectTranslate('common.cancel').pipe(take(1))
+    }).subscribe((texts) => {
+      this.confirm.confirm({
+        label: texts.title,
+        content: texts.msg,
+        yes: texts.yes,
+        no: texts.no,
+        size: 'm'
+      }).subscribe((accepted) => {
+        if (accepted) {
+          this.isSendingResetPassword.set(true);
+          this.userTenantRoleService.sendResetPassword(tenantId, currentUser.id).subscribe({
+            next: () => {
+              this.isSendingResetPassword.set(false);
+              this.notify.success(
+                this.transloco.translate('users.reset_password_success'),
+                this.transloco.translate('common.success')
+              );
+            },
+            error: () => {
+              this.isSendingResetPassword.set(false);
+              this.notify.error(
+                this.transloco.translate('users.reset_password_error'),
+                this.transloco.translate('common.error')
+              );
+            }
+          });
+        }
+      });
     });
   }
 
