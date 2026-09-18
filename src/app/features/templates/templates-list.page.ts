@@ -36,6 +36,8 @@ export default class TemplatesListPage implements OnInit {
 
   templates = signal<MenuTemplate[]>([]);
   loading = signal(false);
+  paginating = signal(false);
+  private hasLoadedOnce = false;
   totalRecords = signal(0);
   searchControl = new FormControl('');
 
@@ -91,7 +93,12 @@ export default class TemplatesListPage implements OnInit {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
 
-    this.loading.set(true);
+    if (this.hasLoadedOnce) {
+      this.paginating.set(true);
+    } else {
+      this.loading.set(true);
+    }
+
     this.templateService.search(
       tenantId,
       page,
@@ -103,8 +110,13 @@ export default class TemplatesListPage implements OnInit {
         this.templates.set(res.content || []);
         this.totalRecords.set(res.page?.totalElements || 0);
         this.loading.set(false);
+        this.paginating.set(false);
+        this.hasLoadedOnce = true;
       },
-      error: () => this.loading.set(false)
+      error: () => {
+        this.loading.set(false);
+        this.paginating.set(false);
+      }
     });
   }
 

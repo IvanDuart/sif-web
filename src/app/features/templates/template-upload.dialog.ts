@@ -8,7 +8,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { NotificationService } from '../../core/ui/notification.service';
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
-import { TenantBrandingService } from '../../core/api/services/tenant-branding.api';
+import { BrandingStore } from '../../core/branding/branding.store';
 import { MenuTemplate } from '../../core/api/models/menu-template.model';
 
 @Component({
@@ -20,7 +20,7 @@ import { MenuTemplate } from '../../core/api/models/menu-template.model';
 export class TemplateUploadDialog implements OnInit {
   private readonly templateService = inject(MenuTemplateService);
   private readonly tenantCtx = inject(TenantContextService);
-  private readonly brandingService = inject(TenantBrandingService);
+  private readonly brandingStore = inject(BrandingStore);
   private readonly notify = inject(NotificationService);
   readonly context = injectContext<TuiDialogContext<MenuTemplate, void>>();
 
@@ -44,27 +44,9 @@ export class TemplateUploadDialog implements OnInit {
   ];
 
   ngOnInit() {
-    this.checkAiAvailability();
-  }
-
-  private checkAiAvailability() {
-    const tenantId = this.tenantCtx.currentTenantId();
-    if (!tenantId) {
-      this.aiAvailable.set(false);
-      this.isLoadingAiStatus.set(false);
-      return;
-    }
-
-    this.brandingService.getBranding(tenantId).subscribe({
-      next: (branding) => {
-        this.aiAvailable.set(branding.aiEnabled === true);
-        this.isLoadingAiStatus.set(false);
-      },
-      error: () => {
-        this.aiAvailable.set(false);
-        this.isLoadingAiStatus.set(false);
-      }
-    });
+    // El branding ya lo resolvió `brandingResolver` antes de que renderizara el Shell.
+    this.aiAvailable.set(this.brandingStore.aiEnabled());
+    this.isLoadingAiStatus.set(false);
   }
 
   private validateFile(file: File): string | null {

@@ -1,0 +1,84 @@
+<form
+  *transloco="let t"
+  [formGroup]="form"
+  (ngSubmit)="submit()"
+  class="food-create-panel"
+  role="group"
+  [attr.aria-label]="t('food.create_title')">
+  <div class="food-create-panel__head">
+    <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i>
+    <span>{{ t('food.create_title') }}</span>
+  </div>
+
+  <div class="food-create-panel__grid">
+    <tui-textfield class="col-span-2">
+      <label tuiLabel for="foodName">{{ t('food.create_name') }}</label>
+      <input id="foodName" tuiInput formControlName="name" autocomplete="off" />
+    </tui-textfield>
+
+    <tui-textfield>
+      <label tuiLabel for="foodKcal">{{ t('food.create_kcal') }}</label>
+      <input
+        #kcalInput
+        id="foodKcal"
+        tuiInput
+        formControlName="kcal"
+        type="number"
+        inputmode="decimal"
+        min="0"
+        step="any"
+        aria-describedby="foodKcalHelp" />
+    </tui-textfield>
+
+    <tui-textfield>
+      <label tuiLabel for="foodGroup">{{ t('food.create_group') }}</label>
+      <input id="foodGroup" tuiInput formControlName="foodGroup" autocomplete="off" />
+    </tui-textfield>
+
+    <tui-textfield>
+      <label tuiLabel for="foodProtein">{{ t('food.create_protein') }}</label>
+      <input id="foodProtein" tuiInput formControlName="protein" type="number" inputmode="decimal" min="0" step="any" />
+    </tui-textfield>
+
+    <tui-textfield>
+      <label tuiLabel for="foodFat">{{ t('food.create_fat') }}</label>
+      <input id="foodFat" tuiInput formControlName="fat" type="number" inputmode="decimal" min="0" step="any" />
+    </tui-textfield>
+
+    <tui-textfield>
+      <label tuiLabel for="foodCarbs">{{ t('food.create_carbs') }}</label>
+      <input id="foodCarbs" tuiInput formControlName="carbs" type="number" inputmode="decimal" min="0" step="any" />
+    </tui-textfield>
+  </div>
+
+  @if (form.controls.kcal.touched && form.controls.kcal.invalid) {
+    <tui-error id="foodKcalHelp" class="food-create-panel__error" formControlName="kcal" />
+  } @else {
+    <p id="foodKcalHelp" class="food-create-panel__hint">{{ t('food.create_per_100g') }}</p>
+  }
+
+  @if (missingMacros) {
+    <p class="food-create-panel__hint">
+      <i class="fa-solid fa-circle-info text-xs" aria-hidden="true"></i>
+      {{ t('food.create_macros_hint') }}
+    </p>
+  }
+
+  @if (duplicateName(); as name) {
+    <p class="food-create-panel__error" role="alert">
+      {{ t('food.create_duplicate', { name: name }) }}
+    </p>
+  }
+
+  <div class="food-create-panel__actions">
+    <button type="button" tuiButton appearance="secondary" size="s" (click)="cancelled.emit()">
+      {{ t('common.cancel') }}
+    </button>
+    <button type="submit" tuiButton size="s" [disabled]="saving()">
+      @if (saving()) {
+        <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+      }
+      {{ t('food.create_submit') }}
+    </button>
+  </div>
+</form>

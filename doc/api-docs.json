@@ -84,6 +84,10 @@
       "description": "Controller for Tenant Branding"
     },
     {
+      "name": "FoodController",
+      "description": "BEDCA food catalog and tenant's own foods"
+    },
+    {
       "name": "MenuUploadController",
       "description": "Controller for uploading and parsing diet menus"
     }
@@ -2220,6 +2224,60 @@
         }
       }
     },
+    "/tenant/{tenantId}/menu/{id}/copy-day": {
+      "post": {
+        "tags": [
+          "MenuController"
+        ],
+        "description": "Clone every meal of one day into another day of the same menu",
+        "operationId": "copyDay",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CopyDayRequest_Public"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Meal_Public"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/menu/upload": {
       "post": {
         "tags": [
@@ -2807,13 +2865,55 @@
         }
       }
     },
+    "/tenant/{tenantId}/food": {
+      "post": {
+        "tags": [
+          "FoodController"
+        ],
+        "description": "Create a food owned by the tenant (not in BEDCA)",
+        "operationId": "create_6",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFoodRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FoodDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/appointments": {
       "post": {
         "tags": [
           "AppointmentController"
         ],
         "description": "Create a new appointment",
-        "operationId": "create_6",
+        "operationId": "create_7",
         "parameters": [
           {
             "name": "tenantId",
@@ -2897,7 +2997,7 @@
           "AppointmentTypeController"
         ],
         "description": "Create a new appointment type",
-        "operationId": "create_7",
+        "operationId": "create_8",
         "parameters": [
           {
             "name": "tenantId",
@@ -3863,6 +3963,47 @@
         }
       }
     },
+    "/tenant/{tenantId}/menu/{id}/nutrition": {
+      "get": {
+        "tags": [
+          "MenuController"
+        ],
+        "description": "Nutritional totals of the menu: per meal, per day and overall",
+        "operationId": "getNutrition",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuNutritionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/menu/user/{userId}": {
       "get": {
         "tags": [
@@ -4171,6 +4312,81 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/food/search": {
+      "get": {
+        "tags": [
+          "FoodController"
+        ],
+        "description": "Fuzzy search over the BEDCA catalog, the tenant's own foods and its recipes",
+        "operationId": "search_4",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FoodSearchResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/food/nutrient": {
+      "get": {
+        "tags": [
+          "FoodController"
+        ],
+        "description": "Nutrient catalog: code, name, unit and group",
+        "operationId": "listNutrients",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NutrientDto"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -4594,6 +4810,13 @@
           },
           "enable_appointment_reminders": {
             "type": "boolean"
+          },
+          "menu_creation_mode": {
+            "type": "string",
+            "enum": [
+              "MANUAL",
+              "BEDCA"
+            ]
           }
         }
       },
@@ -4773,6 +4996,63 @@
           }
         }
       },
+      "Food_Full": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source": {
+            "type": "string"
+          },
+          "bedcaId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "foodGroup": {
+            "type": "string"
+          },
+          "ediblePortion": {
+            "type": "number"
+          },
+          "origin": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MealItem_Full": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "food": {
+            "$ref": "#/components/schemas/Food_Full"
+          },
+          "quantityG": {
+            "type": "number"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "Meal_Full": {
         "type": "object",
         "properties": {
@@ -4788,6 +5068,12 @@
           },
           "description": {
             "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MealItem_Full"
+            }
           }
         }
       },
@@ -5652,6 +5938,13 @@
           },
           "enable_appointment_reminders": {
             "type": "boolean"
+          },
+          "menu_creation_mode": {
+            "type": "string",
+            "enum": [
+              "MANUAL",
+              "BEDCA"
+            ]
           }
         }
       },
@@ -5759,6 +6052,13 @@
           },
           "enable_appointment_reminders": {
             "type": "boolean"
+          },
+          "menu_creation_mode": {
+            "type": "string",
+            "enum": [
+              "MANUAL",
+              "BEDCA"
+            ]
           }
         }
       },
@@ -5819,6 +6119,30 @@
           }
         }
       },
+      "MealItemRequest_Public": {
+        "type": "object",
+        "properties": {
+          "foodId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantityG": {
+            "type": "number",
+            "minimum": 0.01
+          },
+          "notes": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "foodId",
+          "quantityG"
+        ]
+      },
       "UpdateMealTemplateRequest_Public": {
         "type": "object",
         "properties": {
@@ -5833,15 +6157,59 @@
             "minLength": 0
           },
           "description": {
-            "type": "string",
-            "minLength": 1
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MealItemRequest_Public"
+            }
           }
         },
         "required": [
           "dayOfWeek",
-          "description",
           "mealType"
         ]
+      },
+      "Food_Public": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "foodGroup": {
+            "type": "string"
+          }
+        }
+      },
+      "MealTemplateItem_Public": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "food": {
+            "$ref": "#/components/schemas/Food_Public"
+          },
+          "quantityG": {
+            "type": "number"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
       },
       "MealTemplate_Public": {
         "type": "object",
@@ -5858,6 +6226,12 @@
           },
           "description": {
             "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MealTemplateItem_Public"
+            }
           }
         }
       },
@@ -5865,13 +6239,43 @@
         "type": "object",
         "properties": {
           "description": {
-            "type": "string",
-            "minLength": 1
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MealItemRequest_Public"
+            }
+          },
+          "dayOfWeek": {
+            "type": "string"
+          },
+          "mealType": {
+            "type": "string"
           }
-        },
-        "required": [
-          "description"
-        ]
+        }
+      },
+      "MealItem_Public": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "food": {
+            "$ref": "#/components/schemas/Food_Public"
+          },
+          "quantityG": {
+            "type": "number"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
       },
       "Meal_Public": {
         "type": "object",
@@ -5888,6 +6292,12 @@
           },
           "description": {
             "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MealItem_Public"
+            }
           }
         }
       },
@@ -6427,6 +6837,26 @@
           }
         }
       },
+      "CopyDayRequest_Public": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "minLength": 1
+          },
+          "to": {
+            "type": "string",
+            "minLength": 1
+          },
+          "overwrite": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ]
+      },
       "CreateMealTemplateRequest_Full": {
         "type": "object",
         "properties": {
@@ -6438,6 +6868,12 @@
           },
           "description": {
             "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MealItemRequest_Full"
+            }
           }
         }
       },
@@ -6458,6 +6894,52 @@
           }
         }
       },
+      "MealItemRequest_Full": {
+        "type": "object",
+        "properties": {
+          "foodId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantityG": {
+            "type": "number",
+            "minimum": 0.01
+          },
+          "notes": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "foodId",
+          "quantityG"
+        ]
+      },
+      "MealTemplateItem_Full": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "food": {
+            "$ref": "#/components/schemas/Food_Full"
+          },
+          "quantityG": {
+            "type": "number"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "MealTemplate_Full": {
         "type": "object",
         "properties": {
@@ -6473,6 +6955,12 @@
           },
           "description": {
             "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MealTemplateItem_Full"
+            }
           }
         }
       },
@@ -6535,6 +7023,12 @@
           },
           "description": {
             "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MealItemRequest_Public"
+            }
           }
         }
       },
@@ -6580,6 +7074,54 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "CreateFoodRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "foodGroup": {
+            "type": "string"
+          },
+          "nutrients": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "FoodDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "foodGroup": {
+            "type": "string"
+          },
+          "ediblePortion": {
+            "type": "number"
+          },
+          "nutrients": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
           }
         }
       },
@@ -6851,15 +7393,15 @@
           "roleCode": {
             "type": "string"
           },
-          "tenantName": {
-            "type": "string"
-          },
           "userType": {
             "type": "string",
             "enum": [
               "STAFF",
               "PATIENT"
             ]
+          },
+          "tenantName": {
+            "type": "string"
           }
         }
       },
@@ -7152,6 +7694,41 @@
           }
         }
       },
+      "Food": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source": {
+            "type": "string"
+          },
+          "bedcaId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "foodGroup": {
+            "type": "string"
+          },
+          "ediblePortion": {
+            "type": "number"
+          },
+          "origin": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "Meal": {
         "type": "object",
         "properties": {
@@ -7167,6 +7744,34 @@
           },
           "description": {
             "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MealItem"
+            }
+          }
+        }
+      },
+      "MealItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "food": {
+            "$ref": "#/components/schemas/Food"
+          },
+          "quantityG": {
+            "type": "number"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -7219,6 +7824,61 @@
           }
         }
       },
+      "MealNutritionDto": {
+        "type": "object",
+        "properties": {
+          "mealId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayOfWeek": {
+            "type": "string"
+          },
+          "mealType": {
+            "type": "string"
+          },
+          "nutrients": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "MenuNutritionDto": {
+        "type": "object",
+        "properties": {
+          "menuId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "meals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MealNutritionDto"
+            }
+          },
+          "days": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number"
+              }
+            }
+          },
+          "total": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "incompleteItems": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "Menu_List": {
         "type": "object",
         "properties": {
@@ -7256,6 +7916,34 @@
           },
           "description": {
             "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MealTemplateItem"
+            }
+          }
+        }
+      },
+      "MealTemplateItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "food": {
+            "$ref": "#/components/schemas/Food"
+          },
+          "quantityG": {
+            "type": "number"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -7316,6 +8004,89 @@
           }
         }
       },
+      "FoodSearchResultDto": {
+        "type": "object",
+        "properties": {
+          "foods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FoodDto"
+            }
+          },
+          "recipes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeDto"
+            }
+          }
+        }
+      },
+      "RecipeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "dayOfWeek": {
+            "type": "string"
+          },
+          "mealType": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeItemDto"
+            }
+          }
+        }
+      },
+      "RecipeItemDto": {
+        "type": "object",
+        "properties": {
+          "foodId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantityG": {
+            "type": "number"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "NutrientDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "nutrientGroup": {
+            "type": "string"
+          }
+        }
+      },
       "TenantBrandingDto": {
         "type": "object",
         "properties": {
@@ -7342,6 +8113,13 @@
           },
           "aiEnabled": {
             "type": "boolean"
+          },
+          "menuCreationMode": {
+            "type": "string",
+            "enum": [
+              "MANUAL",
+              "BEDCA"
+            ]
           }
         }
       },

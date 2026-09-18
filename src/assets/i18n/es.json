@@ -33,6 +33,14 @@
     "search": "Buscar",
     "help": "Ayuda"
   },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "email": "Introduce un email válido",
+    "min": "El valor mínimo es {{min}}",
+    "max": "El valor máximo es {{max}}",
+    "minlength": "Debe tener al menos {{length}} caracteres",
+    "maxlength": "No puede superar {{length}} caracteres"
+  },
   "menu": {
     "dashboard": "Panel Principal",
     "patients": "Pacientes",
@@ -400,9 +408,7 @@
     "delete_confirm": "¿Estás seguro de que quieres eliminar este evento?",
     "empty_title": "Sin eventos aún",
     "empty": "No hay eventos registrados para este paciente.",
-    "end_time_after_start": "La fecha de fin debe ser posterior a la fecha de inicio",
-    "start_time_future": "La fecha de inicio debe ser futura",
-    "title_required": "El título es obligatorio"
+    "end_time_after_start": "La fecha de fin debe ser posterior a la fecha de inicio"
   },
   "templates": {
     "title": "Plantillas de Menús",
@@ -504,10 +510,10 @@
     "today_appointments": "Citas para Hoy",
     "attendance_rate": "Tasa de Asistencia",
     "nutritionist": "Nutricionista",
-     "patient": "Paciente",
-     "patient_optional": "Paciente (opcional)",
-     "patient_required": "Por favor, selecciona un paciente",
-     "no_patient": "Paciente por asignar",
+    "patient": "Paciente",
+    "patient_optional": "Paciente (opcional)",
+    "patient_required": "Por favor, selecciona un paciente",
+    "no_patient": "Paciente por asignar",
     "first_consultation": "Primera consulta (sin paciente)",
     "first_consultation_checkbox": "Es primera consulta (paciente nuevo)",
     "new_patient_name": "Nombre del paciente",
@@ -584,7 +590,11 @@
     "show_price_hint": "Muestra los precios de los tipos de consulta cuando el paciente reagenda una cita.",
     "notifications_section": "Notificaciones",
     "enable_appointment_reminders": "Recordatorios de cita por push",
-    "enable_appointment_reminders_hint": "Envía notificaciones push a los pacientes recordándoles sus citas del día siguiente y del mismo día."
+    "enable_appointment_reminders_hint": "Envía notificaciones push a los pacientes recordándoles sus citas del día siguiente y del mismo día.",
+    "menu_mode_section": "Composición de menús",
+    "menu_mode_bedca": "Componer las comidas con alimentos y gramos",
+    "menu_mode_manual_hint": "Las comidas se escriben como texto libre. No se calculan calorías ni macronutrientes.",
+    "menu_mode_bedca_hint": "Las comidas se componen eligiendo alimentos del catálogo con su gramaje, y se calculan las calorías y los macronutrientes. Los menús que ya tengas escritos en texto se siguen pudiendo editar."
   },
   "appointment_types": {
     "title": "Tipos de Cita",
@@ -1517,5 +1527,48 @@
         }
       }
     }
+  },
+  "food": {
+    "search_label": "Buscar alimento",
+    "search_placeholder": "Escribe un alimento…",
+    "quantity_label": "Gramos",
+    "quantity_placeholder": "g",
+    "notes_label": "Nota del ingrediente",
+    "notes_placeholder": "Nota (opcional)",
+    "remove_item": "Quitar ingrediente",
+    "move_up": "Subir",
+    "move_down": "Bajar",
+    "source_tenant": "Propio",
+    "source_recipe": "receta",
+    "saving": "Guardando…",
+    "saved": "Guardado",
+    "protein_short": "P",
+    "fat_short": "G",
+    "carbs_short": "HC",
+    "macro_split_label": "Reparto de proteína, grasa e hidratos",
+    "keyboard_hint": "Enter selecciona y pasa a gramos; Enter en gramos crea otra fila. Retroceso en un buscador vacío borra la fila.",
+    "total_approximate": "{{count}} ingredientes cargados sin datos nutricionales en esta sesión: el total exacto se calcula al guardar.",
+    "incomplete_items": "{{count}} ingredientes sin datos nutricionales. Los totales están incompletos.",
+    "create_option": "Crear «{{query}}» como alimento",
+    "create_title": "Nuevo alimento propio",
+    "create_name": "Nombre",
+    "create_group": "Grupo (opcional)",
+    "create_kcal": "Calorías por 100 g",
+    "create_protein": "Proteína (g)",
+    "create_fat": "Grasa (g)",
+    "create_carbs": "Hidratos (g)",
+    "create_per_100g": "Todos los valores son por 100 g de porción comestible.",
+    "create_macros_hint": "Sin proteína, grasa e hidratos los totales del menú saldrán bajos sin avisar.",
+    "create_duplicate": "Ya tienes un alimento llamado «{{name}}». Búscalo y úsalo en lugar de crearlo otra vez.",
+    "create_submit": "Crear alimento",
+    "day_total": "Total del día",
+    "menu_total": "Total del menú",
+    "copy_day": "Clonar día",
+    "copy_day_title": "Clonar un día completo",
+    "copy_day_to": "Copiar a",
+    "copy_day_confirm": "{{day}} ya tiene {{count}} comidas. ¿Reemplazarlas?",
+    "copy_day_done": "Día clonado.",
+    "move_meal_done": "Comida movida.",
+    "swap_meal_done": "Comidas intercambiadas."
   }
 }

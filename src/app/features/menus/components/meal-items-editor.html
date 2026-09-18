@@ -1,0 +1,240 @@
+<div class="items-editor" *transloco="let t">
+  <div class="items-editor__head">
+    <span class="items-editor__title">
+      {{ t(i18nPrefix() + '.meal_types.' + (meal().mealType === 'CENA' ? 'dinner' : 'lunch')) }}
+      —
+      {{ t(i18nPrefix() + '.days.' + meal().dayOfWeek.toLowerCase()) }}
+    </span>
+
+    <span class="items-editor__total" aria-live="polite">
+      @if (isApproximate()) {
+        <span [title]="t('food.total_approximate', { count: rowsWithoutNutrientData() })">
+          ≈ {{ kcal() | number: '1.0-0' }} kcal
+        </span>
+      } @else {
+        {{ kcal() | number: '1.0-0' }} kcal
+      }
+    </span>
+
+    <span class="items-editor__state" aria-live="polite">
+      @switch (saveState()) {
+        @case ('saving') {
+          <i class="fa-solid fa-spinner fa-spin text-xs" aria-hidden="true"></i>
+          {{ t('food.saving') }}
+        }
+        @case ('saved') {
+          <i class="fa-solid fa-check text-xs" aria-hidden="true"></i>
+          {{ t('food.saved') }}
+        }
+      }
+    </span>
+  </div>
+
+  <ul class="items-editor__rows">
+    @for (row of rows(); track $index; let i = $index) {
+      <li class="items-editor__row">
+        @if (canManage()) {
+          <span class="items-editor__handle">
+            <button
+              tuiIconButton
+              appearance="flat"
+              size="xs"
+              type="button"
+              [disabled]="i === 0"
+              (click)="moveRow(i, -1)"
+              [title]="t('food.move_up')">
+              <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+            </button>
+            <button
+              tuiIconButton
+              appearance="flat"
+              size="xs"
+              type="button"
+              [disabled]="i === rows().length - 1"
+              (click)="moveRow(i, 1)"
+              [title]="t('food.move_down')">
+              <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            </button>
+          </span>
+        }
+
+        <div
+          class="items-editor__search"
+          [tuiDropdown]="suggestionList"
+          tuiDropdownLimitWidth="fixed"
+          [tuiDropdownOpen]="activeRow() === i && suggestions().length > 0">
+          <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+            <input
+              #searchInput
+              tuiInput
+              role="combobox"
+              autocomplete="off"
+              [attr.aria-expanded]="activeRow() === i && suggestions().length > 0"
+              [attr.aria-controls]="'suggestions-' + i"
+              [attr.aria-activedescendant]="activeRow() === i ? 'suggestion-' + i + '-' + highlighted() : null"
+              [attr.aria-label]="t('food.search_label')"
+              [placeholder]="t('food.search_placeholder')"
+              [disabled]="!canManage()"
+              [ngModel]="row.query"
+              (ngModelChange)="onQueryChange(i, $event)"
+              (keydown)="onSearchKeydown($event, i)"
+              (focus)="activeRow.set(i)" />
+          </tui-textfield>
+
+          @if (activeRow() === i && searching()) {
+            <span class="items-editor__searching" aria-live="polite">
+              <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+              {{ t('common.loading') }}
+            </span>
+          }
+
+          <ng-template #suggestionList>
+            <tui-data-list [attr.id]="'suggestions-' + i" role="listbox">
+              @for (option of suggestions(); track $index; let optionIndex = $index) {
+                @switch (option.kind) {
+                  @case ('food') {
+                    <button
+                      tuiOption
+                      type="button"
+                      role="option"
+                      [attr.id]="'suggestion-' + i + '-' + optionIndex"
+                      [attr.aria-selected]="highlighted() === optionIndex"
+                      [class.items-editor__option--active]="highlighted() === optionIndex"
+                      (click)="chooseAt(i, optionIndex)"
+                      (mouseenter)="highlighted.set(optionIndex)">
+                      <span class="items-editor__option">
+                        <span class="items-editor__option-name">{{ option.food.name }}</span>
+                        @if (isTenantFood(option.food)) {
+                          <span tuiBadge appearance="neutral" size="s">{{ t('food.source_tenant') }}</span>
+                        }
+                        <span class="items-editor__option-kcal">
+                          {{ foodKcal(option.food.nutrients) | number: '1.0-0' }} kcal
+                        </span>
+                      </span>
+                    </button>
+                  }
+                  @case ('recipe') {
+                    <button
+                      tuiOption
+                      type="button"
+                      role="option"
+                      [attr.id]="'suggestion-' + i + '-' + optionIndex"
+                      [attr.aria-selected]="highlighted() === optionIndex"
+                      [class.items-editor__option--active]="highlighted() === optionIndex"
+                      (click)="chooseAt(i, optionIndex)"
+                      (mouseenter)="highlighted.set(optionIndex)">
+                      <span class="items-editor__option">
+                        <i class="fa-solid fa-receipt text-xs" aria-hidden="true"></i>
+                        <span class="items-editor__option-name">{{ option.recipe.name }}</span>
+                        <span class="items-editor__option-kcal">{{ t('food.source_recipe') }}</span>
+                      </span>
+                    </button>
+                  }
+                  @case ('create') {
+                    <button
+                      tuiOption
+                      type="button"
+                      role="option"
+                      [attr.id]="'suggestion-' + i + '-' + optionIndex"
+                      [attr.aria-selected]="highlighted() === optionIndex"
+                      [class.items-editor__option--active]="highlighted() === optionIndex"
+                      (click)="chooseAt(i, optionIndex)"
+                      (mouseenter)="highlighted.set(optionIndex)">
+                      <span class="items-editor__option">
+                        <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i>
+                        <span class="items-editor__option-name">
+                          {{ t('food.create_option', { query: row.query }) }}
+                        </span>
+                      </span>
+                    </button>
+                  }
+                }
+              }
+            </tui-data-list>
+          </ng-template>
+        </div>
+
+        <tui-textfield class="items-editor__quantity" [tuiTextfieldCleaner]="false">
+          <input
+            #quantityInput
+            tuiInput
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            [attr.aria-label]="t('food.quantity_label')"
+            [placeholder]="t('food.quantity_placeholder')"
+            [disabled]="!canManage()"
+            [ngModel]="row.quantityG"
+            (ngModelChange)="onQuantityChange(i, $event)"
+            (keydown)="onQuantityKeydown($event, i)" />
+        </tui-textfield>
+
+        <tui-textfield class="items-editor__notes" [tuiTextfieldCleaner]="false">
+          <input
+            tuiInput
+            autocomplete="off"
+            [attr.aria-label]="t('food.notes_label')"
+            [placeholder]="t('food.notes_placeholder')"
+            [disabled]="!canManage()"
+            [ngModel]="row.notes"
+            (ngModelChange)="onNotesChange(i, $event)" />
+        </tui-textfield>
+
+        @if (canManage()) {
+          <button
+            tuiIconButton
+            appearance="flat"
+            size="xs"
+            type="button"
+            class="text-red-500 hover:text-red-700"
+            (click)="removeRow(i)"
+            [title]="t('food.remove_item')">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        }
+      </li>
+
+      @if (creatingFoodFor() === i) {
+        <li>
+          <app-food-create-panel
+            [initialName]="createFoodName()"
+            (created)="onFoodCreated($event)"
+            (cancelled)="cancelFoodCreation()" />
+        </li>
+      }
+    }
+  </ul>
+
+  <div class="items-editor__foot">
+    <div class="items-editor__macros">
+      <span class="items-editor__macro">
+        {{ t('food.protein_short') }} {{ protein() | number: '1.0-1' }} g
+      </span>
+      <span class="items-editor__macro">
+        {{ t('food.fat_short') }} {{ fat() | number: '1.0-1' }} g
+      </span>
+      <span class="items-editor__macro">
+        {{ t('food.carbs_short') }} {{ carbs() | number: '1.0-1' }} g
+      </span>
+    </div>
+
+    <div
+      class="items-editor__bar"
+      role="img"
+      [attr.aria-label]="t('food.macro_split_label')">
+      <span class="items-editor__bar-seg items-editor__bar-seg--protein" [style.width.%]="macroSplit().protein"></span>
+      <span class="items-editor__bar-seg items-editor__bar-seg--fat" [style.width.%]="macroSplit().fat"></span>
+      <span class="items-editor__bar-seg items-editor__bar-seg--carbs" [style.width.%]="macroSplit().carbs"></span>
+    </div>
+  </div>
+
+  @if (isApproximate()) {
+    <p class="items-editor__notice">
+      <i class="fa-solid fa-circle-info text-xs" aria-hidden="true"></i>
+      {{ t('food.total_approximate', { count: rowsWithoutNutrientData() }) }}
+    </p>
+  }
+
+  <p class="items-editor__keyboard-hint">{{ t('food.keyboard_hint') }}</p>
+</div>

@@ -21,12 +21,15 @@
 
       <!-- Desktop Navigation -->
       <ul class="nav-menu desktop-only" role="menubar">
+        <span class="nav-pill" [style.transform]="navPillTransform()" [style.width.px]="navPillWidth()" aria-hidden="true"></span>
         @for (item of visibleNavItems(); track item.route) {
           <li role="none">
             <a
               [routerLink]="item.route"
               routerLinkActive="active-link"
               [routerLinkActiveOptions]="{ exact: false }"
+              (isActiveChange)="onNavLinkActive($event, navLinkEl)"
+              #navLinkEl
               class="nav-link"
               role="menuitem"
             >
@@ -84,7 +87,10 @@
           [tuiHint]="themeService.colorScheme() === 'dark' ? ('shell.theme_light' | transloco) : ('shell.theme_dark' | transloco)"
           [attr.aria-label]="'shell.change_theme' | transloco"
         >
-          <i [class]="themeService.colorScheme() === 'dark' ? 'fa-solid fa-sun text-amber-500' : 'fa-solid fa-moon text-slate-500'"></i>
+          <span class="theme-icon-swap">
+            <i class="fa-solid fa-moon text-slate-500" [class.is-hidden]="themeService.colorScheme() === 'dark'"></i>
+            <i class="fa-solid fa-sun text-amber-500" [class.is-hidden]="themeService.colorScheme() === 'light'"></i>
+          </span>
         </button>
 
         <!-- Notification Bell (Staff Only) -->
@@ -184,8 +190,31 @@
 
   <!-- Mobile Menu Overlay -->
   @if (mobileMenuOpen()) {
-    <div class="mobile-overlay" (click)="closeMobileMenu()" aria-hidden="true"></div>
-    <div class="mobile-menu" role="dialog" [attr.aria-label]="'shell.navigation' | transloco">
+    <div
+      class="mobile-overlay"
+      (click)="closeMobileMenu()"
+      aria-hidden="true"
+      animate.enter="mobile-overlay-enter"
+      animate.leave="mobile-overlay-leave"
+    ></div>
+    <div
+      #mobileMenuPanel
+      class="mobile-menu"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'shell.navigation' | transloco"
+      (document:keydown.escape)="closeMobileMenu()"
+      animate.enter="mobile-menu-enter"
+      animate.leave="mobile-menu-leave"
+    >
+      <div
+        class="mobile-menu-handle"
+        aria-hidden="true"
+        (pointerdown)="onMobileMenuDragStart($event)"
+        (pointermove)="onMobileMenuDragMove($event)"
+        (pointerup)="onMobileMenuDragEnd()"
+        (pointercancel)="onMobileMenuDragEnd()"
+      ></div>
       <ul class="mobile-nav-list">
         @for (item of visibleNavItems(); track item.route) {
           <li>
@@ -218,7 +247,10 @@
         }
 
         <button type="button" class="mobile-action-btn" (click)="toggleTheme()">
-          <i [class]="themeService.colorScheme() === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
+          <span class="theme-icon-swap">
+            <i class="fa-solid fa-moon" [class.is-hidden]="themeService.colorScheme() === 'dark'"></i>
+            <i class="fa-solid fa-sun" [class.is-hidden]="themeService.colorScheme() === 'light'"></i>
+          </span>
           <span>{{ 'shell.change_theme_mobile' | transloco }}</span>
         </button>
 

@@ -1,0 +1,83 @@
+<ng-container *transloco="let t">
+  @if (meal(); as m) {
+    @if (editing()) {
+      <div class="flex flex-col gap-1.5 py-1">
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <textarea
+            tuiTextarea
+            [ngModel]="draft()"
+            (ngModelChange)="draftChange.emit($event)"
+            (keydown.enter)="onEnter($event)"
+            (keydown.escape)="cancelEdit.emit()"
+            [min]="2"
+            [max]="6"
+            class="w-full text-xs"
+          ></textarea>
+        </tui-textfield>
+        <div class="flex items-center justify-end gap-1">
+          <button
+            tuiIconButton
+            appearance="flat"
+            size="xs"
+            type="button"
+            [disabled]="saving()"
+            (click)="cancelEdit.emit()"
+            [title]="t('common.cancel')">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+          <button
+            tuiIconButton
+            appearance="primary"
+            size="xs"
+            type="button"
+            [disabled]="!canSave()"
+            (click)="save.emit()"
+            [title]="t('common.save')">
+            @if (saving()) {
+              <i class="fa-solid fa-spinner fa-spin"></i>
+            } @else {
+              <i class="fa-solid fa-check"></i>
+            }
+          </button>
+        </div>
+      </div>
+    } @else {
+      <div class="menu-table__meal">
+        <span class="menu-table__meal-text">
+          {{ m.description }}
+          @if (macros(); as macro) {
+            <span class="menu-table__meal-macros">
+              {{ t('food.protein_short') }} {{ macro.protein | number: '1.0-1' }} g ·
+              {{ t('food.fat_short') }} {{ macro.fat | number: '1.0-1' }} g ·
+              {{ t('food.carbs_short') }} {{ macro.carbs | number: '1.0-1' }} g
+            </span>
+          }
+        </span>
+        @if (kcal() !== null) {
+          <span tuiBadge appearance="neutral" size="s" class="menu-table__meal-kcal">
+            {{ kcal() | number: '1.0-0' }} kcal
+          </span>
+        }
+        @if (canManage()) {
+          <span class="menu-table__meal-actions">
+            <button tuiIconButton appearance="flat" size="xs" type="button" (click)="edit.emit()" [title]="t('common.edit')">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button tuiIconButton appearance="flat" size="xs" type="button" class="text-red-500 hover:text-red-700" (click)="remove.emit()" [title]="t('common.delete')">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </span>
+        }
+      </div>
+    }
+  } @else {
+    <div class="menu-table__empty">
+      <span>{{ t(i18nPrefix() + '.free_day_short') }}</span>
+      @if (canManage()) {
+        <button tuiIconButton appearance="flat" size="xs" type="button" (click)="add.emit()" [title]="t(i18nPrefix() + '.add_meal_short')">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+      }
+    </div>
+  }
+</ng-container>

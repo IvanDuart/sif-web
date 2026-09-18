@@ -1,11 +1,11 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { EMPTY, Observable } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
-import { TuiButton, TuiTextfield } from '@taiga-ui/core';
-import { TuiTextarea } from '@taiga-ui/kit';
+import { TuiButton } from '@taiga-ui/core';
 import { TuiTable } from '@taiga-ui/addon-table';
 
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
@@ -17,14 +17,16 @@ import { NotificationService, ModalService, ConfirmService } from '../../core/ui
 import { MealTemplateFormDialog, MealTemplateFormDialogInput } from './meal-template-form.dialog';
 import { InstantiateTemplateDialog, InstantiateTemplateDialogInput } from './instantiate-template.dialog';
 import { Menu } from '../../core/api/models/menu.model';
-
-const ALL_DAYS = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'] as const;
-const MEAL_ORDER: Record<string, number> = { COMIDA: 0, CENA: 1 };
+import { ALL_DAYS, MEAL_ORDER, MEAL_TYPES } from '../menus/menu.constants';
+import { MealCell } from '../menus/components/meal-cell';
+import { MealItemsEditor } from '../menus/components/meal-items-editor';
+import { MealItemRequest } from '../../core/api/services/meal.api';
+import { BrandingStore } from '../../core/branding/branding.store';
 
 @Component({
   selector: 'app-template-detail',
   standalone: true,
-  imports: [DatePipe, RouterModule, FormsModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, TuiButton, TuiTable, TuiTextfield, TuiTextarea],
+  imports: [DatePipe, RouterModule, FormsModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, MealCell, MealItemsEditor, TuiButton, TuiTable],
   templateUrl: './template-detail.page.html',
   styleUrls: ['./template-detail.page.scss'],
 })
@@ -38,6 +40,7 @@ export default class TemplateDetailPage implements OnInit {
   private readonly confirm = inject(ConfirmService);
   private readonly transloco = inject(TranslocoService);
   private readonly permissionsService = inject(PermissionsService);
+  private readonly brandingStore = inject(BrandingStore);
 
   template = signal<MenuTemplate | null>(null);
   meals = signal<MealTemplate[]>([]);
@@ -49,6 +52,10 @@ export default class TemplateDetailPage implements OnInit {
   savingInline = signal<boolean>(false);
 
   allDays = ALL_DAYS;
+  mealTypes = MEAL_TYPES;
+  /** Comida cuyo editor de ingredientes está desplegado. Sólo una a la vez. */
+  expandedMealId = signal<string | null>(null);
+  isBedcaMode = this.brandingStore.isBedcaMode;
   canManageTemplate = computed(() => this.permissionsService.has('MANAGE_TEMPLATE'));
 
   groupedMeals = computed(() => {
@@ -98,6 +105,11 @@ export default class TemplateDetailPage implements OnInit {
     return this.groupedMeals().get(day)?.find(m => m.mealType === mealType);
   }
 
+  isEditing(day: string, mealType: string): boolean {
+    const meal = this.getMeal(day, mealType);
+    return !!meal && this.editingMealId() === meal.id;
+  }
+
   addMeal(day?: string, mealType?: string) {
     this.modal.open<MealTemplate, MealTemplateFormDialogInput>(MealTemplateFormDialog, {
       label: this.transloco.translate('template_detail.add_meal'),
@@ -113,7 +125,7 @@ export default class TemplateDetailPage implements OnInit {
 
   startEditMeal(meal: MealTemplate) {
     this.editingMealId.set(meal.id);
-    this.editingDescription.set(meal.description);
+    this.editingDescription.set(meal.description ?? '');
   }
 
   cancelInlineEdit() {
@@ -149,16 +161,58 @@ export default class TemplateDetailPage implements OnInit {
     });
   }
 
-  onKeydownEnter(event: Event, meal: MealTemplate): void {
-    const keyboardEvent = event as KeyboardEvent;
-    if (!keyboardEvent.shiftKey) {
-      keyboardEvent.preventDefault();
-      this.saveInlineEdit(meal);
-    }
-  }
-
   editMeal(meal: MealTemplate) {
     this.startEditMeal(meal);
+  }
+
+  /**
+   * En modo BEDCA editar despliega el editor de ingredientes; en MANUAL sigue
+   * siendo el textarea en línea.
+   */
+  onEditMeal(meal: MealTemplate): void {
+    if (this.isBedcaMode()) {
+      // Un solo editor abierto a la vez, sea el de texto o el de ingredientes.
+      this.cancelInlineEdit();
+      this.expandedMealId.update(current => (current === meal.id ? null : meal.id));
+      return;
+    }
+    this.expandedMealId.set(null);
+    this.startEditMeal(meal);
+  }
+
+  isExpanded(day: string, mealType: string): boolean {
+    const meal = this.getMeal(day, mealType);
+    return !!meal && this.expandedMealId() === meal.id;
+  }
+
+  /**
+   * Persiste los ingredientes de una comida de plantilla. El endpoint exige
+   * `dayOfWeek` y `mealType`, así que se reenvían los de la propia comida.
+   */
+  readonly saveMealItems = (
+    mealId: string,
+    items: MealItemRequest[],
+    fallbackDescription: string | null
+  ): Observable<unknown> => {
+    const tenantId = this.tenantCtx.currentTenantId();
+    const meal = this.meals().find(m => m.id === mealId);
+    if (!tenantId || !meal) return EMPTY;
+    return this.templateService.updateMeal(tenantId, this.templateId, mealId, {
+      dayOfWeek: meal.dayOfWeek,
+      mealType: meal.mealType,
+      items,
+      // Igual que en los menús: sólo se manda al vaciar la lista, para no
+      // dejar la comida sin texto.
+      ...(fallbackDescription !== null ? { description: fallbackDescription } : {}),
+    });
+  };
+
+  /**
+   * Las plantillas no tienen endpoint de nutrición, así que sólo se recargan las
+   * comidas: los macros de esta pantalla se calculan en local.
+   */
+  onItemsSaved(): void {
+    this.loadData();
   }
 
   deleteMeal(meal: MealTemplate) {
@@ -171,6 +225,9 @@ export default class TemplateDetailPage implements OnInit {
       if (confirmed) {
         const tenantId = this.tenantCtx.currentTenantId();
         if (tenantId) {
+          // Colapsar antes de borrar: al destruirse, el editor vuelca su
+          // guardado pendiente, y hacerlo contra una comida ya borrada daría 404.
+          if (this.expandedMealId() === meal.id) this.expandedMealId.set(null);
           this.templateService.deleteMeal(tenantId, this.templateId, meal.id).subscribe(() => {
             this.notify.success('Plato eliminado');
             this.loadData();

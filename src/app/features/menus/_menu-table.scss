@@ -1,0 +1,192 @@
+// Estilos de la rejilla semanal de comidas, compartidos por el detalle de menú
+// y el de plantilla.
+//
+// Estaban duplicados en los dos `.scss`, con las dos copias ya divergiendo
+// (`__meal-text` había perdido el `min-width` en una de ellas). Las reglas
+// siguen encapsuladas por componente: cada página los emite con su propio
+// ámbito, así que compartir el fichero no filtra estilos entre pantallas.
+
+.menu-table {
+  th[tuiTh],
+  th {
+    background: var(--p-primary-500);
+    color: var(--p-primary-contrast-color);
+    font-weight: 600;
+    border: none;
+  }
+
+  tbody {
+    border-top: 1px solid var(--p-surface-200);
+  }
+
+  .menu-table__day-head {
+    width: 12rem;
+    color: var(--p-primary-contrast-color);
+    background: var(--p-primary-600);
+  }
+
+  .menu-table__meal-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.menu-table__day {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--p-surface-700);
+  white-space: nowrap;
+  background: var(--p-primary-50);
+}
+
+:host-context(.dark) .menu-table__day {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--p-surface-0);
+}
+
+.menu-table__cell {
+  vertical-align: top;
+}
+
+.menu-table__meal {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.menu-table__meal-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--p-surface-700);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.menu-table__meal-actions {
+  display: flex;
+  gap: 0.125rem;
+  opacity: 0.55;
+  transition: opacity 0.12s ease;
+}
+
+.menu-table__cell:hover .menu-table__meal-actions,
+.menu-table__meal-actions:focus-within {
+  opacity: 1;
+}
+
+.menu-table__empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--p-surface-400);
+  font-size: 0.8125rem;
+  font-style: italic;
+}
+
+// Reparto de macros bajo el texto de la comida. Va en la vista de solo lectura
+// también: el paciente ve el reparto, no sólo las calorías.
+.menu-table__meal-macros {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--p-surface-400);
+}
+
+// Tabular para que la cifra no baile de fila en fila.
+.menu-table__meal-kcal {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+}
+
+// La fila del editor ocupa las tres columnas, así que no lleva padding de
+// celda: el propio editor pone el suyo.
+.menu-table__editor-cell {
+  padding: 0;
+  background: var(--p-surface-50);
+}
+
+:host-context(.dark) .menu-table__editor-cell {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+// Angular only defers removing a structural (@if) view for animate.leave
+// bindings on that view's own root elements — here the root is the <tr>,
+// not the wrapper div nested inside its <td>. Without a matching animation
+// on the <tr> itself, Angular rips the row out before the wrapper's own
+// grid-collapse animation (below) ever gets to run. A plain opacity fade,
+// timed the same as the grid animation, is enough: a <tr> can't be
+// display:grid, but it can animate opacity.
+.editor-row-enter {
+  animation: editor-row-fade var(--motion-duration-base) var(--motion-ease-out);
+}
+
+.editor-row-leave {
+  animation: editor-row-fade var(--motion-duration-base) var(--motion-ease-out) reverse;
+}
+
+@keyframes editor-row-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+// Expand/collapse for the meal-items-editor. grid-template-rows 0fr<->1fr
+// handles an unknown/dynamic content height; the inner div supplies the
+// overflow clip + min-height:0 that grid children need to actually shrink.
+// Confirmed in-browser: on enter, Angular applies animate.enter to every
+// bound descendant of a newly-inserted view, so this grows in smoothly
+// alongside the <tr>'s own fade. On leave it only acts on the view's root
+// (the <tr> here) — a nested animate.leave never gets its class applied —
+// so collapsing plays as the row's plain opacity fade only, no visible
+// jump either way (`editor-wrapper-leave` below is dormant, not dead: kept
+// in case a future Angular version instruments nested leave bindings too).
+.menu-table__editor-wrapper {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+.menu-table__editor-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.menu-table__editor-wrapper.editor-wrapper-enter {
+  animation: menu-table-editor-expand var(--motion-duration-base) var(--motion-ease-out);
+}
+
+.menu-table__editor-wrapper.editor-wrapper-leave {
+  animation: menu-table-editor-collapse var(--motion-duration-base) var(--motion-ease-out);
+}
+
+@keyframes menu-table-editor-expand {
+  from { grid-template-rows: 0fr; }
+  to { grid-template-rows: 1fr; }
+}
+
+@keyframes menu-table-editor-collapse {
+  from { grid-template-rows: 1fr; }
+  to { grid-template-rows: 0fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-table__meal-actions {
+    transition: none;
+  }
+
+  // A 0ms animation can skip firing `animationend` in some browsers, which
+  // would make Angular's animate.leave wait out its 4s fallback timeout
+  // before removing the row — 0.01ms still fires the event but is instant.
+  .menu-table__editor-wrapper.editor-wrapper-enter,
+  .menu-table__editor-wrapper.editor-wrapper-leave,
+  .editor-row-enter,
+  .editor-row-leave {
+    animation-duration: 0.01ms !important;
+  }
+}

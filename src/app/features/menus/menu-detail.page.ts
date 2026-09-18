@@ -1,15 +1,17 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { DatePipe, Location } from '@angular/common';
+import { EMPTY, Observable, forkJoin } from 'rxjs';
+import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
+import { DatePipe, DecimalPipe, Location } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
-import { TuiButton, TuiDropdown, TuiDataList, TuiTextfield } from '@taiga-ui/core';
-import { TuiBadge, TuiTextarea } from '@taiga-ui/kit';
+import { TuiButton, TuiDropdown, TuiDataList } from '@taiga-ui/core';
+import { TuiBadge } from '@taiga-ui/kit';
 import { TuiTable } from '@taiga-ui/addon-table';
 
 import { MenuService } from '../../core/api/services/menu.api';
-import { MealService } from '../../core/api/services/meal.api';
+import { MealItemRequest, MealService, UpdateMealRequest, toMealItemRequests } from '../../core/api/services/meal.api';
 import { MenuTemplateService, CreateMealTemplateRequest } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { Menu } from '../../core/api/models/menu.model';
@@ -20,12 +22,13 @@ import { NotificationService, ModalService, ConfirmService } from '../../core/ui
 import { MealFormDialog, MealFormDialogInput } from './meal-form.dialog';
 import { MenuRenameDialog, MenuRenameDialogInput } from './menu-rename.dialog';
 import { TemplateFormDialog, TemplateFormDialogInput } from '../templates/template-form.dialog';
-import { TenantBrandingService } from '../../core/api/services/tenant-branding.api';
+import { BrandingStore } from '../../core/branding/branding.store';
 import { ShoppingListService } from '../../core/api/services/shopping-list.api';
 import { ShoppingListDialog, ShoppingListDialogInput } from './shopping-list.dialog';
-
-const ALL_DAYS = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'] as const;
-const MEAL_ORDER: Record<string, number> = { COMIDA: 0, CENA: 1 };
+import { ALL_DAYS, MEAL_ORDER, MEAL_TYPES } from './menu.constants';
+import { KCAL, MenuNutritionDto, NutrientMap } from '../../core/api/models/food.model';
+import { MealCell } from './components/meal-cell';
+import { MealItemsEditor } from './components/meal-items-editor';
 
 const SUPERMARKETS = [
   { value: 'MERCADONA', label: 'Mercadona' },
@@ -44,7 +47,7 @@ const SUPERMARKETS = [
 @Component({
   selector: 'app-menu-detail',
   standalone: true,
-  imports: [DatePipe, RouterModule, FormsModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, TuiButton, TuiBadge, TuiDropdown, TuiDataList, TuiTable, TuiTextfield, TuiTextarea],
+  imports: [DatePipe, DecimalPipe, RouterModule, FormsModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, MealCell, MealItemsEditor, CdkDrag, CdkDropList, TuiButton, TuiBadge, TuiDropdown, TuiDataList, TuiTable],
   templateUrl: './menu-detail.page.html',
   styleUrls: ['./menu-detail.page.scss'],
 })
@@ -60,7 +63,7 @@ export default class MenuDetailPage implements OnInit {
   private readonly notify = inject(NotificationService);
   private readonly permissionsService = inject(PermissionsService);
   private readonly location = inject(Location);
-  private readonly tenantBrandingService = inject(TenantBrandingService);
+  private readonly brandingStore = inject(BrandingStore);
   private readonly shoppingListService = inject(ShoppingListService);
 
   menu = signal<Menu | null>(null);
@@ -73,6 +76,12 @@ export default class MenuDetailPage implements OnInit {
   savingInline = signal<boolean>(false);
 
   allDays = ALL_DAYS;
+  mealTypes = MEAL_TYPES;
+  nutrition = signal<MenuNutritionDto | null>(null);
+  /** Comida cuyo editor de ingredientes está desplegado. Sólo una a la vez. */
+  expandedMealId = signal<string | null>(null);
+  /** Día cuyo desplegable de "clonar a…" está abierto. */
+  copyDayMenuOpen = signal<string | null>(null);
   supermarkets = SUPERMARKETS;
   supermarketMenuOpen = signal(false);
   canManageMeal = computed(() => this.permissionsService.has('MANAGE_MEAL'));
@@ -84,7 +93,9 @@ export default class MenuDetailPage implements OnInit {
   );
   downloadingPdf = signal(false);
   printingPdf = signal(false);
-  isAiEnabled = signal(false);
+  /** Del branding ya resuelto: ni `aiEnabled` ni el modo se vuelven a pedir aquí. */
+  isAiEnabled = this.brandingStore.aiEnabled;
+  isBedcaMode = this.brandingStore.isBedcaMode;
   generatingList = signal(false);
 
   groupedMeals = computed(() => {
@@ -121,11 +132,6 @@ export default class MenuDetailPage implements OnInit {
 
     this.loading.set(true);
 
-    this.tenantBrandingService.getBranding(tenantId).subscribe({
-      next: (branding) => this.isAiEnabled.set(branding.aiEnabled === true),
-      error: () => { /* handle silently */ }
-    });
-
     this.menuService.getById(tenantId, this.menuId).subscribe({
       next: (m) => {
         this.menu.set(m);
@@ -144,6 +150,44 @@ export default class MenuDetailPage implements OnInit {
       },
       error: () => this.loading.set(false)
     });
+
+    if (this.isBedcaMode()) {
+      this.loadNutrition();
+      // Etiquetas y unidades de nutriente, una sola vez por sesión.
+      this.brandingStore.loadNutrients(tenantId);
+    }
+  }
+
+  /** Recarga sólo las comidas, sin el parpadeo del skeleton de toda la página. */
+  private reloadMeals(): void {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    this.mealService.getByMenuId(tenantId, this.menuId).subscribe({
+      next: mealsList => this.meals.set(mealsList || []),
+    });
+  }
+
+  private loadNutrition(): void {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    this.menuService.getNutrition(tenantId, this.menuId).subscribe({
+      next: result => this.nutrition.set(result),
+      // Sin nutrición la pantalla sigue siendo usable: se ocultan los totales.
+      error: () => this.nutrition.set(null),
+    });
+  }
+
+  /** Total de kcal del día, del endpoint de nutrición. */
+  dayKcal(day: string): number | null {
+    return this.nutrition()?.days[day]?.[KCAL] ?? null;
+  }
+
+  menuKcal(): number | null {
+    return this.nutrition()?.total[KCAL] ?? null;
+  }
+
+  incompleteItems(): number {
+    return this.nutrition()?.incompleteItems ?? 0;
   }
 
   dayLabel(day: string): string {
@@ -195,9 +239,191 @@ export default class MenuDetailPage implements OnInit {
     return this.groupedMeals().get(day)?.find(m => m.mealType === mealType);
   }
 
+  isEditing(day: string, mealType: string): boolean {
+    const meal = this.getMeal(day, mealType);
+    return !!meal && this.editingMealId() === meal.id;
+  }
+
+  /**
+   * En modo BEDCA editar una comida despliega el editor de ingredientes; en modo
+   * MANUAL sigue siendo el textarea en línea de siempre.
+   */
+  onEditMeal(meal: Meal): void {
+    if (this.isBedcaMode()) {
+      this.toggleExpanded(meal);
+      return;
+    }
+    this.startEditMeal(meal);
+  }
+
+  toggleExpanded(meal: Meal): void {
+    this.cancelInlineEdit();
+    this.expandedMealId.update(current => (current === meal.id ? null : meal.id));
+  }
+
+  isExpanded(day: string, mealType: string): boolean {
+    const meal = this.getMeal(day, mealType);
+    return !!meal && this.expandedMealId() === meal.id;
+  }
+
+  /** La comida desplegada de este día, si hay alguna. */
+  expandedMealOfDay(day: string): Meal | undefined {
+    const id = this.expandedMealId();
+    if (!id) return undefined;
+    return this.groupedMeals()
+      .get(day)
+      ?.find(m => m.id === id);
+  }
+
+  /**
+   * Persiste la lista de ingredientes. Referencia estable: el editor le pasa el
+   * `mealId`, así que no hace falta crear una closure por comida.
+   */
+  readonly saveMealItems = (
+    mealId: string,
+    items: MealItemRequest[],
+    fallbackDescription: string | null
+  ): Observable<unknown> => {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return EMPTY;
+    // Con items no se manda `description`: el servidor la regenera y la nuestra
+    // se perdería. Sólo se manda al vaciar la lista, para no quedarse sin texto.
+    const request: UpdateMealRequest =
+      fallbackDescription !== null ? { items, description: fallbackDescription } : { items };
+    return this.mealService.update(tenantId, mealId, request);
+  };
+
+  /** Tras guardar ingredientes, la nutrición del servidor es la fuente de verdad. */
+  onItemsSaved(): void {
+    this.reloadMeals();
+    this.loadNutrition();
+  }
+
+  // ── Clonar un día ──────────────────────────────────────────────────────────
+
+  mealCountOfDay(day: string): number {
+    return this.groupedMeals().get(day)?.length ?? 0;
+  }
+
+  /**
+   * Clona las comidas de un día en otro. Sobrescribir es destructivo y no tiene
+   * deshacer en el servidor, así que se pide confirmación explícita si el
+   * destino ya tiene contenido.
+   */
+  copyDay(from: string, to: string): void {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId || from === to) return;
+
+    this.copyDayMenuOpen.set(null);
+
+    const run = (overwrite: boolean) => {
+      this.menuService.copyDay(tenantId, this.menuId, { from, to, overwrite }).subscribe({
+        next: () => {
+          this.notify.success(this.transloco.translate('food.copy_day_done'));
+          this.onItemsSaved();
+        },
+      });
+    };
+
+    const occupied = this.mealCountOfDay(to);
+    if (occupied === 0) {
+      run(false);
+      return;
+    }
+
+    this.confirm
+      .confirm({
+        label: this.transloco.translate('common.attention'),
+        content: this.transloco.translate('food.copy_day_confirm', {
+          day: this.dayLabel(to),
+          count: occupied,
+        }),
+        yes: this.transloco.translate('common.yes'),
+        no: this.transloco.translate('common.cancel'),
+      })
+      .subscribe(confirmed => {
+        if (confirmed) run(true);
+      });
+  }
+
+  // ── Mover comidas (arrastrar y soltar) ─────────────────────────────────────
+
+  /** No se arrastra mientras se edita, ni sin permiso. */
+  isDragDisabled(day: string, mealType: string): boolean {
+    return !this.canManageMeal() || this.isEditing(day, mealType) || this.isExpanded(day, mealType);
+  }
+
+  /**
+   * Suelta una comida en otra casilla.
+   *
+   * El backend no impide que dos comidas caigan en el mismo hueco (la tabla no
+   * tiene restricción de unicidad) y la rejilla sólo pinta la primera de cada
+   * celda, así que apilar dejaría una comida invisible: sobre una casilla
+   * ocupada se intercambian las dos.
+   */
+  onMealDropped(event: CdkDragDrop<unknown>, day: string, mealType: string): void {
+    const dragged = event.item.data as Meal | undefined;
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!dragged || !tenantId) return;
+    if (dragged.dayOfWeek === day && dragged.mealType === mealType) return;
+
+    const occupant = this.getMeal(day, mealType);
+
+    // Sólo se mandan los campos de posición: al no enviar description ni items,
+    // el servidor no los toca.
+    const moves = [
+      this.mealService.update(tenantId, dragged.id, { dayOfWeek: day, mealType }),
+      ...(occupant
+        ? [
+            this.mealService.update(tenantId, occupant.id, {
+              dayOfWeek: dragged.dayOfWeek,
+              mealType: dragged.mealType,
+            }),
+          ]
+        : []),
+    ];
+
+    forkJoin(moves).subscribe({
+      next: () => {
+        this.notify.success(
+          this.transloco.translate(occupant ? 'food.swap_meal_done' : 'food.move_meal_done')
+        );
+        this.onItemsSaved();
+      },
+      // Si una de las dos peticiones falla, recargar deja la rejilla coherente
+      // con el servidor en vez de con un intercambio a medias.
+      error: () => this.onItemsSaved(),
+    });
+  }
+
+  /** Calorías de la comida, del endpoint de nutrición. `null` si no hay dato. */
+  mealKcal(day: string, mealType: string): number | null {
+    const meal = this.getMeal(day, mealType);
+    if (!meal) return null;
+    const entry = this.nutrition()?.meals.find(m => m.mealId === meal.id);
+    return entry?.nutrients[KCAL] ?? null;
+  }
+
+  /** Nutrientes de la comida, del endpoint de nutrición. */
+  mealNutrients(day: string, mealType: string): NutrientMap | null {
+    const meal = this.getMeal(day, mealType);
+    if (!meal) return null;
+    return this.nutrition()?.meals.find(m => m.mealId === meal.id)?.nutrients ?? null;
+  }
+
+  mealTypeIcon(mealType: string): string {
+    return mealType === 'CENA' ? 'fa-moon' : 'fa-utensils';
+  }
+
+  mealTypeLabelKey(prefix: string, mealType: string): string {
+    return `${prefix}.meal_types.${mealType === 'CENA' ? 'dinner' : 'lunch'}`;
+  }
+
   startEditMeal(meal: Meal) {
+    // Un solo editor abierto a la vez, sea el de texto o el de ingredientes.
+    this.expandedMealId.set(null);
     this.editingMealId.set(meal.id);
-    this.editingDescription.set(meal.description);
+    this.editingDescription.set(meal.description ?? '');
   }
 
   cancelInlineEdit() {
@@ -229,14 +455,6 @@ export default class MenuDetailPage implements OnInit {
     });
   }
 
-  onKeydownEnter(event: Event, meal: Meal): void {
-    const keyboardEvent = event as KeyboardEvent;
-    if (!keyboardEvent.shiftKey) {
-      keyboardEvent.preventDefault();
-      this.saveInlineEdit(meal);
-    }
-  }
-
   editMeal(meal: Meal) {
     this.startEditMeal(meal);
   }
@@ -251,9 +469,13 @@ export default class MenuDetailPage implements OnInit {
       if (confirmed) {
         const tenantId = this.tenantCtx.currentTenantId();
         if (!tenantId) return;
+        // Colapsar antes de borrar: al destruirse, el editor vuelca su guardado
+        // pendiente, y hacerlo contra una comida ya borrada daría un 404.
+        if (this.expandedMealId() === meal.id) this.expandedMealId.set(null);
         this.mealService.delete(tenantId, meal.id).subscribe(() => {
           this.notify.success(this.transloco.translate('notifications.meal_deleted'));
           this.meals.set(this.meals().filter(m => m.id !== meal.id));
+          this.loadNutrition();
         });
       }
     });
@@ -335,11 +557,21 @@ export default class MenuDetailPage implements OnInit {
     const currentMeals = this.meals();
     if (!currentMenu || !currentMeals.length) return;
 
-    const initialMeals: CreateMealTemplateRequest[] = currentMeals.map(meal => ({
-      dayOfWeek: meal.dayOfWeek,
-      mealType: meal.mealType,
-      description: meal.description
-    }));
+    // Una comida estructurada viaja como `items` y sin `description`: el servidor
+    // la regenera, y mandar las dos perdería el texto enviado de todas formas.
+    const initialMeals: CreateMealTemplateRequest[] = currentMeals.map(meal =>
+      meal.items?.length
+        ? {
+            dayOfWeek: meal.dayOfWeek,
+            mealType: meal.mealType,
+            items: toMealItemRequests(meal.items),
+          }
+        : {
+            dayOfWeek: meal.dayOfWeek,
+            mealType: meal.mealType,
+            description: meal.description ?? '',
+          }
+    );
 
     const defaultName = `${currentMenu.name} - Plantilla`;
 

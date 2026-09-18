@@ -16,7 +16,7 @@
   left: 0;
   padding: 8px;
   z-index: 100;
-  transition: top 0.2s;
+  transition: top var(--motion-duration-base) var(--motion-ease-out);
 
   &:focus {
     top: 0;
@@ -92,6 +92,7 @@
 
 /* ── Desktop nav menu ─────────────────────────────────────────────── */
 .nav-menu {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -102,7 +103,28 @@
   margin-left: 1.5rem;
 }
 
+/* Sliding active-item indicator — positioned by shell.ts via [style.transform] */
+.nav-pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  height: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--tui-primary, #059669);
+  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  transition: transform var(--motion-duration-base) var(--motion-ease-out), width var(--motion-duration-base) var(--motion-ease-out);
+  pointer-events: none;
+
+  :host-context(.dark) & {
+    background: color-mix(in srgb, var(--brand-primary) 18%, transparent);
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--tui-primary, #059669) 40%, transparent);
+  }
+}
+
 .nav-link {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -116,7 +138,7 @@
   letter-spacing: 0.05em;
   white-space: nowrap;
   border: 1px solid transparent;
-  transition: color 0.2s ease, border-color 0.2s ease, gap 0.2s ease, background 0.2s ease;
+  transition: color var(--motion-duration-base) var(--motion-ease-out), gap var(--motion-duration-base) var(--motion-ease-out), background var(--motion-duration-base) var(--motion-ease-out);
 
   :host-context(.dark) & {
     color: #cbd5e1;
@@ -135,13 +157,6 @@
 
   &.active-link {
     color: var(--tui-primary, #059669);
-    border-color: var(--tui-primary, #059669);
-    background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
-
-    :host-context(.dark) & {
-      background: color-mix(in srgb, var(--brand-primary) 18%, transparent);
-      box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--tui-primary, #059669) 40%, transparent);
-    }
   }
 }
 
@@ -177,7 +192,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: #1e293b;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition: border-color var(--motion-duration-base) var(--motion-ease-out), box-shadow var(--motion-duration-base) var(--motion-ease-out), background var(--motion-duration-base) var(--motion-ease-out);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 
   :host-context(.dark) & {
@@ -235,7 +250,7 @@
   border-radius: 50%;
   cursor: pointer;
   color: #64748b;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: background var(--motion-duration-base) var(--motion-ease-out), color var(--motion-duration-base) var(--motion-ease-out);
 
   :host-context(.dark) & {
     color: #94a3b8;
@@ -260,6 +275,30 @@
   }
 }
 
+/* Theme toggle icon — cross-fade + rotate instead of an instant swap */
+.theme-icon-swap {
+  position: relative;
+  display: inline-flex;
+  width: 1em;
+  height: 1em;
+
+  i {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+    transition: opacity var(--motion-duration-base) var(--motion-ease-out), transform var(--motion-duration-base) var(--motion-ease-out);
+
+    &.is-hidden {
+      opacity: 0;
+      transform: rotate(-90deg) scale(0.5);
+    }
+  }
+}
+
 /* ── Avatar button ────────────────────────────────────────────────── */
 .avatar-btn {
   display: flex;
@@ -270,7 +309,7 @@
   border-radius: 50%;
   padding: 1px;
   cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color var(--motion-duration-base) var(--motion-ease-out), box-shadow var(--motion-duration-base) var(--motion-ease-out);
 
   &:hover {
     border-color: var(--tui-primary, #059669);
@@ -298,30 +337,24 @@
 }
 
 /* ── Dropdown menus ───────────────────────────────────────────────── */
+/* Background rides --tui-background-elevation-3 (flips via :root/.dark)
+   rather than :host-context(.dark): this content is portaled by Taiga's
+   CDK Overlay outside <app-shell>, where :host-context can't see the
+   .dark ancestor relationship it needs. */
 .dropdown-menu-content {
   min-width: 220px;
   padding: 6px;
-  background: color-mix(in srgb, var(--brand-primary) 2%, white);
+  background: color-mix(in srgb, var(--brand-primary) 2%, var(--tui-background-elevation-3, #ffffff));
   border-radius: 14px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
-
-  :host-context(.dark) & {
-    background: color-mix(in srgb, var(--brand-primary) 4%, #1e293b);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  }
 }
 
 .user-menu-popover {
   min-width: 260px;
   padding: 8px;
-  background: color-mix(in srgb, var(--brand-primary) 2%, white);
+  background: color-mix(in srgb, var(--brand-primary) 2%, var(--tui-background-elevation-3, #ffffff));
   border-radius: 14px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
-
-  :host-context(.dark) & {
-    background: color-mix(in srgb, var(--brand-primary) 4%, #1e293b);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  }
 }
 
 .menu-section-title {
@@ -347,7 +380,7 @@
   font-size: 0.9rem;
   font-weight: 500;
   color: #334155;
-  transition: background 0.15s ease;
+  transition: background var(--motion-duration-fast) var(--motion-ease-out);
 
   :host-context(.dark) & {
     color: #e2e8f0;
@@ -439,7 +472,7 @@
   font-family: inherit;
   font-size: 0.9rem;
   font-weight: 600;
-  transition: background 0.15s ease;
+  transition: background var(--motion-duration-fast) var(--motion-ease-out);
 }
 
 .logout-item {
@@ -474,7 +507,7 @@
   cursor: pointer;
   color: var(--tui-primary, #059669);
   margin-left: auto;
-  transition: background 0.2s ease;
+  transition: background var(--motion-duration-base) var(--motion-ease-out);
   font-size: 1.1rem;
 
   :host-context(.dark) & {
@@ -489,9 +522,23 @@
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
   z-index: 999;
   top: 64px;
+
+  @media (prefers-reduced-transparency: reduce) {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: none;
+  }
+}
+
+.mobile-overlay-enter {
+  animation: mobile-overlay-fade var(--motion-duration-base) var(--motion-ease-out);
+}
+
+.mobile-overlay-leave {
+  animation: mobile-overlay-fade var(--motion-duration-fast) var(--motion-ease-out) reverse;
 }
 
 .mobile-menu {
@@ -507,10 +554,44 @@
   padding: 1rem;
   flex-direction: column;
   gap: 0.5rem;
-  animation: slideDown 0.2s ease-out;
+
+  &-enter {
+    animation: mobile-menu-materialize var(--motion-duration-base) var(--motion-ease-out);
+  }
+
+  &-leave {
+    animation: mobile-menu-fade-out var(--motion-duration-fast) var(--motion-ease-out);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &-enter,
+    &-leave {
+      animation-duration: 0.01ms !important;
+    }
+  }
 
   :host-context(.dark) & {
     background: #0f172a;
+  }
+}
+
+.mobile-menu-handle {
+  align-self: center;
+  width: 36px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.15);
+  margin-bottom: 0.5rem;
+  flex-shrink: 0;
+  touch-action: none;
+  cursor: grab;
+
+  :host-context(.dark) & {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  &:active {
+    cursor: grabbing;
   }
 }
 
@@ -535,7 +616,7 @@
   font-weight: 600;
   background: rgba(255, 255, 255, 0.6);
   border: 1px solid rgba(0, 0, 0, 0.04);
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--motion-duration-fast) var(--motion-ease-out), color var(--motion-duration-fast) var(--motion-ease-out);
 
   :host-context(.dark) & {
     color: #cbd5e1;
@@ -597,7 +678,7 @@
   font-weight: 700;
   color: #475569;
   text-align: left;
-  transition: background 0.15s ease;
+  transition: background var(--motion-duration-fast) var(--motion-ease-out);
 
   :host-context(.dark) & {
     background: rgba(30, 41, 59, 0.6);
@@ -656,13 +737,25 @@
 }
 
 /* ── Animations ───────────────────────────────────────────────────── */
-@keyframes slideDown {
+@keyframes mobile-overlay-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes mobile-menu-materialize {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-12px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Fade only — never resets transform, so it also plays cleanly after a
+   drag-to-dismiss gesture has already translated the panel off-screen. */
+@keyframes mobile-menu-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }

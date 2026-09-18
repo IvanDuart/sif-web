@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext, TuiDropdown, TuiTextfield, TuiLabel, TuiButton } from '@taiga-ui/core';
+import { TuiDialogContext, TuiDropdown, TuiTextfield, TuiLabel, TuiButton, TuiError } from '@taiga-ui/core';
 import { TuiInputDate } from '@taiga-ui/kit';
 import { TuiDay } from '@taiga-ui/cdk';
 import { NotificationService } from '../../core/ui/notification.service';
@@ -14,7 +14,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 @Component({
   selector: 'app-patient-event-form-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton, TuiTextfield, TuiInputDate, TuiDropdown, TuiLabel],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton, TuiTextfield, TuiInputDate, TuiDropdown, TuiLabel, TuiError],
   templateUrl: './patient-event-form.dialog.html'
 })
 export class PatientEventFormDialog {

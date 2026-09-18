@@ -35,6 +35,8 @@ export default class PatientsListPage implements OnInit {
 
   users = signal<AppUserDto[]>([]);
   loading = signal(false);
+  paginating = signal(false);
+  private hasLoadedOnce = false;
   totalRecords = signal(0);
   searchControl = new FormControl('');
 
@@ -72,14 +74,24 @@ export default class PatientsListPage implements OnInit {
       sort: [`${this.sortKey()},${this.sortDirection()}`]
     };
 
-    this.loading.set(true);
+    if (this.hasLoadedOnce) {
+      this.paginating.set(true);
+    } else {
+      this.loading.set(true);
+    }
+
     this.userTenantRoleService.getUsersByTenantAndType(tenantId, 'PATIENT', params).subscribe({
       next: (res) => {
         this.users.set(res.content || []);
         this.totalRecords.set(res.page?.totalElements || 0);
         this.loading.set(false);
+        this.paginating.set(false);
+        this.hasLoadedOnce = true;
       },
-      error: () => this.loading.set(false)
+      error: () => {
+        this.loading.set(false);
+        this.paginating.set(false);
+      }
     });
   }
 

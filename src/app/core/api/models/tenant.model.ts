@@ -1,3 +1,9 @@
+/**
+ * `MANUAL`: la comida es texto libre (el modo de siempre).
+ * `BEDCA`: la comida se compone con alimentos del catálogo y su gramaje.
+ */
+export type MenuCreationMode = 'MANUAL' | 'BEDCA';
+
 export interface TenantPreferences {
   enable_vacation_module: boolean;
   enable_clock_in_module: boolean;
@@ -11,6 +17,7 @@ export interface TenantPreferences {
   active_anamnesis_fields?: string[];
   show_price?: boolean;
   enable_appointment_reminders?: boolean;
+  menu_creation_mode?: MenuCreationMode;
 }
 
 export interface Tenant {

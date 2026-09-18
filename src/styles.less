@@ -127,18 +127,53 @@
   --p-primary-950: color-mix(in srgb, var(--brand-primary) 38%, white);
 }
 
-/* ── Dialog background ─────────────────────────────── */
+/* ── Dialog & dropdown materials ──────────────────────
+   Translucent, blurred "glass" surfaces (Apple materials
+   pillar) layered onto Taiga's own tui-dialog/tui-dropdown
+   components. Background/animation-name need !important to
+   beat Taiga's encapsulated :host rules (same trick the
+   pre-existing background/box-shadow overrides below use).
+   Duration rides the shared --motion-duration-base token so
+   prefers-reduced-motion (which zeroes that token) silences
+   it for free. ───────────────────────────────────────── */
 tui-dialog {
   display: block;
-  background: var(--tui-background-elevation-3, #ffffff) !important;
-  border-radius: 14px;
+  background: color-mix(in srgb, var(--tui-background-elevation-3, #ffffff) 88%, transparent) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 14px !important;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 4px 8px rgba(15, 23, 42, 0.07) !important;
   border: 1px solid var(--tui-border, #e2e8f0);
+  --tui-duration: var(--motion-duration-base);
+  --tui-scale: 0.96;
+  transform-origin: center;
 }
 
 .dark tui-dialog {
   border-color: var(--tui-border, #334155);
   box-shadow: 0 1px 2px rgba(2, 6, 23, 0.32), 0 4px 8px rgba(2, 6, 23, 0.28) !important;
+}
+
+tui-dropdown {
+  background: color-mix(in srgb, var(--tui-background-elevation-3, #ffffff) 85%, transparent) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  --tui-duration: var(--motion-duration-base);
+  --tui-scale: 0.96;
+  transform-origin: top center;
+}
+
+tui-dialog.tui-enter,
+tui-dialog.tui-leave,
+tui-dropdown.tui-enter,
+tui-dropdown.tui-leave {
+  animation-name: tuiFade, tuiSlide, tuiScale !important;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  tui-dialog,
+  tui-dropdown {
+    background: var(--tui-background-elevation-3, #ffffff) !important;
+    backdrop-filter: none !important;
+  }
 }
 
 /* Headings — Poppins for visual hierarchy */
@@ -264,6 +299,17 @@ html, body, tui-root {
 .dark .data-table tbody td {
   border-top-color: var(--tui-border, #334155);
   color: var(--tui-text-primary, #f1f5f9);
+}
+
+/* Paginated list pages: dim results in place instead of a full skeleton
+   remount while a page/sort/search change is in flight. */
+.results-region {
+  transition: opacity var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.results-region.is-paginating {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .table-footer {
@@ -620,6 +666,13 @@ button[tuiIconButton]:not(:disabled) {
   transform: scale(0.97);
 }
 
+/* Dark-mode cross-fade via View Transitions API (theme.service.ts) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--motion-duration-base);
+  animation-timing-function: var(--motion-ease-out);
+}
+
 @media (prefers-reduced-motion: reduce) {
   [tuiButton][tuiAppearance],
   [tuiIconButton][tuiAppearance],
@@ -807,18 +860,6 @@ button[tuiIconButton][appearance="flat"]:focus-visible {
   to {
     transform: scaleX(0);
     transform-origin: left;
-  }
-}
-
-/* Keyframe for page transition slide */
-@keyframes page-enter {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 

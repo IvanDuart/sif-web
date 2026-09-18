@@ -1,83 +1,67 @@
-.menu-table {
-  th[tuiTh],
-  th {
-    background: var(--p-primary-500);
-    color: var(--p-primary-contrast-color);
-    font-weight: 600;
-    border: none;
-  }
+@use './menu-table';
 
-  tbody {
-    border-top: 1px solid var(--p-surface-200);
-  }
+// Lo que sigue es exclusivo del detalle de menú: los totales nutricionales del
+// servidor, el clonado de día y el arrastre de comidas.
 
-  .menu-table__day-head {
-    width: 12rem;
-    color: var(--p-primary-contrast-color);
-    background: var(--p-primary-600);
-  }
-
-  .menu-table__meal-head {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
+// Total de kcal del día, a la derecha del nombre.
+.menu-table__day-kcal {
+  margin-inline-start: auto;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--p-surface-500);
 }
 
-.menu-table__day {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.menu-table__copy-head {
+  padding: 0.5rem 0.75rem 0.25rem;
+  font-size: 0.6875rem;
   font-weight: 600;
-  color: var(--p-surface-700);
-  white-space: nowrap;
-  background: var(--p-primary-50);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--p-surface-400);
 }
 
-:host-context(.dark) .menu-table__day {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--p-surface-0);
-}
-
-.menu-table__cell {
-  vertical-align: top;
-}
-
-.menu-table__meal {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.menu-table__meal-text {
-  flex: 1;
-  min-width: 0;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--p-surface-700);
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-}
-
-.menu-table__meal-actions {
-  display: flex;
-  gap: 0.125rem;
-  opacity: 0.55;
-  transition: opacity 0.12s ease;
-}
-
-.menu-table__cell:hover .menu-table__meal-actions,
-.menu-table__meal-actions:focus-within {
-  opacity: 1;
-}
-
-.menu-table__empty {
+.menu-table__incomplete {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  color: var(--p-surface-400);
-  font-size: 0.8125rem;
-  font-style: italic;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.75rem;
+}
+
+:host-context(.dark) .menu-table__incomplete {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fcd34d;
+}
+
+// Arrastrar comidas: la vista previa se eleva y la celda destino se resalta.
+.cdk-drag-preview {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--p-surface-0);
+  box-shadow: 0 4px 8px rgba(30, 41, 59, 0.18);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.35;
+}
+
+.menu-table__cell.cdk-drop-list-receiving {
+  background: var(--p-primary-50);
+  transition: background 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cdk-drag-animating {
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cdk-drag-animating,
+  .menu-table__cell.cdk-drop-list-receiving {
+    transition: none;
+  }
 }

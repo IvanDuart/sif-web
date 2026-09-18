@@ -1,11 +1,11 @@
-import { ApplicationConfig, provideZoneChangeDetection, APP_INITIALIZER, LOCALE_ID } from '@angular/core';
+import { ApplicationConfig, provideZoneChangeDetection, APP_INITIALIZER, LOCALE_ID, computed, inject } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
 import localeEn from '@angular/common/locales/en';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import {provideTaiga, tuiAssetsPathProvider} from '@taiga-ui/core';
+import {provideTaiga, tuiAssetsPathProvider, tuiValidationErrorsProvider} from '@taiga-ui/core';
 import { NG_EVENT_PLUGINS } from '@taiga-ui/event-plugins';
 import { TuiConfirmService, tuiToastOptionsProvider } from '@taiga-ui/kit';
 import { TUI_LANGUAGE, TUI_SPANISH_LANGUAGE, TUI_ENGLISH_LANGUAGE } from '@taiga-ui/i18n';
@@ -29,6 +29,22 @@ registerLocaleData(localeEn, 'en');
 function initializeApp(theme: ThemeService) {
   return async () => {
     theme.init();
+  };
+}
+
+function provideTuiValidationErrors() {
+  const transloco = inject(TranslocoService);
+  const lang = toSignal(transloco.langChanges$, { initialValue: transloco.getActiveLang() });
+  const msg = (key: string, params?: Record<string, unknown>) =>
+    computed(() => { lang(); return transloco.translate(key, params); });
+
+  return {
+    required: msg('validation.required'),
+    email: msg('validation.email'),
+    min: ({ min }: { min: number }) => msg('validation.min', { min }),
+    max: ({ max }: { max: number }) => msg('validation.max', { max }),
+    minlength: ({ requiredLength }: { requiredLength: number }) => msg('validation.minlength', { length: requiredLength }),
+    maxlength: ({ requiredLength }: { requiredLength: number }) => msg('validation.maxlength', { length: requiredLength }),
   };
 }
 
@@ -61,6 +77,7 @@ export const appConfig: ApplicationConfig = {
       block: 'start',
       inline: 'end',
     }),
+    tuiValidationErrorsProvider(provideTuiValidationErrors),
     getKeycloakProvider(),
     {
       provide: APP_INITIALIZER,

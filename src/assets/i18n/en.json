@@ -33,6 +33,14 @@
     "search": "Search",
     "help": "Help"
   },
+  "validation": {
+    "required": "This field is required",
+    "email": "Enter a valid email",
+    "min": "The minimum value is {{min}}",
+    "max": "The maximum value is {{max}}",
+    "minlength": "Must be at least {{length}} characters",
+    "maxlength": "Cannot exceed {{length}} characters"
+  },
   "menu": {
     "dashboard": "Dashboard",
     "patients": "Patients",
@@ -234,13 +242,9 @@
     "chart_composition": "Body Composition",
     "chart_anthropometry": "Anthropometry",
     "no_data": "Not enough data to show the chart.",
-    "step_composition": "Body Composition",
-    "step_circumferences": "Circumferences",
     "step_segmental": "Segmental Bioimpedance",
     "step_segmental_hint": "Segmental bioimpedance readings (% fat and total mass per anatomical zone).",
-    "step_details": "Details",
     "bmi_disclaimer": "BMI is calculated using the user's current height. If height changes, historical BMIs are recalculated.",
-    "notes_placeholder": "Optional notes...",
     "bone_mass": "Bone Mass",
     "wrist_circumference": "Wrist Circumference (cm)",
     "add_bone_mass": "Add bone mass",
@@ -404,9 +408,7 @@
     "delete_confirm": "Are you sure you want to delete this event?",
     "empty_title": "No events yet",
     "empty": "No events recorded for this patient.",
-    "end_time_after_start": "End time must be after start time",
-    "start_time_future": "Start time must be in the future",
-    "title_required": "Title is required"
+    "end_time_after_start": "End time must be after start time"
   },
   "templates": {
     "title": "Menu Templates",
@@ -508,10 +510,10 @@
     "today_appointments": "Today's Appointments",
     "attendance_rate": "Attendance Rate",
     "nutritionist": "Nutritionist",
-     "patient": "Patient",
-     "patient_optional": "Patient (optional)",
-     "patient_required": "Please select a patient",
-     "no_patient": "Patient to be assigned",
+    "patient": "Patient",
+    "patient_optional": "Patient (optional)",
+    "patient_required": "Please select a patient",
+    "no_patient": "Patient to be assigned",
     "first_consultation": "First consultation (without patient)",
     "first_consultation_checkbox": "First consultation (new patient)",
     "new_patient_name": "Patient name",
@@ -588,7 +590,11 @@
     "show_price_hint": "Displays appointment type prices when a patient reschedules an appointment.",
     "notifications_section": "Notifications",
     "enable_appointment_reminders": "Push appointment reminders",
-    "enable_appointment_reminders_hint": "Sends push notifications to patients reminding them of their appointments the day before and on the same day."
+    "enable_appointment_reminders_hint": "Sends push notifications to patients reminding them of their appointments the day before and on the same day.",
+    "menu_mode_section": "Menu composition",
+    "menu_mode_bedca": "Compose meals from foods and grams",
+    "menu_mode_manual_hint": "Meals are written as free text. Calories and macronutrients are not calculated.",
+    "menu_mode_bedca_hint": "Meals are composed by picking foods from the catalog with their weight, and calories and macronutrients are calculated. Menus already written as text remain editable."
   },
   "appointment_types": {
     "title": "Appointment Types",
@@ -1521,5 +1527,48 @@
         }
       }
     }
+  },
+  "food": {
+    "search_label": "Search food",
+    "search_placeholder": "Type a food…",
+    "quantity_label": "Grams",
+    "quantity_placeholder": "g",
+    "notes_label": "Ingredient note",
+    "notes_placeholder": "Note (optional)",
+    "remove_item": "Remove ingredient",
+    "move_up": "Move up",
+    "move_down": "Move down",
+    "source_tenant": "Own",
+    "source_recipe": "recipe",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "protein_short": "P",
+    "fat_short": "F",
+    "carbs_short": "C",
+    "macro_split_label": "Protein, fat and carbohydrate split",
+    "keyboard_hint": "Enter picks the food and moves to grams; Enter on grams adds another row. Backspace on an empty search deletes the row.",
+    "total_approximate": "{{count}} ingredients were loaded without nutrient data in this session: the exact total is computed on save.",
+    "incomplete_items": "{{count}} ingredients have no nutrient data. Totals are incomplete.",
+    "create_option": "Create \"{{query}}\" as a food",
+    "create_title": "New own food",
+    "create_name": "Name",
+    "create_group": "Group (optional)",
+    "create_kcal": "Calories per 100 g",
+    "create_protein": "Protein (g)",
+    "create_fat": "Fat (g)",
+    "create_carbs": "Carbohydrates (g)",
+    "create_per_100g": "All values are per 100 g of edible portion.",
+    "create_macros_hint": "Without protein, fat and carbohydrates the menu totals will come out low without warning.",
+    "create_duplicate": "You already have a food named \"{{name}}\". Search for it and use it instead of creating it again.",
+    "create_submit": "Create food",
+    "day_total": "Day total",
+    "menu_total": "Menu total",
+    "copy_day": "Clone day",
+    "copy_day_title": "Clone a whole day",
+    "copy_day_to": "Copy to",
+    "copy_day_confirm": "{{day}} already has {{count}} meals. Replace them?",
+    "copy_day_done": "Day cloned.",
+    "move_meal_done": "Meal moved.",
+    "swap_meal_done": "Meals swapped."
   }
 }

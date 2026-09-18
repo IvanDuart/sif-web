@@ -2,6 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Menu } from '../models/menu.model';
+import { Meal } from '../models/meal.model';
+import { MenuNutritionDto } from '../models/food.model';
 import { Page } from '../models/page.model';
 import {ConfigService} from '../../config/config.service';
 
@@ -9,6 +11,13 @@ export interface CreateMenuRequest {
   appUserId?: string;
   name?: string;
   isActive?: boolean;
+}
+
+export interface CopyDayRequest {
+  from: string;
+  to: string;
+  /** `true` borra lo que hubiera en el destino; ausente o `false` añade. */
+  overwrite?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -84,5 +93,23 @@ export class MenuService {
     return this.http.get(`${this.baseUrl}/tenant/${tenantId}/menu/${id}/pdf`, {
       responseType: 'blob'
     });
+  }
+
+  /**
+   * Totales nutricionales por comida, por día y del menú. Fuente de verdad:
+   * usar al abrir el menú y tras guardar, nunca en cada tecla.
+   */
+  getNutrition(tenantId: string, id: string): Observable<MenuNutritionDto> {
+    return this.http.get<MenuNutritionDto>(
+      `${this.baseUrl}/tenant/${tenantId}/menu/${id}/nutrition`
+    );
+  }
+
+  /** Clona las comidas de un día en otro. Devuelve solo las comidas creadas. */
+  copyDay(tenantId: string, id: string, request: CopyDayRequest): Observable<Meal[]> {
+    return this.http.post<Meal[]>(
+      `${this.baseUrl}/tenant/${tenantId}/menu/${id}/copy-day`,
+      request
+    );
   }
 }

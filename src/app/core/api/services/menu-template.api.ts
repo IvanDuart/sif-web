@@ -4,18 +4,26 @@ import { Observable } from 'rxjs';
 import { MenuTemplate, MealTemplate } from '../models/menu-template.model';
 import { Menu } from '../models/menu.model';
 import { Page } from '../models/page.model';
+import { MealItemRequest } from './meal.api';
 import {ConfigService} from '../../config/config.service';
 
 export interface CreateMealTemplateRequest {
   dayOfWeek?: string;
   mealType?: string;
   description?: string;
+  items?: MealItemRequest[];
 }
 
+/**
+ * `dayOfWeek` y `mealType` son obligatorios (el servidor reemplaza la posición).
+ * Igual que en las comidas de un menú: `items` reemplaza la lista completa, y si
+ * se mandan `items` no hay que mandar `description` — el servidor la regenera.
+ */
 export interface UpdateMealTemplateRequest {
   dayOfWeek: string;
   mealType: string;
-  description: string;
+  description?: string;
+  items?: MealItemRequest[];
 }
 
 export interface CreateMenuTemplateRequest {

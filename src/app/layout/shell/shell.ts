@@ -1,7 +1,8 @@
-import { Component, computed, inject, signal, OnInit } from '@angular/core';
+import { Component, computed, inject, signal, viewChild, ElementRef, OnInit } from '@angular/core';
 import { RouterOutlet, RouterModule, Router } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { animate } from 'motion';
 
 import { TuiAvatar, TuiProgressBar } from '@taiga-ui/kit';
 import { TuiDropdown, TuiHint } from '@taiga-ui/core';
@@ -79,6 +80,16 @@ export class Shell implements OnInit {
   mobileMenuOpen = signal(false);
   userMenuOpen = signal(false);
   tenantMenuOpen = signal(false);
+
+  navPillTransform = signal('translateX(0px)');
+  navPillWidth = signal(0);
+
+  private readonly mobileMenuPanel = viewChild<ElementRef<HTMLElement>>('mobileMenuPanel');
+  private dragging = false;
+  private dragStartY = 0;
+  private dragCurrentY = 0;
+  private dragVelocity = 0;
+  private dragLastMoveTime = 0;
 
   ngOnInit() {
     this.loadProposals();
@@ -191,5 +202,65 @@ export class Shell implements OnInit {
 
   closeMobileMenu(): void {
     this.mobileMenuOpen.set(false);
+  }
+
+  onNavLinkActive(isActive: boolean, el: HTMLAnchorElement): void {
+    if (!isActive) return;
+    this.navPillTransform.set(`translateX(${el.offsetLeft}px)`);
+    this.navPillWidth.set(el.offsetWidth);
+  }
+
+  private prefersReducedMotion(): boolean {
+    return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  }
+
+  onMobileMenuDragStart(event: PointerEvent): void {
+    if (this.prefersReducedMotion()) return;
+    (event.target as HTMLElement).setPointerCapture(event.pointerId);
+    this.dragging = true;
+    this.dragStartY = event.clientY;
+    this.dragCurrentY = 0;
+    this.dragVelocity = 0;
+    this.dragLastMoveTime = performance.now();
+  }
+
+  onMobileMenuDragMove(event: PointerEvent): void {
+    if (!this.dragging) return;
+    const panel = this.mobileMenuPanel()?.nativeElement;
+    if (!panel) return;
+
+    const rawDelta = event.clientY - this.dragStartY;
+    // Only the downward (dismiss) direction tracks 1:1; upward rubber-bands.
+    const delta = rawDelta > 0 ? rawDelta : rawDelta * 0.25;
+    const now = performance.now();
+    const dt = now - this.dragLastMoveTime;
+    // Ignore sub-4ms gaps between events (coalescing/timing jitter can
+    // otherwise produce spurious huge velocities from a tiny, slow drag)
+    // and clamp to a plausible human-flick range.
+    if (dt > 4) {
+      const instant = ((delta - this.dragCurrentY) / dt) * 1000;
+      this.dragVelocity = Math.max(-3000, Math.min(3000, instant));
+    }
+    this.dragCurrentY = delta;
+    this.dragLastMoveTime = now;
+    panel.style.transform = `translateY(${delta}px)`;
+  }
+
+  onMobileMenuDragEnd(): void {
+    if (!this.dragging) return;
+    this.dragging = false;
+    const panel = this.mobileMenuPanel()?.nativeElement;
+    if (!panel) return;
+
+    const dismiss = this.dragCurrentY > panel.offsetHeight * 0.3 || this.dragVelocity > 800;
+    const target = dismiss ? panel.offsetHeight : 0;
+
+    // Scoped DESIGN.md §6 exception: velocity-projected spring, not the
+    // standard fixed-duration curve, because this is gesture feedback.
+    animate(panel, { y: target }, { type: 'spring', bounce: 0.2, duration: 0.4, velocity: this.dragVelocity })
+      .then(() => {
+        panel.style.transform = '';
+        if (dismiss) this.closeMobileMenu();
+      });
   }
 }

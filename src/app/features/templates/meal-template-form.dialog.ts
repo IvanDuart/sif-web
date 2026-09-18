@@ -1,15 +1,13 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext, TuiButton, TuiDropdown, TuiTextfield } from '@taiga-ui/core';
+import { TuiDialogContext, TuiButton, TuiDropdown, TuiTextfield, TuiError } from '@taiga-ui/core';
 import { TuiSelect, TuiDataListWrapper, TuiChevron, TuiTextarea } from '@taiga-ui/kit';
 import { TranslocoService, TranslocoDirective } from '@jsverse/transloco';
 import { MenuTemplateService, UpdateMealTemplateRequest } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { MealTemplate } from '../../core/api/models/menu-template.model';
-
-const DAY_VALUES = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'] as const;
-const MEAL_VALUES = ['COMIDA', 'CENA'] as const;
+import { ALL_DAYS as DAY_VALUES, MEAL_TYPES as MEAL_VALUES } from '../menus/menu.constants';
 
 export interface MealTemplateFormDialogInput {
   templateId: string;
@@ -28,6 +26,7 @@ export interface MealTemplateFormDialogInput {
     TuiButton,
     TuiDropdown,
     TuiTextfield,
+    TuiError,
     TuiSelect,
     TuiDataListWrapper,
     TuiChevron,

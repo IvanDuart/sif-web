@@ -1,19 +1,53 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Meal } from '../models/meal.model';
+import { Meal, MealItem } from '../models/meal.model';
 import { Page } from '../models/page.model';
 import {ConfigService} from '../../config/config.service';
+
+export interface MealItemRequest {
+  foodId: string;
+  /** Gramos de porción comestible, > 0. */
+  quantityG: number;
+  notes?: string | null;
+  /** Si va null, el servidor usa la posición en el array. */
+  sortOrder?: number | null;
+}
 
 export interface CreateMealRequest {
   menuId?: string;
   dayOfWeek?: string;
   mealType?: string;
+  /** Obligatoria si no se mandan `items`. Sin ninguna de las dos → 400. */
   description?: string;
+  items?: MealItemRequest[];
 }
 
+/**
+ * Todos los campos son opcionales: lo que no se manda no se toca. Dos avisos:
+ * - `items` **reemplaza la lista completa**, así que siempre va entera.
+ * - si se mandan `items`, no mandar `description`: el servidor la regenera y
+ *   sobrescribiría el texto enviado.
+ */
 export interface UpdateMealRequest {
-  description: string;
+  description?: string;
+  items?: MealItemRequest[];
+  dayOfWeek?: string;
+  mealType?: string;
+}
+
+/**
+ * Convierte los ítems que devuelve el servidor en ítems de petición. El
+ * `sortOrder` se recalcula desde la posición: es lo que hace falta tanto al
+ * reordenar como al copiar una comida a otro sitio.
+ */
+export function toMealItemRequests(items: readonly MealItem[]): MealItemRequest[] {
+  return items.map((item, index) => ({
+    foodId: item.food.id,
+    quantityG: item.quantityG,
+    notes: item.notes ?? null,
+    sortOrder: index,
+  }));
 }
 
 @Injectable({ providedIn: 'root' })

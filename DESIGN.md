@@ -35,6 +35,7 @@ A restrained, clean, and clinical interface with a precise daily-app balance. Th
 - Standard transitions must be fast: 150ms to 200ms maximum, on exponential ease-out curves (`cubic-bezier(0.16, 1, 0.3, 1)`). Animations are purely for state changes (loading, modal enter/leave, list addition/removal), never for page entrance choreography.
 - Buttons press with a physical `scale(0.97)` on active; hover/active/focus-visible/disabled states are defined on every interactive element.
 - `prefers-reduced-motion` disables transitions and press scaling globally.
+- **Scoped exception — mobile menu drag-to-dismiss:** the mobile navigation panel's drag gesture (`shell.ts`) uses a damped spring (`bounce: 0.2`, via the `motion` package) instead of the standard duration/easing rule, because it is velocity-driven gesture feedback — rubber-banding while dragging plus a release-velocity-projected close-vs-snap-back — not a state-change transition. A fixed-duration curve can't represent "let go faster → closes faster." Every other open/close in the app (button, Esc, backdrop click, and the panel's own enter/leave animation) still uses the standard token duration/easing; the drag gesture itself is skipped entirely under `prefers-reduced-motion`, falling back to those non-gesture dismiss paths. This is the only place in the app permitted to deviate from the 150-280ms/`cubic-bezier(0.16, 1, 0.3, 1)` rule.
 
 ## 7. Anti-Patterns (Banned)
 - No custom-drawn switch sliders or native checkboxes inside forms where a standard Taiga UI component fits.

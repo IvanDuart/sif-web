@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TuiButton, TuiInput, TuiTextfield, TuiDropdown, TuiFilterByInputPipe } from '@taiga-ui/core';
 import { TuiSwitch, TuiComboBox, TuiDataListWrapper, TuiChevron, TuiFiles } from '@taiga-ui/kit';
@@ -9,17 +9,43 @@ import { TenantPreferences } from '../../../core/api/models/tenant.model';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ThemeService } from '../../../core/branding/theme.service';
 import { NotificationService } from '../../../core/ui';
+import { BrandingStore } from '../../../core/branding/branding.store';
+import { IfPermissionDirective } from '../../../core/permissions/if-permission.directive';
 
 const LANGUAGE_OPTIONS = [
   { label: 'Español', value: 'es' },
   { label: 'English', value: 'en' },
 ];
 
+/**
+ * Valores por defecto de las preferencias del tenant.
+ *
+ * Fuente única: el guardado hace un PUT del objeto completo, así que una clave
+ * que falte aquí se enviaría como `undefined`. Un tenant guardado antes de que
+ * existiera una clave la devuelve ausente, por eso el estado se construye
+ * extendiendo este objeto con la respuesta del servidor y no sustituyéndolo.
+ */
+const DEFAULT_PREFERENCES: TenantPreferences = {
+  enable_vacation_module: false,
+  enable_clock_in_module: false,
+  ai_enabled: false,
+  gemini_api_key: '',
+  default_language: 'es',
+  primary_color: '#059669',
+  keycloak_sync_mode: '',
+  from_email: '',
+  standard_vacation_days: 0,
+  active_anamnesis_fields: [],
+  show_price: false,
+  enable_appointment_reminders: true,
+  menu_creation_mode: 'MANUAL',
+};
+
 @Component({
   selector: 'app-branding-settings',
   standalone: true,
   imports: [
-    FormsModule, TranslocoDirective,
+    FormsModule, TranslocoDirective, IfPermissionDirective,
     TuiButton, TuiInput, TuiTextfield, TuiDropdown, TuiFilterByInputPipe,
     TuiSwitch, TuiComboBox, TuiDataListWrapper, TuiChevron, ...TuiFiles,
   ],
@@ -31,23 +57,21 @@ export class BrandingSettings implements OnInit, OnDestroy {
   private readonly tenantCtx = inject(TenantContextService);
   private readonly notify = inject(NotificationService);
   private readonly themeService = inject(ThemeService);
+  private readonly brandingStore = inject(BrandingStore);
 
   readonly languageLabels = LANGUAGE_OPTIONS.map(l => l.label);
   readonly languageDisplay = signal('');
 
-  preferences = signal<TenantPreferences>({
-    enable_vacation_module: false,
-    enable_clock_in_module: false,
-    ai_enabled: false,
-    gemini_api_key: '',
-    default_language: 'es',
-    primary_color: '#059669',
-    keycloak_sync_mode: '',
-    from_email: '',
-    standard_vacation_days: 0,
-    show_price: false,
-    enable_appointment_reminders: true
-  });
+  preferences = signal<TenantPreferences>({ ...DEFAULT_PREFERENCES });
+
+  readonly isBedcaMode = computed(() => this.preferences().menu_creation_mode === 'BEDCA');
+
+  setBedcaMode(enabled: boolean) {
+    this.preferences.update(prefs => ({
+      ...prefs,
+      menu_creation_mode: enabled ? 'BEDCA' : 'MANUAL',
+    }));
+  }
   saving = signal(false);
   loading = signal(false);
   logoUrl = signal<string | null>(null);
@@ -98,19 +122,8 @@ export class BrandingSettings implements OnInit, OnDestroy {
     this.loading.set(true);
     this.tenantService.getProfile(tenantId).subscribe({
       next: (tenant) => {
-        const prefs = tenant.preferences ?? {
-          enable_vacation_module: false,
-          enable_clock_in_module: false,
-          ai_enabled: false,
-          gemini_api_key: '',
-          default_language: 'es',
-          primary_color: '#059669',
-          keycloak_sync_mode: '',
-          from_email: '',
-          standard_vacation_days: 0,
-          show_price: false,
-          enable_appointment_reminders: true
-        };
+        // El spread rellena las claves que el tenant todavía no tenga guardadas.
+        const prefs: TenantPreferences = { ...DEFAULT_PREFERENCES, ...(tenant.preferences ?? {}) };
         if (prefs.enable_appointment_reminders === undefined || prefs.enable_appointment_reminders === null) {
           prefs.enable_appointment_reminders = true;
         }
@@ -149,8 +162,18 @@ export class BrandingSettings implements OnInit, OnDestroy {
     this.saving.set(true);
     this.tenantBrandingService.updatePreferences(tenantId, prefs).subscribe({
       next: (res) => {
-        this.preferences.set(res);
+        this.preferences.set({ ...DEFAULT_PREFERENCES, ...res });
         this.themeService.setPrimary(res.primary_color ?? '#059669');
+        // Sin esto el modo recién guardado no se aplicaría hasta recargar la página.
+        this.brandingStore.branding.update(branding =>
+          branding
+            ? {
+                ...branding,
+                menuCreationMode: res.menu_creation_mode ?? 'MANUAL',
+                aiEnabled: res.ai_enabled,
+              }
+            : branding
+        );
         this.saving.set(false);
         this.notify.success('Éxito: Preferencias actualizadas');
       },

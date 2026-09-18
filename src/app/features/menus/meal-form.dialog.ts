@@ -1,15 +1,13 @@
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext, TuiButton, TuiDropdown, TuiTextfield } from '@taiga-ui/core';
+import { TuiDialogContext, TuiButton, TuiDropdown, TuiTextfield, TuiError } from '@taiga-ui/core';
 import { TuiSelect, TuiDataListWrapper, TuiChevron, TuiTextarea } from '@taiga-ui/kit';
 import { TranslocoService, TranslocoDirective } from '@jsverse/transloco';
 import { MealService, CreateMealRequest } from '../../core/api/services/meal.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { Meal } from '../../core/api/models/meal.model';
-
-const DAY_VALUES = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'] as const;
-const MEAL_VALUES = ['COMIDA', 'CENA'] as const;
+import { ALL_DAYS as DAY_VALUES, MEAL_TYPES as MEAL_VALUES } from './menu.constants';
 
 export interface MealFormDialogInput {
   menuId?: string;
@@ -28,6 +26,7 @@ export interface MealFormDialogInput {
     TuiButton,
     TuiDropdown,
     TuiTextfield,
+    TuiError,
     TuiSelect,
     TuiDataListWrapper,
     TuiChevron,

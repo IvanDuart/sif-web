@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext, TuiButton, TuiInput, TuiDropdown } from '@taiga-ui/core';
+import { TuiDialogContext, TuiButton, TuiInput, TuiDropdown, TuiError } from '@taiga-ui/core';
 import { TuiInputDate, TuiSelect, TuiDataListWrapper, TuiChevron } from '@taiga-ui/kit';
 import { TuiDay } from '@taiga-ui/cdk';
 import { UserTenantRoleService, InviteUserRequest } from '../../core/api/services/user-tenant-role.api';
@@ -24,6 +24,7 @@ export interface InviteUserDialogInput {
     TuiButton,
     TuiInput,
     TuiDropdown,
+    TuiError,
     TuiInputDate,
     TuiSelect,
     TuiDataListWrapper,
@@ -93,7 +94,7 @@ export class InviteUserDialog {
     lastName: ['', Validators.required],
     roleCode: [{ value: '', disabled: false }, Validators.required],
     birthDate: [null as TuiDay | null],
-    heightCm: [null as number | null],
+    heightCm: [null as number | null, [Validators.min(50), Validators.max(250)]],
     gender: [''],
     phone: [null as string | null]
   });

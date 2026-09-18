@@ -1,0 +1,219 @@
+// Editor de una comida estructurada. Se renderiza a ancho completo debajo de la
+// fila del día, así que no hereda el ancho estrecho de la celda.
+
+.items-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: var(--tui-background-base-alt);
+  border-top: 1px solid var(--tui-border-normal);
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  &__title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--tui-text-secondary);
+  }
+
+  &__total {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--tui-text-primary);
+  }
+
+  &__state {
+    margin-inline-start: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    color: var(--tui-text-secondary);
+    // Reserva la altura para que la fila no salte al aparecer y desaparecer.
+    min-height: 1rem;
+  }
+
+  &__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) 6.5rem minmax(0, 12rem) auto;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__handle {
+    display: inline-flex;
+    flex-direction: column;
+  }
+
+  &__search {
+    position: relative;
+    min-width: 0;
+  }
+
+  // Estado de búsqueda en curso, superpuesto al buscador para no mover la fila.
+  &__searching {
+    position: absolute;
+    inset-inline-end: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    pointer-events: none;
+    font-size: 0.6875rem;
+    color: var(--tui-text-tertiary);
+  }
+
+  &__quantity,
+  &__notes {
+    min-width: 0;
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  // Los nombres de BEDCA llevan el estado de cocción al final ("Arroz integral,
+  // hervido"), que es justo lo que distingue una variante de otra. Truncar
+  // ocultaría la diferencia, así que se envuelve en dos líneas.
+  &__option-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
+  }
+
+  &__option-kcal {
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.75rem;
+    color: var(--tui-text-secondary);
+  }
+
+  &__option--active {
+    background: var(--tui-background-neutral-1);
+  }
+
+  &__foot {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  &__macros {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  &__macro {
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--tui-text-secondary);
+  }
+
+  &__bar {
+    display: flex;
+    flex: 1 1 8rem;
+    height: 0.375rem;
+    min-width: 6rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--tui-background-neutral-1);
+  }
+
+  &__bar-seg {
+    height: 100%;
+    transition: width var(--motion-duration-base) var(--motion-ease-out);
+
+    &--protein {
+      background: var(--tui-background-accent-1);
+    }
+
+    &--fat {
+      background: var(--tui-status-warning);
+    }
+
+    &--carbs {
+      background: var(--tui-status-info);
+    }
+  }
+
+  &__notice,
+  &__keyboard-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+    font-size: 0.6875rem;
+    color: var(--tui-text-tertiary);
+  }
+
+  &__notice {
+    color: var(--tui-status-warning);
+  }
+}
+
+// El móvil no aguanta cinco columnas: las filas pasan a bloque y los objetivos
+// táctiles crecen a 44 px.
+@media (max-width: 767px) {
+  .items-editor {
+    padding: 0.75rem;
+
+    &__row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        'search remove'
+        'quantity quantity'
+        'notes notes';
+      row-gap: 0.375rem;
+    }
+
+    &__handle {
+      display: none;
+    }
+
+    &__search {
+      grid-area: search;
+    }
+
+    &__quantity {
+      grid-area: quantity;
+    }
+
+    &__notes {
+      grid-area: notes;
+    }
+
+    input {
+      min-height: 44px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .items-editor__bar-seg {
+    transition: none;
+  }
+}

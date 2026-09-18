@@ -1,28 +1,40 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2" *transloco="let t">
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    <tui-textfield class="w-full">
-      <label tuiLabel for="firstName">{{ t('users.first_name') }}</label>
-      <input id="firstName" formControlName="firstName" tuiInput />
-    </tui-textfield>
-    <tui-textfield class="w-full">
-      <label tuiLabel for="lastName">{{ t('users.last_name') }}</label>
-      <input id="lastName" formControlName="lastName" tuiInput />
-    </tui-textfield>
+    <div>
+      <tui-textfield class="w-full">
+        <label tuiLabel for="firstName">{{ t('users.first_name') }}</label>
+        <input id="firstName" formControlName="firstName" tuiInput />
+      </tui-textfield>
+      <tui-error formControlName="firstName" />
+    </div>
+    <div>
+      <tui-textfield class="w-full">
+        <label tuiLabel for="lastName">{{ t('users.last_name') }}</label>
+        <input id="lastName" formControlName="lastName" tuiInput />
+      </tui-textfield>
+      <tui-error formControlName="lastName" />
+    </div>
   </div>
 
-  <tui-textfield class="w-full">
-    <label tuiLabel for="email">{{ t('users.email') }}</label>
-    <input id="email" type="email" formControlName="email" tuiInput />
-  </tui-textfield>
+  <div>
+    <tui-textfield class="w-full">
+      <label tuiLabel for="email">{{ t('users.email') }}</label>
+      <input id="email" type="email" formControlName="email" tuiInput />
+    </tui-textfield>
+    <tui-error formControlName="email" />
+  </div>
 
   <app-phone-input formControlName="phone" class="w-full"></app-phone-input>
 
   @if (lockedUserType !== 'PATIENT') {
-    <tui-textfield class="w-full" tuiChevron [stringify]="roleStringify">
-      <label tuiLabel for="roleCode">{{ t('users.role') }}</label>
-      <input id="roleCode" formControlName="roleCode" tuiSelect />
-      <tui-data-list-wrapper *tuiDropdown [items]="roleValues()"></tui-data-list-wrapper>
-    </tui-textfield>
+    <div>
+      <tui-textfield class="w-full" tuiChevron [stringify]="roleStringify">
+        <label tuiLabel for="roleCode">{{ t('users.role') }}</label>
+        <input id="roleCode" formControlName="roleCode" tuiSelect />
+        <tui-data-list-wrapper *tuiDropdown [items]="roleValues()"></tui-data-list-wrapper>
+      </tui-textfield>
+      <tui-error formControlName="roleCode" />
+    </div>
   }
 
   @if (showClinicalFields()) {
@@ -32,10 +44,13 @@
         <input id="birthDate" tuiInputDate formControlName="birthDate" />
         <tui-calendar *tuiDropdown></tui-calendar>
       </tui-textfield>
-      <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-        <label tuiLabel for="heightCm">{{ t('users.height_cm') }}</label>
-        <input id="heightCm" type="number" formControlName="heightCm" min="50" max="250" step="0.1" tuiInput />
-      </tui-textfield>
+      <div>
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <label tuiLabel for="heightCm">{{ t('users.height_cm') }}</label>
+          <input id="heightCm" type="number" formControlName="heightCm" min="50" max="250" step="0.1" tuiInput />
+        </tui-textfield>
+        <tui-error formControlName="heightCm" />
+      </div>
       <tui-textfield class="w-full" tuiChevron [stringify]="genderStringify">
         <label tuiLabel for="gender">{{ t('users.gender') }}</label>
         <input id="gender" formControlName="gender" tuiSelect />

@@ -45,9 +45,18 @@ export class ThemeService {
 
   toggleColorScheme() {
     const next = this.colorScheme() === 'light' ? 'dark' : 'light';
-    this.colorScheme.set(next);
-    localStorage.setItem('colorScheme', next);
-    this.applyColorScheme();
+    const apply = () => {
+      this.colorScheme.set(next);
+      localStorage.setItem('colorScheme', next);
+      this.applyColorScheme();
+    };
+
+    const reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion || typeof document.startViewTransition !== 'function') {
+      apply();
+      return;
+    }
+    document.startViewTransition(apply);
   }
 
   private applyColorScheme() {

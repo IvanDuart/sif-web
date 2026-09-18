@@ -36,6 +36,7 @@
           (action)="createTemplate()">
         </app-empty-state>
       } @else {
+        <div class="results-region" [class.is-paginating]="paginating()">
         <div class="hidden md:block table-wrapper">
           <table tuiTable class="w-full">
             <thead>
@@ -140,15 +141,16 @@
             </div>
           }
         </div>
+        </div>
 
         <div class="table-footer flex justify-between items-center">
           <span class="text-sm text-surface-500">
             {{ t('common.pagination_report', { first: totalRecords() === 0 ? 0 : lastPage * lastSize + 1, last: lastPage * lastSize + templates().length, totalRecords: totalRecords() }) }}
           </span>
           <div class="flex gap-1">
-            <button tuiIconButton appearance="flat" size="s" (click)="prevPage()" [disabled]="lastPage === 0"><i class="fa-solid fa-chevron-left"></i></button>
+            <button tuiIconButton appearance="flat" size="s" (click)="prevPage()" [disabled]="lastPage === 0 || paginating()"><i class="fa-solid fa-chevron-left"></i></button>
             <span class="text-sm text-surface-500 px-2">{{ t('common.page', { page: lastPage + 1 }) }}</span>
-            <button tuiIconButton appearance="flat" size="s" (click)="nextPage()" [disabled]="(lastPage + 1) * lastSize >= totalRecords()"><i class="fa-solid fa-chevron-right"></i></button>
+            <button tuiIconButton appearance="flat" size="s" (click)="nextPage()" [disabled]="(lastPage + 1) * lastSize >= totalRecords() || paginating()"><i class="fa-solid fa-chevron-right"></i></button>
           </div>
         </div>
       }
