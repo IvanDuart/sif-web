@@ -5,7 +5,7 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiButton, TuiDialogContext, TuiInput } from '@taiga-ui/core';
 import { TuiTextarea, TuiFiles } from '@taiga-ui/kit';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { NotificationService } from '../../core/ui/notification.service';
+import { NotificationService } from '../../core/ui';
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { BrandingStore } from '../../core/branding/branding.store';

@@ -16,6 +16,16 @@
   </div>
   }
 
+  <tui-textfield class="w-full">
+    <label tuiLabel for="menuName">{{ 'diets.menu_name' | transloco }}</label>
+    <input tuiInput id="menuName" [ngModel]="name()" (ngModelChange)="name.set($event)" [placeholder]="'diets.menu_name_placeholder' | transloco" />
+  </tui-textfield>
+
+  <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+    <label tuiLabel for="menuDescription">{{ 'diets.menu_description' | transloco }}</label>
+    <input tuiInput id="menuDescription"  [ngModel]="description()" (ngModelChange)="description.set($event)" [placeholder]="'diets.menu_description_placeholder' | transloco" />
+  </tui-textfield>
+
   @if (selectedUserId) {
   <div class="field flex flex-col gap-1.5 mt-2">
     <p class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.document_label' | transloco }}</p>

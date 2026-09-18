@@ -2,8 +2,8 @@ import { Component, inject, OnInit, signal, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subject, Observable, of, debounceTime, distinctUntilChanged, switchMap, map } from 'rxjs';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiButton, TuiDialogContext, TuiTextfield, TuiDropdown } from '@taiga-ui/core';
-import { TuiComboBox, TuiDataListWrapper, TuiChevron } from '@taiga-ui/kit';
+import {TuiButton, TuiDialogContext, TuiTextfield, TuiDropdown, TuiInput} from '@taiga-ui/core';
+import {TuiComboBox, TuiDataListWrapper, TuiChevron, TuiTextarea} from '@taiga-ui/kit';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { MenuUploadService } from '../../core/api/services/menu-upload.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
@@ -15,7 +15,7 @@ import { Menu } from '../../core/api/models/menu.model';
 @Component({
   selector: 'app-menu-upload',
   standalone: true,
-  imports: [FormsModule, TuiButton, TranslocoPipe, TuiTextfield, TuiDropdown, TuiComboBox, TuiDataListWrapper, TuiChevron],
+  imports: [FormsModule, TuiButton, TranslocoPipe, TuiTextarea, TuiTextfield, TuiDropdown, TuiComboBox, TuiDataListWrapper, TuiChevron, TuiInput],
   templateUrl: './menu-upload.dialog.html'
 })
 export class MenuUploadDialog implements OnInit, OnDestroy {
@@ -33,6 +33,8 @@ export class MenuUploadDialog implements OnInit, OnDestroy {
   selectedUserId: (AppUserDto & { fullName: string }) | null = null;
   selectedFile: File | null = null;
   uploading = signal(false);
+  name = signal('');
+  description = signal('');
 
   userStringify = (user: AppUserDto & { fullName: string } | null): string => user?.fullName || '';
 
@@ -107,7 +109,7 @@ export class MenuUploadDialog implements OnInit, OnDestroy {
     if (!this.selectedFile) return;
 
     this.uploading.set(true);
-    this.menuUploadService.uploadMenu(tenantId, this.selectedUserId.id, this.selectedFile).subscribe({
+    this.menuUploadService.uploadMenu(tenantId, this.selectedUserId.id, this.selectedFile, this.name(), this.description()).subscribe({
       next: (createdMenu) => {
         this.notify.success('Menú extraído y creado correctamente');
         this.context.$implicit.next(createdMenu);

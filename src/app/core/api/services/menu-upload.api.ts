@@ -13,10 +13,16 @@ export class MenuUploadService {
     return this.configService.apiUrl;
   }
 
-  uploadMenu(tenantId: string, userId: string, file: File): Observable<Menu> {
+  uploadMenu(tenantId: string, userId: string, file: File, name?: string, description?: string): Observable<Menu> {
     const formData = new FormData();
     formData.append('file', file);
-    
+    if (name) {
+      formData.append('name', name);
+    }
+    if (description) {
+      formData.append('description', description);
+    }
+
     const params = new HttpParams().set('userId', userId);
 
     return this.http.post<Menu>(`${this.baseUrl}/tenant/${tenantId}/menu/upload`, formData, { params });

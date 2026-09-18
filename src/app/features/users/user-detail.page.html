@@ -1048,6 +1048,9 @@
                     <div class="flex items-center justify-between">
                       <div>
                         <p class="font-medium text-lg">{{ menu.name }}</p>
+                        @if (menu.description) {
+                          <p class="text-sm text-surface-500 dark:text-surface-400 mt-1">{{ menu.description }}</p>
+                        }
                         <p class="text-sm text-surface-400 mt-1">
                           {{ t('menu_history.assigned_at') }}: {{ formatInstantWithTime(menu.assignedAt) }}
                           @if (menu.assignedBy) {
@@ -1078,6 +1081,9 @@
                             <i class="fa-solid fa-utensils text-surface-400"></i>
                             <div>
                               <p class="font-medium">{{ menu.name }}</p>
+                              @if (menu.description) {
+                                <p class="text-xs text-surface-400 mt-0.5">{{ menu.description }}</p>
+                              }
                               <p class="text-xs text-surface-400">
                                 {{ formatInstantWithTime(menu.assignedAt) }}
                                 @if (menu.assignedBy) {

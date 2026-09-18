@@ -9,4 +9,5 @@ export interface Menu {
   meals?: Meal[];
   assignedAt?: string;
   assignedBy?: string;
+  description?: string;
 }

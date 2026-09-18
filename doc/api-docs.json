@@ -5087,6 +5087,9 @@
           "name": {
             "type": "string"
           },
+          "description": {
+            "type": "string"
+          },
           "isActive": {
             "type": "boolean"
           },
@@ -6713,6 +6716,9 @@
           "name": {
             "type": "string"
           },
+          "description": {
+            "type": "string"
+          },
           "isActive": {
             "type": "boolean"
           }
@@ -6726,6 +6732,9 @@
             "format": "uuid"
           },
           "name": {
+            "type": "string"
+          },
+          "description": {
             "type": "string"
           },
           "isActive": {
@@ -7279,6 +7288,9 @@
           "name": {
             "type": "string"
           },
+          "description": {
+            "type": "string"
+          },
           "isActive": {
             "type": "boolean"
           }
@@ -7785,6 +7797,9 @@
           "name": {
             "type": "string"
           },
+          "description": {
+            "type": "string"
+          },
           "isActive": {
             "type": "boolean"
           },
@@ -7887,6 +7902,9 @@
             "format": "uuid"
           },
           "name": {
+            "type": "string"
+          },
+          "description": {
             "type": "string"
           },
           "isActive": {
