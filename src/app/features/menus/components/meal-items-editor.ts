@@ -15,7 +15,7 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { Observable, Subject, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
-import { TuiButton, TuiDataList, TuiDropdown, TuiInput, TuiTextfield } from '@taiga-ui/core';
+import { TuiButton, TuiDataList, TuiDropdown, TuiHint, TuiInput, TuiTextfield } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
 
 import { Meal } from '../../../core/api/models/meal.model';
@@ -77,6 +77,7 @@ function emptyRow(): ItemRow {
     TuiBadge,
     TuiDataList,
     TuiDropdown,
+    TuiHint,
     TuiInput,
     TuiTextfield,
     FoodCreatePanel,

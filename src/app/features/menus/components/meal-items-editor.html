@@ -167,7 +167,8 @@
             [disabled]="!canManage()"
             [ngModel]="row.quantityG"
             (ngModelChange)="onQuantityChange(i, $event)"
-            (keydown)="onQuantityKeydown($event, i)" />
+            (keydown)="onQuantityKeydown($event, i)"
+            (blur)="confirmRow(i)" />
         </tui-textfield>
 
         <tui-textfield class="items-editor__notes" [tuiTextfieldCleaner]="false">
@@ -208,13 +209,13 @@
 
   <div class="items-editor__foot">
     <div class="items-editor__macros">
-      <span class="items-editor__macro">
+      <span class="items-editor__macro" [tuiHint]="t('food.protein_full')" tabindex="0">
         {{ t('food.protein_short') }} {{ protein() | number: '1.0-1' }} g
       </span>
-      <span class="items-editor__macro">
+      <span class="items-editor__macro" [tuiHint]="t('food.fat_full')" tabindex="0">
         {{ t('food.fat_short') }} {{ fat() | number: '1.0-1' }} g
       </span>
-      <span class="items-editor__macro">
+      <span class="items-editor__macro" [tuiHint]="t('food.carbs_full')" tabindex="0">
         {{ t('food.carbs_short') }} {{ carbs() | number: '1.0-1' }} g
       </span>
     </div>
