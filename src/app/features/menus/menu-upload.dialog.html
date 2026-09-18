@@ -6,6 +6,7 @@
     </div>
   </div>
 
+  @if (!hideUserPicker()) {
   <div class="field flex flex-col gap-1.5">
     <label for="appUserId" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.target_patient' | transloco }}</label>
     <tui-textfield tuiChevron [stringify]="userStringify">
@@ -13,6 +14,7 @@
       <tui-data-list-wrapper *tuiDropdown [items]="users()"></tui-data-list-wrapper>
     </tui-textfield>
   </div>
+  }
 
   @if (selectedUserId) {
   <div class="field flex flex-col gap-1.5 mt-2">

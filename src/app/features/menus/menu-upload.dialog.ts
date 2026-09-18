@@ -10,6 +10,7 @@ import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppUserDto } from '../../core/api/models/user.model';
 import { NotificationService } from '../../core/ui';
+import { Menu } from '../../core/api/models/menu.model';
 
 @Component({
   selector: 'app-menu-upload',
@@ -22,12 +23,13 @@ export class MenuUploadDialog implements OnInit, OnDestroy {
   private readonly userRoleService = inject(UserTenantRoleService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly notify = inject(NotificationService);
-  readonly context = injectContext<TuiDialogContext<unknown, void>>();
+  readonly context = injectContext<TuiDialogContext<Menu, { user?: AppUserDto | null } | void>>();
 
   private readonly searchSubject = new Subject<string>();
 
   users = signal<(AppUserDto & { fullName: string })[]>([]);
   loadingUsers = signal(false);
+  hideUserPicker = signal(false);
   selectedUserId: (AppUserDto & { fullName: string }) | null = null;
   selectedFile: File | null = null;
   uploading = signal(false);
@@ -35,7 +37,14 @@ export class MenuUploadDialog implements OnInit, OnDestroy {
   userStringify = (user: AppUserDto & { fullName: string } | null): string => user?.fullName || '';
 
   ngOnInit() {
-    this.loadUsers('');
+    const data = this.context.data;
+    if (data && typeof data === 'object' && 'user' in data && data.user) {
+      this.hideUserPicker.set(true);
+      const u = data.user;
+      this.selectedUserId = { ...u, fullName: u.firstName + ' ' + u.lastName };
+    } else {
+      this.loadUsers('');
+    }
 
     this.searchSubject
       .pipe(

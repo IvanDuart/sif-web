@@ -36,7 +36,7 @@ import { EditUserDialog } from './edit-user.dialog';
 import { WaterIntakeWidget } from '../tenant/dashboard/components/water-intake-widget';
 import { PatientEventFormDialog } from './patient-event-form.dialog';
 import { AssignMenuTemplateDialog } from './assign-menu-template.dialog';
-import { TemplateUploadDialog } from '../templates/template-upload.dialog';
+import { MenuUploadDialog } from '../menus/menu-upload.dialog';
 import { MenuFormDialog } from '../menus/menu-form.dialog';
 import { formatInstant, formatInstantWithTime } from '../../shared/utils/date';
 import { METRIC_SERIES, buildChartConfig, hexToRgba, themePrimary } from '../../shared/utils/chart-config';
@@ -1061,31 +1061,17 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     });
   }
 
-  showUploadTemplateDialog() {
-    this.modal.open<MenuTemplate>(TemplateUploadDialog, {
+  uploadMenuOcr() {
+    this.modal.open<Menu, { user?: AppUserDto | null }>(MenuUploadDialog, {
       label: this.transloco.translate('templates.upload_ocr'),
-      size: 'l'
-    }).subscribe((createdTemplate) => {
-      if (!createdTemplate?.id) return;
-      const tenantId = this.tenantCtx.currentTenantId();
-      if (!tenantId) return;
-
-      this.templateService.instantiate(tenantId, createdTemplate.id, {
-        appUserId: this.userId,
-        name: createdTemplate.name,
-        isActive: true
-      }).subscribe({
-        next: (createdMenu) => {
-          this.notify.success(this.transloco.translate('notifications.menu_created'));
-          this.loadMenuHistory();
-          if (createdMenu?.id) {
-            this.router.navigate(['/menus', createdMenu.id]);
-          }
-        },
-        error: () => {
-          this.notify.error(this.transloco.translate('common.error'));
-        }
-      });
+      size: 'l',
+      data: { user: this.user() }
+    }).subscribe((createdMenu) => {
+      this.notify.success(this.transloco.translate('notifications.menu_created'));
+      this.loadMenuHistory();
+      if (createdMenu?.id) {
+        this.router.navigate(['/menus', createdMenu.id]);
+      }
     });
   }
 
