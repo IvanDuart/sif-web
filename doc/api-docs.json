@@ -444,6 +444,57 @@
         }
       }
     },
+    "/tenant/{tenantId}/users/{userId}/assigned-nutritionist": {
+      "put": {
+        "tags": [
+          "UserTenantRoleController"
+        ],
+        "description": "Assign or change the patient's titular nutritionist. Send nutritionistId = null to unassign.",
+        "operationId": "assignNutritionist",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignNutritionistRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantUserDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/user/{userId}/water-intake/{date}": {
       "put": {
         "tags": [
@@ -2302,6 +2353,22 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -5724,6 +5791,175 @@
           }
         }
       },
+      "AssignNutritionistRequest": {
+        "type": "object",
+        "properties": {
+          "nutritionistId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "BodyMeasurementDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "measuredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "weightKg": {
+            "type": "number"
+          },
+          "bodyFatPct": {
+            "type": "number"
+          },
+          "muscleMassPct": {
+            "type": "number"
+          },
+          "waistCm": {
+            "type": "number"
+          },
+          "chestCm": {
+            "type": "number"
+          },
+          "hipsCm": {
+            "type": "number"
+          },
+          "contourCm": {
+            "type": "number"
+          },
+          "armCm": {
+            "type": "number"
+          },
+          "bodyWaterPct": {
+            "type": "number"
+          },
+          "visceralFatLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "wristCircumferenceCm": {
+            "type": "number"
+          },
+          "boneMassKg": {
+            "type": "number"
+          },
+          "trunkFatPct": {
+            "type": "number"
+          },
+          "trunkMassKg": {
+            "type": "number"
+          },
+          "rightArmFatPct": {
+            "type": "number"
+          },
+          "rightArmMassKg": {
+            "type": "number"
+          },
+          "leftArmFatPct": {
+            "type": "number"
+          },
+          "leftArmMassKg": {
+            "type": "number"
+          },
+          "rightLegFatPct": {
+            "type": "number"
+          },
+          "rightLegMassKg": {
+            "type": "number"
+          },
+          "leftLegFatPct": {
+            "type": "number"
+          },
+          "leftLegMassKg": {
+            "type": "number"
+          },
+          "bmi": {
+            "type": "number"
+          },
+          "bodyCompositionReport": {
+            "$ref": "#/components/schemas/BodyCompositionReport"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "recordedBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TenantUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "age": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "heightCm": {
+            "type": "number"
+          },
+          "userType": {
+            "type": "string",
+            "enum": [
+              "STAFF",
+              "PATIENT"
+            ]
+          },
+          "roleCode": {
+            "type": "string"
+          },
+          "roleName": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lastMeasurement": {
+            "$ref": "#/components/schemas/BodyMeasurementDto"
+          },
+          "assignedNutritionistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assignedNutritionistName": {
+            "type": "string"
+          }
+        }
+      },
       "RecordWaterIntakeRequest_Public": {
         "type": "object",
         "properties": {
@@ -6505,102 +6741,6 @@
           }
         }
       },
-      "BodyMeasurementDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "measuredAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "weightKg": {
-            "type": "number"
-          },
-          "bodyFatPct": {
-            "type": "number"
-          },
-          "muscleMassPct": {
-            "type": "number"
-          },
-          "waistCm": {
-            "type": "number"
-          },
-          "chestCm": {
-            "type": "number"
-          },
-          "hipsCm": {
-            "type": "number"
-          },
-          "contourCm": {
-            "type": "number"
-          },
-          "armCm": {
-            "type": "number"
-          },
-          "bodyWaterPct": {
-            "type": "number"
-          },
-          "visceralFatLevel": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "wristCircumferenceCm": {
-            "type": "number"
-          },
-          "boneMassKg": {
-            "type": "number"
-          },
-          "trunkFatPct": {
-            "type": "number"
-          },
-          "trunkMassKg": {
-            "type": "number"
-          },
-          "rightArmFatPct": {
-            "type": "number"
-          },
-          "rightArmMassKg": {
-            "type": "number"
-          },
-          "leftArmFatPct": {
-            "type": "number"
-          },
-          "leftArmMassKg": {
-            "type": "number"
-          },
-          "rightLegFatPct": {
-            "type": "number"
-          },
-          "rightLegMassKg": {
-            "type": "number"
-          },
-          "leftLegFatPct": {
-            "type": "number"
-          },
-          "leftLegMassKg": {
-            "type": "number"
-          },
-          "bmi": {
-            "type": "number"
-          },
-          "bodyCompositionReport": {
-            "$ref": "#/components/schemas/BodyCompositionReport"
-          },
-          "notes": {
-            "type": "string"
-          },
-          "recordedBy": {
-            "type": "string"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
       "InviteUserRequest": {
         "type": "object",
         "properties": {
@@ -7167,7 +7307,6 @@
           }
         },
         "required": [
-          "nutritionistId",
           "startTime"
         ]
       },
@@ -7402,15 +7541,15 @@
               "type": "string"
             }
           },
-          "roleCode": {
-            "type": "string"
-          },
           "userType": {
             "type": "string",
             "enum": [
               "STAFF",
               "PATIENT"
             ]
+          },
+          "roleCode": {
+            "type": "string"
           },
           "tenantName": {
             "type": "string"
@@ -7514,63 +7653,6 @@
           },
           "page": {
             "$ref": "#/components/schemas/PageMetadata"
-          }
-        }
-      },
-      "TenantUserDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "email": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "phone": {
-            "type": "string"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "birthDate": {
-            "type": "string",
-            "format": "date"
-          },
-          "age": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "heightCm": {
-            "type": "number"
-          },
-          "userType": {
-            "type": "string",
-            "enum": [
-              "STAFF",
-              "PATIENT"
-            ]
-          },
-          "roleCode": {
-            "type": "string"
-          },
-          "roleName": {
-            "type": "string"
-          },
-          "permissions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "lastMeasurement": {
-            "$ref": "#/components/schemas/BodyMeasurementDto"
           }
         }
       },

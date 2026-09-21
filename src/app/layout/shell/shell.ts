@@ -26,6 +26,8 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { labelKey: 'dashboard', icon: 'fa-solid fa-house', route: '/dashboard' },
+  // TODO(V45): "Mis Pacientes" oculto temporalmente para todos los roles (reactivar cuando se implemente del todo).
+  // { labelKey: 'my_patients', icon: 'fa-solid fa-user-group', route: '/my-patients', permission: 'MY_PATIENTS' },
   { labelKey: 'patients', icon: 'fa-solid fa-user-injured', route: '/patients', permission: 'VIEW_USER' },
   { labelKey: 'staff', icon: 'fa-solid fa-user-doctor', route: '/staff', permission: 'VIEW_USER' },
   { labelKey: 'appointments', icon: 'fa-solid fa-calendar-days', route: '/appointments', permission: 'VIEW_APPOINTMENTS' },
@@ -151,6 +153,13 @@ export class Shell implements OnInit {
         return this.activeTenant()?.userType === 'STAFF' &&
           (this.permissionsService.has('VIEW_APPOINTMENTS') || this.permissionsService.has('MANAGE_APPOINTMENTS'));
       }
+      // TODO(V45): "Mis Pacientes" oculto temporalmente para todos los roles.
+      // if (item.permission === 'MY_PATIENTS') {
+      //   const roleCode = this.tenantCtx.currentMembership()?.roleCode;
+      //   return this.activeTenant()?.userType === 'STAFF' &&
+      //     (roleCode === 'NUTRITIONIST' || roleCode === 'ADMIN') &&
+      //     (this.permissionsService.has('VIEW_APPOINTMENTS') || this.permissionsService.has('MANAGE_APPOINTMENTS'));
+      // }
       if (item.permission === 'VIEW_MENU') {
         return this.activeTenant()?.userType === 'PATIENT';
       }

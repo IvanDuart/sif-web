@@ -37,6 +37,17 @@
       </div>
     }
 
+    <tui-textfield class="w-full" tuiChevron [stringify]="nutritionistStringify">
+      <label tuiLabel for="formNutritionistId">{{ t('appointments.nutritionist') }} <span class="text-red-500">*</span></label>
+      <input
+        id="formNutritionistId"
+        tuiSelect
+        formControlName="nutritionistId">
+      <tui-data-list-wrapper
+        *tuiDropdown
+        [items]="nutritionistValues()" />
+    </tui-textfield>
+
     <tui-textfield tuiChevron [stringify]="typeStringify">
       <label tuiLabel for="formTypeId">{{ t('appointments.type') }}</label>
       <input

@@ -98,4 +98,8 @@ export interface AppUserDto {
   gender?: Gender | null;
   lastMeasurement?: BodyMeasurementDto | null;
   userType?: UserType;
+  /** Titular nutritionist assigned to this patient in the active tenant (V45). */
+  assignedNutritionistId?: string | null;
+  /** Full name of the titular nutritionist, ready to display. */
+  assignedNutritionistName?: string | null;
 }

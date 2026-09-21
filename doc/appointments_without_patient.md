@@ -93,7 +93,7 @@ El job diario de recordatorios **omite** las citas sin paciente (no tiene a qui�
 
 - Migración `V29__make_appointment_patient_nullable.sql`: la columna `appointment.patient_id` pasa a ser `NULL`-able.
 - En el DTO de respuesta `AppointmentDto`, `patientId` y `patientName` son `null` cuando la cita no tiene paciente.
-- El endpoint `GET /nutritionist/{nutritionistId}/patients` ignora las citas sin paciente (solo lista pacientes reales).
+- El endpoint `GET /nutritionist/{nutritionistId}/patients` lista la **cartera** del nutricionista (pacientes asignados como titulares), no los que hayan tenido citas con él. Las citas sin paciente no afectan a esa lista.
 
 ---
 
@@ -106,4 +106,4 @@ El job diario de recordatorios **omite** las citas sin paciente (no tiene a qui�
 | `src/main/java/.../controller/dto/CreateAppointmentRequest.java` | `patientId` deja de ser `@NotNull` |
 | `src/main/java/.../service/AppointmentService.java` | Creación con paciente opcional (solo staff), notificaciones null-safe, `toDto` null-safe |
 | `src/main/java/.../utils/filter/AppointmentSpecs.java` | `filterByNutritionist` usa LEFT JOIN en `patient` |
-| `src/main/java/.../repository/AppointmentRepository.java` | `findDistinctPatientIdsByNutritionist` excluye pacientes `null` |
+| `src/main/java/.../repository/AppointmentRepository.java` | `findDistinctPatientIdsByNutritionist` excluye pacientes `null` (consulta retirada en `V45`; "mis pacientes" ya no se deriva del histórico) |

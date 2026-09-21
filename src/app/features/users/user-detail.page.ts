@@ -26,7 +26,6 @@ import { PatientEventDto } from '../../core/api/models/patient-event.model';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { BodyMeasurementDto, MeasurementHistoryDto, BodyCompositionReport, SegmentalResult } from '../../core/api/models/body-measurement.model';
 import { Menu } from '../../core/api/models/menu.model';
-import { MenuTemplate } from '../../core/api/models/menu-template.model';
 import { AppointmentDto } from '../../core/api/models/appointment.model';
 import { Page } from '../../core/api/models/page.model';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
@@ -37,6 +36,7 @@ import { EditUserDialog } from './edit-user.dialog';
 import { WaterIntakeWidget } from '../tenant/dashboard/components/water-intake-widget';
 import { PatientEventFormDialog } from './patient-event-form.dialog';
 import { AssignMenuTemplateDialog } from './assign-menu-template.dialog';
+import { AssignNutritionistDialog, AssignNutritionistDialogInput } from './assign-nutritionist.dialog';
 import { MenuUploadDialog } from '../menus/menu-upload.dialog';
 import { MenuFormDialog } from '../menus/menu-form.dialog';
 import { formatInstant, formatInstantWithTime } from '../../shared/utils/date';
@@ -174,8 +174,8 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   totalRecords = signal(0);
   userId = '';
 
-  isStaff = computed(() => this.user()?.userType === 'STAFF');
-  backRoute = computed(() => this.isStaff() ? '/staff' : '/patients');
+  // Patients only: team members have their own file at `/staff/:id`.
+  readonly backRoute = '/patients';
 
   canViewPatientProfile = computed(() => this.permissionsService.has('VIEW_PATIENT_PROFILE'));
   canManagePatientProfile = computed(() => this.permissionsService.has('MANAGE_PATIENT_PROFILE'));
@@ -183,6 +183,14 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   canManageMenu = computed(() => this.permissionsService.has('MANAGE_MENU'));
   canViewPatientEvents = computed(() => this.permissionsService.has('VIEW_PATIENT_EVENTS'));
   canManagePatientEvents = computed(() => this.permissionsService.has('MANAGE_PATIENT_EVENTS'));
+  canManageUsers = computed(() => this.permissionsService.has('MANAGE_USER'));
+
+  /**
+   * Titular nutritionist of the patient (V45). Resolved separately because
+   * `GET /users/{userId}` returns AppUser_Full, which does not carry the
+   * assigned-nutritionist fields (those live on TenantUserDto).
+   */
+  assignedNutritionist = signal<{ id: string | null; name: string | null }>({ id: null, name: null });
 
   canActivateMenus = computed(() =>
     this.canManageMenu() ||
@@ -441,27 +449,23 @@ export default class UserDetailPage implements OnInit, OnDestroy {
 
   protected readonly tabs = computed(() => {
     const items: { id: string; label: string; defaultValue?: string; icon: string }[] = [];
-    const isStaff = this.isStaff();
 
     items.push({ id: 'profile', label: 'users.tab_profile', icon: 'fa-solid fa-user' });
+    items.push({ id: 'measurements', label: 'users.tab_measurements', icon: 'fa-solid fa-chart-line' });
+    items.push({ id: 'body_composition', label: 'users.tab_body_composition', defaultValue: 'Composición Corporal', icon: 'fa-solid fa-child' });
+    items.push({ id: 'menus', label: 'users.tab_menus', icon: 'fa-solid fa-utensils' });
+    items.push({ id: 'water', label: 'users.tab_water', defaultValue: 'Agua', icon: 'fa-solid fa-droplet' });
 
-    if (!isStaff) {
-      items.push({ id: 'measurements', label: 'users.tab_measurements', icon: 'fa-solid fa-chart-line' });
-      items.push({ id: 'body_composition', label: 'users.tab_body_composition', defaultValue: 'Composición Corporal', icon: 'fa-solid fa-child' });
-      items.push({ id: 'menus', label: 'users.tab_menus', icon: 'fa-solid fa-utensils' });
-      items.push({ id: 'water', label: 'users.tab_water', defaultValue: 'Agua', icon: 'fa-solid fa-droplet' });
-    }
-
-    if (!isStaff && this.canViewPatientProfile()) {
+    if (this.canViewPatientProfile()) {
       items.push({ id: 'patient_profile', label: 'users.tab_patient_profile', icon: 'fa-solid fa-notes-medical' });
       items.push({ id: 'fixed_guidelines', label: 'users.tab_fixed_guidelines', icon: 'fa-solid fa-apple-whole' });
     }
 
-    if (!isStaff && this.canViewPatientEvents()) {
+    if (this.canViewPatientEvents()) {
       items.push({ id: 'patient_events', label: 'users.tab_patient_events', icon: 'fa-solid fa-calendar-days' });
     }
 
-    if (!isStaff && this.canViewAppointments()) {
+    if (this.canViewAppointments()) {
       items.push({ id: 'appointments', label: 'appointments.history_title', icon: 'fa-solid fa-clock-rotate-left' });
     }
 
@@ -532,7 +536,6 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   }
 
   private onUserLoaded() {
-    if (this.isStaff()) return;
     this.loadMeasurements(0, this.size());
     this.loadEvolution();
     this.loadMenuHistory();
@@ -551,11 +554,35 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     this.loadingUser.set(true);
     this.userTenantRoleService.getUser(tenantId, this.userId).subscribe({
       next: (u) => {
+        // Team members are no longer rendered here: send old links to the
+        // dedicated staff file (activity, portfolio, admin actions).
+        if (u.userType === 'STAFF') {
+          this.loadingUser.set(false);
+          this.router.navigate(['/staff', u.id], { replaceUrl: true });
+          return;
+        }
+
         this.user.set(u);
         this.loadingUser.set(false);
         this.onUserLoaded();
+        this.loadAssignedNutritionist(u);
       },
       error: () => this.loadingUser.set(false)
+    });
+  }
+
+  private loadAssignedNutritionist(user: AppUserDto) {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId || !user.email) return;
+
+    this.userTenantRoleService.getUsersByTenant(tenantId, { search: user.email, size: 5 }).subscribe({
+      next: (res) => {
+        const match = (res.content || []).find(u => u.id === user.id);
+        this.assignedNutritionist.set({
+          id: match?.assignedNutritionistId ?? null,
+          name: match?.assignedNutritionistName ?? null
+        });
+      }
     });
   }
 
@@ -1105,6 +1132,22 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       label: this.transloco.translate('users.edit_user_title'),
       size: 'm',
       data: { user: current }
+    }).subscribe(() => {
+      this.loadUser();
+    });
+  }
+
+  showAssignNutritionistDialog() {
+    const current = this.user();
+    if (!current) return;
+    this.modal.open<AppUserDto | true, AssignNutritionistDialogInput>(AssignNutritionistDialog, {
+      label: this.transloco.translate('users.assign_nutritionist_title'),
+      size: 's',
+      data: {
+        patientId: current.id,
+        patientName: `${current.firstName} ${current.lastName}`.trim(),
+        assignedNutritionistId: this.assignedNutritionist().id
+      }
     }).subscribe(() => {
       this.loadUser();
     });

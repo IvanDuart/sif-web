@@ -5,11 +5,13 @@
 Se añade la funcionalidad de **reagendar (reschedule)** una cita existente, permitiendo modificar su fecha, hora, tipo de cita y notas sin necesidad de cancelarla y crear una nueva.
 
 **Reglas de negocio:**
-- Solo se pueden reagendar citas en estado `SCHEDULED`.
+- Solo se pueden reagendar citas en estado `SCHEDULED` o `PROPOSED`.
 - No se transfiere la cita a otro nutricionista.
 - Se valida solapamiento excluyendo la propia cita (no choca consigo misma).
-- Si no se envía `endTime`, se recalcula automáticamente desde `startTime` + la duración del tipo de cita.
-- Todos los campos son opcionales (semántica PATCH).
+- Si no se envía `endTime`, se recalcula automáticamente desde `startTime` + la duración del tipo de cita (o la duración actual de la cita).
+- El **staff** tiene semántica PATCH: todos los campos son opcionales.
+- El **paciente** debe enviar siempre `startTime` (si no, `400` `error.appointment_reschedule_requires_start_time`). Un reagendado del paciente devuelve la cita a `PROPOSED`.
+- Las validaciones de horario/solapamiento solo se ejecutan si el tramo horario cambia realmente.
 
 ---
 
@@ -36,13 +38,14 @@ Se añade la funcionalidad de **reagendar (reschedule)** una cita existente, per
 **Notas sobre el comportamiento:**
 - Si se envía `startTime` pero no `endTime`, y la cita ya tiene un `typeId` asignado, se recalcula el `endTime` con la duración del tipo.
 - Si además se cambia el `typeId`, se usa la duración del nuevo tipo para el cálculo.
-- Si no se envía `startTime`, no se modifica la fecha/hora actual.
+- Si no se envía `startTime` (solo staff), no se modifica la fecha/hora actual.
 - Los campos no enviados se mantienen con su valor actual.
 
 **Validaciones:**
-- La cita debe estar en estado `SCHEDULED`.
+- La cita debe estar en estado `SCHEDULED` o `PROPOSED`.
+- Si el llamador es el **paciente**, `startTime` es obligatorio (`400`).
 - Si se cambia `startTime`, debe ser posterior a `now`.
-- `endTime` debe ser posterior a `startTime`.
+- `endTime` (recalculado o explícito) debe ser posterior a `startTime`.
 - No debe solaparse con otras citas agendadas del mismo nutricionista (excluyéndose a sí misma).
 
 **Response 200:** el objeto completo de la cita actualizado.
@@ -51,11 +54,13 @@ Se añade la funcionalidad de **reagendar (reschedule)** una cita existente, per
 
 ## 3. Lógica de recalculo de `endTime`
 
-| ¿Envió `endTime`? | ¿Envió `typeId`? | Resultado |
+El fin **siempre** se recalcula; nunca queda descolgado del `startTime`.
+
+| ¿Envió `endTime`? | ¿Hay `typeId` en la cita? | Resultado |
 |---|---|---|
 | Sí | — | Se usa el `endTime` enviado |
 | No | Sí | `endTime = startTime + type.durationMinutes` |
-| No | No | Se mantiene el `endTime` actual de la cita |
+| No | No | `endTime = startTime + duración actual de la cita` |
 
 ---
 

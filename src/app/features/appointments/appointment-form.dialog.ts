@@ -8,7 +8,8 @@ import {
   TuiDataListWrapper,
   TuiChevron,
   TuiInputDate,
-  TuiInputTime
+  TuiInputTime,
+  TuiSelect
 } from '@taiga-ui/kit';
 import { TuiDay, TuiTime } from '@taiga-ui/cdk';
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -26,6 +27,17 @@ import { CreateAppointmentRequest } from '../../core/api/models/appointment.mode
 import { AppUserDto } from '../../core/api/models/user.model';
 import { NotificationService } from '../../core/ui';
 import { ScheduleAvailabilityService } from '../../core/api/services/schedule-availability.service';
+
+interface PatientOption {
+  label: string;
+  value: string;
+  assignedNutritionistId?: string | null;
+}
+
+interface NutritionistOption {
+  label: string;
+  value: string;
+}
 
 @Component({
   selector: 'app-appointment-form-dialog',
@@ -46,7 +58,8 @@ import { ScheduleAvailabilityService } from '../../core/api/services/schedule-av
     TuiButton,
     TuiChevron,
     TuiCheckbox,
-    TuiInput
+    TuiInput,
+    TuiSelect
   ],
   templateUrl: './appointment-form.dialog.html',
   styleUrls: ['./appointment-form.dialog.scss'],
@@ -65,15 +78,16 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
 
   private readonly searchSubject = new Subject<string>();
 
-  readonly context = injectContext<TuiDialogContext<boolean, { nutritionistId?: string; startTime?: Date }>>();
+  readonly context = injectContext<TuiDialogContext<boolean, { nutritionistId?: string; startTime?: Date; patientId?: string; patientLabel?: string }>>();
 
-  patients = signal<{ label: string; value: string }[]>([]);
+  patients = signal<PatientOption[]>([]);
   appointmentTypes = signal<{ label: string; value: string }[]>([]);
+  nutritionists = signal<NutritionistOption[]>([]);
   patientsLoading = signal(false);
   saving = signal(false);
   error = signal('');
 
-  selectedPatientRef = signal<{ label: string; value: string } | null>(null);
+  selectedPatientRef = signal<PatientOption | null>(null);
 
   scheduleInfo = signal<string | null>(null);
   isHolidayDate = signal(false);
@@ -89,12 +103,17 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
   typeValues = computed(() => this.appointmentTypes().map(t => t.value));
   typeStringify = (value: string): string => value;
 
+  nutritionistValues = computed(() => this.nutritionists().map(n => n.value));
+  nutritionistStringify = (value: string): string =>
+    this.nutritionists().find(n => n.value === value)?.label ?? value;
+
   isFirstConsultation = signal(false);
 
   form = this.fb.group({
     patientId: [''],
     isFirstConsultation: [false],
     newPatientName: [''],
+    nutritionistId: ['', Validators.required],
     typeId: ['', Validators.required],
     date: [null as TuiDay | null, Validators.required],
     time: [null as TuiTime | null, Validators.required],
@@ -104,6 +123,23 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadPatients('');
     this.loadAppointmentTypes();
+    this.loadNutritionists();
+
+    // Default nutritionist: the one passed in (current user for agenda), or
+    // the patient's titular once a patient is picked.
+    this.form.get('nutritionistId')?.setValue(this.context.data?.nutritionistId || this.authService.user()?.id || '');
+
+    // Prefill the patient when the dialog is opened from the patient's cartera.
+    if (this.context.data?.patientId && this.context.data?.patientLabel) {
+      const option: PatientOption = {
+        label: this.context.data.patientLabel,
+        value: this.context.data.patientId
+      };
+      this.patients.update(list =>
+        list.some(p => p.value === option.value) ? list : [option, ...list]
+      );
+      this.form.get('patientId')?.setValue(option.label);
+    }
 
     this.searchSubject
       .pipe(
@@ -112,7 +148,7 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
         switchMap((term) => this.fetchPatients(term))
       )
       .subscribe((users) => {
-        this.patients.set(users);
+        this.patients.set(this.mergePrefilled(users));
         this.patientsLoading.set(false);
       });
 
@@ -160,6 +196,11 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
       const match = this.patients().find(p => p.label === value);
       if (match) {
         this.selectedPatientRef.set(match);
+        // Preselect the patient's titular nutritionist (V45); staff can still
+        // override it to cover a substitution.
+        this.form.get('nutritionistId')?.setValue(
+          match.assignedNutritionistId || this.context.data?.nutritionistId || this.authService.user()?.id || ''
+        );
       }
     });
 
@@ -205,7 +246,7 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
     this.searchSubject.next(value || '');
   }
 
-  private fetchPatients(term: string): Observable<{ label: string; value: string }[]> {
+  private fetchPatients(term: string): Observable<PatientOption[]> {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return of([]);
     return this.userRoleService
@@ -214,14 +255,42 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
         map((users) =>
           (users.content || []).map((u: AppUserDto) => ({
             label: `${u.firstName} ${u.lastName}`,
-            value: u.id
+            value: u.id,
+            assignedNutritionistId: u.assignedNutritionistId ?? null
           }))
         )
       );
   }
 
+  private loadNutritionists() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    this.userRoleService
+      .getUsersByTenantAndType(tenantId, 'STAFF', { size: 100 })
+      .subscribe({
+        next: (res) => {
+          const options = (res.content || [])
+            .map((u) => ({
+              label: `${u.firstName} ${u.lastName}`.trim(),
+              value: u.id
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label));
+          this.nutritionists.set(options);
+        }
+      });
+  }
+
   private loadPatients(term: string) {
-    this.fetchPatients(term).subscribe((users) => this.patients.set(users));
+    this.fetchPatients(term).subscribe((users) => this.patients.set(this.mergePrefilled(users)));
+  }
+
+  /** Keeps the patient passed in via the dialog data visible even if a later search drops it. */
+  private mergePrefilled(users: PatientOption[]): PatientOption[] {
+    const data = this.context.data;
+    if (!data?.patientId || !data?.patientLabel) return users;
+
+    const prefilled: PatientOption = { label: data.patientLabel, value: data.patientId };
+    return users.some(u => u.value === prefilled.value) ? users : [prefilled, ...users];
   }
 
   private loadAppointmentTypes() {
@@ -285,7 +354,11 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
       return;
     }
 
-    const nutritionistId = this.context.data?.nutritionistId || user.id;
+    const nutritionistId = raw.nutritionistId || undefined;
+    if (!nutritionistId) {
+      this.error.set(this.transloco.translate('appointments.nutritionist_required'));
+      return;
+    }
 
     this.saving.set(true);
     this.error.set('');
@@ -317,12 +390,22 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.saving.set(false);
-        if (err.status === 409) {
-          this.error.set(this.transloco.translate('appointments.conflict'));
-        } else {
-          this.error.set(this.transloco.translate('appointments.create_error'));
-        }
+        this.error.set(this.resolveCreateError(err));
       }
     });
+  }
+
+  private resolveCreateError(err: { status?: number; error?: { error?: string } }): string {
+    const code = err?.error?.error;
+    switch (code) {
+      case 'error.appointment_patient_has_active':
+        return this.transloco.translate('appointments.patient_has_active');
+      case 'error.appointment_nutritionist_required':
+        return this.transloco.translate('appointments.nutritionist_required');
+      default:
+        if (err?.status === 409) return this.transloco.translate('appointments.conflict');
+        if (typeof code === 'string' && code.length > 0 && !code.startsWith('error.')) return code;
+        return this.transloco.translate('appointments.create_error');
+    }
   }
 }

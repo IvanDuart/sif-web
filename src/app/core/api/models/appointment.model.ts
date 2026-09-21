@@ -17,7 +17,12 @@ export interface AppointmentDto {
 }
 
 export interface CreateAppointmentRequest {
-  nutritionistId: string;
+  /**
+   * Optional since V45. Staff must still provide it (backend responds 400
+   * `error.appointment_nutritionist_required` when missing); patients omit it
+   * and the backend resolves their titular nutritionist.
+   */
+  nutritionistId?: string;
   patientId?: string;
   patientName?: string;
   startTime: string;

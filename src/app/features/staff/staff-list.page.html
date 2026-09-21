@@ -42,7 +42,7 @@
               </td>
               <td tuiTd class="text-center">
                 <div class="flex items-center gap-1 justify-center">
-                  <a tuiButton appearance="flat" size="s" [routerLink]="['/users', user.id]" [title]="t('common.view')">
+                  <a tuiButton appearance="flat" size="s" [routerLink]="['/staff', user.id]" [title]="t('common.view')">
                     <i class="fa-solid fa-eye"></i>
                   </a>
                   <button *appIfPermission="'MANAGE_USER'" tuiButton appearance="flat" size="s" type="button"
@@ -80,7 +80,7 @@
             </div>
           </dl>
           <div class="flex items-center gap-1 justify-end mt-2 pt-2 border-t border-surface-100 dark:border-surface-800">
-            <a tuiButton appearance="flat" size="s" [routerLink]="['/users', user.id]" [title]="t('common.view')">
+            <a tuiButton appearance="flat" size="s" [routerLink]="['/staff', user.id]" [title]="t('common.view')">
               <i class="fa-solid fa-eye"></i>
             </a>
             <button *appIfPermission="'MANAGE_USER'" tuiButton appearance="flat" size="s" type="button"

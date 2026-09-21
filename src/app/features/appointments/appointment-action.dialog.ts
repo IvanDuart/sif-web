@@ -163,13 +163,23 @@ export class AppointmentActionDialog implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
-        if (err.status === 409) {
-          this.error.set(this.transloco.translate('appointments.conflict'));
-        } else {
-          this.error.set(this.transloco.translate('appointments.reschedule_error'));
-        }
+        this.error.set(this.resolveRescheduleError(err));
       }
     });
+  }
+
+  private resolveRescheduleError(err: { status?: number; error?: { error?: string } }): string {
+    const code = err?.error?.error;
+    switch (code) {
+      case 'error.appointment_reschedule_requires_start_time':
+        return this.transloco.translate('appointments.reschedule_requires_start_time');
+      case 'error.appointment_patient_has_active':
+        return this.transloco.translate('appointments.patient_has_active');
+      default:
+        if (err?.status === 409) return this.transloco.translate('appointments.conflict');
+        if (typeof code === 'string' && code.length > 0 && !code.startsWith('error.')) return code;
+        return this.transloco.translate('appointments.reschedule_error');
+    }
   }
 
   approveProposal() {

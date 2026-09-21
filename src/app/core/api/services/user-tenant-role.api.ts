@@ -72,6 +72,17 @@ export class UserTenantRoleService {
     return this.http.get<AppUserDto>(`${this.baseUrl}/tenant/${tenantId}/users/${userId}`);
   }
 
+  /**
+   * Assign or change a patient's titular nutritionist (V45).
+   * Pass `nutritionistId = null` to unassign.
+   */
+  assignNutritionist(tenantId: string, userId: string, nutritionistId: string | null): Observable<AppUserDto> {
+    return this.http.put<AppUserDto>(
+      `${this.baseUrl}/tenant/${tenantId}/users/${userId}/assigned-nutritionist`,
+      { nutritionistId }
+    );
+  }
+
   updateUser(tenantId: string, userId: string, request: UpdateUserRequest): Observable<AppUserDto> {
     return this.http.put<AppUserDto>(`${this.baseUrl}/tenant/${tenantId}/users/${userId}`, request);
   }

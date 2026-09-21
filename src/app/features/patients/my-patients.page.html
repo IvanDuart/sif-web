@@ -1,0 +1,186 @@
+<div class="p-4" *transloco="let t">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-display font-bold tracking-tight text-surface-900 dark:text-surface-0 text-balance">{{ t('patients.my_title') }}</h1>
+    <p class="text-sm text-surface-500 mt-1 max-w-[75ch]">{{ t('patients.my_subtitle') }}</p>
+  </div>
+
+  <!-- Summary -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="data-card flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 flex items-center justify-center">
+        <i class="fa-solid fa-user-injured"></i>
+      </div>
+      <div>
+        <p class="text-2xl font-bold font-mono leading-none">{{ totalCount() }}</p>
+        <p class="text-xs text-surface-500 mt-1">{{ t('patients.my_total') }}</p>
+      </div>
+    </div>
+    <div class="data-card flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
+        <i class="fa-solid fa-calendar-check"></i>
+      </div>
+      <div>
+        <p class="text-2xl font-bold font-mono leading-none">{{ upcomingCount() }}</p>
+        <p class="text-xs text-surface-500 mt-1">{{ t('patients.my_upcoming') }}</p>
+      </div>
+    </div>
+    <div class="data-card flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center justify-center">
+        <i class="fa-solid fa-arrow-rotate-right"></i>
+      </div>
+      <div>
+        <p class="text-2xl font-bold font-mono leading-none">{{ reactivationCount() }}</p>
+        <p class="text-xs text-surface-500 mt-1">{{ t('patients.my_reactivate') }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="data-card">
+    <div class="flex items-center justify-end gap-4 p-2 sm:p-4 pb-0">
+      <tui-textfield class="w-80 max-w-full" iconStart="@tui.search">
+        <input tuiInput type="search" [formControl]="searchControl" [placeholder]="t('common.search')" />
+      </tui-textfield>
+    </div>
+
+    <boneyard-skeleton name="patients-list" [loading]="loading()">
+      @if (patients().length === 0 && !loading()) {
+        <app-empty-state
+          icon="fa-solid fa-user-doctor"
+          [title]="t('patients.my_empty_title')"
+          [description]="t('patients.my_empty')">
+        </app-empty-state>
+      } @else if (filteredPatients().length === 0) {
+        <app-empty-state
+          icon="fa-solid fa-magnifying-glass"
+          [title]="t('common.no_results')"
+          [description]="t('patients.my_no_results')">
+        </app-empty-state>
+      } @else {
+        <div class="hidden md:block table-wrapper">
+          <table tuiTable class="w-full">
+            <thead>
+              <tr>
+                <th tuiTh scope="col">{{ t('appointments.patient') }}</th>
+                <th tuiTh scope="col">{{ t('patients.my_last_appointment') }}</th>
+                <th tuiTh scope="col">{{ t('patients.my_next_appointment') }}</th>
+                <th tuiTh scope="col">{{ t('common.status') }}</th>
+                <th tuiTh scope="col" class="text-center" style="width: 16rem;">{{ t('common.actions') }}</th>
+              </tr>
+            </thead>
+            <tbody tuiTbody>
+              @for (patient of filteredPatients(); track patient.patientId) {
+                <tr tuiTr class="table-row">
+                  <td tuiTd>
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-full bg-surface-200 dark:bg-surface-600 flex items-center justify-center text-xs font-bold text-primary-600 dark:text-primary-300 shrink-0">
+                        {{ getInitials(patient) }}
+                      </div>
+                      <div class="min-w-0">
+                        <a class="font-medium text-surface-900 dark:text-surface-0 hover:text-primary-600 transition-colors"
+                          [routerLink]="['/users', patient.patientId]">
+                          {{ patient.firstName }} {{ patient.lastName }}
+                        </a>
+                        <p class="text-xs text-surface-500 truncate">{{ patient.email }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td tuiTd>
+                    <span class="text-sm font-mono">
+                      {{ patient.lastAppointment ? formatInstantWithTime(patient.lastAppointment) : t('patients.my_no_appointments') }}
+                    </span>
+                  </td>
+                  <td tuiTd>
+                    <span class="text-sm font-mono"
+                      [class.text-surface-400]="!patient.nextAppointment">
+                      {{ patient.nextAppointment ? formatInstantWithTime(patient.nextAppointment) : '—' }}
+                    </span>
+                  </td>
+                  <td tuiTd>
+                    @if (patient.nextAppointment) {
+                      <span tuiBadge appearance="positive">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        {{ t('patients.my_status_upcoming') }}
+                      </span>
+                    } @else if (needsFollowUp(patient)) {
+                      <span tuiBadge appearance="warning">
+                        <i class="fa-solid fa-arrow-rotate-right"></i>
+                        {{ t('patients.my_status_reactivate') }}
+                      </span>
+                    } @else {
+                      <span tuiBadge appearance="neutral">{{ t('patients.my_status_no_upcoming') }}</span>
+                    }
+                  </td>
+                  <td tuiTd class="text-center">
+                    <div class="flex items-center gap-1 justify-center">
+                      <button tuiButton appearance="flat" size="s" type="button"
+                        (click)="reassign(patient)" [title]="t('patients.my_reassign')">
+                        <i class="fa-solid fa-user-pen"></i>
+                      </button>
+                      <button tuiButton appearance="flat" size="s" type="button"
+                        (click)="newAppointment(patient)"
+                        [title]="needsFollowUp(patient) ? t('patients.my_reactivate') : t('appointments.new_appointment')">
+                        <i class="fa-solid" [class.fa-arrow-rotate-right]="needsFollowUp(patient)" [class.fa-plus]="!needsFollowUp(patient)"></i>
+                        {{ needsFollowUp(patient) ? t('patients.my_reactivate') : t('patients.my_new_appointment') }}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="md:hidden space-y-3 p-2">
+          @for (patient of filteredPatients(); track patient.patientId) {
+            <div class="rounded-lg border border-surface-200 dark:border-surface-700 p-3">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-9 h-9 rounded-full bg-surface-200 dark:bg-surface-600 flex items-center justify-center text-xs font-bold text-primary-600 dark:text-primary-300 shrink-0">
+                    {{ getInitials(patient) }}
+                  </div>
+                  <div class="min-w-0">
+                    <a class="font-medium text-surface-900 dark:text-surface-0"
+                      [routerLink]="['/users', patient.patientId]">
+                      {{ patient.firstName }} {{ patient.lastName }}
+                    </a>
+                    <p class="text-xs text-surface-500 truncate">{{ patient.email }}</p>
+                  </div>
+                </div>
+                @if (patient.nextAppointment) {
+                  <span tuiBadge appearance="positive">{{ t('patients.my_status_upcoming') }}</span>
+                } @else if (needsFollowUp(patient)) {
+                  <span tuiBadge appearance="warning">{{ t('patients.my_status_reactivate') }}</span>
+                } @else {
+                  <span tuiBadge appearance="neutral">{{ t('patients.my_status_no_upcoming') }}</span>
+                }
+              </div>
+              <dl class="mt-2 text-sm space-y-1">
+                <div class="flex justify-between gap-2">
+                  <dt class="text-surface-500">{{ t('patients.my_last_appointment') }}</dt>
+                  <dd class="font-mono">
+                    {{ patient.lastAppointment ? formatInstantWithTime(patient.lastAppointment) : t('patients.my_no_appointments') }}
+                  </dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt class="text-surface-500">{{ t('patients.my_next_appointment') }}</dt>
+                  <dd class="font-mono">{{ patient.nextAppointment ? formatInstantWithTime(patient.nextAppointment) : '—' }}</dd>
+                </div>
+              </dl>
+              <div class="flex items-center gap-2 justify-end mt-2 pt-2 border-t border-surface-100 dark:border-surface-800">
+                <button tuiButton appearance="flat" size="s" type="button" (click)="reassign(patient)">
+                  <i class="fa-solid fa-user-pen"></i>
+                  {{ t('patients.my_reassign') }}
+                </button>
+                <button tuiButton appearance="secondary" size="s" type="button" (click)="newAppointment(patient)">
+                  <i class="fa-solid" [class.fa-arrow-rotate-right]="needsFollowUp(patient)" [class.fa-plus]="!needsFollowUp(patient)"></i>
+                  {{ needsFollowUp(patient) ? t('patients.my_reactivate') : t('patients.my_new_appointment') }}
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </boneyard-skeleton>
+  </div>
+</div>

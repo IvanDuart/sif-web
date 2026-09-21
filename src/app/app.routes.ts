@@ -28,9 +28,18 @@ export const routes: Routes = [
         path: 'patients',
         loadComponent: () => import('./features/patients/patients-list.page').then(m => m.default)
       },
+      // TODO(V45): "Mis Pacientes" oculto temporalmente para todos los roles.
+      // {
+      //   path: 'my-patients',
+      //   loadComponent: () => import('./features/patients/my-patients.page').then(m => m.default)
+      // },
       {
         path: 'staff',
         loadComponent: () => import('./features/staff/staff-list.page').then(m => m.default)
+      },
+      {
+        path: 'staff/:id',
+        loadComponent: () => import('./features/staff/staff-detail.page').then(m => m.default)
       },
       {
         path: 'users/:id',
