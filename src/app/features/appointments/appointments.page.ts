@@ -15,7 +15,7 @@ import { AppointmentService } from '../../core/api/services/appointment.api';
 import { AppointmentDto, AppointmentStatus, UpdateAppointmentStatusRequest } from '../../core/api/models/appointment.model';
 import { AppointmentFormDialog } from './appointment-form.dialog';
 import { AppointmentActionDialog } from './appointment-action.dialog';
-import { formatInstant } from '../../shared/utils/date';
+import { formatInstant, isPastInstant } from '../../shared/utils/date';
 import { statusColor, HOLIDAY_COLOR, CLOSED_COLOR, ACTIVE_HOURS_COLOR } from '../../shared/utils/status-colors';
 import { hexToRgba } from '../../shared/utils/chart-config';
 import { ModalService, NotificationService } from '../../core/ui';
@@ -59,6 +59,7 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
   weekEnd = '';
 
   protected readonly formatInstant = formatInstant;
+  protected readonly isPastInstant = isPastInstant;
   protected readonly statusColor = statusColor;
   protected readonly holidayColor = HOLIDAY_COLOR;
   protected readonly closedColor = CLOSED_COLOR;

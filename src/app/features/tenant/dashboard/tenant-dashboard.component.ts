@@ -8,7 +8,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { AppointmentService } from '../../../core/api/services/appointment.api';
 import { AppointmentDto, AppointmentStatus, UpdateAppointmentStatusRequest } from '../../../core/api/models/appointment.model';
 import { AppointmentFormDialog } from '../../appointments/appointment-form.dialog';
-import { formatInstant } from '../../../shared/utils/date';
+import { formatInstant, isPastInstant } from '../../../shared/utils/date';
 import { ModalService, NotificationService, ConfirmService } from '../../../core/ui';
 import { TuiButton } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
@@ -64,6 +64,7 @@ export class TenantDashboardComponent implements OnInit {
   todayEnd = '';
 
   protected readonly formatInstant = formatInstant;
+  protected readonly isPastInstant = isPastInstant;
 
   ngOnInit() {
     this.computeDateRanges();

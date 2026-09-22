@@ -14,6 +14,7 @@ import { AppointmentDto } from '../../core/api/models/appointment.model';
 import { NotificationService, ConfirmService } from '../../core/ui';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { ScheduleAvailabilityService } from '../../core/api/services/schedule-availability.service';
+import { isPastInstant } from '../../shared/utils/date';
 
 @Component({
   selector: 'app-appointment-action-dialog',
@@ -37,6 +38,10 @@ export class AppointmentActionDialog implements OnInit {
   readonly context = injectContext<TuiDialogContext<boolean, { appointment: AppointmentDto }>>();
 
   appointment: AppointmentDto = this.context.data.appointment;
+
+  get isPastAppointment(): boolean {
+    return isPastInstant(this.appointment?.startTime);
+  }
 
   appointmentTypes = signal<{ label: string; value: string }[]>([]);
   saving = signal(false);

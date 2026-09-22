@@ -31,6 +31,12 @@ export function nowUtcIso(): string {
   return new Date().toISOString();
 }
 
+export function isPastInstant(isoString: string | null | undefined): boolean {
+  if (!isoString) return false;
+  const time = new Date(isoString).getTime();
+  return !Number.isNaN(time) && time < Date.now();
+}
+
 export function toLocalISOString(date: Date): string {
   const tzOffset = date.getTimezoneOffset() * 60000;
   return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);

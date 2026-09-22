@@ -115,26 +115,28 @@
                     <span tuiBadge appearance="info">{{ getStatusLabel(appt.status) }}</span>
                     <div class="flex gap-1">
                       @if (appt.status === 'SCHEDULED') {
-                        <button tuiIconButton appearance="flat" size="s"
-                          [title]="t('appointments.attended')"
-                          [disabled]="updatingStatus() === appt.id"
-                          (click)="$event.stopPropagation(); markAttended(appt)">
-                          @if (updatingStatus() === appt.id) {
-                            <i class="fa-solid fa-spinner fa-spin"></i>
-                          } @else {
-                            <i class="fa-solid fa-check"></i>
-                          }
-                        </button>
-                        <button tuiIconButton appearance="flat" size="s"
-                          [title]="t('appointments.no_show')"
-                          [disabled]="updatingStatus() === appt.id"
-                          (click)="$event.stopPropagation(); markNoShow(appt)">
-                          @if (updatingStatus() === appt.id) {
-                            <i class="fa-solid fa-spinner fa-spin"></i>
-                          } @else {
-                            <i class="fa-solid fa-user-slash"></i>
-                          }
-                        </button>
+                        @if (isPastInstant(appt.startTime)) {
+                          <button tuiIconButton appearance="flat" size="s"
+                            [title]="t('appointments.attended')"
+                            [disabled]="updatingStatus() === appt.id"
+                            (click)="$event.stopPropagation(); markAttended(appt)">
+                            @if (updatingStatus() === appt.id) {
+                              <i class="fa-solid fa-spinner fa-spin"></i>
+                            } @else {
+                              <i class="fa-solid fa-check"></i>
+                            }
+                          </button>
+                          <button tuiIconButton appearance="flat" size="s"
+                            [title]="t('appointments.no_show')"
+                            [disabled]="updatingStatus() === appt.id"
+                            (click)="$event.stopPropagation(); markNoShow(appt)">
+                            @if (updatingStatus() === appt.id) {
+                              <i class="fa-solid fa-spinner fa-spin"></i>
+                            } @else {
+                              <i class="fa-solid fa-user-slash"></i>
+                            }
+                          </button>
+                        }
                         <button tuiIconButton appearance="flat" size="s"
                           [title]="t('appointments.cancel')"
                           [disabled]="updatingStatus() === appt.id"
