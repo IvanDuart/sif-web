@@ -1,9 +1,9 @@
-import { Component, inject, OnInit, signal, OnDestroy } from '@angular/core';
+import { Component, computed, inject, OnInit, signal, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subject, Observable, of, debounceTime, distinctUntilChanged, switchMap, map } from 'rxjs';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import {TuiButton, TuiDialogContext, TuiTextfield, TuiDropdown, TuiInput} from '@taiga-ui/core';
-import {TuiComboBox, TuiDataListWrapper, TuiChevron, TuiTextarea} from '@taiga-ui/kit';
+import {TuiComboBox, TuiDataListWrapper, TuiChevron, TuiTextarea, TuiFiles} from '@taiga-ui/kit';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { MenuUploadService } from '../../core/api/services/menu-upload.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
@@ -15,7 +15,7 @@ import { Menu } from '../../core/api/models/menu.model';
 @Component({
   selector: 'app-menu-upload',
   standalone: true,
-  imports: [FormsModule, TuiButton, TranslocoPipe, TuiTextarea, TuiTextfield, TuiDropdown, TuiComboBox, TuiDataListWrapper, TuiChevron, TuiInput],
+  imports: [FormsModule, TuiButton, TranslocoPipe, TuiTextarea, TuiTextfield, TuiDropdown, TuiComboBox, TuiDataListWrapper, TuiChevron, TuiInput, ...TuiFiles],
   templateUrl: './menu-upload.dialog.html'
 })
 export class MenuUploadDialog implements OnInit, OnDestroy {
@@ -31,10 +31,21 @@ export class MenuUploadDialog implements OnInit, OnDestroy {
   loadingUsers = signal(false);
   hideUserPicker = signal(false);
   selectedUserId: (AppUserDto & { fullName: string }) | null = null;
-  selectedFile: File | null = null;
+  selectedFile = signal<File | null>(null);
   uploading = signal(false);
   name = signal('');
   description = signal('');
+
+  hasFile = computed(() => this.selectedFile() !== null);
+
+  private readonly MAX_FILE_SIZE = 10 * 1024 * 1024;
+  private readonly VALID_FILE_TYPES = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
 
   userStringify = (user: AppUserDto & { fullName: string } | null): string => user?.fullName || '';
 
@@ -92,11 +103,33 @@ export class MenuUploadDialog implements OnInit, OnDestroy {
     });
   }
 
-  onFileChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.selectedFile = input.files[0];
+  private validateFile(file: File): string | null {
+    if (file.size > this.MAX_FILE_SIZE) {
+      return 'Archivo demasiado grande (máx 10MB)';
     }
+    if (!this.VALID_FILE_TYPES.includes(file.type)) {
+      return 'Tipo de archivo no soportado. Usá PDF, JPG, PNG, DOC o DOCX.';
+    }
+    return null;
+  }
+
+  onFileSelected(file: File | null) {
+    if (!file) {
+      this.selectedFile.set(null);
+      return;
+    }
+
+    const validationError = this.validateFile(file);
+    if (validationError) {
+      this.notify.warning(validationError);
+      return;
+    }
+
+    this.selectedFile.set(file);
+  }
+
+  removeFile() {
+    this.selectedFile.set(null);
   }
 
   upload() {
@@ -106,10 +139,11 @@ export class MenuUploadDialog implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.selectedFile) return;
+    const file = this.selectedFile();
+    if (!file) return;
 
     this.uploading.set(true);
-    this.menuUploadService.uploadMenu(tenantId, this.selectedUserId.id, this.selectedFile, this.name(), this.description()).subscribe({
+    this.menuUploadService.uploadMenu(tenantId, this.selectedUserId.id, file, this.name(), this.description()).subscribe({
       next: (createdMenu) => {
         this.notify.success('Menú extraído y creado correctamente');
         this.context.$implicit.next(createdMenu);

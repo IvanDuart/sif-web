@@ -27,19 +27,43 @@
   </tui-textfield>
 
   @if (selectedUserId) {
-  <div class="field flex flex-col gap-1.5 mt-2">
-    <p class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.document_label' | transloco }}</p>
-    <input
-      type="file"
-      accept="image/*,application/pdf"
-      (change)="onFileChange($event)"
-      class="block w-full text-sm text-surface-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:file:bg-brand-tint-20 dark:file:text-primary-300" />
+  <div class="flex flex-col gap-2 mt-2">
+    <p class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ 'diets.document_label' | transloco }}</p>
+    <label tuiInputFiles class="w-full">
+      <input tuiInputFiles accept="image/*,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" [ngModel]="null" (ngModelChange)="onFileSelected($event)" [disabled]="uploading()" />
+      <ng-template let-dragged>
+        @if (dragged) {
+          <div class="border-2 border-primary-500 border-dashed rounded-lg p-6 text-center bg-primary-50 dark:bg-brand-tint-20">
+            <i class="fa-solid fa-cloud-arrow-down text-3xl text-primary-500 mb-2" aria-hidden="true"></i>
+            <p class="text-sm text-primary-600 dark:text-primary-400 font-medium">
+              {{ 'templates.upload_drop_here' | transloco }}
+            </p>
+          </div>
+        } @else if (selectedFile(); as file) {
+          <div class="relative group cursor-pointer">
+            <div class="w-full py-6 rounded-lg border border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-brand-tint-20 flex flex-col items-center justify-center gap-2">
+              <i class="fa-solid fa-file text-2xl text-primary-500" aria-hidden="true"></i>
+              <span class="text-sm font-medium text-primary-700 dark:text-primary-300 px-3 text-center truncate max-w-full">{{ file.name }}</span>
+              <span class="text-xs text-primary-500">({{ (file.size / 1024).toFixed(1) }} KB)</span>
+            </div>
+            <button type="button" class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600 transition-colors" (click)="removeFile(); $event.stopPropagation()" [title]="'common.remove' | transloco">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+          </div>
+        } @else {
+          <div class="border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg p-6 text-center hover:border-primary-400 dark:hover:border-primary-500 transition-colors cursor-pointer">
+            <i class="fa-solid fa-cloud-arrow-up text-2xl text-surface-300 dark:text-surface-500 mb-2" aria-hidden="true"></i>
+            <p class="text-sm text-surface-500">{{ 'templates.upload_hint' | transloco }}</p>
+          </div>
+        }
+      </ng-template>
+    </label>
   </div>
   }
 
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
     <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
-    @if (selectedUserId && selectedFile) {
+    @if (selectedUserId && hasFile()) {
       <button type="button" tuiButton size="m" (click)="upload()" [class.loading]="uploading()">{{ 'diets.process_and_create' | transloco }}</button>
     }
   </div>
