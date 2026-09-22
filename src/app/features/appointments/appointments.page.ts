@@ -279,26 +279,22 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
 
   handleEventClick(info: EventClickArg | { event: { extendedProps: Record<string, unknown>; id?: string; start?: Date } }) {
     const props = info.event.extendedProps;
-    const eventStart = info.event.start;
-    const isFuture = eventStart ? eventStart > new Date() : false;
+    const appointment = info.event.id ? this.findAppointment(info.event.id as string) : undefined;
 
-    if ((props['status'] === 'SCHEDULED' || props['status'] === 'PROPOSED') && isFuture) {
-      const appointment = this.findAppointment(info.event.id as string);
-      if (appointment) {
-        this.modal.open<boolean, { appointment: AppointmentDto }>(
-          AppointmentActionDialog,
-          {
-            label: `${appointment.patientName ?? this.transloco.translate('appointments.no_patient')} — ${this.getStatusLabel(appointment.status)}`,
-            size: 'm',
-            data: { appointment }
-          }
-        ).subscribe((result) => {
-          if (result) {
-            this.loadTodayAppointments();
-            this.loadWeekAppointments();
-          }
-        });
-      }
+    if ((props['status'] === 'SCHEDULED' || props['status'] === 'PROPOSED') && appointment) {
+      this.modal.open<boolean, { appointment: AppointmentDto }>(
+        AppointmentActionDialog,
+        {
+          label: `${appointment.patientName ?? this.transloco.translate('appointments.no_patient')} — ${this.getStatusLabel(appointment.status)}`,
+          size: 'm',
+          data: { appointment }
+        }
+      ).subscribe((result) => {
+        if (result) {
+          this.loadTodayAppointments();
+          this.loadWeekAppointments();
+        }
+      });
     } else {
       const patientName = (props['patientName'] as string) || this.transloco.translate('appointments.no_patient');
       this.notify.info(

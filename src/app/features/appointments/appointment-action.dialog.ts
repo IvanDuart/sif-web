@@ -241,6 +241,38 @@ export class AppointmentActionDialog implements OnInit {
     });
   }
 
+  markCompleted() {
+    this.updateStatus('COMPLETED');
+  }
+
+  markNoShow() {
+    this.updateStatus('NO_SHOW');
+  }
+
+  private updateStatus(status: 'COMPLETED' | 'NO_SHOW') {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+
+    this.saving.set(true);
+    this.appointmentService.updateStatus(tenantId, this.appointment.id, { status }).subscribe({
+      next: () => {
+        this.notify.success(
+          this.transloco.translate('appointments.update_success'),
+          this.transloco.translate('common.success')
+        );
+        this.context.$implicit.next(true);
+        this.context.$implicit.complete();
+      },
+      error: () => {
+        this.saving.set(false);
+        this.notify.error(
+          this.transloco.translate('appointments.update_error'),
+          this.transloco.translate('common.error')
+        );
+      }
+    });
+  }
+
   formatDateTime(isoString: string): string {
     if (!isoString) return '—';
     const date = new Date(isoString);
