@@ -90,22 +90,19 @@
       <p class="text-red-500 text-sm mt-2">{{ error() }}</p>
     }
 
-    <div class="flex justify-between items-center mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <div class="flex flex-col sm:flex-row sm:flex-wrap justify-between items-stretch sm:items-center gap-4 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
       @if (canManage()) {
         <button type="button" tuiButton appearance="destructive" size="m" [disabled]="saving()" (click)="confirmCancel()">
           @if (saving()) {
-            <i class="fa-solid fa-spinner fa-spin"></i>
+            <i class="fa-solid fa-spinner fa-spin mr-1"></i>
           } @else {
-            <i class="fa-solid fa-ban"></i>
+            <i class="fa-solid fa-ban mr-1"></i>
           }
           {{ t('appointments.cancel') }}
         </button>
-      } @else {
-        <div></div>
       }
-      <div class="flex gap-2">
-        <button tuiButton appearance="secondary" size="m" type="button" (click)="context.$implicit.complete()">{{ t('common.cancel') }}</button>
 
+      <div class="flex flex-wrap justify-end gap-2 sm:ml-auto">
         @if (appointment.status === 'PROPOSED' && canManage()) {
           <button type="button" tuiButton appearance="secondary" size="m" [disabled]="saving()" (click)="approveProposal()">
             @if (saving()) {

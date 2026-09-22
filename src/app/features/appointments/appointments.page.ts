@@ -286,7 +286,7 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
         AppointmentActionDialog,
         {
           label: `${appointment.patientName ?? this.transloco.translate('appointments.no_patient')} — ${this.getStatusLabel(appointment.status)}`,
-          size: 'm',
+          size: 'l',
           data: { appointment }
         }
       ).subscribe((result) => {

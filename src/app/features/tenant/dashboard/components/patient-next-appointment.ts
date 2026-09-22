@@ -52,7 +52,7 @@ export class PatientNextAppointment implements OnInit {
   reschedule(appt: AppointmentDto) {
     this.modal.open<boolean, { appointment: AppointmentDto }>(
       AppointmentActionDialog,
-      {       label: this.transloco.translate('appointments.reschedule_title'), size: 'm', data: { appointment: appt } }
+      {       label: this.transloco.translate('appointments.reschedule_title'), size: 'l', data: { appointment: appt } }
     ).subscribe((result) => {
       if (result) {
         this.loadNextAppointment();
