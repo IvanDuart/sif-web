@@ -570,11 +570,11 @@
 .content-viewport {
   min-width: 0;
   width: 100%;
-  /* Los prototipos (metricas, pacientes, agenda, planes) usan 1500px; solo
-     el dashboard se quedaba en 1360px. Se toma el mayor para aprovechar el
-     ancho en pantallas grandes. En móvil se anula más abajo. */
+  /* Los prototipos usan `max-width: 1500px` SIN `margin-inline: auto`: el
+     bloque queda pegado al raíl y todo el espacio sobrante cae a la derecha.
+     Centrarlo (como se hacía con 1360px) dejaba el contenido "encapsulado".
+     En móvil se anula más abajo. */
   max-width: 1500px;
-  margin-inline: auto;
   padding: 28px 40px 64px;
 }
 

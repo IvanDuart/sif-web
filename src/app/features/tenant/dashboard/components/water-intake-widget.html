@@ -1,132 +1,127 @@
-<div *transloco="let t" class="data-card border border-surface-200 dark:border-surface-700 flex flex-col h-full">
-  <div class="flex items-center justify-between mb-6">
-    <div class="flex items-center gap-2">
-      <i class="fa-solid fa-droplet text-blue-500 text-xl"></i>
-      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0">
-        {{ t('water_intake.title', { defaultValue: 'Consumo de Agua' }) }}
-      </h3>
+<div *transloco="let t" class="data-card">
+  <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+        {{ t('water_intake.title') }}
+      </h2>
+      <p class="mt-1 text-[13px] text-surface-400">{{ t('water_intake.goal_desc') }}</p>
     </div>
-    <span class="text-xs text-surface-500 font-medium">
-      {{ t('water_intake.goal_desc', { defaultValue: 'Objetivo: 2L al día' }) }}
-    </span>
+    @if (isGoalReached()) {
+      <span tuiBadge appearance="positive">
+        <i class="fa-solid fa-circle-check mr-1" aria-hidden="true"></i>
+        {{ t('water_intake.goal_reached') }}
+      </span>
+    } @else {
+      <span tuiBadge appearance="info">
+        {{ t('water_intake.remaining', { amount: remainingAmount() }) }}
+      </span>
+    }
   </div>
 
   @if (loading()) {
-    <div class="flex-1 flex items-center justify-center py-8">
-      <i class="fa-solid fa-spinner fa-spin text-primary-500 text-2xl"></i>
+    <div class="flex items-center justify-center py-10">
+      <i class="fa-solid fa-spinner fa-spin text-2xl text-primary-500 dark:text-primary-300" aria-hidden="true"></i>
     </div>
   } @else {
-    <!-- Main: Today's Intake -->
-    <div class="flex flex-col items-center justify-center mb-6 py-2">
-      <div class="relative w-36 h-36 flex items-center justify-center">
-        <!-- Semi-circle or progress background -->
-        <svg class="w-full h-full transform -rotate-90">
-          <circle
-            cx="72"
-            cy="72"
-            r="64"
-            stroke-width="10"
-            stroke="currentColor"
-            class="text-surface-100 dark:text-surface-800"
-            fill="transparent"
-          />
-          <circle
-            cx="72"
-            cy="72"
-            r="64"
-            stroke-width="10"
-            stroke="currentColor"
-            class="text-primary-500 transition-[stroke-dashoffset] duration-500"
-            fill="transparent"
-            [attr.stroke-dasharray]="circumference"
-            [attr.stroke-dashoffset]="strokeDashoffset"
-          />
-        </svg>
-        <div class="absolute flex flex-col items-center justify-center text-center">
-          <span class="text-3xl font-extrabold text-surface-900 dark:text-surface-0 font-mono">
-            {{ todayAmount() }}
-          </span>
-          <span class="text-xs font-semibold text-surface-500 font-mono">
-            ml / 2000 ml
-          </span>
-        </div>
-      </div>
-
-      <!-- Goal feedback badge -->
-      @if (isGoalReached()) {
-        <span class="mt-4 px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1.5">
-          <i class="fa-solid fa-circle-check"></i>
-          {{ t('water_intake.goal_reached', { defaultValue: '¡Meta alcanzada!' }) }}
-        </span>
-      } @else {
-        <span class="mt-4 px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
-          {{ t('water_intake.remaining', { defaultValue: 'Restan {amount} ml', amount: remainingAmount() }) }}
-        </span>
-      }
-    </div>
-
-    <!-- Interactive Logging: Patient Only -->
-    @if (canManage()) {
-      <div class="flex flex-col gap-3 mb-6">
-        <div class="flex gap-2">
-          <button tuiButton appearance="outline" size="s" (click)="addWater(250)" class="flex-1">
-            <i class="fa-solid fa-plus text-xs"></i> 250ml
-          </button>
-          <button tuiButton appearance="outline" size="s" (click)="addWater(500)" class="flex-1">
-            <i class="fa-solid fa-plus text-xs"></i> 500ml
-          </button>
-          <button tuiButton appearance="outline" size="s" (click)="addWater(1000)" class="flex-1">
-            <i class="fa-solid fa-plus text-xs"></i> 1L
-          </button>
-        </div>
-
-        <div class="flex gap-2 items-center">
-          <tui-textfield class="flex-1" tuiTextfieldSize="s">
-            <input
-              tuiInput
-              type="number"
-              [placeholder]="t('water_intake.custom_placeholder')"
-              [(ngModel)]="customAmount"
-              min="0"
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr]">
+      <!-- Anillo de hoy -->
+      <div class="flex flex-col items-center gap-3">
+        <div class="relative flex h-36 w-36 items-center justify-center">
+          <svg class="h-full w-full -rotate-90">
+            <circle
+              cx="72"
+              cy="72"
+              r="64"
+              stroke-width="10"
+              stroke="currentColor"
+              class="text-surface-100 dark:text-surface-800"
+              fill="transparent"
             />
-          </tui-textfield>
-          <button tuiButton size="s" (click)="logCustomWater()" class="text-sm font-medium">
-            {{ t('common.add', { defaultValue: 'Añadir' }) }}
-          </button>
+            <circle
+              cx="72"
+              cy="72"
+              r="64"
+              stroke-width="10"
+              stroke="currentColor"
+              class="text-brand-primary transition-[stroke-dashoffset] duration-500"
+              fill="transparent"
+              [attr.stroke-dasharray]="circumference"
+              [attr.stroke-dashoffset]="strokeDashoffset"
+            />
+          </svg>
+          <div class="absolute flex flex-col items-center justify-center text-center">
+            <span class="font-display text-3xl font-bold tabular-nums text-surface-900 dark:text-surface-0">{{ todayAmount() }}</span>
+            <span class="text-xs font-medium tabular-nums text-surface-400">ml / 2000 ml</span>
+          </div>
         </div>
-      </div>
-    }
 
-    <!-- Weekly History -->
-    <div class="flex-1 flex flex-col justify-end">
-      <h4 class="text-xs font-bold text-surface-500 uppercase tracking-wider mb-2">
-        {{ t('water_intake.history_title', { defaultValue: 'Últimos 7 días' }) }}
-      </h4>
-      <div class="space-y-2 overflow-y-auto max-h-[220px]">
-        @for (item of history(); track item.recordDate) {
-          <div class="flex items-center justify-between p-2 rounded-lg bg-surface-50 dark:bg-surface-800 text-sm">
-            <div class="flex items-center gap-2">
-              <i class="fa-solid fa-circle text-xs" [class.text-green-500]="item.isGoalReached" [class.text-blue-300]="!item.isGoalReached"></i>
-              <span class="font-medium text-surface-700 dark:text-surface-300">
-                {{ formatDate(item.recordDate) }}
-              </span>
+        @if (canManage()) {
+          <div class="flex w-full flex-col gap-2">
+            <div class="flex gap-2">
+              <button tuiButton appearance="secondary" size="s" (click)="addWater(250)" class="flex-1">+ 250</button>
+              <button tuiButton appearance="secondary" size="s" (click)="addWater(500)" class="flex-1">+ 500</button>
+              <button tuiButton appearance="secondary" size="s" (click)="addWater(1000)" class="flex-1">+ 1 L</button>
             </div>
-            <div class="flex items-center gap-3">
-              <span class="font-semibold text-surface-900 dark:text-surface-0 font-mono">
-                {{ item.amountMl }} ml
-              </span>
-              @if (canManage()) {
-                <button tuiIconButton appearance="flat" size="xs" type="button" class="text-err" (click)="deleteRecord(item)" [title]="t('common.delete')">
-                  <i class="fa-solid fa-trash-can"></i>
-                </button>
-              }
+            <div class="flex items-center gap-2">
+              <tui-textfield class="flex-1" tuiTextfieldSize="s">
+                <input
+                  tuiInput
+                  type="number"
+                  [placeholder]="t('water_intake.custom_placeholder')"
+                  [(ngModel)]="customAmount"
+                  min="0"
+                />
+              </tui-textfield>
+              <button tuiButton size="s" (click)="logCustomWater()">{{ t('common.add') }}</button>
             </div>
           </div>
-        } @empty {
-          <p class="text-xs text-surface-400 text-center py-4">
-            {{ t('water_intake.no_history', { defaultValue: 'Sin registros esta semana.' }) }}
-          </p>
         }
+      </div>
+
+      <!-- Historial -->
+      <div>
+        <h3 class="mb-2 text-xs font-medium uppercase tracking-wider text-surface-400">
+          {{ t('water_intake.history_title') }}
+        </h3>
+        <div class="overflow-hidden rounded-md border border-line">
+          @for (item of history(); track item.recordDate) {
+            <div class="flex items-center gap-3 border-b border-line bg-surface px-3.5 py-2.5 last:border-b-0">
+              <div class="w-24 shrink-0 text-[13px]">
+                {{ formatDate(item.recordDate) }}
+                <span class="block text-xs tabular-nums text-surface-400">{{ item.recordDate | date:'d MMM' }}</span>
+              </div>
+              <div class="relative h-4 flex-1 overflow-hidden rounded-sm bg-sunken">
+                <span
+                  class="absolute inset-y-0 left-0 rounded-sm"
+                  [class.bg-primary-500]="item.isGoalReached"
+                  [class.bg-info]="!item.isGoalReached"
+                  [style.width.%]="barPercent(item.amountMl)"
+                ></span>
+                <span class="absolute inset-y-[-2px] w-0.5 bg-line-strong" [style.left.%]="goalPercent" aria-hidden="true"></span>
+              </div>
+              <div class="flex w-24 shrink-0 items-center justify-end gap-1 text-right text-[13px] tabular-nums">
+                <span>{{ item.amountMl }} ml</span>
+                @if (canManage()) {
+                  <button
+                    tuiButton
+                    appearance="flat"
+                    size="xs"
+                    type="button"
+                    class="text-err"
+                    (click)="deleteRecord(item)"
+                    [title]="t('common.delete')"
+                    [attr.aria-label]="t('common.delete')">
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                  </button>
+                }
+              </div>
+            </div>
+          } @empty {
+            <p class="px-3.5 py-6 text-center text-sm text-surface-400">
+              {{ t('water_intake.no_history') }}
+            </p>
+          }
+        </div>
       </div>
     </div>
   }

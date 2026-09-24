@@ -1,0 +1,229 @@
+<div *transloco="let t" [class.data-card]="bordered()">
+  @if (done(); as summary) {
+    <!-- ── Confirmación ─────────────────────────────────────────────── -->
+    <div class="flex flex-col items-start gap-3.5">
+      <span class="grid size-9 place-items-center rounded-pill bg-primary-50 text-primary-600 dark:bg-brand-tint-20 dark:text-primary-300">
+        <i class="fa-solid fa-check" aria-hidden="true"></i>
+      </span>
+
+      <h3 class="font-display text-base font-bold text-surface-900 dark:text-surface-0">
+        {{ t('tenant_dashboard.scheduled_title') }}
+      </h3>
+
+      <p class="m-0 text-sm leading-relaxed text-surface-600 dark:text-surface-300">
+        {{ summary.patient }} · {{ summary.type }}<br />
+        {{ summary.date }} · {{ summary.time }}
+      </p>
+
+      <p class="m-0 text-xs text-surface-400">{{ t('tenant_dashboard.scheduled_hint') }}</p>
+
+      <div class="flex flex-wrap gap-2">
+        <button tuiButton appearance="secondary" size="s" type="button" (click)="scheduleAnother()">
+          {{ t('tenant_dashboard.schedule_again') }}
+        </button>
+        <a tuiButton appearance="secondary" size="s" routerLink="/appointments">
+          {{ t('tenant_dashboard.see_in_agenda') }}
+        </a>
+      </div>
+    </div>
+  } @else {
+    @if (showTitle()) {
+      <h3 class="font-display text-base font-bold text-surface-900 dark:text-surface-0">
+        {{ t('tenant_dashboard.schedule_title') }}
+      </h3>
+    }
+
+    <!-- ── Día ──────────────────────────────────────────────────────── -->
+    <div [class.mt-4]="showTitle()">
+      <p class="mb-2 text-xs text-surface-500">{{ t('appointments.date') }}</p>
+
+      @if (loading()) {
+        <div class="flex gap-1.5">
+          @for (placeholder of [1, 2, 3, 4, 5, 6, 7]; track placeholder) {
+            <span class="h-8 w-11 animate-pulse rounded-sm bg-surface-100 dark:bg-surface-800"></span>
+          }
+        </div>
+      } @else {
+        <div class="flex flex-wrap gap-1.5">
+          @for (day of days(); track day.iso) {
+            <button
+              tuiChip
+              type="button"
+              [appearance]="selectedDate() === day.iso ? 'primary' : 'neutral'"
+              [disabled]="day.disabled"
+              [attr.title]="day.disabled ? t('tenant_dashboard.closed_day') : null"
+              (click)="pickDay(day.iso)"
+            >
+              <span class="inline-flex items-baseline gap-1">
+                <span class="font-medium tabular-nums">{{ day.dayNumber }}</span>
+                <span class="text-[11px] opacity-70">{{ day.label }}</span>
+              </span>
+            </button>
+          }
+        </div>
+      }
+
+      <tui-textfield class="mt-2 w-full">
+        <label tuiLabel for="quickScheduleDate">{{ t('tenant_dashboard.other_date') }}</label>
+        <input
+          id="quickScheduleDate"
+          tuiInputDate
+          [min]="today"
+          [ngModel]="customDay()"
+          (ngModelChange)="pickCustomDay($event)"
+        />
+        <tui-calendar *tuiDropdown />
+      </tui-textfield>
+    </div>
+
+    <!-- ── Paciente ─────────────────────────────────────────────────── -->
+    <div class="mt-5">
+      <p class="mb-2 text-xs text-surface-500">{{ t('appointments.patient') }}</p>
+
+      @if (selectedPatient(); as patient) {
+        <div
+          class="flex items-center gap-2.5 rounded-sm border border-primary-500 bg-surface-50 px-2.5 py-1.5 dark:border-primary-300 dark:bg-surface-800"
+        >
+          <span tuiAvatar size="s" [round]="true">
+            {{ patient.initials }}
+          </span>
+          <span class="min-w-0 truncate text-sm font-medium text-surface-900 dark:text-surface-0">{{ patient.label }}</span>
+          <button
+            tuiButton
+            appearance="flat"
+            size="xs"
+            type="button"
+            class="ml-auto"
+            [attr.aria-label]="t('tenant_dashboard.remove_patient')"
+            (click)="clearPatient()"
+          >
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </div>
+      } @else {
+        <tui-textfield class="w-full" iconStart="@tui.search">
+          <input
+            id="quickSchedulePatient"
+            tuiInput
+            type="search"
+            [ngModel]="patientQuery()"
+            (ngModelChange)="onPatientQuery($event)"
+            [placeholder]="t('tenant_dashboard.patient_search_placeholder')"
+          />
+        </tui-textfield>
+
+        @if (patientResults().length) {
+          <div class="mt-1.5 divide-y divide-surface-100 overflow-hidden rounded-sm border border-surface-200 dark:divide-surface-800 dark:border-surface-700">
+            @for (patient of patientResults(); track patient.id) {
+              <button
+                type="button"
+                class="flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-sm transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
+                (click)="pickPatient(patient)"
+              >
+                <span tuiAvatar size="xs" [round]="true">{{ patient.initials }}</span>
+                <span class="min-w-0 truncate">{{ patient.label }}</span>
+                @if (patient.email) {
+                  <span class="ml-auto min-w-0 truncate text-xs text-surface-400">{{ patient.email }}</span>
+                }
+              </button>
+            }
+          </div>
+        } @else if (searchingPatients()) {
+          <p class="mt-2 text-xs text-surface-400">{{ t('common.loading') }}</p>
+        }
+      }
+    </div>
+
+    <!-- ── Tipo de cita ─────────────────────────────────────────────── -->
+    @if (types().length) {
+      <div class="mt-5">
+        <p class="mb-2 text-xs text-surface-500">{{ t('appointments.type') }}</p>
+        <div class="flex flex-wrap gap-1.5">
+          @for (type of types(); track type.id) {
+            <button
+              tuiChip
+              type="button"
+              [appearance]="selectedTypeId() === type.id ? 'primary' : 'neutral'"
+              (click)="pickType(type.id)"
+            >
+              {{ type.name }}
+              <span class="text-[11px] opacity-70">{{ type.durationMinutes }} min</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── Horas libres ─────────────────────────────────────────────── -->
+    <div class="mt-5">
+      <p class="mb-2 text-xs text-surface-500">
+        {{ t('tenant_dashboard.free_hours') }}
+        @if (slots().length) {
+          <span class="text-surface-400">{{ t('tenant_dashboard.free_hours_for', { minutes: duration() }) }}</span>
+        }
+      </p>
+
+      @if (loadingSlots()) {
+        <div class="flex items-center gap-2 py-2 text-xs text-surface-400">
+          <span class="loading-spinner"></span>
+          {{ t('common.loading') }}
+        </div>
+      } @else if (slots().length) {
+        <div class="flex flex-wrap gap-1.5">
+          @for (slot of slots(); track slot) {
+            <button
+              tuiChip
+              type="button"
+              class="min-w-[66px] justify-center tabular-nums"
+              [appearance]="selectedSlot() === slot ? 'primary' : 'neutral'"
+              (click)="pickSlot(slot)"
+            >
+              {{ formatSlot(slot) }}
+            </button>
+          }
+        </div>
+      } @else if (emptyReason() === 'holiday') {
+        <p class="m-0 text-xs leading-relaxed text-surface-400">{{ t('tenant_dashboard.day_holiday') }}</p>
+      } @else if (emptyReason() === 'closed') {
+        <p class="m-0 text-xs leading-relaxed text-surface-400">{{ t('tenant_dashboard.day_closed') }}</p>
+      } @else if (emptyReason() === 'none-left') {
+        <p class="m-0 text-xs leading-relaxed text-surface-400">
+          {{ t('tenant_dashboard.no_slots_note', { minutes: duration() }) }}
+        </p>
+      }
+    </div>
+
+    <!-- ── Confirmar ────────────────────────────────────────────────── -->
+    <div class="mt-5 flex items-center gap-3 border-t border-surface-100 pt-4 dark:border-surface-800">
+      <button
+        tuiButton
+        appearance="primary"
+        size="m"
+        type="button"
+        [disabled]="!canSubmit() || saving()"
+        (click)="submit()"
+      >
+        {{ saving() ? t('common.loading') : t('tenant_dashboard.schedule') }}
+      </button>
+
+      <span class="text-xs leading-snug text-surface-400">
+        @if (canSubmit()) {
+          {{ t('tenant_dashboard.summary_ready', {
+            patient: selectedPatient()!.label,
+            date: selectedDateLong(),
+            time: formattedSlot(),
+            minutes: duration()
+          }) }}
+        } @else if (!selectedPatient()) {
+          {{ t('tenant_dashboard.summary_no_patient') }}
+        } @else {
+          {{ t('tenant_dashboard.summary_no_slot') }}
+        }
+      </span>
+    </div>
+
+    @if (error()) {
+      <p class="mt-2 text-xs text-err">{{ error() }}</p>
+    }
+  }
+</div>

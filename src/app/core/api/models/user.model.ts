@@ -102,4 +102,8 @@ export interface AppUserDto {
   assignedNutritionistId?: string | null;
   /** Full name of the titular nutritionist, ready to display. */
   assignedNutritionistName?: string | null;
+  /** Inicio de la última cita `COMPLETED`/`NO_SHOW` del paciente en el centro (ISO-8601 UTC). */
+  lastAppointmentDate?: string | null;
+  /** Inicio de la próxima cita `SCHEDULED`/`PROPOSED` vigente (ISO-8601 UTC). */
+  nextAppointmentDate?: string | null;
 }

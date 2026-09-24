@@ -1,161 +1,242 @@
-<div class="min-h-full" *transloco="let t">
-  <div class="flex flex-col lg:flex-row gap-6 p-6">
-    <!-- Left: Calendar -->
-    <div class="flex-1 space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 class="text-xl font-display font-bold tracking-tight text-surface-900 dark:text-surface-0 text-balance">{{ t('appointments.title_management') }}</h2>
-          <p class="text-sm text-surface-500 mt-1">
-            <i class="fa-regular fa-clock mr-1"></i>
-            {{ t('appointments.schedule_today') }} <span class="font-medium text-surface-700 dark:text-surface-200">{{ todayScheduleText() }}</span>
-          </p>
-        </div>
-        <button tuiButton size="m" (click)="showNewAppointmentDialog()">
-          <i class="fa-solid fa-plus"></i>
-          {{ t('appointments.new_appointment') }}
+<div class="space-y-6 pb-4" *transloco="let t">
+  <!-- ═══════════ Cabecera ═══════════ -->
+  <header class="flex flex-col gap-4 xl:flex-row xl:items-start xl:gap-6">
+    <div class="min-w-0">
+      <h1
+        class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]"
+      >
+        {{ t('appointments.title_agenda') }}
+      </h1>
+      <p class="mt-1.5 text-[13px] tabular-nums text-surface-400">{{ rangeLabel() }}</p>
+      <p class="mt-1.5 text-[13px] text-surface-500">
+        <i class="fa-regular fa-clock mr-1" aria-hidden="true"></i>
+        {{ t('appointments.schedule_today') }}
+        <span class="font-medium text-surface-700 dark:text-surface-200">{{ todayScheduleText() }}</span>
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2.5 xl:ml-auto">
+      <!-- Stepper de periodo -->
+      <div
+        class="inline-flex items-center gap-0.5 rounded-pill border border-line bg-surface-0 p-0.5 dark:bg-surface-900"
+      >
+        <button
+          tuiButton
+          appearance="flat"
+          size="s"
+          type="button"
+          [attr.aria-label]="t('appointments.prev_period')"
+          [attr.title]="t('appointments.prev_period')"
+          (click)="navigate(-1)"
+        >
+          <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+        </button>
+        <button tuiButton appearance="flat" size="s" type="button" (click)="goToToday()">
+          {{ t('appointments.today') }}
+        </button>
+        <button
+          tuiButton
+          appearance="flat"
+          size="s"
+          type="button"
+          [attr.aria-label]="t('appointments.next_period')"
+          [attr.title]="t('appointments.next_period')"
+          (click)="navigate(1)"
+        >
+          <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
         </button>
       </div>
 
-      <div class="data-card">
-        <full-calendar #calendar
+      <!-- Conmutador de vista -->
+      <tui-segmented [activeItemIndex]="viewIndex()" (activeItemIndexChange)="setViewByIndex($event)">
+        <button type="button">{{ t('appointments.view_day') }}</button>
+        <button type="button">{{ t('appointments.view_week') }}</button>
+        <button type="button">{{ t('appointments.view_month') }}</button>
+      </tui-segmented>
+
+      <button tuiButton appearance="primary" size="m" type="button" (click)="showNewAppointmentDialog()">
+        <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
+        {{ t('appointments.new_appointment') }}
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════ Tablero ═══════════ -->
+  <div class="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+    <!-- Calendario + leyenda -->
+    <div class="min-w-0">
+      <div class="data-card" [class.opacity-60]="loadingWeek()">
+        <full-calendar
+          #calendar
           translate="no"
           class="notranslate"
           [options]="calendarOptions"
           [events]="calendarEvents()">
         </full-calendar>
       </div>
+
+      <div
+        class="mt-3.5 flex flex-wrap gap-x-[18px] gap-y-2.5 px-1 text-[12.5px] text-surface-400"
+        [attr.aria-label]="t('appointments.status_label')"
+      >
+        <span class="inline-flex items-center gap-1.5">
+          <i class="inline-block size-2.5 rounded-[3px]" [style.background]="statusColor('SCHEDULED')" aria-hidden="true"></i>
+          {{ t('appointments.status_scheduled') }}
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <i class="inline-block size-2.5 rounded-[3px]" [style.background]="statusColor('PROPOSED')" aria-hidden="true"></i>
+          {{ t('appointments.status_proposed') }}
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <i class="inline-block size-2.5 rounded-[3px]" [style.background]="statusColor('COMPLETED')" aria-hidden="true"></i>
+          {{ t('appointments.status_completed') }}
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <i class="inline-block size-2.5 rounded-[3px]" [style.background]="statusColor('NO_SHOW')" aria-hidden="true"></i>
+          {{ t('appointments.status_no_show') }}
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <i class="inline-block size-2.5 rounded-[3px]" [style.background]="statusColor('CANCELLED')" aria-hidden="true"></i>
+          {{ t('appointments.status_cancelled') }}
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <i class="inline-block size-2.5 rounded-[3px]" [style.background]="activeHoursDot" aria-hidden="true"></i>
+          {{ t('appointments.legend_active_hours') }}
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <i class="inline-block size-2.5 rounded-[3px]" [style.background]="holidayColor" aria-hidden="true"></i>
+          {{ t('appointments.legend_holiday') }}
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <i class="inline-block size-2.5 rounded-[3px]" [style.background]="closedColor" aria-hidden="true"></i>
+          {{ t('appointments.legend_closed') }}
+        </span>
+      </div>
     </div>
 
-    <!-- Right: Side Panel -->
-    <div class="lg:w-[380px] flex flex-col gap-6">
-        <!-- Status Legend -->
-      <div class="data-card">
-        <h4 class="text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wider mb-4">
-          {{ t('appointments.status_label') || 'Estados' }}
-        </h4>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full" [style.background]="statusColor('SCHEDULED')"></span>
-            <span class="text-sm text-surface-700 dark:text-surface-200">{{ t('appointments.status_scheduled') }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full" [style.background]="statusColor('COMPLETED')"></span>
-            <span class="text-sm text-surface-700 dark:text-surface-200">{{ t('appointments.status_completed') }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full" [style.background]="statusColor('CANCELLED')"></span>
-            <span class="text-sm text-surface-700 dark:text-surface-200">{{ t('appointments.status_cancelled') }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full" [style.background]="statusColor('NO_SHOW')"></span>
-            <span class="text-sm text-surface-700 dark:text-surface-200">{{ t('appointments.status_no_show') }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full" [style.background]="statusColor('PROPOSED')"></span>
-            <span class="text-sm text-surface-700 dark:text-surface-200">{{ t('appointments.status_proposed', { defaultValue: 'Propuesta' }) }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full" [style.background]="holidayColor"></span>
-            <span class="text-sm text-surface-700 dark:text-surface-200">{{ t('appointments.legend_holiday') }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full" [style.background]="closedColor"></span>
-            <span class="text-sm text-surface-700 dark:text-surface-200">{{ t('appointments.legend_closed') }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full" [style.background]="activeHoursDot"></span>
-            <span class="text-sm text-surface-700 dark:text-surface-200">{{ t('appointments.legend_active_hours') }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Today's Appointments -->
-      <div class="data-card flex-1">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0">
+    <!-- Citas de hoy -->
+    <aside class="min-w-0" aria-labelledby="agendaTodayHeading">
+      <section class="data-card">
+        <div class="mb-3 flex items-center justify-between gap-3">
+          <h2
+            id="agendaTodayHeading"
+            class="font-display text-base font-bold tracking-tight text-surface-900 dark:text-surface-0"
+          >
             {{ t('appointments.today_appointments') }}
-          </h3>
+          </h2>
           <span
-            class="bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 text-xs font-bold px-2 py-0.5 rounded">
-            {{ t('appointments.today_badge') }}
+            class="rounded-pill bg-surface-100 px-2 py-0.5 text-[11px] font-bold tabular-nums text-surface-500 dark:bg-surface-800 dark:text-surface-300"
+          >
+            {{ todayAppointments().length }}
           </span>
         </div>
 
         <boneyard-skeleton name="appointments-today-list" [loading]="loadingToday()">
           @if (todayAppointments().length === 0 && !loadingToday()) {
-            <div class="text-center py-8 text-surface-400">
-              <i class="fa-solid fa-calendar-check text-3xl mb-2"></i>
-              <p class="text-sm">{{ t('appointments.today_empty') }}</p>
+            <div class="py-6 text-center text-surface-400">
+              <i class="fa-solid fa-calendar-check text-2xl" aria-hidden="true"></i>
+              <p class="mt-2 text-sm">{{ t('appointments.today_empty') }}</p>
             </div>
           } @else {
-            <div class="space-y-2 max-h-[500px] overflow-y-auto">
+            <div class="flex max-h-[560px] flex-col gap-2 overflow-y-auto">
               @for (appt of todayAppointments(); track appt.id) {
-                <div
-                  class="p-4 rounded-lg bg-surface-50 dark:bg-surface-800 border border-transparent hover:border-primary-300 dark:hover:border-primary-600 cursor-pointer transition-colors duration-200"
-                  (click)="handleEventClick({ event: { extendedProps: { patientName: appt.patientName, typeName: appt.typeName, status: appt.status } } })"
-                  (keydown.enter)="handleEventClick({ event: { extendedProps: { patientName: appt.patientName, typeName: appt.typeName, status: appt.status } } })"
-                  tabindex="0"
-                  role="button">
-                  <div class="flex justify-between items-start mb-2">
-                    <div class="flex items-center gap-3">
-                      <div
-                        class="w-10 h-10 rounded-full bg-surface-200 dark:bg-surface-600 flex items-center justify-center text-sm font-bold text-primary-600 dark:text-primary-300">
-                        {{ appt.patientName ? getInitials(appt.patientName) : t('appointments.no_patient') }}
-                      </div>
-                      <div>
-                        <p class="text-sm font-medium text-surface-900 dark:text-surface-0">{{ appt.patientName ?? t('appointments.no_patient') }}</p>
-                        <p class="text-xs text-surface-500 dark:text-surface-400">{{ appt.typeName || '—' }}</p>
+                <article
+                  class="rounded-sm border border-line bg-surface-50 p-3 transition-colors hover:border-line-strong dark:bg-surface-800"
+                  [class.opacity-55]="isPastInstant(appt.startTime)"
+                >
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex min-w-0 items-center gap-2.5">
+                      <span
+                        class="grid size-8 shrink-0 place-items-center rounded-pill bg-surface-100 text-[11px] font-semibold text-surface-500 dark:bg-surface-700 dark:text-surface-300"
+                        aria-hidden="true"
+                      >
+                        {{ appt.patientName ? getInitials(appt.patientName) : '—' }}
+                      </span>
+                      <div class="min-w-0">
+                        <p class="truncate text-sm font-medium text-surface-900 dark:text-surface-0">
+                          {{ appt.patientName ?? t('appointments.no_patient') }}
+                        </p>
+                        @if (appt.typeName) {
+                          <p class="truncate text-xs text-surface-400">{{ appt.typeName }}</p>
+                        }
                       </div>
                     </div>
-                    <span class="text-sm font-semibold text-primary-600 dark:text-primary-300 whitespace-nowrap font-mono">
+                    <span class="shrink-0 text-sm font-semibold tabular-nums text-primary-600 dark:text-primary-300">
                       {{ formatTime(appt.startTime) }}
                     </span>
                   </div>
-                  <div class="flex items-center justify-between mt-2 pt-2 border-t border-surface-200 dark:border-surface-700">
-                    <span tuiBadge appearance="info">{{ getStatusLabel(appt.status) }}</span>
-                    <div class="flex gap-1">
-                      @if (appt.status === 'SCHEDULED') {
+
+                  <div class="mt-2 flex items-center justify-between gap-2 border-t border-line pt-2">
+                    <span class="inline-flex min-w-0 items-center gap-1.5 text-xs text-surface-500 dark:text-surface-400">
+                      <span
+                        class="inline-block size-1.5 shrink-0 rounded-pill"
+                        [style.background]="statusColor(appt.status)"
+                        aria-hidden="true"
+                      ></span>
+                      <span class="truncate">{{ getStatusLabel(appt.status) }}</span>
+                    </span>
+
+                    @if (appt.status === 'SCHEDULED') {
+                      <div class="flex shrink-0 items-center gap-0.5">
                         @if (isPastInstant(appt.startTime)) {
-                          <button tuiIconButton appearance="flat" size="s"
-                            [title]="t('appointments.attended')"
+                          <button
+                            tuiButton
+                            appearance="flat"
+                            size="s"
+                            type="button"
+                            [attr.title]="t('appointments.attended')"
+                            [attr.aria-label]="t('appointments.attended')"
                             [disabled]="updatingStatus() === appt.id"
-                            (click)="$event.stopPropagation(); markAttended(appt)">
+                            (click)="markAttended(appt)"
+                          >
                             @if (updatingStatus() === appt.id) {
-                              <i class="fa-solid fa-spinner fa-spin"></i>
+                              <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
                             } @else {
-                              <i class="fa-solid fa-check"></i>
+                              <i class="fa-solid fa-check text-ok" aria-hidden="true"></i>
                             }
                           </button>
-                          <button tuiIconButton appearance="flat" size="s"
-                            [title]="t('appointments.no_show')"
+                          <button
+                            tuiButton
+                            appearance="flat"
+                            size="s"
+                            type="button"
+                            [attr.title]="t('appointments.no_show')"
+                            [attr.aria-label]="t('appointments.no_show')"
                             [disabled]="updatingStatus() === appt.id"
-                            (click)="$event.stopPropagation(); markNoShow(appt)">
+                            (click)="markNoShow(appt)"
+                          >
                             @if (updatingStatus() === appt.id) {
-                              <i class="fa-solid fa-spinner fa-spin"></i>
+                              <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
                             } @else {
-                              <i class="fa-solid fa-user-slash"></i>
+                              <i class="fa-solid fa-user-slash text-err" aria-hidden="true"></i>
                             }
                           </button>
                         }
-                        <button tuiIconButton appearance="flat" size="s"
-                          [title]="t('appointments.cancel')"
+                        <button
+                          tuiButton
+                          appearance="flat"
+                          size="s"
+                          type="button"
+                          [attr.title]="t('appointments.cancel')"
+                          [attr.aria-label]="t('appointments.cancel')"
                           [disabled]="updatingStatus() === appt.id"
-                          (click)="$event.stopPropagation(); cancelAppointment(appt)">
+                          (click)="cancelAppointment(appt)"
+                        >
                           @if (updatingStatus() === appt.id) {
-                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
                           } @else {
-                            <i class="fa-solid fa-ban"></i>
+                            <i class="fa-solid fa-ban" aria-hidden="true"></i>
                           }
                         </button>
-                      }
-                    </div>
+                      </div>
+                    }
                   </div>
-                </div>
+                </article>
               }
             </div>
           }
         </boneyard-skeleton>
-      </div>
-    </div>
+      </section>
+    </aside>
   </div>
 </div>

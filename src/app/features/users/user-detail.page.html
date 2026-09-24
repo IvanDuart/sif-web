@@ -1,62 +1,106 @@
-<div class="p-4" *transloco="let t">
-  <!-- Back button -->
-  <div class="flex items-center gap-3 mb-6">
-    <a tuiButton appearance="flat" size="m" [routerLink]="backRoute">
-      <i class="fa-solid fa-arrow-left mr-1"></i>
+<div class="space-y-6 pb-4" *transloco="let t">
+  <!-- Miga de pan -->
+  <nav class="flex items-center gap-2 text-[13px] text-surface-400" [attr.aria-label]="t('patients.title')">
+    <a class="transition-colors hover:text-primary-600 dark:hover:text-primary-300" [routerLink]="backRoute">
       {{ t('patients.back_to_list') }}
     </a>
-  </div>
+    <i class="fa-solid fa-chevron-right text-[10px]" aria-hidden="true"></i>
+    @if (user(); as crumbUser) {
+      <span class="truncate text-surface-600 dark:text-surface-300">{{ crumbUser.firstName }} {{ crumbUser.lastName }}</span>
+    }
+  </nav>
 
   <boneyard-skeleton name="user-detail-header" [loading]="loadingUser()">
     @if (user(); as u) {
-      <!-- Profile header card -->
-      <div class="data-card p-4 mb-4">
-        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-full bg-primary-500 text-primary-contrast-color flex items-center justify-center font-display font-semibold text-lg shrink-0 shadow-sm">
-              {{ getInitials(u) }}
-            </div>
-            <div>
-              <h1 class="text-2xl font-display font-bold tracking-tight text-balance mb-1">{{ u.firstName }} {{ u.lastName }}</h1>
-              <p class="text-surface-500 text-sm mb-0">{{ u.email }}</p>
-            </div>
-          </div>
-          <div class="flex flex-wrap items-center gap-2">
-            <span tuiBadge appearance="info">
-              <i class="fa-solid fa-user-injured"></i>
-              {{ t('users.user_type_patient') }}
-            </span>
-            <span tuiBadge [appearance]="u.enabled !== false ? 'positive' : 'neutral'">
-              {{ u.enabled !== false ? t('users.enabled') : t('users.disabled') }}
-            </span>
-            <button
-              *appIfPermission="'MANAGE_USER'"
-              type="button"
-              tuiButton appearance="secondary" size="m"
-              [disabled]="isSendingResetPassword()"
-              (click)="resetPassword()">
-              <i class="fa-solid fa-key"></i>
-              {{ t('users.reset_password') }}
-            </button>
-            <button
-              *appIfPermission="'MANAGE_USER'"
-              type="button"
-              tuiButton appearance="secondary" size="m"
-              (click)="showEditDialog()">
-              <i class="fa-solid fa-pen-to-square"></i>
-              {{ t('users.edit') }}
-            </button>
+      <!-- Bloque de identidad -->
+      <header class="flex flex-col gap-4 xl:flex-row xl:items-start xl:gap-6">
+        <div class="flex min-w-0 items-center gap-4">
+          <span
+            class="grid size-14 shrink-0 place-items-center rounded-pill bg-primary-500 font-display text-lg font-semibold text-primary-contrast-color shadow-sm"
+            aria-hidden="true"
+          >
+            {{ getInitials(u) }}
+          </span>
+          <div class="min-w-0">
+            <h1 class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]">
+              {{ u.firstName }} {{ u.lastName }}
+            </h1>
+            <p class="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px] text-surface-500">
+              <span tuiBadge [appearance]="u.enabled !== false ? 'positive' : 'neutral'">
+                {{ u.enabled !== false ? t('users.enabled') : t('users.disabled') }}
+              </span>
+              <span tuiBadge appearance="info">
+                {{ u.userType === 'STAFF' ? t('users.user_type_staff') : t('users.user_type_patient') }}
+              </span>
+              @if (u.age !== null) {
+                <span class="tabular-nums">{{ u.age }} {{ t('common.years') }}</span>
+              }
+              @if (u.gender === 'MALE' || u.gender === 'FEMALE') {
+                <span aria-hidden="true" class="inline-block size-1 rounded-pill bg-surface-300"></span>
+                <span>{{ u.gender === 'MALE' ? t('users.gender_male') : t('users.gender_female') }}</span>
+              }
+              @if (u.heightCm !== null) {
+                <span aria-hidden="true" class="inline-block size-1 rounded-pill bg-surface-300"></span>
+                <span class="tabular-nums">{{ u.heightCm }} cm</span>
+              }
+              @if (assignedNutritionist().name) {
+                <span aria-hidden="true" class="inline-block size-1 rounded-pill bg-surface-300"></span>
+                <span class="inline-flex items-center gap-1.5">
+                  <i class="fa-solid fa-user-doctor text-surface-400" aria-hidden="true"></i>
+                  {{ assignedNutritionist().name }}
+                </span>
+              }
+            </p>
           </div>
         </div>
-      </div>
+
+        <div class="flex flex-wrap items-center gap-2.5 xl:ml-auto">
+          <button
+            *appIfPermission="'MANAGE_USER'"
+            type="button"
+            tuiButton appearance="secondary" size="m"
+            (click)="showEditDialog()">
+            <i class="fa-solid fa-pen-to-square mr-1" aria-hidden="true"></i>
+            {{ t('users.edit') }}
+          </button>
+          <button
+            *appIfPermission="'MANAGE_APPOINTMENTS'"
+            type="button"
+            tuiButton appearance="secondary" size="m"
+            (click)="showNewAppointmentDialog()">
+            <i class="fa-solid fa-calendar-plus mr-1" aria-hidden="true"></i>
+            {{ t('appointments.new_appointment') }}
+          </button>
+          @if (u.userType === 'PATIENT') {
+            <button
+              *appIfPermission="'MANAGE_USER'"
+              type="button"
+              tuiButton appearance="primary" size="m"
+              (click)="showRegisterDialog()">
+              <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
+              {{ t('measurements.register') }}
+            </button>
+          }
+          <button
+            *appIfPermission="'MANAGE_USER'"
+            type="button"
+            tuiButton appearance="flat" size="m"
+            [disabled]="isSendingResetPassword()"
+            [attr.title]="t('users.reset_password')"
+            [attr.aria-label]="t('users.reset_password')"
+            (click)="resetPassword()">
+            <i class="fa-solid fa-key" aria-hidden="true"></i>
+          </button>
+        </div>
+      </header>
 
       <!-- Tabs nativas Taiga UI -->
-      <div class="mb-4 border-b border-surface-200 dark:border-surface-700">
+      <div class="border-b border-line">
         <tui-tabs [(activeItemIndex)]="activeTabIndex" class="bg-transparent">
           @for (tab of tabs(); track tab.id) {
             <button tuiTab type="button" class="flex items-center gap-2 px-1 pb-1">
-              <i class="{{ tab.icon }} text-[1.1em] opacity-80"></i>
-              <span class="font-medium text-sm">
+              <i class="{{ tab.icon }} text-[1.1em] opacity-80" aria-hidden="true"></i>
+              <span class="text-sm font-medium">
                 @if (tab.defaultValue) {
                   {{ t(tab.label, { defaultValue: tab.defaultValue }) }}
                 } @else {
@@ -70,172 +114,215 @@
 
       <!-- TAB 1: Perfil -->
       @if (activeTabId() === 'profile') {
-        <div class="py-4">
-          <div class="data-card">
-            <div class="flex items-center gap-2 mb-4">
-              <i class="fa-solid fa-address-card text-primary-500"></i>
-              <h2 class="text-lg font-semibold m-0">{{ t('users.tab_profile') }}</h2>
+        <div class="space-y-5 py-5">
+          <!-- Resumen: tira de cifras (Guía §6) -->
+          @if (profileFigures().length > 0) {
+            <div>
+              <div class="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-line bg-line sm:grid-cols-3 lg:grid-cols-5">
+                @for (fig of profileFigures(); track fig.id) {
+                  <div class="bg-surface-0 dark:bg-surface-800 px-4 py-3.5">
+                    <div class="text-xs text-surface-400">{{ t(fig.labelKey) }}</div>
+                    <div class="mt-1.5 font-display text-2xl font-bold leading-none tracking-tight tabular-nums text-surface-900 dark:text-surface-0">
+                      {{ fig.valueText }}@if (fig.unit) {<span class="ml-0.5 font-sans text-[13px] font-normal text-surface-400">{{ fig.unit }}</span>}
+                    </div>
+                    <div [class]="'mt-1.5 text-xs tabular-nums ' + fig.toneClass">
+                      {{ fig.deltaText ?? t('users.fig_no_delta') }}
+                    </div>
+                  </div>
+                }
+              </div>
+              <p class="mt-2 text-xs text-surface-400">{{ t('users.figs_hint') }}</p>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
-              <div class="flex flex-col gap-1.5">
-                <span class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                  <i class="fa-solid fa-calendar-plus w-4 text-center"></i>{{ t('users.invited_at') }}
-                </span>
-                <p class="font-medium">{{ formatInstant(u.createdAt) }}</p>
+          }
+
+          <div class="grid grid-cols-1 gap-5 lg:grid-cols-[2fr_1fr]">
+            <!-- Columna principal -->
+            <div class="space-y-5">
+              <!-- Datos básicos -->
+              <div class="data-card">
+                <div class="mb-1">
+                  <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                    {{ t('users.basic_data') }}
+                  </h2>
+                  <p class="mt-1 text-[13px] text-surface-400">{{ t('users.profile_hint') }}</p>
+                </div>
+                <div class="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
+                  <div class="border-b border-line py-3">
+                    <div class="text-xs text-surface-400">{{ t('users.full_name') }}</div>
+                    <div class="text-sm">{{ u.firstName }} {{ u.lastName }}</div>
+                  </div>
+                  <div class="border-b border-line py-3">
+                    <div class="text-xs text-surface-400">{{ t('users.birth_date') }}</div>
+                    <div class="text-sm">
+                      {{ formatInstant(u.birthDate) }}
+                      @if (u.age !== null) {
+                        <span class="ml-1 tabular-nums text-surface-400">({{ u.age }} {{ t('common.years') }})</span>
+                      }
+                    </div>
+                  </div>
+                  <div class="border-b border-line py-3">
+                    <div class="text-xs text-surface-400">{{ t('users.gender') }}</div>
+                    <div class="text-sm">
+                      @if (u.gender === 'MALE') {
+                        {{ t('users.gender_male') }}
+                      } @else if (u.gender === 'FEMALE') {
+                        {{ t('users.gender_female') }}
+                      } @else {
+                        —
+                      }
+                    </div>
+                  </div>
+                  <div class="border-b border-line py-3">
+                    <div class="text-xs text-surface-400">{{ t('users.height_cm') }}</div>
+                    <div class="text-sm tabular-nums">{{ u.heightCm !== null ? (u.heightCm + ' cm') : '—' }}</div>
+                  </div>
+                  <div class="border-b border-line py-3">
+                    <div class="text-xs text-surface-400">{{ t('measurements.wrist_circumference') }}</div>
+                    <div class="text-sm tabular-nums">{{ wristCircumference() !== null ? (wristCircumference() + ' cm') : '—' }}</div>
+                  </div>
+                  <div class="border-b border-line py-3">
+                    <div class="text-xs text-surface-400">{{ t('users.phone') }}</div>
+                    <div class="text-sm tabular-nums">{{ u.phone ?? '—' }}</div>
+                  </div>
+                  <div class="border-b border-line py-3">
+                    <div class="text-xs text-surface-400">{{ t('users.email') }}</div>
+                    <div class="truncate text-sm">{{ u.email }}</div>
+                  </div>
+                  <div class="border-b border-line py-3">
+                    <div class="text-xs text-surface-400">{{ t('users.assigned_nutritionist') }}</div>
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="truncate text-sm" [class.text-surface-400]="!assignedNutritionist().name">
+                        {{ assignedNutritionist().name ?? t('users.nutritionist_none') }}
+                      </span>
+                      <button
+                        *appIfPermission="'MANAGE_USER'"
+                        type="button"
+                        tuiButton appearance="secondary" size="xs"
+                        (click)="showAssignNutritionistDialog()">
+                        {{ assignedNutritionist().name ? t('users.change_nutritionist') : t('common.assign') }}
+                      </button>
+                    </div>
+                  </div>
+                  <div class="border-b border-line py-3">
+                    <div class="text-xs text-surface-400">{{ t('users.joined_at') }}</div>
+                    <div class="text-sm">{{ formatInstant(u.createdAt) }}</div>
+                  </div>
+                </div>
               </div>
-              <div class="flex flex-col gap-1.5">
-                <span class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                  <i class="fa-solid fa-cake-candles w-4 text-center"></i>{{ t('users.birth_date') }}
-                </span>
-                <p class="font-medium">{{ u.birthDate ?? '—' }}</p>
-              </div>
-              <div class="flex flex-col gap-1.5">
-                <span class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                  <i class="fa-solid fa-hourglass-half w-4 text-center"></i>{{ t('users.age') }}
-                </span>
-                <p class="font-medium">
-                  @if (u.age !== null) {
-                    {{ u.age }} {{ t('common.years') }}
-                  } @else {
-                    —
-                  }
-                </p>
-              </div>
-              <div class="flex flex-col gap-1.5">
-                <span class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                  <i class="fa-solid fa-venus-mars w-4 text-center"></i>{{ t('users.gender') }}
-                </span>
-                <p class="font-medium">
-                  @if (u.gender === 'MALE') {
-                    {{ t('users.gender_male') }}
-                  } @else if (u.gender === 'FEMALE') {
-                    {{ t('users.gender_female') }}
-                  } @else {
-                    —
-                  }
-                </p>
-              </div>
-              <div class="flex flex-col gap-1.5">
-                <span class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                  <i class="fa-solid fa-ruler-vertical w-4 text-center"></i>{{ t('users.height_cm') }}
-                </span>
-                <p class="font-medium">{{ u.heightCm !== null ? (u.heightCm + ' cm') : '—' }}</p>
-              </div>
-              <div class="flex flex-col gap-1.5">
-                <span class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                  <i class="fa-solid fa-phone w-4 text-center"></i>{{ t('users.phone') }}
-                </span>
-                <p class="font-medium">{{ u.phone ?? '—' }}</p>
-              </div>
+
+              <!-- Motivo de consulta -->
+              @if (canViewPatientProfile() && patientProfile()?.consultationReason) {
+                <div class="data-card">
+                  <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                    {{ t('patient_profile.consultation_reason') }}
+                  </h2>
+                  <p class="mt-1 text-[13px] text-surface-400">{{ t('users.goal_hint') }}</p>
+                  <p class="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-surface-600 dark:text-surface-300">{{ patientProfile()!.consultationReason }}</p>
+                </div>
+              }
             </div>
 
-            <div class="mt-6 pt-6 border-t border-surface-200 dark:border-surface-700">
-              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:max-w-xl">
-                <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                  <i class="fa-solid fa-user-doctor w-4 text-center"></i>{{ t('users.assigned_nutritionist') }}
+            <!-- Columna lateral -->
+            <div class="space-y-5">
+              <!-- Situación actual -->
+              <div class="data-card">
+                <h2 class="mb-4 font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                  {{ t('users.current_situation') }}
+                </h2>
+                <div class="space-y-2.5">
+                  @if (measurementsCount() > 0) {
+                    <div class="flex items-start gap-2.5 rounded-sm bg-ok-soft px-3.5 py-3 text-[13px] leading-relaxed text-ok">
+                      <i class="fa-solid fa-circle-check mt-0.5 shrink-0" aria-hidden="true"></i>
+                      <div>{{ t('users.situation_measurements', { count: measurementsCount(), date: formatInstant(latestMeasurementDate()) }) }}</div>
+                    </div>
+                  }
+                  @if (symmetryAlert()) {
+                    <div class="flex items-start gap-2.5 rounded-sm bg-warn-soft px-3.5 py-3 text-[13px] leading-relaxed text-warn">
+                      <i class="fa-solid fa-triangle-exclamation mt-0.5 shrink-0" aria-hidden="true"></i>
+                      <div>{{ t('users.situation_asymmetry') }}</div>
+                    </div>
+                  }
+                  @if (activeMenu(); as menu) {
+                    <div class="flex items-start gap-2.5 rounded-sm bg-surface-100 px-3.5 py-3 text-[13px] leading-relaxed text-surface-600 dark:bg-surface-800 dark:text-surface-300">
+                      <i class="fa-solid fa-utensils mt-0.5 shrink-0" aria-hidden="true"></i>
+                      <div>{{ t('users.situation_menu', { date: formatInstant(menu.assignedAt) }) }}</div>
+                    </div>
+                  }
+                  @if (measurementsCount() === 0 && !symmetryAlert() && !activeMenu()) {
+                    <p class="text-sm text-surface-400">{{ t('users.situation_empty') }}</p>
+                  }
                 </div>
-                <div class="flex items-center gap-3">
-                  <span class="font-medium" [class.text-surface-400]="!assignedNutritionist().name">
-                    {{ assignedNutritionist().name ?? t('users.nutritionist_none') }}
-                  </span>
-                  <button
-                    *appIfPermission="'MANAGE_USER'"
-                    type="button"
-                    tuiButton appearance="secondary" size="s"
-                    (click)="showAssignNutritionistDialog()">
-                    <i class="fa-solid fa-user-pen"></i>
-                    {{ assignedNutritionist().name ? t('common.edit') : t('common.assign') }}
-                  </button>
+              </div>
+
+              <!-- Próxima cita -->
+              @if (canViewAppointments()) {
+                @if (nextAppointment(); as appt) {
+                  <div class="data-card">
+                    <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                      {{ t('appointments.next_appointment') }}
+                    </h2>
+                    <p class="mt-3 font-display text-base font-bold text-surface-900 dark:text-surface-0">{{ formatInstant(appt.startTime) }}</p>
+                    <p class="mt-1 text-[13px] text-surface-400">
+                      {{ appt.startTime | date:'HH:mm' }}
+                      @if (appt.typeName) { · {{ appt.typeName }} }
+                      @if (appt.nutritionistName) { · {{ appt.nutritionistName }} }
+                    </p>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+          <!-- Antropometría de la última medición -->
+          @if (u.lastMeasurement) {
+            <div class="data-card">
+              <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                {{ t('users.anthropometry') }}
+              </h2>
+              <p class="mt-1 text-[13px] text-surface-400">{{ formatInstant(u.lastMeasurement.measuredAt) }}</p>
+              <div class="mt-5 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-6">
+                <div>
+                  <div class="text-sm font-semibold tabular-nums text-surface-900 dark:text-surface-0">{{ u.lastMeasurement.visceralFatLevel ?? '—' }}</div>
+                  <div class="mt-1 text-xs text-surface-400">{{ t('measurements.visceral_fat') }}</div>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold tabular-nums text-surface-900 dark:text-surface-0">{{ u.lastMeasurement.waistCm ?? '—' }}<span class="ml-0.5 text-xs font-normal text-surface-400">cm</span></div>
+                  <div class="mt-1 text-xs text-surface-400">{{ t('measurements.waist') }}</div>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold tabular-nums text-surface-900 dark:text-surface-0">{{ u.lastMeasurement.chestCm ?? '—' }}<span class="ml-0.5 text-xs font-normal text-surface-400">cm</span></div>
+                  <div class="mt-1 text-xs text-surface-400">{{ t('measurements.chest') }}</div>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold tabular-nums text-surface-900 dark:text-surface-0">{{ u.lastMeasurement.hipsCm ?? '—' }}<span class="ml-0.5 text-xs font-normal text-surface-400">cm</span></div>
+                  <div class="mt-1 text-xs text-surface-400">{{ t('measurements.hips') }}</div>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold tabular-nums text-surface-900 dark:text-surface-0">{{ u.lastMeasurement.contourCm ?? '—' }}<span class="ml-0.5 text-xs font-normal text-surface-400">cm</span></div>
+                  <div class="mt-1 text-xs text-surface-400">{{ t('measurements.contour') }}</div>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold tabular-nums text-surface-900 dark:text-surface-0">{{ u.lastMeasurement.armCm ?? '—' }}<span class="ml-0.5 text-xs font-normal text-surface-400">cm</span></div>
+                  <div class="mt-1 text-xs text-surface-400">{{ t('measurements.arm') }}</div>
                 </div>
               </div>
             </div>
-          </div>
+          }
         </div>
-
-        @if (u.lastMeasurement) {
-          <div class="data-card mt-4">
-            <div class="px-4 pt-4"><h2 class="text-xl font-semibold m-0">{{ t('users.last_measurement') }}</h2></div>
-            <div class="p-4">
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-                <div>
-                  <span class="text-sm text-surface-400">{{ t('users.weight') }}</span>
-                  <p class="text-2xl font-bold mt-1 font-mono">{{ u.lastMeasurement.weightKg ?? '—' }}</p>
-                </div>
-                <div>
-                  <span class="text-sm text-surface-400">{{ t('users.bmi') }}</span>
-                  <p class="text-2xl font-bold mt-1 font-mono"
-                    [class.text-green-600]="u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 18.5 && u.lastMeasurement.bmi < 25"
-                    [class.text-amber-600]="(u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 25 && u.lastMeasurement.bmi < 30) || (u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi < 18.5)"
-                    [class.text-red-600]="u.lastMeasurement.bmi !== null && u.lastMeasurement.bmi >= 30">
-                    {{ u.lastMeasurement.bmi ?? '—' }}
-                  </p>
-                </div>
-                <div>
-                  <span class="text-sm text-surface-400">{{ t('users.body_fat') }}</span>
-                  <p class="text-2xl font-bold mt-1 font-mono">{{ u.lastMeasurement.bodyFatPct ?? '—' }}</p>
-                </div>
-                <div>
-                  <span class="text-sm text-surface-400">{{ t('users.muscle_mass') }}</span>
-                  <p class="text-2xl font-bold mt-1 font-mono">{{ u.lastMeasurement.muscleMassPct ?? '—' }}</p>
-                </div>
-              </div>
-              <div class="grid grid-cols-3 sm:grid-cols-7 gap-4 text-center mt-6 pt-6 border-t border-surface-200 dark:border-surface-700">
-                <div>
-                  <span class="text-xs text-surface-400">{{ t('measurements.body_water') }}</span>
-                  <p class="text-sm font-semibold mt-1 font-mono">{{ u.lastMeasurement.bodyWaterPct ?? '—' }}</p>
-                </div>
-                <div>
-                  <span class="text-xs text-surface-400">{{ t('measurements.visceral_fat') }}</span>
-                  <p class="text-sm font-semibold mt-1 font-mono">{{ u.lastMeasurement.visceralFatLevel ?? '—' }}</p>
-                </div>
-                <div>
-                  <span class="text-xs text-surface-400">{{ t('measurements.waist') }}</span>
-                  <p class="text-sm font-semibold mt-1 font-mono">{{ u.lastMeasurement.waistCm ?? '—' }}</p>
-                </div>
-                <div>
-                  <span class="text-xs text-surface-400">{{ t('measurements.chest') }}</span>
-                  <p class="text-sm font-semibold mt-1 font-mono">{{ u.lastMeasurement.chestCm ?? '—' }}</p>
-                </div>
-                <div>
-                  <span class="text-xs text-surface-400">{{ t('measurements.hips') }}</span>
-                  <p class="text-sm font-semibold mt-1 font-mono">{{ u.lastMeasurement.hipsCm ?? '—' }}</p>
-                </div>
-                <div>
-                  <span class="text-xs text-surface-400">{{ t('measurements.contour') }}</span>
-                  <p class="text-sm font-semibold mt-1 font-mono">{{ u.lastMeasurement.contourCm ?? '—' }}</p>
-                </div>
-                <div>
-                  <span class="text-xs text-surface-400">{{ t('measurements.arm') }}</span>
-                  <p class="text-sm font-semibold mt-1 font-mono">{{ u.lastMeasurement.armCm ?? '—' }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        }
       }
 
       <!-- TAB 2: Mediciones -->
       @if (activeTabId() === 'measurements') {
-        <div class="py-4">
-          <div class="flex flex-wrap items-center justify-between gap-3 mb-4" *appIfPermission="'MANAGE_USER'">
-            <div></div>
-
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                tuiButton
-                size="m"
-                (click)="showRegisterDialog()">
-                <i class="fa-solid fa-plus mr-1"></i>
-                {{ t('measurements.register') }}
-              </button>
-            </div>
-          </div>
-
+        <div class="space-y-5 py-5">
           @if (chartLoaded() && chartData) {
-            <div class="data-card mb-4">
-              <div class="flex items-center justify-between px-4 pt-4">
-                <h2 class="text-xl font-semibold m-0">{{ t('measurements.chart_title') }}</h2>
+            <div class="data-card">
+              <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                    {{ t('measurements.chart_title') }}
+                  </h2>
+                  <p class="mt-1 text-[13px] text-surface-400">{{ t('measurements.chart_hint') }}</p>
+                </div>
                 <tui-segmented
                   [activeItemIndex]="chartType() === 'composition' ? 0 : 1"
                   (activeItemIndexChange)="setChartType($event === 0 ? 'composition' : 'anthropometry')">
@@ -246,13 +333,31 @@
               <div class="relative" style="height: 300px">
                 <canvas #chartCanvas></canvas>
               </div>
-              <p class="text-xs text-surface-400 mt-2 italic px-4 pb-4">
+              <p class="mt-2 text-xs italic text-surface-400">
                 {{ t('measurements.bmi_disclaimer') }}
               </p>
             </div>
           }
 
           <div class="data-card">
+            <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                  {{ t('measurements.table_title') }}
+                </h2>
+                <p class="mt-1 text-[13px] text-surface-400">{{ t('measurements.table_hint') }}</p>
+              </div>
+              @if (canManageUsers()) {
+                <button
+                  type="button"
+                  tuiButton
+                  size="m"
+                  (click)="showRegisterDialog()">
+                  <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
+                  {{ t('measurements.register') }}
+                </button>
+              }
+            </div>
             <boneyard-skeleton name="user-measurements-list" [loading]="loadingMeasurements()">
               @if (measurements().length === 0 && !loadingMeasurements()) {
                 <app-empty-state
@@ -263,7 +368,7 @@
                   (action)="showRegisterDialog()">
                 </app-empty-state>
               } @else {
-                <div class="hidden md:block overflow-x-auto">
+                <div class="hidden md:block table-wrapper">
                   <table tuiTable class="w-full">
                     <thead>
                       <tr>
@@ -283,13 +388,13 @@
                       @for (m of measurements(); track m.id) {
                         <tr tuiTr>
                           <td tuiTd class="text-sm">{{ formatInstantWithTime(m.measuredAt) }}</td>
-                          <td tuiTd class="font-mono">{{ m.weightKg ?? '—' }}</td>
-                          <td tuiTd class="font-mono">{{ m.bmi ?? '—' }}</td>
-                          <td tuiTd class="font-mono">{{ m.bodyFatPct ?? '—' }}</td>
-                          <td tuiTd class="font-mono">{{ m.muscleMassPct ?? '—' }}</td>
-                          <td tuiTd class="font-mono">{{ m.bodyWaterPct ?? '—' }}</td>
-                          <td tuiTd class="font-mono">{{ m.visceralFatLevel ?? '—' }}</td>
-                          <td tuiTd class="font-mono">{{ m.waistCm ?? '—' }}</td>
+                          <td tuiTd class="tabular-nums">{{ m.weightKg ?? '—' }}</td>
+                          <td tuiTd class="tabular-nums">{{ m.bmi ?? '—' }}</td>
+                          <td tuiTd class="tabular-nums">{{ m.bodyFatPct ?? '—' }}</td>
+                          <td tuiTd class="tabular-nums">{{ m.muscleMassPct ?? '—' }}</td>
+                          <td tuiTd class="tabular-nums">{{ m.bodyWaterPct ?? '—' }}</td>
+                          <td tuiTd class="tabular-nums">{{ m.visceralFatLevel ?? '—' }}</td>
+                          <td tuiTd class="tabular-nums">{{ m.waistCm ?? '—' }}</td>
                           <td tuiTd class="text-surface-400 text-sm whitespace-pre-wrap min-w-40">{{ m.notes ?? '—' }}</td>
                           <td tuiTd class="text-center">
                             <button
@@ -319,31 +424,31 @@
                       <dl class="mt-2 text-sm space-y-1">
                         <div class="flex justify-between gap-2">
                           <dt class="text-surface-500">{{ t('measurements.weight') }}</dt>
-                          <dd class="font-mono">{{ m.weightKg ?? '—' }}</dd>
+                          <dd class="tabular-nums">{{ m.weightKg ?? '—' }}</dd>
                         </div>
                         <div class="flex justify-between gap-2">
                           <dt class="text-surface-500">{{ t('measurements.bmi') }}</dt>
-                          <dd class="font-mono">{{ m.bmi ?? '—' }}</dd>
+                          <dd class="tabular-nums">{{ m.bmi ?? '—' }}</dd>
                         </div>
                         <div class="flex justify-between gap-2">
                           <dt class="text-surface-500">{{ t('measurements.body_fat') }}</dt>
-                          <dd class="font-mono">{{ m.bodyFatPct ?? '—' }}</dd>
+                          <dd class="tabular-nums">{{ m.bodyFatPct ?? '—' }}</dd>
                         </div>
                         <div class="flex justify-between gap-2">
                           <dt class="text-surface-500">{{ t('measurements.muscle_mass') }}</dt>
-                          <dd class="font-mono">{{ m.muscleMassPct ?? '—' }}</dd>
+                          <dd class="tabular-nums">{{ m.muscleMassPct ?? '—' }}</dd>
                         </div>
                         <div class="flex justify-between gap-2">
                           <dt class="text-surface-500">{{ t('measurements.body_water') }}</dt>
-                          <dd class="font-mono">{{ m.bodyWaterPct ?? '—' }}</dd>
+                          <dd class="tabular-nums">{{ m.bodyWaterPct ?? '—' }}</dd>
                         </div>
                         <div class="flex justify-between gap-2">
                           <dt class="text-surface-500">{{ t('measurements.visceral_fat') }}</dt>
-                          <dd class="font-mono">{{ m.visceralFatLevel ?? '—' }}</dd>
+                          <dd class="tabular-nums">{{ m.visceralFatLevel ?? '—' }}</dd>
                         </div>
                         <div class="flex justify-between gap-2">
                           <dt class="text-surface-500">{{ t('measurements.waist') }}</dt>
-                          <dd class="font-mono">{{ m.waistCm ?? '—' }}</dd>
+                          <dd class="tabular-nums">{{ m.waistCm ?? '—' }}</dd>
                         </div>
                         <div class="flex justify-between gap-2">
                           <dt class="text-surface-500">{{ t('measurements.notes') }}</dt>
@@ -391,376 +496,242 @@
 
       <!-- TAB: Composición Corporal -->
       @if (activeTabId() === 'body_composition') {
-        <div class="py-4">
-          <div class="flex flex-wrap items-center justify-between gap-3 mb-4" *appIfPermission="'MANAGE_USER'">
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                tuiButton
-                size="m"
-                appearance="primary"
-                (click)="calculateBodyComposition()"
-                [disabled]="calculatingComposition() || measurements().length === 0"
-                [class.loading]="calculatingComposition()">
-                <i class="fa-solid fa-calculator mr-1"></i>
-                {{ calculatingComposition() ? t('measurements.calculating') : t('measurements.calculate_composition') }}
-              </button>
+        <div class="space-y-5 py-5">
+          @if (activeCompositionReport(); as report) {
+            <!-- Análisis de composición corporal -->
+            <div class="data-card">
+              <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                    {{ t('measurements.composition_analysis_title') }}
+                  </h2>
+                  @if (report.calculatedAt) {
+                    <p class="mt-1 text-[13px] text-surface-400">
+                      {{ t('measurements.calculated_at') }}: {{ formatInstantWithTime(report.calculatedAt) }}
+                    </p>
+                  }
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  @if (canManageUsers()) {
+                    <button
+                      type="button"
+                      tuiButton
+                      size="m"
+                      appearance="primary"
+                      (click)="calculateBodyComposition()"
+                      [disabled]="calculatingComposition() || measurements().length === 0"
+                      [class.loading]="calculatingComposition()">
+                      <i class="fa-solid fa-calculator mr-1" aria-hidden="true"></i>
+                      {{ calculatingComposition() ? t('measurements.calculating') : t('measurements.calculate_composition') }}
+                    </button>
+                  }
+                  @if (canDownloadCompositionPdf()) {
+                    <button
+                      type="button"
+                      tuiButton
+                      size="m"
+                      appearance="secondary"
+                      (click)="downloadCompositionPdf()"
+                      [disabled]="downloadingCompositionPdf()"
+                      [class.loading]="downloadingCompositionPdf()">
+                      <i class="fa-solid fa-file-pdf mr-1" aria-hidden="true"></i>
+                      {{ t('measurements.download_composition_pdf') }}
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Figuras clave (Guía §6) -->
+              <div class="grid grid-cols-1 gap-px overflow-hidden rounded-md border border-line bg-line sm:grid-cols-3">
+                @if (report.bodyFrame) {
+                  <div class="bg-surface-0 dark:bg-surface-800 px-4 py-3.5">
+                    <div class="text-xs text-surface-400">{{ t('measurements.body_frame_title') }}</div>
+                    <div class="mt-1.5 font-display text-2xl font-bold leading-none tracking-tight text-surface-900 dark:text-surface-0">
+                      {{ t('measurements.frame_' + (report.bodyFrame.frame ? report.bodyFrame.frame.toLowerCase() : 'unknown')) }}
+                      <span class="ml-1 font-sans text-[13px] font-normal text-surface-400 tabular-nums">{{ report.bodyFrame.rIndex }}</span>
+                    </div>
+                    <p class="mt-1.5 text-xs leading-snug text-surface-400">{{ report.bodyFrame.localizedDescription }}</p>
+                  </div>
+                }
+                @if (report.global.boneComposition; as bone) {
+                  <div class="bg-surface-0 dark:bg-surface-800 px-4 py-3.5">
+                    <div class="text-xs text-surface-400">{{ t('measurements.bone_evaluation_title') }}</div>
+                    <div class="mt-1.5 font-display text-2xl font-bold leading-none tracking-tight tabular-nums text-surface-900 dark:text-surface-0">
+                      {{ bone.boneMassKg }}<span class="ml-0.5 font-sans text-[13px] font-normal text-surface-400">kg</span>
+                    </div>
+                    <p class="mt-1.5 text-xs leading-snug text-surface-400">
+                      {{ bone.boneMassPctOfWeight }}% · {{ t('measurements.bone_' + (bone.evaluation ? bone.evaluation.toLowerCase() : 'not_evaluated')) }}
+                    </p>
+                  </div>
+                }
+                <div class="bg-surface-0 dark:bg-surface-800 px-4 py-3.5">
+                  <div class="text-xs text-surface-400">{{ t('measurements.fig_weight_height') }}</div>
+                  <div class="mt-1.5 font-display text-2xl font-bold leading-none tracking-tight tabular-nums text-surface-900 dark:text-surface-0">
+                    {{ report.patient.weightKg }}<span class="ml-0.5 font-sans text-[13px] font-normal text-surface-400">kg</span>
+                  </div>
+                  <p class="mt-1.5 text-xs leading-snug text-surface-400 tabular-nums">
+                    {{ report.patient.heightCm }} cm · {{ t('measurements.wrist') }} {{ report.patient.wristCircumferenceCm ?? '—' }} cm
+                  </p>
+                  @if (report.referenceRanges) {
+                    <p class="mt-0.5 text-xs leading-snug text-surface-400 tabular-nums">
+                      {{ t('measurements.range_target_label') }}: {{ report.referenceRanges.normalWeightMinKg }}–{{ report.referenceRanges.normalWeightMaxKg }} kg
+                    </p>
+                  }
+                </div>
+              </div>
+
+              <!-- Cuadrícula de composición: 6 métricas con banda de referencia -->
+              @if (compositionCells().length > 0) {
+                <div class="mt-4 grid grid-cols-1 gap-px overflow-hidden rounded-md border border-line bg-line sm:grid-cols-2">
+                  @for (cell of compositionCells(); track cell.id) {
+                    <div class="bg-surface-0 dark:bg-surface-800 px-4 py-3.5">
+                      <div class="text-xs text-surface-400">{{ t(cell.labelKey) }}</div>
+                      <div class="mt-0.5 flex flex-wrap items-baseline gap-2">
+                        <span class="font-display text-xl font-bold leading-none tracking-tight tabular-nums text-surface-900 dark:text-surface-0">
+                          {{ cell.value ?? '—' }}<span class="ml-0.5 font-sans text-[12.5px] font-normal text-surface-400">{{ cell.unit }}</span>
+                        </span>
+                        <span tuiBadge size="s" [appearance]="cell.badgeAppearance">
+                          {{ cell.classification || t('measurements.range_status_' + cell.status) }}
+                        </span>
+                      </div>
+                      <div class="relative mt-2.5 h-[5px] rounded-pill bg-surface-100 dark:bg-surface-700">
+                        <span
+                          class="absolute inset-y-0 rounded-pill bg-brand-tint-30"
+                          [style.left.%]="cell.bandStartPct"
+                          [style.right.%]="100 - cell.bandEndPct"></span>
+                        <span
+                          class="absolute -top-[3px] h-[11px] w-[3px] rounded-[2px]"
+                          [ngClass]="cell.markerClass"
+                          [style.left.%]="cell.markerPct"
+                          style="transform: translateX(-1.5px);"
+                          [title]="cell.value ?? ''"></span>
+                      </div>
+                      <div class="mt-1.5 text-xs text-surface-400">{{ t(cell.refKey, cell.refParams) }}</div>
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- Notas clínicas -->
+              @if (report.global) {
+                <div class="mt-3.5 space-y-2.5">
+                  @if (report.global.localizedBmiClassification) {
+                    <div class="flex items-start gap-2.5 rounded-sm bg-ok-soft px-3.5 py-3 text-[13px] leading-relaxed text-ok">
+                      <i class="fa-solid fa-circle-check mt-0.5 shrink-0" aria-hidden="true"></i>
+                      <div>{{ t('measurements.note_bmi', { bmi: report.global.bmi, classification: report.global.localizedBmiClassification }) }}</div>
+                    </div>
+                  }
+                  @if (report.global.visceralFatLevel !== null && report.global.visceralFatLevel !== undefined) {
+                    <div class="flex items-start gap-2.5 rounded-sm bg-surface-100 px-3.5 py-3 text-[13px] leading-relaxed text-surface-600 dark:bg-surface-800 dark:text-surface-300">
+                      <i class="fa-solid fa-circle-info mt-0.5 shrink-0" aria-hidden="true"></i>
+                      <div>{{ t('measurements.note_visceral', { value: report.global.visceralFatLevel }) }}</div>
+                    </div>
+                  }
+                  @if (report.bodyFrame) {
+                    <div class="flex items-start gap-2.5 rounded-sm bg-surface-100 px-3.5 py-3 text-[13px] leading-relaxed text-surface-600 dark:bg-surface-800 dark:text-surface-300">
+                      <i class="fa-solid fa-circle-info mt-0.5 shrink-0" aria-hidden="true"></i>
+                      <div>{{ t('measurements.note_frame', { frame: t('measurements.frame_' + (report.bodyFrame.frame ? report.bodyFrame.frame.toLowerCase() : 'unknown')), index: report.bodyFrame.rIndex }) }}</div>
+                    </div>
+                  }
+                </div>
+              }
             </div>
-            @if (canDownloadCompositionPdf()) {
-              <div class="flex justify-end mb-4">
-                <button
-                  type="button"
-                  tuiButton
-                  size="m"
-                  appearance="secondary"
-                  (click)="downloadCompositionPdf()"
-                  [disabled]="downloadingCompositionPdf()"
-                  [class.loading]="downloadingCompositionPdf()">
-                  <i class="fa-solid fa-file-pdf mr-1"></i>
-                  {{ t('measurements.download_composition_pdf') }}
-                </button>
+
+            <!-- Análisis segmental -->
+            @if (segmentalRows().length > 0) {
+              <div class="data-card">
+                <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                      {{ t('measurements.segmental_analysis_title') }}
+                    </h2>
+                    <p class="mt-1 text-[13px] text-surface-400">{{ t('measurements.segmental_hint') }}</p>
+                  </div>
+                  <tui-segmented
+                    [activeItemIndex]="segmentalMode() === 'lean' ? 0 : 1"
+                    (activeItemIndexChange)="setSegmentalMode($event === 0 ? 'lean' : 'fat')">
+                    <button type="button">{{ t('measurements.segmental_lean') }}</button>
+                    <button type="button">{{ t('measurements.segmental_fat') }}</button>
+                  </tui-segmented>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr]">
+                  <div>
+                    <svg class="mx-auto block w-full max-w-[220px]" viewBox="0 0 140 230" role="img" [attr.aria-label]="t('measurements.segmental_analysis_title')">
+                      <circle cx="70" cy="20" r="13" class="fill-surface-300 dark:fill-surface-700"></circle>
+                      @for (seg of segmentalFigure(); track seg.id) {
+                        <rect
+                          [attr.x]="seg.x"
+                          [attr.y]="seg.y"
+                          [attr.width]="seg.width"
+                          [attr.height]="seg.height"
+                          [attr.rx]="seg.rx"
+                          [attr.fill]="seg.color"
+                          stroke="var(--surface)"
+                          stroke-width="2">
+                          <title>{{ seg.title }}</title>
+                        </rect>
+                        <text
+                          [attr.x]="seg.labelX"
+                          [attr.y]="seg.labelY"
+                          [attr.text-anchor]="seg.labelAnchor"
+                          class="tabular-nums"
+                          [attr.fill]="seg.onTrunk ? '#ffffff' : 'var(--ink-2)'"
+                          style="font-size: 9px;">{{ seg.valueText }}</text>
+                      }
+                      <text x="41" y="217" text-anchor="middle" fill="var(--ink-2)" style="font-size: 9px;">{{ t('measurements.side_right') }}</text>
+                      <text x="99" y="217" text-anchor="middle" fill="var(--ink-2)" style="font-size: 9px;">{{ t('measurements.side_left') }}</text>
+                    </svg>
+                    <div class="mt-3 flex flex-wrap justify-center gap-x-3.5 gap-y-1 text-xs text-ink-2">
+                      <span class="inline-flex items-center gap-1.5">
+                        <i class="block size-2.5 rounded-[3px] bg-ok"></i>{{ t('measurements.range_status_within') }}
+                      </span>
+                      <span class="inline-flex items-center gap-1.5">
+                        <i class="block size-2.5 rounded-[3px] bg-err"></i>{{ t('measurements.asymmetry_alert_short') }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="divide-y divide-line overflow-hidden rounded-md border border-line">
+                      @for (seg of segmentalRows(); track seg.id) {
+                        <div class="grid grid-cols-[110px_1fr_auto] items-center gap-3.5 bg-surface-0 dark:bg-surface-800 px-3.5 py-3">
+                          <span class="truncate text-[13.5px] text-surface-800 dark:text-surface-200">{{ seg.label }}</span>
+                          <span class="block h-1.5 overflow-hidden rounded-pill bg-surface-100 dark:bg-surface-700">
+                            <i class="block h-full rounded-pill" [ngClass]="seg.markerClass" [style.width.%]="seg.barPct"></i>
+                          </span>
+                          <span class="whitespace-nowrap text-right text-[13.5px] tabular-nums text-surface-800 dark:text-surface-200">
+                            {{ seg.valueText }}
+                            <em class="ml-1.5 text-xs not-italic text-surface-400">
+                              {{ seg.asymmetric ? t('measurements.asymmetry_pct', { pct: seg.diffPct }) : t('measurements.range_status_within') }}
+                            </em>
+                          </span>
+                        </div>
+                      }
+                    </div>
+
+                    @if (segmentalNotes().length > 0) {
+                      <div class="mt-3.5 space-y-2.5">
+                        @for (note of segmentalNotes(); track note.key) {
+                          <div
+                            class="flex items-start gap-2.5 rounded-sm px-3.5 py-3 text-[13px] leading-relaxed"
+                            [class.bg-ok-soft]="note.tone === 'ok'"
+                            [class.text-ok]="note.tone === 'ok'"
+                            [class.bg-err-soft]="note.tone === 'err'"
+                            [class.text-err]="note.tone === 'err'">
+                            <i
+                              class="mt-0.5 shrink-0"
+                              [ngClass]="note.tone === 'ok' ? 'fa-solid fa-circle-check' : 'fa-solid fa-triangle-exclamation'"
+                              aria-hidden="true"></i>
+                            <div>{{ t(note.key, note.params) }}</div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
               </div>
             }
-          </div>
-
-
-
-          @if (activeCompositionReport(); as report) {
-            <div class="data-card mb-4">
-              <div class="flex flex-wrap items-center justify-between px-4 pt-4 pb-2 border-b border-surface-200 dark:border-surface-700">
-                <div class="flex items-center gap-2">
-                  <i class="fa-solid fa-notes-medical text-primary-500"></i>
-                  <h2 class="text-base font-semibold m-0">{{ t('measurements.composition_report_title') }}</h2>
-                </div>
-                @if (report.calculatedAt) {
-                  <span class="text-xs text-surface-400">
-                    {{ t('measurements.calculated_at') }}: {{ formatInstantWithTime(report.calculatedAt) }}
-                  </span>
-                }
-              </div>
-
-              <div class="p-4 flex flex-col gap-5">
-                <!-- Grant Frame & Bone Mass Row -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <!-- Complexión Física (Grant Index) -->
-                  @if (report.bodyFrame) {
-                    <div class="p-4 rounded-xl bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
-                      <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
-                          <i class="fa-solid fa-ruler-combined text-primary-500"></i>
-                          {{ t('measurements.body_frame_title') }}
-                        </span>
-                        <span tuiBadge [appearance]="getFrameBadgeAppearance(report.bodyFrame.frame)">
-                          {{ t('measurements.frame_' + (report.bodyFrame.frame ? report.bodyFrame.frame.toLowerCase() : 'unknown')) }}
-                        </span>
-                      </div>
-                      <div class="flex items-baseline gap-2 mt-1">
-                        <span class="text-xs text-surface-500">{{ t('measurements.r_index') }}:</span>
-                        <span class="font-mono text-base font-bold text-surface-800 dark:text-surface-200">{{ report.bodyFrame.rIndex }}</span>
-                      </div>
-                      <p class="text-xs text-surface-500 m-0">
-                        {{ report.bodyFrame.localizedDescription }}
-                      </p>
-                    </div>
-                  }
-
-                  <!-- Evaluación de Masa Ósea -->
-                  @if (report.global.boneComposition; as bone) {
-                    <div class="p-4 rounded-xl bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
-                      <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
-                          <i class="fa-solid fa-bone text-primary-500"></i>
-                          {{ t('measurements.bone_evaluation_title') }}
-                        </span>
-                        <span tuiBadge [appearance]="getBoneEvalBadgeAppearance(bone.evaluation)">
-                          {{ t('measurements.bone_' + (bone.evaluation ? bone.evaluation.toLowerCase() : 'not_evaluated')) }}
-                        </span>
-                      </div>
-                      <div class="flex items-baseline gap-3 mt-1">
-                        <div>
-                          <span class="text-xs text-surface-500">{{ t('measurements.bone_mass') }}:</span>
-                          <span class="font-mono text-base font-bold ml-1 text-surface-800 dark:text-surface-200">{{ bone.boneMassKg }} kg</span>
-                        </div>
-                        <div>
-                          <span class="text-xs text-surface-500">(</span>
-                          <span class="font-mono text-xs font-semibold text-surface-600 dark:text-surface-400">{{ bone.boneMassPctOfWeight }}%</span>
-                          <span class="text-xs text-surface-500">)</span>
-                        </div>
-                      </div>
-                      <p class="text-xs text-surface-500 m-0">
-                        {{ bone.localizedDescription }}
-                      </p>
-                    </div>
-                  }
-                </div>
-
-                <!-- Desglose Global (Grasa, Libre de Grasa / Magra, Agua, IMC) -->
-                @if (report.global) {
-                  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center p-3 rounded-xl bg-surface-50/50 dark:bg-surface-800/30 border border-surface-200 dark:border-surface-700">
-                    <div>
-                      <span class="text-xs text-surface-400">{{ t('measurements.fat_mass') }}</span>
-                      <p class="text-base font-bold font-mono text-amber-600 dark:text-amber-400 mt-0.5 mb-0">
-                        {{ report.global.fatMassKg }} kg
-                      </p>
-                    </div>
-                    <div>
-                      <span class="text-xs text-surface-400">{{ t('measurements.lean_mass') }}</span>
-                      <p class="text-base font-bold font-mono text-ok mt-0.5 mb-0">
-                        {{ report.global.fatFreeMassKg }} kg
-                      </p>
-                    </div>
-                    <div>
-                      <span class="text-xs text-surface-400">{{ t('measurements.water_mass') }}</span>
-                      <p class="text-base font-bold font-mono text-cyan-600 dark:text-cyan-400 mt-0.5 mb-0">
-                        {{ report.global.waterMassKg }} kg
-                      </p>
-                    </div>
-                    <div>
-                      <span class="text-xs text-surface-400">{{ t('measurements.bmi') }}</span>
-                      <p class="text-base font-bold font-mono text-primary-600 dark:text-primary-400 mt-0.5 mb-0">
-                        {{ report.global.bmi }}
-                      </p>
-                      <span class="text-[11px] text-surface-400 block truncate" [title]="report.global.localizedBmiClassification">
-                        {{ report.global.localizedBmiClassification }}
-                      </span>
-                    </div>
-                    <div>
-                      <span class="text-xs text-surface-400">{{ t('measurements.body_fat') }}</span>
-                      <p class="text-base font-bold font-mono text-amber-600 dark:text-amber-400 mt-0.5 mb-0">
-                        {{ currentBodyFatPct() !== null ? currentBodyFatPct() + ' %' : '—' }}
-                      </p>
-                      @if (report.global.localizedBodyFatClassification) {
-                        <span tuiBadge [appearance]="getBodyFatBadgeAppearance(report.global.bodyFatClassification)">
-                          {{ report.global.localizedBodyFatClassification }}
-                        </span>
-                      }
-                    </div>
-                    <div>
-                      <span class="text-xs text-surface-400">{{ t('measurements.visceral_fat') }}</span>
-                      <p class="text-base font-bold font-mono text-rose-600 dark:text-rose-400 mt-0.5 mb-0">
-                        {{ report.global.visceralFatLevel ?? '—' }}
-                      </p>
-                    </div>
-                  </div>
-                }
-
-                <!-- Rangos Clínicos de Referencia (5 métricas personalizadas) -->
-                @if (referenceRangeCards().length > 0) {
-                  <div>
-                    <div class="flex flex-wrap items-center justify-between gap-1 mb-2.5">
-                      <h3 class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5 m-0">
-                        <i class="fa-solid fa-sliders text-primary-500"></i>
-                        {{ t('measurements.reference_ranges_title') }}
-                      </h3>
-                      <span class="text-[11px] text-surface-400">
-                        {{ t('measurements.reference_ranges_subtitle') }}
-                      </span>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                      @for (card of referenceRangeCards(); track card.id) {
-                        <div class="p-3 rounded-xl bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col justify-between gap-3">
-                          <!-- Cabecera de la tarjeta -->
-                          <div>
-                            <div class="flex items-center justify-between gap-1 mb-2">
-                              <span class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5 truncate">
-                                <i [class]="card.icon + ' ' + card.iconColorClass"></i>
-                                <span class="truncate">{{ t(card.labelKey) }}</span>
-                              </span>
-                              <span tuiBadge size="s" [appearance]="card.badgeAppearance">
-                                {{ t('measurements.range_status_' + card.status) }}
-                              </span>
-                            </div>
-
-                            <!-- Valor Actual -->
-                            <div class="flex items-baseline justify-between mt-1">
-                              <span class="text-xs text-surface-400">{{ t('measurements.range_current_label') }}:</span>
-                              <span class="font-mono text-base font-bold text-surface-800 dark:text-surface-200">
-                                {{ card.displayValue }}
-                              </span>
-                            </div>
-
-                            <!-- Rango Objetivo -->
-                            <div class="flex items-baseline justify-between text-[11px] text-surface-500 dark:text-surface-400 mt-0.5">
-                              <span>{{ t('measurements.range_target_label') }}:</span>
-                              <span class="font-mono font-medium">
-                                {{ card.min }} – {{ card.max }} {{ card.unit }}
-                              </span>
-                            </div>
-                          </div>
-
-                          <!-- Escala Visual Continua de 3 Zonas -->
-                          <div class="pt-2 border-t border-surface-200/80 dark:border-surface-700/80 flex flex-col gap-1.5">
-                            <div class="relative h-2 w-full rounded-full overflow-hidden flex bg-surface-200 dark:bg-surface-700">
-                              <!-- Zona Izquierda (Bajo) 25% -->
-                              <div class="w-1/4 h-full bg-amber-200/80 dark:bg-amber-900/40 border-r border-white/40 dark:border-surface-800/60"></div>
-                              <!-- Zona Central (Óptimo) 50% -->
-                              <div class="w-2/4 h-full bg-ok border-r border-white/40 dark:border-surface-800/60"></div>
-                              <!-- Zona Derecha (Elevado) 25% -->
-                              <div class="w-1/4 h-full bg-amber-200/80 dark:bg-amber-900/40"></div>
-
-                              <!-- Indicador de aguja/posición del valor actual -->
-                              <div
-                                class="absolute top-0 bottom-0 w-2 -ml-1 rounded-full shadow-sm transition-all duration-300"
-                                [ngClass]="getMarkerColorClass(card.status)"
-                                [style.left.%]="card.markerPercent"
-                                [title]="card.displayValue"
-                              ></div>
-                            </div>
-
-                            <!-- Leyenda de límites -->
-                            <div class="flex justify-between items-center text-[10px] text-surface-400 font-mono px-0.5">
-                              <span>{{ card.min }}</span>
-                              <span class="text-ok font-semibold">{{ card.unit }}</span>
-                              <span>{{ card.max }}</span>
-                            </div>
-                          </div>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                }
-
-                <!-- Análisis Segmental (5 zonas) -->
-                @if (segmentalList().length > 0) {
-                  <div>
-                    <h3 class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5 mb-2.5">
-                      <i class="fa-solid fa-chart-pie text-primary-500"></i>
-                      {{ t('measurements.segmental_analysis_title') }}
-                    </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                      @for (seg of segmentalList(); track seg.segment) {
-                        <div class="p-3 rounded-lg bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col justify-between">
-                          <div>
-                            <span class="text-xs font-semibold text-surface-800 dark:text-surface-200 block mb-2">
-                              {{ seg.localizedSegmentName }}
-                            </span>
-                            <div class="flex items-center justify-between text-xs mb-1">
-                              <span class="text-surface-500">{{ t('measurements.fat_pct') }}:</span>
-                              <span class="font-mono font-bold text-amber-600 dark:text-amber-400">{{ seg.fatPct }}%</span>
-                            </div>
-                            <div class="flex items-center justify-between text-xs mb-1">
-                              <span class="text-surface-500">{{ t('measurements.fat_mass') }}:</span>
-                              <span class="font-mono font-medium">{{ seg.fatMassKg }} kg</span>
-                            </div>
-                            <div class="flex items-center justify-between text-xs mb-1">
-                              <span class="text-surface-500">{{ t('measurements.lean_mass') }}:</span>
-                              <span class="font-mono font-medium text-ok">{{ seg.leanMassKg }} kg</span>
-                            </div>
-                          </div>
-                          <div class="pt-2 mt-2 border-t border-surface-200 dark:border-surface-700 flex items-center justify-between text-xs font-semibold text-surface-600 dark:text-surface-400">
-                            <span>{{ t('measurements.total_mass') }}:</span>
-                            <span class="font-mono">{{ seg.totalMassKg }} kg</span>
-                          </div>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                }
-
-                <!-- Simetría Lateral Bilateral y Alertas Clínicas -->
-                @if (report.symmetry) {
-                  <div class="pt-2 border-t border-surface-200 dark:border-surface-700">
-                    <div class="flex items-center justify-between mb-3">
-                      <h3 class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5 m-0">
-                        <i class="fa-solid fa-arrows-split-up-and-left text-primary-500"></i>
-                        {{ t('measurements.symmetry_title') }}
-                      </h3>
-                      @if (report.symmetry.hasAnyAsymmetryAlert) {
-                        <span tuiBadge appearance="warning">
-                          <i class="fa-solid fa-triangle-exclamation mr-1"></i>
-                          {{ t('measurements.asymmetry_alert') }}
-                        </span>
-                      }
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <!-- Extremidades Superiores -->
-                      @if (report.symmetry.upperLimbs; as upper) {
-                        <div class="p-3.5 rounded-xl border flex flex-col gap-2"
-                          [class.border-amber-400]="upper.asymmetricAlert"
-                          [class.bg-amber-50\/40]="upper.asymmetricAlert"
-                          [class.dark:bg-amber-950\/20]="upper.asymmetricAlert"
-                          [class.border-surface-200]="!upper.asymmetricAlert"
-                          [class.dark:border-surface-700]="!upper.asymmetricAlert"
-                          [class.bg-surface-50]="!upper.asymmetricAlert"
-                          [class.dark:bg-surface-800\/50]="!upper.asymmetricAlert">
-                          <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold text-surface-800 dark:text-surface-200 flex items-center gap-1.5">
-                              <i class="fa-solid fa-hand text-primary-500"></i>
-                              {{ t('measurements.upper_limbs') }}
-                            </span>
-                            @if (upper.asymmetricAlert) {
-                              <span tuiBadge appearance="warning">
-                                {{ upper.diffPct }}% {{ t('measurements.diff') }}
-                              </span>
-                            } @else {
-                              <span tuiBadge appearance="positive">
-                                {{ upper.diffPct }}% ({{ t('measurements.symmetric') }})
-                              </span>
-                            }
-                          </div>
-                          <div class="grid grid-cols-2 gap-2 text-xs py-1">
-                            <div class="bg-surface-0 dark:bg-surface-800 p-2 rounded border border-surface-200 dark:border-surface-700">
-                              <span class="text-surface-400 block text-[11px]">{{ t('measurements.right_arm') }} ({{ t('measurements.lean') }}):</span>
-                              <span class="font-mono font-bold text-xs">{{ upper.rightLeanMassKg }} kg</span>
-                            </div>
-                            <div class="bg-surface-0 dark:bg-surface-800 p-2 rounded border border-surface-200 dark:border-surface-700">
-                              <span class="text-surface-400 block text-[11px]">{{ t('measurements.left_arm') }} ({{ t('measurements.lean') }}):</span>
-                              <span class="font-mono font-bold text-xs">{{ upper.leftLeanMassKg }} kg</span>
-                            </div>
-                          </div>
-                          <p class="text-xs text-surface-500 m-0">
-                            {{ upper.localizedObservation }}
-                          </p>
-                        </div>
-                      }
-
-                      <!-- Extremidades Inferiores -->
-                      @if (report.symmetry.lowerLimbs; as lower) {
-                        <div class="p-3.5 rounded-xl border flex flex-col gap-2"
-                          [class.border-amber-400]="lower.asymmetricAlert"
-                          [class.bg-amber-50\/40]="lower.asymmetricAlert"
-                          [class.dark:bg-amber-950\/20]="lower.asymmetricAlert"
-                          [class.border-surface-200]="!lower.asymmetricAlert"
-                          [class.dark:border-surface-700]="!lower.asymmetricAlert"
-                          [class.bg-surface-50]="!lower.asymmetricAlert"
-                          [class.dark:bg-surface-800\/50]="!lower.asymmetricAlert">
-                          <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold text-surface-800 dark:text-surface-200 flex items-center gap-1.5">
-                              <i class="fa-solid fa-socks text-primary-500"></i>
-                              {{ t('measurements.lower_limbs') }}
-                            </span>
-                            @if (lower.asymmetricAlert) {
-                              <span tuiBadge appearance="warning">
-                                {{ lower.diffPct }}% {{ t('measurements.diff') }}
-                              </span>
-                            } @else {
-                              <span tuiBadge appearance="positive">
-                                {{ lower.diffPct }}% ({{ t('measurements.symmetric') }})
-                              </span>
-                            }
-                          </div>
-                          <div class="grid grid-cols-2 gap-2 text-xs py-1">
-                            <div class="bg-surface-0 dark:bg-surface-800 p-2 rounded border border-surface-200 dark:border-surface-700">
-                              <span class="text-surface-400 block text-[11px]">{{ t('measurements.right_leg') }} ({{ t('measurements.lean') }}):</span>
-                              <span class="font-mono font-bold text-xs">{{ lower.rightLeanMassKg }} kg</span>
-                            </div>
-                            <div class="bg-surface-0 dark:bg-surface-800 p-2 rounded border border-surface-200 dark:border-surface-700">
-                              <span class="text-surface-400 block text-[11px]">{{ t('measurements.left_leg') }} ({{ t('measurements.lean') }}):</span>
-                              <span class="font-mono font-bold text-xs">{{ lower.leftLeanMassKg }} kg</span>
-                            </div>
-                          </div>
-                          <p class="text-xs text-surface-500 m-0">
-                            {{ lower.localizedObservation }}
-                          </p>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                }
-              </div>
-            </div>
           } @else {
             <div class="data-card p-6">
               <app-empty-state
@@ -778,119 +749,99 @@
       <!-- TAB 3: Perfil Médico -->
       @if (canViewPatientProfile()) {
         @if (activeTabId() === 'patient_profile') {
-          <div class="py-4">
+          <div class="space-y-5 py-5">
             <boneyard-skeleton name="user-medical-profile" [loading]="loadingProfile()">
-              <div class="flex flex-col gap-6">
-                <!-- Status indicator -->
-                <div class="flex items-center justify-end min-h-[20px] -mb-2">
-                  @if (canManagePatientProfile()) {
-                    @if (saveStatus() === 'saving') {
-                      <span class="text-xs text-surface-400 flex items-center gap-1.5">
-                        <i class="fa-solid fa-spinner fa-spin text-primary-500"></i>
-                        {{ t('patient_profile.saving') }}
-                      </span>
-                    } @else if (saveStatus() === 'saved') {
-                      <span class="text-xs text-ok flex items-center gap-1.5">
-                        <i class="fa-solid fa-check"></i>
-                        {{ t('patient_profile.saved') }}
-                      </span>
-                    } @else if (saveStatus() === 'error') {
-                      <span class="text-xs text-red-500 flex items-center gap-1.5">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        {{ t('patient_profile.save_error') }}
-                      </span>
-                    }
-                  }
-                </div>
-
-                <!-- Top Section: Motivo de consulta -->
+              <div class="space-y-5">
+                <!-- Anamnesis -->
                 <div class="data-card">
-                  <div class="flex items-center gap-2 mb-2">
-                    <i class="fa-solid fa-bullseye text-primary-500"></i>
-                    <h2 class="text-lg font-semibold m-0">{{ t('patient_profile.consultation_reason') }}</h2>
-                  </div>
-                  <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-                    <textarea
-                      tuiTextarea
-                      [disabled]="!canManagePatientProfile()"
-                      [ngModel]="getChecklistNotes('consultationReason')"
-                      (ngModelChange)="onNotesChange('consultationReason', $event)"
-                      (blur)="onNotesBlur()"
-                      [min]="3"
-                      maxlength="500"></textarea>
-                  </tui-textfield>
-                </div>
-
-                <!-- Top Section: Medicación y Suplementación -->
-                <div class="data-card">
-                  <div class="flex items-center gap-2 mb-2">
-                    <i class="fa-solid fa-pills text-primary-500"></i>
-                    <h2 class="text-lg font-semibold m-0">{{ t('patient_profile.medication_supplements') }}</h2>
-                  </div>
-                  <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-                    <textarea
-                      tuiTextarea
-                      [disabled]="!canManagePatientProfile()"
-                      [ngModel]="getChecklistNotes('medicationSupplements')"
-                      (ngModelChange)="onNotesChange('medicationSupplements', $event)"
-                      (blur)="onNotesBlur()"
-                      [min]="3"
-                      maxlength="500"></textarea>
-                  </tui-textfield>
-                </div>
-
-                <!-- Checklist Section: Condiciones Médicas (2 columnas) -->
-                <div class="data-card">
-                  <div class="flex items-center gap-2 mb-4">
-                    <i class="fa-solid fa-notes-medical text-primary-500"></i>
-                    <h2 class="text-lg font-semibold m-0">{{ t('patient_profile.medical_conditions') }}</h2>
-                  </div>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    @for (field of checklistFields; track field.id) {
-                      <div class="p-3 rounded-lg border border-surface-200 dark:border-surface-700">
-                        <label class="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            tuiCheckbox
-                            [disabled]="!canManagePatientProfile()"
-                            [ngModel]="getChecklistValue(field.id)"
-                            (ngModelChange)="onCheckboxToggle(field.id, $event)" />
-                          <div class="flex items-center gap-2">
-                            <i [class]="field.icon + ' text-primary-500'"></i>
-                            <span class="font-medium text-sm text-surface-900 dark:text-surface-0">
-                              {{ t('patient_profile.' + camelToSnake(field.id)) }}
-                            </span>
-                          </div>
-                        </label>
-                        @if (getChecklistValue(field.id)) {
-                          <div class="mt-2">
-                            <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-                              <textarea
-                                tuiTextarea
-                                [disabled]="!canManagePatientProfile()"
-                                [ngModel]="getChecklistNotes(field.notesId)"
-                                (ngModelChange)="onNotesChange(field.notesId, $event)"
-                                (blur)="onNotesBlur()"
-                                [maxlength]="500"></textarea>
-                            </tui-textfield>
-                          </div>
+                  <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                        {{ t('patient_profile.anamnesis_title') }}
+                      </h2>
+                      <p class="mt-1 text-[13px] text-surface-400">{{ t('patient_profile.anamnesis_hint') }}</p>
+                    </div>
+                    @if (canManagePatientProfile()) {
+                      <div class="min-h-[20px] text-xs">
+                        @if (saveStatus() === 'saving') {
+                          <span class="flex items-center gap-1.5 text-surface-400">
+                            <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+                            {{ t('patient_profile.saving') }}
+                          </span>
+                        } @else if (saveStatus() === 'saved') {
+                          <span class="flex items-center gap-1.5 text-ok">
+                            <i class="fa-solid fa-check" aria-hidden="true"></i>
+                            {{ t('patient_profile.saved') }}
+                          </span>
+                        } @else if (saveStatus() === 'error') {
+                          <span class="flex items-center gap-1.5 text-err">
+                            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                            {{ t('patient_profile.save_error') }}
+                          </span>
                         }
                       </div>
                     }
                   </div>
+
+                  <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-1.5">
+                      <label for="profile-consultation-reason" class="text-[13px] font-medium text-surface-500">{{ t('patient_profile.consultation_reason') }}</label>
+                      <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                        <textarea
+                          id="profile-consultation-reason"
+                          tuiTextarea
+                          [disabled]="!canManagePatientProfile()"
+                          [ngModel]="getChecklistNotes('consultationReason')"
+                          (ngModelChange)="onNotesChange('consultationReason', $event)"
+                          (blur)="onNotesBlur()"
+                          [min]="3"
+                          maxlength="500"
+                          [placeholder]="t('patient_profile.consultation_reason_placeholder')"></textarea>
+                      </tui-textfield>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div class="flex flex-col gap-1.5">
+                        <label for="profile-medication" class="text-[13px] font-medium text-surface-500">{{ t('patient_profile.medication_supplements') }}</label>
+                        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                          <textarea
+                            id="profile-medication"
+                            tuiTextarea
+                            [disabled]="!canManagePatientProfile()"
+                            [ngModel]="getChecklistNotes('medicationSupplements')"
+                            (ngModelChange)="onNotesChange('medicationSupplements', $event)"
+                            (blur)="onNotesBlur()"
+                            [min]="3"
+                            maxlength="500"></textarea>
+                        </tui-textfield>
+                      </div>
+                      <div class="flex flex-col gap-1.5">
+                        <label for="profile-medical-history" class="text-[13px] font-medium text-surface-500">{{ t('patient_profile.medical_history') }}</label>
+                        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                          <textarea
+                            id="profile-medical-history"
+                            tuiTextarea
+                            [disabled]="!canManagePatientProfile()"
+                            [ngModel]="getChecklistNotes('medicalHistory')"
+                            (ngModelChange)="onNotesChange('medicalHistory', $event)"
+                            (blur)="onNotesBlur()"
+                            [min]="3"
+                            maxlength="500"></textarea>
+                        </tui-textfield>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Lifestyle & Habits Section (2 columns) -->
+                <!-- Hábitos y estilo de vida -->
                 <div class="data-card">
-                  <div class="flex items-center gap-2 mb-4">
-                    <i class="fa-solid fa-heart-pulse text-primary-500"></i>
-                    <h2 class="text-lg font-semibold m-0">{{ t('patient_profile.lifestyle_and_habits') }}</h2>
-                  </div>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                    {{ t('patient_profile.lifestyle_and_habits') }}
+                  </h2>
+                  <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                     @for (field of lifestyleTextFields; track field.id) {
-                      <div class="flex flex-col gap-1.5">
-                        <label [for]="'profile-' + field.id" class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                          <i [class]="field.icon + ' text-primary-500 w-4 text-center'"></i>
+                      <div class="flex flex-col gap-1.5" [class.md:col-span-2]="field.id === 'foodPreferences'">
+                        <label [for]="'profile-' + field.id" class="flex items-center gap-2 text-[13px] font-medium text-surface-500">
+                          <i [class]="field.icon + ' w-4 text-center'" aria-hidden="true"></i>
                           <span>{{ t('patient_profile.' + camelToSnake(field.id)) }}</span>
                         </label>
                         <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
@@ -908,44 +859,99 @@
                     }
                   </div>
                 </div>
+
+                <!-- Antecedentes -->
+                <div class="data-card">
+                  <div class="mb-4">
+                    <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                      {{ t('patient_profile.antecedents') }}
+                    </h2>
+                    <p class="mt-1 text-[13px] text-surface-400">
+                      {{ t('patient_profile.antecedents_hint', { active: activeChecklistCount(), total: checklistFields.length }) }}
+                    </p>
+                  </div>
+                  <div class="grid grid-cols-1 gap-px overflow-hidden rounded-md border border-line bg-line md:grid-cols-2 xl:grid-cols-3">
+                    @for (field of checklistFields; track field.id) {
+                      <div [class]="'flex flex-col gap-2 p-3.5 ' + (getChecklistValue(field.id) ? 'bg-accent-soft' : 'bg-surface-0 dark:bg-surface-800')">
+                        <div class="flex items-center gap-3">
+                          <label class="flex flex-1 cursor-pointer items-center gap-2.5">
+                            <input
+                              type="checkbox"
+                              tuiCheckbox
+                              [disabled]="!canManagePatientProfile()"
+                              [ngModel]="getChecklistValue(field.id)"
+                              (ngModelChange)="onCheckboxToggle(field.id, $event)" />
+                            <i [class]="field.icon" aria-hidden="true"></i>
+                            <span class="text-[13.5px] font-medium text-surface-900 dark:text-surface-0">
+                              {{ t('patient_profile.' + camelToSnake(field.id)) }}
+                            </span>
+                          </label>
+                          <span class="shrink-0 text-[11.5px] text-surface-400">
+                            {{ getChecklistValue(field.id) ? t('patient_profile.anamnesis_active') : t('patient_profile.anamnesis_inactive') }}
+                          </span>
+                        </div>
+                        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false" tuiTextfieldSize="s">
+                          <textarea
+                            tuiTextarea
+                            [disabled]="!canManagePatientProfile()"
+                            [ngModel]="getChecklistNotes(field.notesId)"
+                            (ngModelChange)="onNotesChange(field.notesId, $event)"
+                            (blur)="onNotesBlur()"
+                            [min]="1"
+                            [max]="3"
+                            maxlength="500"
+                            [placeholder]="t('patient_profile.notes_placeholder')"></textarea>
+                        </tui-textfield>
+                      </div>
+                    }
+                  </div>
+                </div>
               </div>
             </boneyard-skeleton>
           </div>
         }
       }
 
-      <!-- TAB 6: Pautas fijas -->
+      <!-- TAB: Pautas fijas -->
       @if (canViewPatientProfile()) {
         @if (activeTabId() === 'fixed_guidelines') {
-          <div class="py-4">
+          <div class="space-y-5 py-5">
             @if (patientProfile(); as profile) {
               @if (editingGuidelines()) {
-                <div class="data-card flex flex-col gap-4">
-                  <div class="flex flex-col gap-1.5">
-                    <label for="breakfast" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('patient_profile.breakfast') }}</label>
+                <div class="data-card">
+                  <div class="mb-4">
+                    <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                      {{ t('users.tab_fixed_guidelines') }}
+                    </h2>
+                    <p class="mt-1 text-[13px] text-surface-400">{{ t('patient_profile.guidelines_hint') }}</p>
+                  </div>
+                  <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                    <div class="flex flex-col gap-1.5">
+                      <label for="breakfast" class="text-[13px] font-medium text-surface-500">{{ t('patient_profile.breakfast') }}</label>
+                      <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                        <textarea id="breakfast" tuiTextarea [ngModel]="editBreakfast()" (ngModelChange)="editBreakfast.set($event)" [min]="5" maxlength="2000"></textarea>
+                      </tui-textfield>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                      <label for="lunch" class="text-[13px] font-medium text-surface-500">{{ t('patient_profile.lunch') }}</label>
+                      <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                        <textarea id="lunch" tuiTextarea [ngModel]="editLunch()" (ngModelChange)="editLunch.set($event)" [min]="5" maxlength="2000"></textarea>
+                      </tui-textfield>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                      <label for="snack" class="text-[13px] font-medium text-surface-500">{{ t('patient_profile.snack') }}</label>
+                      <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+                        <textarea id="snack" tuiTextarea [ngModel]="editSnack()" (ngModelChange)="editSnack.set($event)" [min]="5" maxlength="2000"></textarea>
+                      </tui-textfield>
+                    </div>
+                  </div>
+                  <div class="mt-4 flex flex-col gap-1.5">
+                    <label for="observations" class="text-[13px] font-medium text-surface-500">{{ t('patient_profile.observations') }}</label>
                     <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-                      <textarea id="breakfast" tuiTextarea [ngModel]="editBreakfast()" (ngModelChange)="editBreakfast.set($event)" [min]="3" maxlength="2000"></textarea>
+                      <textarea id="observations" tuiTextarea [ngModel]="editObservations()" (ngModelChange)="editObservations.set($event)" [min]="4" maxlength="2000"></textarea>
                     </tui-textfield>
                   </div>
-                  <div class="flex flex-col gap-1.5">
-                    <label for="lunch" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('patient_profile.lunch') }}</label>
-                    <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-                      <textarea id="lunch" tuiTextarea [ngModel]="editLunch()" (ngModelChange)="editLunch.set($event)" [min]="3" maxlength="2000"></textarea>
-                    </tui-textfield>
-                  </div>
-                  <div class="flex flex-col gap-1.5">
-                    <label for="snack" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('patient_profile.snack') }}</label>
-                    <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-                      <textarea id="snack" tuiTextarea [ngModel]="editSnack()" (ngModelChange)="editSnack.set($event)" [min]="3" maxlength="2000"></textarea>
-                    </tui-textfield>
-                  </div>
-                  <div class="flex flex-col gap-1.5">
-                    <label for="observations" class="font-medium text-sm text-surface-700 dark:text-surface-300">{{ t('patient_profile.observations') }}</label>
-                    <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-                      <textarea id="observations" tuiTextarea [ngModel]="editObservations()" (ngModelChange)="editObservations.set($event)" [min]="3"></textarea>
-                    </tui-textfield>
-                  </div>
-                  <div class="flex justify-end gap-2 mt-2 pt-4 border-t border-surface-200 dark:border-surface-700">
+                  <div class="mt-4 flex items-center justify-end gap-2 border-t border-line pt-4">
                     <button type="button" tuiButton appearance="secondary" size="m" (click)="cancelEditGuidelines()">{{ t('common.cancel') }}</button>
                     <button type="button" tuiButton size="m" (click)="saveGuidelines()" [class.loading]="savingGuidelines()">{{ t('common.save') }}</button>
                   </div>
@@ -953,67 +959,68 @@
               } @else {
                 @if (profile.breakfast || profile.lunch || profile.snack || profile.observations) {
                   <div class="data-card">
-                    <div class="flex items-center gap-2 mb-2">
-                      <i class="fa-solid fa-apple-whole text-primary-500"></i>
-                      <h2 class="text-lg font-semibold m-0">{{ t('users.tab_fixed_guidelines') }}</h2>
+                    <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                          {{ t('users.tab_fixed_guidelines') }}
+                        </h2>
+                        <p class="mt-1 text-[13px] text-surface-400">{{ t('patient_profile.guidelines_hint') }}</p>
+                      </div>
+                      @if (canManagePatientProfile()) {
+                        <button type="button" tuiButton appearance="secondary" size="m" (click)="startEditGuidelines()">
+                          <i class="fa-solid fa-pen-to-square mr-1" aria-hidden="true"></i>
+                          {{ t('patient_profile.edit_guidelines') }}
+                        </button>
+                      }
                     </div>
-                    <div class="divide-y divide-surface-200 dark:divide-surface-700">
+                    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
                       @if (profile.breakfast) {
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4 first:pt-0">
-                          <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                            <i class="fa-solid fa-mug-saucer text-primary-500 w-4 text-center"></i>
-                            <span>{{ t('patient_profile.breakfast') }}</span>
+                        <div class="rounded-md border border-line p-3.5">
+                          <div class="flex items-center gap-2 text-[13px] font-medium text-surface-500">
+                            <i class="fa-solid fa-mug-saucer w-4 text-center" aria-hidden="true"></i>
+                            {{ t('patient_profile.breakfast') }}
                           </div>
-                          <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.breakfast }}</p>
+                          <p class="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{{ profile.breakfast }}</p>
                         </div>
                       }
                       @if (profile.lunch) {
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
-                          <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                            <i class="fa-solid fa-hamburger text-primary-500 w-4 text-center"></i>
-                            <span>{{ t('patient_profile.lunch') }}</span>
+                        <div class="rounded-md border border-line p-3.5">
+                          <div class="flex items-center gap-2 text-[13px] font-medium text-surface-500">
+                            <i class="fa-solid fa-utensils w-4 text-center" aria-hidden="true"></i>
+                            {{ t('patient_profile.lunch') }}
                           </div>
-                          <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.lunch }}</p>
+                          <p class="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{{ profile.lunch }}</p>
                         </div>
                       }
                       @if (profile.snack) {
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4">
-                          <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                            <i class="fa-solid fa-cookie-bite text-primary-500 w-4 text-center"></i>
-                            <span>{{ t('patient_profile.snack') }}</span>
+                        <div class="rounded-md border border-line p-3.5">
+                          <div class="flex items-center gap-2 text-[13px] font-medium text-surface-500">
+                            <i class="fa-solid fa-cookie-bite w-4 text-center" aria-hidden="true"></i>
+                            {{ t('patient_profile.snack') }}
                           </div>
-                          <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.snack }}</p>
-                        </div>
-                      }
-                      @if (profile.observations) {
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-6 py-4 last:pb-0">
-                          <div class="flex items-center gap-2 text-sm text-surface-400 font-medium">
-                            <i class="fa-solid fa-note-sticky text-primary-500 w-4 text-center"></i>
-                            <span>{{ t('patient_profile.observations') }}</span>
-                          </div>
-                          <p class="md:col-span-2 whitespace-pre-wrap">{{ profile.observations }}</p>
+                          <p class="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{{ profile.snack }}</p>
                         </div>
                       }
                     </div>
+                    @if (profile.observations) {
+                      <div class="mt-4 border-t border-line pt-4">
+                        <div class="flex items-center gap-2 text-[13px] font-medium text-surface-500">
+                          <i class="fa-solid fa-note-sticky w-4 text-center" aria-hidden="true"></i>
+                          {{ t('patient_profile.observations') }}
+                        </div>
+                        <p class="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{{ profile.observations }}</p>
+                      </div>
+                    }
                   </div>
                 } @else {
-                  <app-empty-state
-                    icon="fa-solid fa-apple-whole"
-                    [title]="t('patient_profile.fixed_guidelines_empty_title')"
-                    [description]="t('patient_profile.fixed_guidelines_empty')"
-                    [actionLabel]="canManagePatientProfile() ? t('patient_profile.define_guidelines') : undefined"
-                    (action)="startEditGuidelines()">
-                  </app-empty-state>
-                }
-                @if (canManagePatientProfile()) {
-                  <div class="flex justify-end mt-4">
-                    <button
-                      type="button"
-                      tuiButton appearance="secondary" size="m"
-                      (click)="startEditGuidelines()">
-                      <i class="fa-solid fa-pen-to-square"></i>
-                      {{ t('patient_profile.edit_guidelines') }}
-                    </button>
+                  <div class="data-card">
+                    <app-empty-state
+                      icon="fa-solid fa-apple-whole"
+                      [title]="t('patient_profile.fixed_guidelines_empty_title')"
+                      [description]="t('patient_profile.fixed_guidelines_empty')"
+                      [actionLabel]="canManagePatientProfile() ? t('patient_profile.define_guidelines') : undefined"
+                      (action)="startEditGuidelines()">
+                    </app-empty-state>
                   </div>
                 }
               }
@@ -1022,280 +1029,219 @@
         }
       }
 
-      <!-- TAB 3: Menús -->
+      <!-- TAB: Menús -->
       @if (activeTabId() === 'menus') {
-        <div class="py-4 flex flex-col gap-4">
-          <div class="flex justify-end gap-2 mb-2">
-            @if (canManageMenu()) {
-            @if (aiEnabled()) {
-            <button
-              type="button"
-              tuiButton appearance="secondary" size="m"
-              (click)="uploadMenuOcr()">
-              <i class="fa-solid fa-file-arrow-up"></i>
-              {{ t('menu_history.import_menu') }}
-            </button>
-            }
-            <button
-              type="button"
-              tuiButton appearance="secondary" size="m"
-              (click)="showAssignTemplateDialog()">
-              <i class="fa-solid fa-copy"></i>
-              {{ t('menu_history.assign_template') }}
-            </button>
-            <button
-              type="button"
-              tuiButton size="m"
-              (click)="showCreateMenuDialog()">
-              <i class="fa-solid fa-plus"></i>
-              {{ t('menu_history.create_menu') }}
-            </button>
-            }
-          </div>
-
+        <div class="space-y-5 py-5">
           <boneyard-skeleton name="user-menus-history" [loading]="loadingMenus()">
-            <div class="flex flex-col gap-6">
-            @if (activeMenu(); as menu) {
-              <div class="data-card !bg-primary-50 dark:!bg-brand-tint-20">
-                <div class="px-4 pt-4"><h2 class="text-xl font-semibold m-0">{{ t('menu_history.active_menu') }}</h2></div>
-                <div class="p-4">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="font-medium text-lg">{{ menu.name }}</p>
+            <!-- Menú activo -->
+            <div class="data-card">
+              <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                    {{ t('menu_history.active_menu') }}
+                  </h2>
+                  <p class="mt-1 text-[13px] text-surface-400">{{ t('menu_history.active_hint') }}</p>
+                </div>
+                @if (canManageMenu()) {
+                  <div class="flex flex-wrap items-center gap-2">
+                    @if (aiEnabled()) {
+                      <button type="button" tuiButton appearance="secondary" size="m" (click)="uploadMenuOcr()">
+                        <i class="fa-solid fa-file-arrow-up mr-1" aria-hidden="true"></i>
+                        {{ t('menu_history.import_menu') }}
+                      </button>
+                    }
+                    <button type="button" tuiButton appearance="secondary" size="m" (click)="showAssignTemplateDialog()">
+                      <i class="fa-solid fa-copy mr-1" aria-hidden="true"></i>
+                      {{ t('menu_history.assign_template') }}
+                    </button>
+                    <button type="button" tuiButton size="m" (click)="showCreateMenuDialog()">
+                      <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
+                      {{ t('menu_history.create_menu') }}
+                    </button>
+                  </div>
+                }
+              </div>
+
+              @if (activeMenu(); as menu) {
+                <div class="rounded-md border border-brand-tint-40 bg-brand-tint-08 p-4">
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="min-w-0">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <h3 class="font-display text-base font-bold text-surface-900 dark:text-surface-0">{{ menu.name }}</h3>
+                        <span tuiBadge appearance="positive">{{ t('menu_history.active') }}</span>
+                      </div>
                       @if (menu.description) {
-                        <p class="text-sm text-surface-500 dark:text-surface-400 mt-1">{{ menu.description }}</p>
+                        <p class="mt-1 text-sm text-surface-500 dark:text-surface-400">{{ menu.description }}</p>
                       }
-                      <p class="text-sm text-surface-400 mt-1">
+                      <p class="mt-1 text-[13px] text-surface-400">
                         {{ t('menu_history.assigned_at') }}: {{ formatInstantWithTime(menu.assignedAt) }}
                         @if (menu.assignedBy) {
                           · {{ t('menu_history.assigned_by') }}: {{ menu.assignedBy }}
                         }
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      tuiButton appearance="secondary" size="m"
-                      [routerLink]="['/menus', menu.id]">
-                      <i class="fa-solid fa-eye"></i>
+                    <a tuiButton appearance="secondary" size="m" [routerLink]="['/menus', menu.id]">
+                      <i class="fa-solid fa-eye mr-1" aria-hidden="true"></i>
                       {{ t('menu_history.view_detail') }}
-                    </button>
+                    </a>
                   </div>
                 </div>
-              </div>
-            }
-
-            @if (menus().length > 0) {
-              <div class="data-card">
-                <div class="px-4 pt-4"><h2 class="text-xl font-semibold m-0">{{ t('menu_history.history') }}</h2></div>
-                <div class="p-4">
-                  <div class="flex flex-col gap-2">
-                    @for (menu of menus(); track menu.id) {
-                      <div class="flex items-center justify-between p-3 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors">
-                        <div class="flex items-center gap-3">
-                          <i class="fa-solid fa-utensils text-surface-400"></i>
-                          <div>
-                            <p class="font-medium">{{ menu.name }}</p>
-                            @if (menu.description) {
-                              <p class="text-xs text-surface-400 mt-0.5">{{ menu.description }}</p>
-                            }
-                            <p class="text-xs text-surface-400">
-                              {{ formatInstantWithTime(menu.assignedAt) }}
-                              @if (menu.assignedBy) {
-                                · {{ t('menu_history.assigned_by') }}: {{ menu.assignedBy }}
-                              }
-                            </p>
-                          </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                          <span tuiBadge [appearance]="(menu.isActive || menu.active) ? 'positive' : 'neutral'">
-                            {{ (menu.isActive || menu.active) ? t('menu_history.active') : t('menu_history.inactive') }}
-                          </span>
-                          @if (canActivateMenus()) {
-                            <button
-                              type="button"
-                              tuiButton appearance="flat" size="s"
-                              [class.text-ok]="menu.isActive || menu.active"
-                              [class.text-surface-400]="!(menu.isActive || menu.active)"
-                              (click)="toggleActiveMenu(menu)"
-                              [title]="(menu.isActive || menu.active) ? t('menu_history.deactivate') : t('menu_history.activate')">
-                              <i class="fa-solid" [class.fa-toggle-on]="menu.isActive || menu.active" [class.fa-toggle-off]="!(menu.isActive || menu.active)"></i>
-                            </button>
-                          }
-                          @if (canManageMenu() && !(menu.isActive || menu.active)) {
-                            <button
-                              type="button"
-                              tuiButton appearance="flat" size="s"
-                              class="text-red-500 hover:text-red-600"
-                              (click)="deleteMenu(menu)"
-                              [title]="t('menu_history.delete')">
-                              <i class="fa-solid fa-trash"></i>
-                            </button>
-                          }
-                          <a
-                            tuiButton
-                            appearance="flat"
-                            size="s"
-                            [routerLink]="['/menus', menu.id]"
-                            [title]="t('menu_history.view_detail')">
-                            <i class="fa-solid fa-eye"></i>
-                          </a>
-                        </div>
-                      </div>
-                    }
-                  </div>
-                </div>
-              </div>
-            }
+              } @else {
+                <p class="text-sm text-surface-400">{{ t('menu_history.no_active_menu') }}</p>
+              }
             </div>
 
+            <!-- Historial -->
+            @if (menus().length > 0) {
+              <div class="data-card mt-5">
+                <h2 class="mb-3 font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                  {{ t('menu_history.history') }}
+                </h2>
+                <div class="flex flex-col">
+                  @for (menu of menus(); track menu.id) {
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-line py-3 last:border-b-0">
+                      <div class="flex min-w-0 items-center gap-3">
+                        <i class="fa-solid fa-utensils text-surface-400" aria-hidden="true"></i>
+                        <div class="min-w-0">
+                          <p class="font-medium">{{ menu.name }}</p>
+                          @if (menu.description) {
+                            <p class="mt-0.5 text-xs text-surface-400">{{ menu.description }}</p>
+                          }
+                          <p class="text-xs text-surface-400">
+                            {{ formatInstantWithTime(menu.assignedAt) }}
+                            @if (menu.assignedBy) {
+                              · {{ t('menu_history.assigned_by') }}: {{ menu.assignedBy }}
+                            }
+                          </p>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-3">
+                        <span tuiBadge [appearance]="(menu.isActive || menu.active) ? 'positive' : 'neutral'">
+                          {{ (menu.isActive || menu.active) ? t('menu_history.active') : t('menu_history.inactive') }}
+                        </span>
+                        @if (canActivateMenus()) {
+                          <button
+                            type="button"
+                            tuiButton appearance="flat" size="s"
+                            [class.text-ok]="menu.isActive || menu.active"
+                            [class.text-surface-400]="!(menu.isActive || menu.active)"
+                            (click)="toggleActiveMenu(menu)"
+                            [title]="(menu.isActive || menu.active) ? t('menu_history.deactivate') : t('menu_history.activate')">
+                            <i class="fa-solid" [class.fa-toggle-on]="menu.isActive || menu.active" [class.fa-toggle-off]="!(menu.isActive || menu.active)" aria-hidden="true"></i>
+                          </button>
+                        }
+                        @if (canManageMenu() && !(menu.isActive || menu.active)) {
+                          <button
+                            type="button"
+                            tuiButton appearance="flat" size="s"
+                            class="text-err"
+                            (click)="deleteMenu(menu)"
+                            [title]="t('menu_history.delete')">
+                            <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                          </button>
+                        }
+                        <a
+                          tuiButton
+                          appearance="flat"
+                          size="s"
+                          [routerLink]="['/menus', menu.id]"
+                          [title]="t('menu_history.view_detail')">
+                          <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                        </a>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
             @if (menus().length === 0 && !loadingMenus()) {
-              <app-empty-state
-                icon="fa-solid fa-utensils"
-                [title]="t('menu_history.empty_title')"
-                [description]="t('menu_history.empty')">
-              </app-empty-state>
+              <div class="data-card mt-5">
+                <app-empty-state
+                  icon="fa-solid fa-utensils"
+                  [title]="t('menu_history.empty_title')"
+                  [description]="t('menu_history.empty')">
+                </app-empty-state>
+              </div>
             }
           </boneyard-skeleton>
         </div>
       }
 
-      <!-- TAB 4: Citas -->
+      <!-- TAB: Historial de citas -->
       @if (canViewAppointments()) {
         @if (activeTabId() === 'appointments') {
-          <div class="py-4">
+          <div class="space-y-5 py-5">
             <div class="data-card">
-            <boneyard-skeleton name="user-appointments" [loading]="loadingAppointments()">
-              @if (appointments().length === 0 && !loadingAppointments()) {
-                <app-empty-state
-                  icon="fa-solid fa-calendar"
-                  [title]="t('appointments.empty_title_patient')"
-                  [description]="t('appointments.empty_patient')">
-                </app-empty-state>
-              } @else {
-                <div class="hidden md:block overflow-x-auto">
-                  <table tuiTable class="w-full">
-                    <thead>
-                      <tr>
-                        <th tuiTh>{{ t('appointments.date') }}</th>
-                        <th tuiTh>{{ t('appointments.nutritionist') }}</th>
-                        <th tuiTh>{{ t('appointments.type') }}</th>
-                        <th tuiTh>{{ t('appointments.start_time') }}</th>
-                        <th tuiTh>{{ t('appointments.end_time') }}</th>
-                        <th tuiTh>{{ t('common.status') }}</th>
-                        <th tuiTh>{{ t('appointments.notes') }}</th>
-                      </tr>
-                    </thead>
-                    <tbody tuiTbody>
-                      @for (a of appointments(); track a.id) {
-                        <tr tuiTr>
-                          <td tuiTd class="text-sm">{{ formatInstant(a.startTime) }}</td>
-                          <td tuiTd class="font-medium">{{ a.nutritionistName }}</td>
-                          <td tuiTd class="text-sm">{{ a.typeName || '—' }}</td>
-                          <td tuiTd class="text-sm">{{ a.startTime | date:'HH:mm' }}</td>
-                          <td tuiTd class="text-sm">{{ a.endTime | date:'HH:mm' }}</td>
-                          <td tuiTd>
-                            @switch (a.status) {
-                              @case ('SCHEDULED') {
-                                <span tuiBadge appearance="info">{{ getStatusLabel(a.status) }}</span>
-                              }
-                              @case ('COMPLETED') {
-                                <span tuiBadge appearance="positive">{{ getStatusLabel(a.status) }}</span>
-                              }
-                              @case ('CANCELLED') {
-                                <span tuiBadge appearance="neutral">{{ getStatusLabel(a.status) }}</span>
-                              }
-                              @case ('NO_SHOW') {
-                                <span tuiBadge appearance="warning">{{ getStatusLabel(a.status) }}</span>
-                              }
-                              @case ('PROPOSED') {
-                                <span tuiBadge appearance="warning">{{ getStatusLabel(a.status) }}</span>
-                              }
-                              @default {
-                                <span tuiBadge appearance="info">{{ getStatusLabel(a.status) }}</span>
-                              }
-                            }
-                          </td>
-                          <td tuiTd class="text-surface-400 text-sm max-w-40 truncate">{{ a.notes || '—' }}</td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                </div>
+              <div class="mb-5">
+                <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                  {{ t('appointments.history_title') }}
+                </h2>
+                @if (appointmentsMeta().past > 0) {
+                  <p class="mt-1 text-[13px] tabular-nums text-surface-400">
+                    {{ t('appointments.history_meta', { total: appointments().length, attended: appointmentsMeta().attended, missed: appointmentsMeta().missed, rate: appointmentsMeta().rate }) }}
+                  </p>
+                }
+              </div>
 
-                <div class="md:hidden space-y-3 p-2">
-                  @for (a of appointments(); track a.id) {
-                    <div class="rounded-lg border border-surface-200 dark:border-surface-700 p-3">
-                      <div class="flex items-start justify-between gap-2">
-                        <div>
-                          <p class="font-medium text-surface-900 dark:text-surface-0">{{ formatInstant(a.startTime) }}</p>
-                          <p class="text-sm text-surface-500">{{ a.startTime | date:'HH:mm' }} – {{ a.endTime | date:'HH:mm' }}</p>
+              <boneyard-skeleton name="user-appointments" [loading]="loadingAppointments()">
+                @if (appointments().length === 0 && !loadingAppointments()) {
+                  <app-empty-state
+                    icon="fa-solid fa-calendar"
+                    [title]="t('appointments.empty_title_patient')"
+                    [description]="t('appointments.empty_patient')">
+                  </app-empty-state>
+                } @else {
+                  <div class="relative pl-6">
+                    <span class="absolute bottom-2 left-[5px] top-2 w-px bg-line" aria-hidden="true"></span>
+                    @for (a of appointments(); track a.id) {
+                      <div class="relative pb-5 last:pb-0">
+                        <span
+                          class="absolute -left-[23.5px] top-1 size-2.5 rounded-pill border-2"
+                          [class]="timelineDotClass(a.status)"
+                          aria-hidden="true"></span>
+                        <div class="text-xs tabular-nums text-surface-400">
+                          {{ formatInstant(a.startTime) }} · {{ a.startTime | date:'HH:mm' }}
                         </div>
-                        @switch (a.status) {
-                          @case ('SCHEDULED') {
-                            <span tuiBadge appearance="info">{{ getStatusLabel(a.status) }}</span>
-                          }
-                          @case ('COMPLETED') {
-                            <span tuiBadge appearance="positive">{{ getStatusLabel(a.status) }}</span>
-                          }
-                          @case ('CANCELLED') {
-                            <span tuiBadge appearance="neutral">{{ getStatusLabel(a.status) }}</span>
-                          }
-                          @case ('NO_SHOW') {
-                            <span tuiBadge appearance="warning">{{ getStatusLabel(a.status) }}</span>
-                          }
-                          @case ('PROPOSED') {
-                            <span tuiBadge appearance="warning">{{ getStatusLabel(a.status) }}</span>
-                          }
-                          @default {
-                            <span tuiBadge appearance="info">{{ getStatusLabel(a.status) }}</span>
-                          }
+                        <div class="mt-0.5 flex flex-wrap items-center gap-2">
+                          <span class="text-sm font-medium">{{ a.typeName || t('appointments.title') }}</span>
+                          <span tuiBadge [appearance]="getStatusAppearance(a.status)">{{ getStatusLabel(a.status) }}</span>
+                        </div>
+                        @if (a.notes) {
+                          <p class="mt-1 text-[13px] leading-relaxed text-surface-500 dark:text-surface-400">{{ a.notes }}</p>
+                        }
+                        @if (a.nutritionistName) {
+                          <p class="mt-1 text-xs text-surface-400">{{ a.nutritionistName }}</p>
                         }
                       </div>
-                      <dl class="mt-2 text-sm space-y-1">
-                        <div class="flex justify-between gap-2">
-                          <dt class="text-surface-500">{{ t('appointments.nutritionist') }}</dt>
-                          <dd class="truncate">{{ a.nutritionistName }}</dd>
-                        </div>
-                        <div class="flex justify-between gap-2">
-                          <dt class="text-surface-500">{{ t('appointments.type') }}</dt>
-                          <dd>{{ a.typeName || '—' }}</dd>
-                        </div>
-                        <div class="flex justify-between gap-2">
-                          <dt class="text-surface-500">{{ t('appointments.notes') }}</dt>
-                          <dd class="text-surface-400 truncate">{{ a.notes || '—' }}</dd>
-                        </div>
-                      </dl>
-                    </div>
-                  }
-                </div>
-                <div class="flex items-center justify-between px-4 py-3 border-t border-surface-200 dark:border-surface-700">
-                  <div class="text-sm text-surface-500">
-                    {{ t('common.total_records', { total: appointments().length }) }}
+                    }
                   </div>
-                </div>
-              }
-            </boneyard-skeleton>
+                }
+              </boneyard-skeleton>
             </div>
           </div>
         }
       }
 
-      <!-- TAB 5: Eventos del Paciente -->
+      <!-- TAB: Eventos del Paciente -->
       @if (canViewPatientEvents()) {
         @if (activeTabId() === 'patient_events') {
-          <div class="py-4">
-            @if (canManagePatientEvents()) {
-            <div class="flex justify-end mb-4">
-              <button
-                type="button"
-                tuiButton size="m"
-                (click)="showEventFormDialog()">
-                <i class="fa-solid fa-plus"></i>
-                {{ t('patient_events.new_event') }}
-              </button>
-            </div>
-            }
-            <div class="data-card border border-surface-200 dark:border-surface-700 shadow-sm rounded-xl p-4 min-h-[400px]">
+          <div class="space-y-5 py-5">
+            <div class="data-card">
+              <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                    {{ t('patient_events.title') }}
+                  </h2>
+                  <p class="mt-1 text-[13px] text-surface-400">{{ t('patient_events.calendar_hint') }}</p>
+                </div>
+                @if (canManagePatientEvents()) {
+                  <button type="button" tuiButton size="m" (click)="showEventFormDialog()">
+                    <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
+                    {{ t('patient_events.new_event') }}
+                  </button>
+                }
+              </div>
               <full-calendar
                 translate="no"
                 class="notranslate"
@@ -1306,9 +1252,9 @@
         }
       }
 
-      <!-- TAB 7: Consumo de Agua -->
+      <!-- TAB: Consumo de Agua -->
       @if (activeTabId() === 'water') {
-        <div class="py-4 max-w-xl">
+        <div class="py-5">
           <app-water-intake-widget [patientId]="userId" />
         </div>
       }

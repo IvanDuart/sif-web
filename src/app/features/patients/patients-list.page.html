@@ -1,109 +1,382 @@
-<div class="p-4" *transloco="let t">
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-    <h1 class="text-2xl font-display font-bold tracking-tight text-surface-900 dark:text-surface-0 text-balance">{{ t('patients.title') }}</h1>
-    <button *appIfPermission="'INVITE_USER'"
-      tuiButton
-      type="button"
-      size="m"
-      (click)="showInviteDialog()">
-      <i class="fa-solid fa-user-plus mr-1"></i>
-      {{ t('patients.invite') }}
-    </button>
-  </div>
-
-  <div class="data-card">
-    <div class="flex items-center justify-end gap-4 p-2 sm:p-4 pb-0">
-      <tui-textfield class="w-80 max-w-full" iconStart="@tui.search">
-        <input tuiInput type="search" [formControl]="searchControl" [placeholder]="t('common.search')" />
-      </tui-textfield>
+<div class="space-y-6 pb-4" *transloco="let t">
+  <!-- ═══════════ Cabecera ═══════════ -->
+  <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+    <div class="min-w-0">
+      <h1
+        class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]"
+      >
+        {{ t('patients.title') }}
+      </h1>
+      <p class="mt-1.5 text-[13px] tabular-nums text-surface-400">
+        {{ t('patients.count', { total: totalRecords() }) }}
+      </p>
     </div>
 
-    <boneyard-skeleton name="patients-list" [loading]="loading()">
+    <div class="flex flex-wrap items-center gap-2.5 lg:ml-auto">
+      <button
+        tuiButton
+        appearance="secondary"
+        size="m"
+        type="button"
+        (click)="exportCsv()"
+        [disabled]="exporting() || users().length === 0"
+        [class.loading]="exporting()"
+      >
+        <i class="fa-solid fa-file-csv mr-1" aria-hidden="true"></i>
+        {{ t('patients.export') }}
+      </button>
+      <button
+        *appIfPermission="'INVITE_USER'"
+        tuiButton
+        appearance="primary"
+        size="m"
+        type="button"
+        (click)="showInviteDialog()"
+      >
+        <i class="fa-solid fa-user-plus mr-1" aria-hidden="true"></i>
+        {{ t('patients.invite') }}
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════ Filtros ═══════════ -->
+  <div class="flex flex-wrap items-center gap-3">
+    <tui-textfield class="w-full sm:w-80" iconStart="@tui.search">
+      <input tuiInput type="search" [formControl]="searchControl" [placeholder]="t('patients.search_placeholder')" />
+    </tui-textfield>
+
+    <tui-segmented
+      [activeItemIndex]="filterIndex()"
+      (activeItemIndexChange)="setStatusFilterIndex($event)"
+    >
+      <button type="button">{{ t('patients.filter_all') }}</button>
+      <button type="button">
+        {{ t('patients.filter_active') }}
+        @if (statusCounts(); as counts) {
+          <span class="ml-1.5 tabular-nums opacity-70">{{ counts.active }}</span>
+        }
+      </button>
+      <button type="button">
+        {{ t('patients.filter_inactive') }}
+        @if (statusCounts(); as counts) {
+          <span class="ml-1.5 tabular-nums opacity-70">{{ counts.inactive }}</span>
+        }
+      </button>
+    </tui-segmented>
+  </div>
+
+  <!-- ═══════════ Barra de selección ═══════════ -->
+  @if (selectedCount() > 0) {
+    <div class="flex flex-wrap items-center gap-4 rounded-sm border border-brand-tint-20 bg-brand-tint-08 px-4 py-2.5">
+      <span class="text-[14px] font-medium text-primary-700">
+        {{ t('patients.selected_count', { count: selectedCount() }) }}
+      </span>
+      @if (canManageUsers()) {
+        <button
+          tuiButton
+          appearance="flat"
+          size="s"
+          type="button"
+          (click)="bulkSetStatus(true)"
+        >
+          <i class="fa-solid fa-toggle-on mr-1" aria-hidden="true"></i>
+          {{ t('patients.bulk_activate') }}
+        </button>
+        <button
+          tuiButton
+          appearance="flat"
+          size="s"
+          type="button"
+          (click)="bulkSetStatus(false)"
+        >
+          <i class="fa-solid fa-toggle-off mr-1" aria-hidden="true"></i>
+          {{ t('patients.bulk_deactivate') }}
+        </button>
+      }
+      <button
+        tuiButton
+        appearance="flat"
+        size="s"
+        type="button"
+        (click)="exportSelection()"
+      >
+        <i class="fa-solid fa-file-csv mr-1" aria-hidden="true"></i>
+        {{ t('patients.export_selection') }}
+      </button>
+      <button
+        tuiButton
+        appearance="flat"
+        size="s"
+        type="button"
+        class="ml-auto text-surface-500"
+        (click)="clearSelection()"
+      >
+        {{ t('patients.clear_selection') }}
+      </button>
+    </div>
+  }
+
+  <boneyard-skeleton name="patients-list" [loading]="loading()">
+    <div class="results-region" [class.is-paginating]="paginating()">
       @if (users().length === 0 && !loading()) {
-        <app-empty-state
-          icon="fa-solid fa-user-injured"
-          [title]="t('patients.empty_title')"
-          [description]="t('patients.empty')"
-          [actionLabel]="t('patients.invite')"
-          (action)="showInviteDialog()">
-        </app-empty-state>
+        <div class="table-wrapper">
+          @if (searchControl.value || statusFilter() !== 'all') {
+            <app-empty-state
+              icon="fa-solid fa-magnifying-glass"
+              [title]="t('patients.no_results_title')"
+              [description]="t('patients.no_results')">
+            </app-empty-state>
+          } @else {
+            <app-empty-state
+              icon="fa-solid fa-user-injured"
+              [title]="t('patients.empty_title')"
+              [description]="t('patients.empty')"
+              [actionLabel]="t('patients.invite')"
+              (action)="showInviteDialog()">
+            </app-empty-state>
+          }
+        </div>
       } @else {
-        <div class="results-region" [class.is-paginating]="paginating()">
+        <!-- Tabla (escritorio) -->
         <div class="hidden md:block table-wrapper">
           <table tuiTable class="w-full">
             <thead>
               <tr>
-                <th tuiTh scope="col" class="cursor-pointer select-none" (click)="onSort('appUser.firstName')">
-                  <span class="inline-flex items-center gap-1">
-                    {{ t('users.first_name') }}
-                    @if (sortKey() === 'appUser.firstName') {
-                      <i class="fa-solid text-xs" [class.fa-arrow-up]="sortDirection() === 'ASC'" [class.fa-arrow-down]="sortDirection() === 'DESC'"></i>
-                    }
+                <th tuiTh scope="col" class="w-10">
+                  <input
+                    type="checkbox"
+                    tuiCheckbox
+                    [ngModel]="allSelected()"
+                    (ngModelChange)="toggleAll()"
+                    [attr.aria-label]="t('patients.select_all')"
+                  />
+                </th>
+                <th
+                  tuiTh
+                  scope="col"
+                  class="cursor-pointer select-none"
+                  (click)="onSort('firstName')"
+                  [attr.aria-sort]="isSorted('firstName') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
+                >
+                  <span class="inline-flex items-center gap-1.5">
+                    {{ t('patients.col_patient') }}
+                    <i
+                      class="fa-solid text-[10px]"
+                      [class.fa-arrow-up]="isSorted('firstName') && sortDirection() === 'ASC'"
+                      [class.fa-arrow-down]="isSorted('firstName') && sortDirection() === 'DESC'"
+                      [class.opacity-0]="!isSorted('firstName')"
+                      aria-hidden="true"
+                    ></i>
                   </span>
                 </th>
-                <th tuiTh scope="col" class="cursor-pointer select-none" (click)="onSort('appUser.lastName')">
-                  <span class="inline-flex items-center gap-1">
-                    {{ t('users.last_name') }}
-                    @if (sortKey() === 'appUser.lastName') {
-                      <i class="fa-solid text-xs" [class.fa-arrow-up]="sortDirection() === 'ASC'" [class.fa-arrow-down]="sortDirection() === 'DESC'"></i>
-                    }
+                <th
+                  tuiTh
+                  scope="col"
+                  class="w-32 cursor-pointer select-none"
+                  (click)="onSort('enabled')"
+                  [attr.aria-sort]="isSorted('enabled') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
+                >
+                  <span class="inline-flex items-center gap-1.5">
+                    {{ t('users.status') }}
+                    <i
+                      class="fa-solid text-[10px]"
+                      [class.fa-arrow-up]="isSorted('enabled') && sortDirection() === 'ASC'"
+                      [class.fa-arrow-down]="isSorted('enabled') && sortDirection() === 'DESC'"
+                      [class.opacity-0]="!isSorted('enabled')"
+                      aria-hidden="true"
+                    ></i>
                   </span>
                 </th>
-                <th tuiTh scope="col">{{ t('users.age') }}</th>
-                <th tuiTh scope="col">{{ t('users.email') }}</th>
-                <th tuiTh scope="col">{{ t('users.phone') }}</th>
-                <th tuiTh scope="col">{{ t('users.status') }}</th>
-                <th tuiTh scope="col" class="text-center" style="width: 10rem;">{{ t('common.actions') }}</th>
+                <th
+                  tuiTh
+                  scope="col"
+                  class="w-24 cursor-pointer select-none"
+                  (click)="onSort('birthDate')"
+                  [attr.aria-sort]="isSorted('birthDate') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
+                >
+                  <span class="inline-flex items-center gap-1.5">
+                    {{ t('users.age') }}
+                    <i
+                      class="fa-solid text-[10px]"
+                      [class.fa-arrow-up]="isSorted('birthDate') && sortDirection() === 'ASC'"
+                      [class.fa-arrow-down]="isSorted('birthDate') && sortDirection() === 'DESC'"
+                      [class.opacity-0]="!isSorted('birthDate')"
+                      aria-hidden="true"
+                    ></i>
+                  </span>
+                </th>
+                @if (isTenantAdmin()) {
+                  <th tuiTh scope="col" class="w-44">{{ t('patients.col_professional') }}</th>
+                }
+                <th
+                  tuiTh
+                  scope="col"
+                  class="w-36 cursor-pointer select-none"
+                  (click)="onSort('phone')"
+                  [attr.aria-sort]="isSorted('phone') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
+                >
+                  <span class="inline-flex items-center gap-1.5">
+                    {{ t('users.phone') }}
+                    <i
+                      class="fa-solid text-[10px]"
+                      [class.fa-arrow-up]="isSorted('phone') && sortDirection() === 'ASC'"
+                      [class.fa-arrow-down]="isSorted('phone') && sortDirection() === 'DESC'"
+                      [class.opacity-0]="!isSorted('phone')"
+                      aria-hidden="true"
+                    ></i>
+                  </span>
+                </th>
+                <th
+                  tuiTh
+                  scope="col"
+                  class="w-32 cursor-pointer select-none"
+                  (click)="onSort('lastAppointmentDate')"
+                  [attr.aria-sort]="isSorted('lastAppointmentDate') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
+                >
+                  <span class="inline-flex items-center gap-1.5">
+                    {{ t('patients.col_last_visit') }}
+                    <i
+                      class="fa-solid text-[10px]"
+                      [class.fa-arrow-up]="isSorted('lastAppointmentDate') && sortDirection() === 'ASC'"
+                      [class.fa-arrow-down]="isSorted('lastAppointmentDate') && sortDirection() === 'DESC'"
+                      [class.opacity-0]="!isSorted('lastAppointmentDate')"
+                      aria-hidden="true"
+                    ></i>
+                  </span>
+                </th>
+                <th
+                  tuiTh
+                  scope="col"
+                  class="w-32 cursor-pointer select-none"
+                  (click)="onSort('nextAppointmentDate')"
+                  [attr.aria-sort]="isSorted('nextAppointmentDate') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
+                >
+                  <span class="inline-flex items-center gap-1.5">
+                    {{ t('patients.col_next_appointment') }}
+                    <i
+                      class="fa-solid text-[10px]"
+                      [class.fa-arrow-up]="isSorted('nextAppointmentDate') && sortDirection() === 'ASC'"
+                      [class.fa-arrow-down]="isSorted('nextAppointmentDate') && sortDirection() === 'DESC'"
+                      [class.opacity-0]="!isSorted('nextAppointmentDate')"
+                      aria-hidden="true"
+                    ></i>
+                  </span>
+                </th>
+                <th tuiTh scope="col" class="w-14"><span class="sr-only">{{ t('common.actions') }}</span></th>
               </tr>
             </thead>
             <tbody tuiTbody>
-              @for (user of users(); track user.id) {
-                <tr tuiTr class="table-row" [class.opacity-60]="user.enabled === false">
-                  <td tuiTd class="font-medium">{{ user.firstName }}</td>
-                  <td tuiTd>{{ user.lastName }}</td>
+              @for (row of rows(); track row.user.id) {
+                <tr
+                  tuiTr
+                  class="cursor-pointer transition-opacity"
+                  [class.opacity-60]="row.user.enabled === false"
+                  [routerLink]="['/users', row.user.id]">
+                  <td tuiTd (click)="$event.stopPropagation()">
+                    <input
+                      type="checkbox"
+                      tuiCheckbox
+                      [ngModel]="isSelected(row.user.id)"
+                      (ngModelChange)="toggleRow(row.user.id)"
+                      [attr.aria-label]="t('patients.select_row', { name: row.user.firstName + ' ' + row.user.lastName })"
+                    />
+                  </td>
                   <td tuiTd>
-                    <span class="text-sm font-mono">
-                      {{ user.age ?? '—' }}
-                      @if (user.age !== null) {
-                        <span class="text-surface-400"> años</span>
-                      }
+                    <div class="flex items-center gap-3">
+                      <span
+                        class="grid size-9 shrink-0 place-items-center rounded-pill bg-surface-100 text-xs font-semibold text-surface-500 dark:bg-surface-800 dark:text-surface-300"
+                        aria-hidden="true"
+                      >
+                        {{ getInitials(row.user.firstName, row.user.lastName) }}
+                      </span>
+                      <div class="min-w-0">
+                        <p class="truncate font-medium text-surface-900 dark:text-surface-0" [class.text-surface-400]="row.user.enabled === false">
+                          {{ row.user.firstName }} {{ row.user.lastName }}
+                        </p>
+                        <p class="truncate text-xs text-surface-400">{{ row.user.email }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td tuiTd>
+                    <span tuiBadge [appearance]="row.user.enabled !== false ? 'positive' : 'neutral'">
+                      {{ row.user.enabled !== false ? t('users.status_active') : t('users.status_disabled') }}
                     </span>
                   </td>
-                   <td tuiTd>
-                     <span class="text-sm">{{ user.email }}</span>
-                   </td>
-                   <td tuiTd>
-                     <span class="text-sm">{{ user.phone ?? '—' }}</span>
-                   </td>
-                  <td tuiTd>
-                    <span tuiBadge
-                      [appearance]="user.enabled !== false ? 'success' : 'error'">
-                      {{ user.enabled !== false ? t('users.status_active') : t('users.status_disabled') }}
-                    </span>
+                  <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">
+                    {{ row.user.age !== null && row.user.age !== undefined ? row.user.age + ' ' + t('common.years') : '—' }}
                   </td>
-                  <td tuiTd class="text-center">
-                    <div class="flex items-center gap-1 justify-center">
-                      <a tuiButton appearance="flat" size="s" [routerLink]="['/users', user.id]" [title]="t('common.view')">
-                        <i class="fa-solid fa-eye"></i>
-                      </a>
-                      <button *appIfPermission="'MANAGE_USER'" tuiButton appearance="flat" size="s" type="button"
-                        (click)="editUser(user)" [title]="t('users.edit')">
-                        <i class="fa-solid fa-pen"></i>
+                  @if (isTenantAdmin()) {
+                    <td tuiTd class="text-surface-500 dark:text-surface-400">
+                      <span class="truncate">{{ row.user.assignedNutritionistName || '—' }}</span>
+                    </td>
+                  }
+                  <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">
+                    {{ row.user.phone || '—' }}
+                  </td>
+                  <td tuiTd class="text-surface-500 dark:text-surface-400">
+                    @if (row.lastVisit; as rel) {
+                      <span class="tabular-nums" [attr.title]="absoluteDate(row.user.lastAppointmentDate)">
+                        {{ t(rel.key, rel.params) }}
+                      </span>
+                    } @else {
+                      <span class="text-surface-300 dark:text-surface-600">—</span>
+                    }
+                  </td>
+                  <td tuiTd class="text-surface-500 dark:text-surface-400">
+                    @if (row.nextAppointment; as rel) {
+                      <span class="tabular-nums" [attr.title]="absoluteDate(row.user.nextAppointmentDate)">
+                        {{ t(rel.key, rel.params) }}
+                      </span>
+                    } @else {
+                      <span class="text-surface-300 dark:text-surface-600">{{ t('patients.no_next_appointment') }}</span>
+                    }
+                  </td>
+                  <td tuiTd class="text-right">
+                    <div
+                      class="inline-block"
+                      [tuiDropdown]="rowMenu"
+                      tuiDropdownAlign="end"
+                      tuiDropdownLimitWidth="min"
+                    >
+                      <button
+                        tuiButton
+                        appearance="flat"
+                        size="s"
+                        type="button"
+                        (click)="$event.stopPropagation()"
+                        [attr.aria-label]="t('common.actions') + ': ' + row.user.firstName + ' ' + row.user.lastName"
+                      >
+                        <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
                       </button>
-                      <button *appIfPermission="'DISABLE_USER'" tuiButton appearance="flat" size="s" type="button"
-                        [class.text-red-500]="user.enabled !== false"
-                        [class.text-green-600]="user.enabled === false"
-                        (click)="toggleEnabled(user)"
-                        [title]="user.enabled !== false ? t('users.disable') : t('users.enable')">
-                        <i class="fa-solid" [class.fa-toggle-on]="user.enabled !== false" [class.fa-toggle-off]="user.enabled === false"></i>
-                      </button>
-                      @if (canDeleteUsers()) {
-                        <button *appIfPermission="'MANAGE_USER'" tuiButton appearance="flat" size="s" type="button"
-                          class="text-red-500 hover:text-red-700"
-                          (click)="revokeAccess(user)" [title]="t('users.revoke')">
-                          <i class="fa-solid fa-user-xmark"></i>
-                        </button>
-                      }
+                      <ng-template #rowMenu>
+                        <tui-data-list>
+                          <button tuiOption type="button" [routerLink]="['/users', row.user.id]">
+                            <i class="fa-solid fa-arrow-up-right-from-square mr-2" aria-hidden="true"></i>
+                            {{ t('patients.action_open') }}
+                          </button>
+                          @if (canManageUsers()) {
+                            <button tuiOption type="button" (click)="editUser(row.user)">
+                              <i class="fa-solid fa-pen mr-2" aria-hidden="true"></i>
+                              {{ t('users.edit') }}
+                            </button>
+                            <button tuiOption type="button" (click)="toggleEnabled(row.user)">
+                              <i
+                                class="fa-solid mr-2"
+                                [class.fa-toggle-off]="row.user.enabled !== false"
+                                [class.fa-toggle-on]="row.user.enabled === false"
+                                aria-hidden="true"
+                              ></i>
+                              {{ row.user.enabled !== false ? t('users.disable') : t('users.enable') }}
+                            </button>
+                          }
+                          @if (canDeleteUsers()) {
+                            <button tuiOption type="button" class="text-err" (click)="revokeAccess(row.user)">
+                              <i class="fa-solid fa-user-xmark mr-2" aria-hidden="true"></i>
+                              {{ t('users.revoke') }}
+                            </button>
+                          }
+                        </tui-data-list>
+                      </ng-template>
                     </div>
                   </td>
                 </tr>
@@ -112,72 +385,123 @@
           </table>
         </div>
 
-        <div class="md:hidden space-y-3 p-2">
-          @for (user of users(); track user.id) {
-            <div class="rounded-lg border border-surface-200 dark:border-surface-700 p-3" [class.opacity-60]="user.enabled === false">
+        <!-- Tarjetas (móvil) -->
+        <div class="space-y-3 md:hidden">
+          @for (row of rows(); track row.user.id) {
+            <article
+              class="rounded-md border border-line bg-surface-0 dark:bg-surface-800 p-3"
+              [class.opacity-60]="row.user.enabled === false"
+              [routerLink]="['/users', row.user.id]"
+            >
               <div class="flex items-start justify-between gap-2">
-                <div>
-                  <p class="font-medium text-surface-900 dark:text-surface-0">{{ user.firstName }} {{ user.lastName }}</p>
-                  <p class="text-sm text-surface-500 font-mono">
-                    {{ user.age ?? '—' }}
-                    @if (user.age !== null) {
-                      <span class="text-surface-400"> años</span>
-                    }
-                  </p>
+                <div class="flex min-w-0 items-center gap-3">
+                  <span
+                    class="grid size-9 shrink-0 place-items-center rounded-pill bg-surface-100 text-xs font-semibold text-surface-500 dark:bg-surface-800 dark:text-surface-300"
+                    aria-hidden="true"
+                  >
+                    {{ getInitials(row.user.firstName, row.user.lastName) }}
+                  </span>
+                  <div class="min-w-0">
+                    <p class="truncate font-medium text-surface-900 dark:text-surface-0">
+                      {{ row.user.firstName }} {{ row.user.lastName }}
+                    </p>
+                    <p class="truncate text-xs text-surface-400">{{ row.user.email }}</p>
+                  </div>
                 </div>
-                <span tuiBadge [appearance]="user.enabled !== false ? 'success' : 'error'">
-                  {{ user.enabled !== false ? t('users.status_active') : t('users.status_disabled') }}
-                </span>
+                <div class="flex items-center gap-2">
+                  <span tuiBadge [appearance]="row.user.enabled !== false ? 'positive' : 'neutral'">
+                    {{ row.user.enabled !== false ? t('users.status_active') : t('users.status_disabled') }}
+                  </span>
+                  <input
+                    type="checkbox"
+                    tuiCheckbox
+                    (click)="$event.stopPropagation()"
+                    [ngModel]="isSelected(row.user.id)"
+                    (ngModelChange)="toggleRow(row.user.id)"
+                    [attr.aria-label]="t('patients.select_row', { name: row.user.firstName + ' ' + row.user.lastName })"
+                  />
+                </div>
               </div>
-              <dl class="mt-2 text-sm space-y-1">
-                <div class="flex justify-between gap-2">
-                  <dt class="text-surface-500">{{ t('users.email') }}</dt>
-                  <dd class="truncate">{{ user.email }}</dd>
+
+              <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px]">
+                <div class="flex items-center gap-1.5">
+                  <dt class="text-surface-400">{{ t('users.age') }}</dt>
+                  <dd class="tabular-nums text-surface-600 dark:text-surface-300">
+                    {{ row.user.age !== null && row.user.age !== undefined ? row.user.age : '—' }}
+                  </dd>
                 </div>
-                <div class="flex justify-between gap-2">
-                  <dt class="text-surface-500">{{ t('users.phone') }}</dt>
-                  <dd>{{ user.phone ?? '—' }}</dd>
+                <div class="flex items-center gap-1.5">
+                  <dt class="text-surface-400">{{ t('users.phone') }}</dt>
+                  <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ row.user.phone || '—' }}</dd>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <dt class="text-surface-400">{{ t('patients.col_last_visit') }}</dt>
+                  <dd class="text-surface-600 dark:text-surface-300">
+                    @if (row.lastVisit; as rel) { {{ t(rel.key, rel.params) }} } @else { — }
+                  </dd>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <dt class="text-surface-400">{{ t('patients.col_next_appointment') }}</dt>
+                  <dd class="text-surface-600 dark:text-surface-300">
+                    @if (row.nextAppointment; as rel) { {{ t(rel.key, rel.params) }} } @else { — }
+                  </dd>
                 </div>
               </dl>
-              <div class="flex items-center gap-1 justify-end mt-2 pt-2 border-t border-surface-100 dark:border-surface-800">
-                <a tuiButton appearance="flat" size="s" [routerLink]="['/users', user.id]" [title]="t('common.view')">
-                  <i class="fa-solid fa-eye"></i>
-                </a>
-                <button *appIfPermission="'MANAGE_USER'" tuiButton appearance="flat" size="s" type="button"
-                  (click)="editUser(user)" [title]="t('users.edit')">
-                  <i class="fa-solid fa-pen"></i>
-                </button>
-                <button *appIfPermission="'DISABLE_USER'" tuiButton appearance="flat" size="s" type="button"
-                  [class.text-red-500]="user.enabled !== false"
-                  [class.text-green-600]="user.enabled === false"
-                  (click)="toggleEnabled(user)"
-                  [title]="user.enabled !== false ? t('users.disable') : t('users.enable')">
-                  <i class="fa-solid" [class.fa-toggle-on]="user.enabled !== false" [class.fa-toggle-off]="user.enabled === false"></i>
-                </button>
-                @if (canDeleteUsers()) {
-                  <button *appIfPermission="'MANAGE_USER'" tuiButton appearance="flat" size="s" type="button"
-                    class="text-red-500 hover:text-red-700"
-                    (click)="revokeAccess(user)" [title]="t('users.revoke')">
-                    <i class="fa-solid fa-user-xmark"></i>
+
+              @if (canManageUsers()) {
+                <div class="mt-3 flex items-center justify-end gap-1 border-t border-line pt-2">
+                  <button
+                    tuiButton appearance="flat" size="s" type="button"
+                    (click)="editUser(row.user)"
+                    [attr.title]="t('users.edit')" [attr.aria-label]="t('users.edit')"
+                  >
+                    <i class="fa-solid fa-pen" aria-hidden="true"></i>
                   </button>
-                }
-              </div>
-            </div>
+                  <button
+                    tuiButton appearance="flat" size="s" type="button"
+                    (click)="toggleEnabled(row.user)"
+                    [attr.title]="row.user.enabled !== false ? t('users.disable') : t('users.enable')"
+                    [attr.aria-label]="row.user.enabled !== false ? t('users.disable') : t('users.enable')"
+                  >
+                    <i
+                      class="fa-solid"
+                      [class.fa-toggle-off]="row.user.enabled !== false"
+                      [class.fa-toggle-on]="row.user.enabled === false"
+                      aria-hidden="true"
+                    ></i>
+                  </button>
+                  @if (canDeleteUsers()) {
+                    <button
+                      tuiButton appearance="flat" size="s" type="button"
+                      class="text-err"
+                      (click)="revokeAccess(row.user)"
+                      [attr.title]="t('users.revoke')" [attr.aria-label]="t('users.revoke')"
+                    >
+                      <i class="fa-solid fa-user-xmark" aria-hidden="true"></i>
+                    </button>
+                  }
+                </div>
+              }
+            </article>
           }
         </div>
-        </div>
 
-        <div class="table-footer flex justify-between items-center">
-          <span class="text-sm text-surface-500">
+        <!-- Paginación -->
+        <div class="table-footer mt-3 flex items-center justify-between gap-3 border-t border-line pt-3">
+          <span class="tabular-nums">
             {{ t('common.pagination_report', { first: totalRecords() === 0 ? 0 : lastPage * lastSize + 1, last: lastPage * lastSize + users().length, totalRecords: totalRecords() }) }}
           </span>
-          <div class="flex gap-1">
-            <button tuiIconButton appearance="flat" size="s" (click)="prevPage()" [disabled]="lastPage === 0 || paginating()"><i class="fa-solid fa-chevron-left"></i></button>
-            <span class="text-sm text-surface-500 px-2">{{ t('common.page', { page: lastPage + 1 }) }}</span>
-            <button tuiIconButton appearance="flat" size="s" (click)="nextPage()" [disabled]="(lastPage + 1) * lastSize >= totalRecords() || paginating()"><i class="fa-solid fa-chevron-right"></i></button>
+          <div class="flex items-center gap-1">
+            <button tuiButton appearance="flat" size="s" type="button" [disabled]="lastPage === 0 || paginating()" (click)="prevPage()" [attr.title]="t('common.previous')" [attr.aria-label]="t('common.previous')">
+              <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+            </button>
+            <span class="px-2 text-surface-500">{{ t('common.page', { page: lastPage + 1 }) }}</span>
+            <button tuiButton appearance="flat" size="s" type="button" [disabled]="(lastPage + 1) * lastSize >= totalRecords() || paginating()" (click)="nextPage()" [attr.title]="t('common.next')" [attr.aria-label]="t('common.next')">
+              <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+            </button>
           </div>
         </div>
       }
-    </boneyard-skeleton>
-  </div>
+    </div>
+  </boneyard-skeleton>
 </div>

@@ -49,6 +49,14 @@
               {{ t('users.edit') }}
             </button>
             <button
+              *appIfPermission="'MANAGE_APPOINTMENTS'"
+              type="button"
+              tuiButton appearance="secondary" size="m"
+              (click)="showNewAppointmentDialog()">
+              <i class="fa-solid fa-calendar-plus"></i>
+              {{ t('appointments.new_appointment') }}
+            </button>
+            <button
               *appIfPermission="'MANAGE_USER'"
               type="button"
               tuiButton appearance="secondary-destructive" size="m"

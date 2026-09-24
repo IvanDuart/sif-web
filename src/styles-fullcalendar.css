@@ -4,7 +4,7 @@
    ═══════════════════════════════════════════════════════ */
 
 .fc {
-  --fc-border-color: rgba(0, 0, 0, 0.06);
+  --fc-border-color: var(--line);
   --fc-page-bg-color: transparent;
   --fc-neutral-bg-color: transparent;
   --fc-today-bg-color: color-mix(in srgb, var(--p-primary-500, #059669) 4%, transparent);
@@ -18,12 +18,12 @@
   --fc-button-active-border-color: var(--p-primary-400, #5fbc9f);
 }
 
-/* ── Toolbar title (Poppins) ───────────────────────────── */
+/* ── Toolbar title ─────────────────────────────────────── */
 .fc .fc-toolbar-title {
-  font-family: 'Poppins', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-spacing);
 }
 
 /* ── Buttons (pastel style) ─────────────────────────────── */
@@ -158,8 +158,7 @@
   color: var(--p-primary-500, #059669);
 }
 
-/* ── Holiday / Closed day cells ──────────────────────────── */
-.fc .fc-day--holiday .fc-daygrid-day-frame {
+/* ── Holiday / Closed day cells ──────────────────────────── */.fc .fc-day--holiday .fc-daygrid-day-frame {
   background: repeating-linear-gradient(
     -45deg,
     transparent,
@@ -198,6 +197,33 @@
 
 .fc .fc-day--closed .fc-timegrid-col {
   cursor: not-allowed;
+}
+
+/* ── Estado de la cita (agenda) ──────────────────────────── */
+/* Los eventos llevan una clase por estado (ver `STATUS_CLASS` en
+   appointments.page.ts). El borde izquierdo de color lo pone FullCalendar en
+   línea, aquí solo se refuerza el lenguaje visual. */
+
+/* Propuesta por el paciente: todavía es tentativa. */
+.fc .fc-event.fc-event--proposed {
+  outline: 1.5px dashed var(--status-proposed, #f97316);
+  outline-offset: -1px;
+}
+
+/* No asistió: la cita no llegó a ocurrir. */
+.fc .fc-event.fc-event--no-show {
+  border-left-style: dashed !important;
+}
+
+/* Cancelada: se mantiene visible pero en segundo plano. */
+.fc .fc-event.fc-event--cancelled {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+/* Ya resuelta: presente pero atenuada. */
+.fc .fc-event.fc-event--completed {
+  opacity: 0.65;
 }
 
 /* ── Dark mode adjustments ──────────────────────────────── */

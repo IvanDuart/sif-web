@@ -1,0 +1,42 @@
+<div class="relative max-w-full" *transloco="let t">
+  <tui-textfield class="w-full pe-12 lg:w-72" iconStart="@tui.search">
+    <input
+      id="dashboardPatientSearch"
+      tuiInput
+      type="search"
+      [ngModel]="query()"
+      (ngModelChange)="onQueryChange($event)"
+      (focus)="onFocus()"
+      [placeholder]="t('tenant_dashboard.search_patients')"
+      [attr.aria-label]="t('tenant_dashboard.search_patients')"
+      [attr.aria-expanded]="open() && results().length > 0"
+    />
+  </tui-textfield>
+
+  <span
+    class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-surface-200 px-1.5 py-px text-[11px] text-surface-400 dark:border-surface-700"
+    aria-hidden="true"
+  >
+    ⌘K
+  </span>
+
+  @if (open() && results().length) {
+    <div
+      class="absolute inset-x-0 top-full z-50 mt-1.5 divide-y divide-surface-100 overflow-hidden rounded-sm border border-surface-200 bg-surface-0 shadow-float dark:divide-surface-800 dark:border-surface-700 dark:bg-surface-900"
+    >
+      @for (patient of results(); track patient.id) {
+        <button
+          type="button"
+          class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
+          (click)="select(patient)"
+        >
+          <span tuiAvatar size="xs" [round]="true">{{ patient.initials }}</span>
+          <span class="min-w-0 truncate">{{ patient.label }}</span>
+          @if (patient.email) {
+            <span class="ml-auto min-w-0 truncate text-xs text-surface-400">{{ patient.email }}</span>
+          }
+        </button>
+      }
+    </div>
+  }
+</div>

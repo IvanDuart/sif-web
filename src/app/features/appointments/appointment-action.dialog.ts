@@ -11,6 +11,11 @@ import { AppointmentService } from '../../core/api/services/appointment.api';
 import { AppointmentTypeService } from '../../core/api/services/appointment-type.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppointmentDto, RescheduleAppointmentRequest } from '../../core/api/models/appointment.model';
+import {
+  ApiErrorLike,
+  isOverlapConflict,
+  resolveAppointmentError,
+} from '../../core/api/appointment-errors';
 import { NotificationService, ConfirmService } from '../../core/ui';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { ScheduleAvailabilityService } from '../../core/api/services/schedule-availability.service';
@@ -188,7 +193,7 @@ export class AppointmentActionDialog implements OnInit {
       error: (err) => {
         this.saving.set(false);
 
-        if (allowOverlap || !this.isOverlapConflict(err) || !this.canManage()) {
+        if (allowOverlap || !isOverlapConflict(err) || !this.canManage()) {
           this.error.set(this.resolveRescheduleError(err));
           return;
         }
@@ -209,27 +214,10 @@ export class AppointmentActionDialog implements OnInit {
     });
   }
 
-  /**
-   * Treats any 409 as an overlap conflict except the "patient already has an
-   * active appointment" case, so the confirm-and-retry flow stays resilient to
-   * slight variations in the backend error payload.
-   */
-  private isOverlapConflict(err: { status?: number; error?: { error?: string } }): boolean {
-    return err?.status === 409 && err?.error?.error !== 'error.appointment_patient_has_active';
-  }
-
-  private resolveRescheduleError(err: { status?: number; error?: { error?: string } }): string {
-    const code = err?.error?.error;
-    switch (code) {
-      case 'error.appointment_reschedule_requires_start_time':
-        return this.transloco.translate('appointments.reschedule_requires_start_time');
-      case 'error.appointment_patient_has_active':
-        return this.transloco.translate('appointments.patient_has_active');
-      default:
-        if (err?.status === 409) return this.transloco.translate('appointments.conflict');
-        if (typeof code === 'string' && code.length > 0 && !code.startsWith('error.')) return code;
-        return this.transloco.translate('appointments.reschedule_error');
-    }
+  private resolveRescheduleError(err: ApiErrorLike | null | undefined): string {
+    return resolveAppointmentError(err, 'appointments.reschedule_error', (key) =>
+      this.transloco.translate(key)
+    );
   }
 
   approveProposal() {

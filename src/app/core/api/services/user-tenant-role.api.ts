@@ -7,9 +7,18 @@ import {ConfigService} from '../../config/config.service';
 
 export interface UserSearchParams {
   search?: string;
+  /** Filtro por estado: `true` = activos, `false` = inactivos, omitido = todos. */
+  enabled?: boolean;
   page?: number;
   size?: number;
   sort?: string[];
+}
+
+/** Resumen de una operación masiva de cambio de estado. */
+export interface BulkOperationResult {
+  requested: number;
+  updated: number;
+  failedIds: string[];
 }
 
 export interface UpdateUserRequest {
@@ -58,10 +67,33 @@ export class UserTenantRoleService {
     let httpParams = new HttpParams();
     if (!params) return httpParams;
     if (params.search) httpParams = httpParams.set('search', params.search);
+    if (params.enabled !== undefined) httpParams = httpParams.set('enabled', String(params.enabled));
     if (params.page !== undefined) httpParams = httpParams.set('page', String(params.page));
     if (params.size !== undefined) httpParams = httpParams.set('size', String(params.size));
     (params.sort || []).forEach(s => httpParams = httpParams.append('sort', s));
     return httpParams;
+  }
+
+  /**
+   * Cambia el estado (`enabled`) de varios usuarios a la vez.
+   * El backend procesa uno a uno y devuelve los que fallaron en `failedIds`.
+   */
+  bulkSetUserStatus(tenantId: string, userIds: string[], enabled: boolean): Observable<BulkOperationResult> {
+    return this.http.patch<BulkOperationResult>(
+      `${this.baseUrl}/tenant/${tenantId}/users/bulk/status`,
+      { userIds, enabled }
+    );
+  }
+
+  /** URL de exportación CSV del listado (mismos filtros y orden que la pantalla). */
+  buildExportUrl(tenantId: string, userType: UserType, params?: UserSearchParams): string {
+    const httpParams = this.buildParams(params).set('userType', userType);
+    return `${this.baseUrl}/tenant/${tenantId}/users/export?${httpParams.toString()}`;
+  }
+
+  /** Descarga el CSV del listado como Blob. */
+  exportUsersCsv(tenantId: string, userType: UserType, params?: UserSearchParams): Observable<Blob> {
+    return this.http.get(this.buildExportUrl(tenantId, userType, params), { responseType: 'blob' });
   }
 
   inviteUser(tenantId: string, request: InviteUserRequest): Observable<void> {

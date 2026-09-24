@@ -24,6 +24,11 @@ import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { AppointmentTypeDto } from '../../core/api/models/appointment-type.model';
 import { CreateAppointmentRequest } from '../../core/api/models/appointment.model';
+import {
+  ApiErrorLike,
+  isOverlapConflict,
+  resolveAppointmentError,
+} from '../../core/api/appointment-errors';
 import { AppUserDto } from '../../core/api/models/user.model';
 import { NotificationService, ConfirmService } from '../../core/ui';
 import { PermissionsService } from '../../core/permissions/permissions.service';
@@ -414,7 +419,7 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
       error: (err) => {
         this.saving.set(false);
 
-        if (allowOverlap || !this.isOverlapConflict(err) || !this.canManageAppointments()) {
+        if (allowOverlap || !isOverlapConflict(err) || !this.canManageAppointments()) {
           this.error.set(this.resolveCreateError(err));
           return;
         }
@@ -436,25 +441,13 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
   }
 
   /**
-   * Treats any 409 as an overlap conflict except the "patient already has an
-   * active appointment" case, so the confirm-and-retry flow stays resilient to
-   * slight variations in the backend error payload.
+   * Cualquier `409` es un dead-end salvo el solape, que se ofrece resolver
+   * agendando en paralelo (la clasificación vive en `appointment-errors.ts`
+   * para que el widget del panel y este diálogo no puedan divergir).
    */
-  private isOverlapConflict(err: { status?: number; error?: { error?: string } }): boolean {
-    return err?.status === 409 && err?.error?.error !== 'error.appointment_patient_has_active';
-  }
-
-  private resolveCreateError(err: { status?: number; error?: { error?: string } }): string {
-    const code = err?.error?.error;
-    switch (code) {
-      case 'error.appointment_patient_has_active':
-        return this.transloco.translate('appointments.patient_has_active');
-      case 'error.appointment_nutritionist_required':
-        return this.transloco.translate('appointments.nutritionist_required');
-      default:
-        if (err?.status === 409) return this.transloco.translate('appointments.conflict');
-        if (typeof code === 'string' && code.length > 0 && !code.startsWith('error.')) return code;
-        return this.transloco.translate('appointments.create_error');
-    }
+  private resolveCreateError(err: ApiErrorLike | null | undefined): string {
+    return resolveAppointmentError(err, 'appointments.create_error', (key) =>
+      this.transloco.translate(key)
+    );
   }
 }

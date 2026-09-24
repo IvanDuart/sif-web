@@ -66,7 +66,12 @@ export const appConfig: ApplicationConfig = {
       withFetch(),
       withInterceptors([authInterceptor, errorInterceptor, loadingInterceptor])
     ),
-    tuiAssetsPathProvider('https://taiga-ui.dev/assets/taiga-ui/icons'),
+    // Los iconos SVG de Taiga se sirven desde los assets locales (angular.json
+    // copia `node_modules/@taiga-ui/icons/src` a `assets/taiga-ui/icons`).
+    // Apuntar al CDN de taiga-ui.dev hacía que, si el navegador no puede
+    // alcanzarlo (sin red, bloqueadores, proxy), TODOS los iconos de Taiga
+    // —flechas del calendario, X de los diálogos…— apareciesen en blanco.
+    tuiAssetsPathProvider('assets/taiga-ui/icons'),
     provideAnimationsAsync(),
     NG_EVENT_PLUGINS,
     provideTaiga({

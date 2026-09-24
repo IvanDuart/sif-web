@@ -53,8 +53,14 @@ module.exports = {
           DEFAULT: 'var(--ok)',
           soft: 'var(--ok-soft)',
         },
-        warn: 'var(--warn)',
-        err: 'var(--err)',
+        warn: {
+          DEFAULT: 'var(--warn)',
+          soft: 'var(--warn-soft)',
+        },
+        err: {
+          DEFAULT: 'var(--err)',
+          soft: 'var(--err-soft)',
+        },
         info: 'var(--info)',
         primary: {
           '50': 'var(--p-primary-50, #e1f2ed)',

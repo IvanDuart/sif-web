@@ -24,7 +24,7 @@ import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { AppUserDto, UserTenantProfileDto } from '../../core/api/models/user.model';
 import { PatientEventDto } from '../../core/api/models/patient-event.model';
 import { PermissionsService } from '../../core/permissions/permissions.service';
-import { BodyMeasurementDto, MeasurementHistoryDto, BodyCompositionReport, SegmentalResult } from '../../core/api/models/body-measurement.model';
+import { BodyMeasurementDto, MeasurementHistoryDto, MeasurementPoint, BodyCompositionReport, SegmentalResult, BodySegment } from '../../core/api/models/body-measurement.model';
 import { Menu } from '../../core/api/models/menu.model';
 import { AppointmentDto } from '../../core/api/models/appointment.model';
 import { Page } from '../../core/api/models/page.model';
@@ -33,6 +33,7 @@ import { EmptyState } from '../../shared/ui/empty-state';
 import { MeasurementFormDialog } from './measurement-form.dialog';
 import { BoneMassDialog, BoneMassDialogInput } from './bone-mass.dialog';
 import { EditUserDialog } from './edit-user.dialog';
+import { QuickScheduleDialog, QuickScheduleDialogData } from '../appointments/quick-schedule.dialog';
 import { WaterIntakeWidget } from '../tenant/dashboard/components/water-intake-widget';
 import { PatientEventFormDialog } from './patient-event-form.dialog';
 import { AssignMenuTemplateDialog } from './assign-menu-template.dialog';
@@ -53,20 +54,100 @@ import { TuiTable } from '@taiga-ui/addon-table';
 Chart.register(...registerables);
 
 export type RangeStatus = 'below' | 'within' | 'above' | 'unknown';
+export type CompositionCellId = 'fat_mass' | 'lean_mass' | 'water_mass' | 'bmi' | 'body_fat' | 'visceral_fat';
+export type BadgeAppearance = 'positive' | 'warning' | 'info' | 'neutral' | 'negative';
 
-export interface ReferenceRangeCardItem {
-  id: 'normal_weight' | 'fat_pct' | 'fat_free_mass' | 'water_mass' | 'bone_mass';
+/** Celda de la cuadrícula de composición (Guía §6 / diseño `ficha-paciente`). */
+export interface CompositionCellItem {
+  id: CompositionCellId;
   labelKey: string;
-  icon: string;
-  iconColorClass: string;
-  currentValue: number | null;
-  displayValue: string;
-  min: number;
-  max: number;
+  value: number | null;
   unit: string;
+  /** Clasificación localizada del backend (IMC / % grasa); sustituye al estado de rango. */
+  classification: string | null;
   status: RangeStatus;
-  badgeAppearance: 'positive' | 'warning' | 'info' | 'neutral';
-  markerPercent: number;
+  badgeAppearance: BadgeAppearance;
+  bandStartPct: number;
+  bandEndPct: number;
+  markerPct: number;
+  markerClass: string;
+  refKey: string;
+  refParams: Record<string, string | number>;
+}
+
+/** Fila del listado segmental (barra proporcional + asimetría). */
+export interface SegmentalRowItem {
+  id: BodySegment;
+  label: string;
+  valueText: string;
+  barPct: number;
+  asymmetric: boolean;
+  diffPct: number;
+  markerClass: string;
+}
+
+/** Pieza del esquema corporal SVG. */
+export interface SegmentalFigureItem {
+  id: BodySegment;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rx: number;
+  labelX: number;
+  labelY: number;
+  /** Alineación del rótulo: a la izquierda/derecha de la extremidad, centrado en el tronco. */
+  labelAnchor: 'start' | 'middle' | 'end';
+  valueText: string;
+  onTrunk: boolean;
+  color: string;
+  title: string;
+}
+
+/** Nota clínica bajo el análisis segmental. */
+export interface SegmentalNoteItem {
+  tone: 'ok' | 'err';
+  key: string;
+  params: Record<string, string | number>;
+}
+
+/** Pareja contralateral de cada segmento (para el cálculo de asimetría). */
+const SEGMENT_PARTNER: Partial<Record<BodySegment, BodySegment>> = {
+  RIGHT_ARM: 'LEFT_ARM',
+  LEFT_ARM: 'RIGHT_ARM',
+  RIGHT_LEG: 'LEFT_LEG',
+  LEFT_LEG: 'RIGHT_LEG'
+};
+
+/** Geometría del esquema corporal (viewBox 0 0 140 230). El lado derecho del
+ *  paciente se dibuja a la izquierda de la imagen, como en el diseño. */
+const SEGMENT_GEOMETRY: Record<BodySegment, { x: number; y: number; width: number; height: number; rx: number }> = {
+  TRUNK: { x: 52, y: 38, width: 36, height: 66, rx: 9 },
+  RIGHT_ARM: { x: 34, y: 42, width: 14, height: 58, rx: 7 },
+  LEFT_ARM: { x: 92, y: 42, width: 14, height: 58, rx: 7 },
+  RIGHT_LEG: { x: 53, y: 108, width: 16, height: 84, rx: 8 },
+  LEFT_LEG: { x: 71, y: 108, width: 16, height: 84, rx: 8 }
+};
+
+/** Rótulo de cada segmento. Los de brazos y piernas se colocan **fuera** de la
+ *  extremidad (a su izquierda/derecha) para que no se solapen entre sí ni con los
+ *  rótulos de lado, evitando el amontonamiento en piernas. */
+const SEGMENT_LABEL: Record<BodySegment, { x: number; y: number; anchor: 'start' | 'middle' | 'end' }> = {
+  TRUNK: { x: 70, y: 74, anchor: 'middle' },
+  RIGHT_ARM: { x: 31, y: 73, anchor: 'end' },
+  LEFT_ARM: { x: 109, y: 73, anchor: 'start' },
+  RIGHT_LEG: { x: 50, y: 152, anchor: 'end' },
+  LEFT_LEG: { x: 90, y: 152, anchor: 'start' }
+};
+
+/** Cifra del resumen del perfil (tira de figuras de la Guía). */
+export interface ProfileFigure {
+  id: string;
+  labelKey: string;
+  valueText: string;
+  unit: string;
+  deltaText: string | null;
+  toneClass: string;
 }
 
 @Component({
@@ -205,6 +286,85 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     (this.user()?.userType === 'PATIENT' && this.authService.user()?.id === this.userId)
   );
 
+  /**
+   * Los dos últimos puntos de la evolución (más reciente primero). `points`
+   * viene del backend ordenado de más nuevo a más viejo, pero se reordena por
+   * si acaso; si aún no hay histórico se usa la primera página de mediciones.
+   */
+  private readonly lastTwoPoints = computed<MeasurementPoint[]>(() => {
+    const history = this.measurementHistory()?.points ?? [];
+    const source: MeasurementPoint[] = [...(history.length ? history : this.measurements())];
+    source.sort((a, b) => new Date(b.measuredAt).getTime() - new Date(a.measuredAt).getTime());
+    return source.slice(0, 2);
+  });
+
+  /** Tira de cifras del Perfil: valor actual + variación desde la visita anterior. */
+  readonly profileFigures = computed<ProfileFigure[]>(() => {
+    const [last, prev] = this.lastTwoPoints();
+    if (!last) return [];
+
+    const defs: {
+      id: string;
+      labelKey: string;
+      value: number | null | undefined;
+      previous: number | null | undefined;
+      unit: string;
+      /** En el resumen, subir es positivo (agua y masa muscular). */
+      higherIsBetter?: boolean;
+    }[] = [
+      { id: 'weight', labelKey: 'users.fig_weight', value: last.weightKg, previous: prev?.weightKg, unit: 'kg' },
+      { id: 'bmi', labelKey: 'users.fig_bmi', value: last.bmi, previous: prev?.bmi, unit: '' },
+      { id: 'fat', labelKey: 'users.fig_fat', value: last.bodyFatPct, previous: prev?.bodyFatPct, unit: '' },
+      { id: 'water', labelKey: 'users.fig_water', value: last.bodyWaterPct, previous: prev?.bodyWaterPct, unit: '', higherIsBetter: true },
+      { id: 'muscle', labelKey: 'users.fig_muscle', value: last.muscleMassPct, previous: prev?.muscleMassPct, unit: '', higherIsBetter: true },
+    ];
+
+    return defs
+      .filter(d => d.value !== null && d.value !== undefined)
+      .map(d => {
+        const value = d.value as number;
+        const delta = d.previous !== null && d.previous !== undefined ? value - (d.previous as number) : null;
+        const sign = delta === null || delta === 0 ? '' : delta > 0 ? '+' : '−';
+        const isFlat = delta === null || Math.abs(delta) < 0.05;
+        const improving = delta !== null && (d.higherIsBetter ? delta > 0 : delta < 0);
+        return {
+          id: d.id,
+          labelKey: d.labelKey,
+          valueText: value.toFixed(1),
+          unit: d.unit,
+          deltaText: isFlat
+            ? null
+            : `${sign}${Math.abs(delta as number).toFixed(1)}${d.unit ? ' ' + d.unit : ''}`,
+          toneClass: isFlat ? 'text-surface-400' : improving ? 'text-ok' : 'text-err',
+        };
+      });
+  });
+
+  readonly measurementsCount = computed(() => {
+    const history = this.measurementHistory()?.points?.length;
+    return history && history > 0 ? history : this.totalRecords();
+  });
+
+  readonly latestMeasurementDate = computed<string | null>(() => {
+    const point = this.lastTwoPoints()[0];
+    return point?.measuredAt ?? this.user()?.lastMeasurement?.measuredAt ?? null;
+  });
+
+  readonly wristCircumference = computed<number | null>(() =>
+    this.user()?.lastMeasurement?.wristCircumferenceCm
+      ?? this.activeCompositionReport()?.patient?.wristCircumferenceCm
+      ?? null
+  );
+
+  readonly symmetryAlert = computed(() => this.activeCompositionReport()?.symmetry?.hasAnyAsymmetryAlert === true);
+
+  readonly nextAppointment = computed<AppointmentDto | null>(() => {
+    const now = Date.now();
+    return this.appointments()
+      .filter(a => (a.status === 'SCHEDULED' || a.status === 'PROPOSED') && new Date(a.startTime).getTime() >= now)
+      .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())[0] ?? null;
+  });
+
   patientProfile = signal<UserTenantProfileDto | null>(null);
   loadingProfile = signal(false);
   calculatingComposition = signal(false);
@@ -228,96 +388,262 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     return null;
   });
 
-  segmentalList = computed<SegmentalResult[]>(() => {
+  /** Modo del análisis segmental: masa magra (por defecto) o masa grasa. */
+  readonly segmentalMode = signal<'lean' | 'fat'>('lean');
+
+  setSegmentalMode(mode: 'lean' | 'fat') {
+    this.segmentalMode.set(mode);
+  }
+
+  private readonly segmentalMap = computed(() => {
     const report = this.activeCompositionReport();
-    if (!report?.segmentalAnalysis) return [];
-    return Object.values(report.segmentalAnalysis);
+    const out = new Map<BodySegment, SegmentalResult>();
+    if (report?.segmentalAnalysis) {
+      Object.values(report.segmentalAnalysis).forEach(seg => out.set(seg.segment, seg));
+    }
+    return out;
   });
 
-  referenceRangeCards = computed<ReferenceRangeCardItem[]>(() => {
+  private readonly asymmetryThreshold = computed(() =>
+    this.activeCompositionReport()?.symmetry?.thresholdPct ?? 5
+  );
+
+  private segmentValue(seg: SegmentalResult): number {
+    return this.segmentalMode() === 'lean' ? seg.leanMassKg : seg.fatMassKg;
+  }
+
+  /** Diferencia porcentual frente al segmento contralateral (o null si no tiene pareja). */
+  private segmentPairDiff(seg: SegmentalResult): number | null {
+    const partnerId = SEGMENT_PARTNER[seg.segment];
+    if (!partnerId) return null;
+    const partner = this.segmentalMap().get(partnerId);
+    if (!partner) return null;
+    const a = this.segmentValue(seg);
+    const b = this.segmentValue(partner);
+    const max = Math.max(a, b);
+    return max > 0 ? Math.abs(a - b) / max * 100 : 0;
+  }
+
+  /** Suma de la masa (magra o grasa, según el modo) de todos los segmentos. */
+  private readonly segmentalTotal = computed(() =>
+    [...this.segmentalMap().values()].reduce((acc, seg) => acc + this.segmentValue(seg), 0)
+  );
+
+  /** Reparto del segmento sobre el total del modo activo, en porcentaje. */
+  private segmentPct(seg: SegmentalResult): number {
+    const total = this.segmentalTotal();
+    return total > 0 ? this.segmentValue(seg) / total * 100 : 0;
+  }
+
+  /** Cuadrícula de composición: 6 métricas con su banda de referencia y marcador. */
+  compositionCells = computed<CompositionCellItem[]>(() => {
     const report = this.activeCompositionReport();
-    const ranges = report?.referenceRanges;
-    if (!ranges) return [];
+    if (!report?.global) return [];
 
-    const currentFatPct = this.currentBodyFatPct();
+    const ranges = report.referenceRanges;
+    const weight = report.patient?.weightKg ?? 0;
+    const fatPct = this.currentBodyFatPct();
 
-    const currentWeight = report.patient?.weightKg ?? this.user()?.lastMeasurement?.weightKg ?? null;
-    const currentFfm = report.global?.fatFreeMassKg ?? null;
-    const currentWater = report.global?.waterMassKg ?? null;
-    const currentBone = report.global?.boneComposition?.boneMassKg ?? this.patientProfile()?.boneMassKg ?? null;
+    const fatBandLo = ranges ? ranges.fatMassPctMin / 100 * weight : weight * 0.21;
+    const fatBandHi = ranges ? ranges.fatMassPctMax / 100 * weight : weight * 0.33;
+    const fatPctLo = ranges?.fatMassPctMin ?? 21;
+    const fatPctHi = ranges?.fatMassPctMax ?? 33;
+    const leanLo = ranges?.fatFreeMassMinKg ?? weight * 0.67;
+    const leanHi = ranges?.fatFreeMassMaxKg ?? weight * 0.79;
+    const waterLo = ranges?.waterMassMinKg ?? weight * 0.45;
+    const waterHi = ranges?.waterMassMaxKg ?? weight * 0.60;
 
-    const items: {
-      id: ReferenceRangeCardItem['id'];
+    const defs: {
+      id: CompositionCellId;
       labelKey: string;
-      icon: string;
-      iconColorClass: string;
-      currentValue: number | null;
-      min: number;
-      max: number;
+      value: number | null;
       unit: string;
+      bandLo: number;
+      bandHi: number;
+      classification: string | null;
+      badgeAppearance: BadgeAppearance;
+      refKey: string;
+      refParams: Record<string, string | number>;
     }[] = [
       {
-        id: 'normal_weight',
-        labelKey: 'measurements.normal_weight_range',
-        icon: 'fa-solid fa-weight-scale',
-        iconColorClass: 'text-blue-500 dark:text-blue-400',
-        currentValue: currentWeight,
-        min: ranges.normalWeightMinKg,
-        max: ranges.normalWeightMaxKg,
-        unit: 'kg'
+        id: 'fat_mass',
+        labelKey: 'measurements.fat_mass',
+        value: report.global.fatMassKg ?? null,
+        unit: 'kg',
+        bandLo: fatBandLo,
+        bandHi: fatBandHi,
+        classification: null,
+        badgeAppearance: 'neutral',
+        refKey: 'measurements.ref_fat_mass',
+        refParams: { min: fatBandLo.toFixed(1), max: fatBandHi.toFixed(1), pmin: fatPctLo, pmax: fatPctHi }
       },
       {
-        id: 'fat_pct',
-        labelKey: 'measurements.fat_pct_range',
-        icon: 'fa-solid fa-percent',
-        iconColorClass: 'text-amber-500 dark:text-amber-400',
-        currentValue: currentFatPct,
-        min: ranges.fatMassPctMin,
-        max: ranges.fatMassPctMax,
-        unit: '%'
-      },
-      {
-        id: 'fat_free_mass',
-        labelKey: 'measurements.fat_free_mass_range',
-        icon: 'fa-solid fa-dumbbell',
-        iconColorClass: 'text-emerald-500 dark:text-emerald-400',
-        currentValue: currentFfm,
-        min: ranges.fatFreeMassMinKg,
-        max: ranges.fatFreeMassMaxKg,
-        unit: 'kg'
+        id: 'lean_mass',
+        labelKey: 'measurements.lean_mass',
+        value: report.global.fatFreeMassKg ?? null,
+        unit: 'kg',
+        bandLo: leanLo,
+        bandHi: leanHi,
+        classification: null,
+        badgeAppearance: 'neutral',
+        refKey: 'measurements.ref_lean_mass',
+        refParams: { min: leanLo.toFixed(1), max: leanHi.toFixed(1) }
       },
       {
         id: 'water_mass',
-        labelKey: 'measurements.water_mass_range',
-        icon: 'fa-solid fa-droplet',
-        iconColorClass: 'text-cyan-500 dark:text-cyan-400',
-        currentValue: currentWater,
-        min: ranges.waterMassMinKg,
-        max: ranges.waterMassMaxKg,
-        unit: 'kg'
+        labelKey: 'measurements.water_mass',
+        value: report.global.waterMassKg ?? null,
+        unit: 'L',
+        bandLo: waterLo,
+        bandHi: waterHi,
+        classification: null,
+        badgeAppearance: 'neutral',
+        refKey: 'measurements.ref_water',
+        refParams: { min: waterLo.toFixed(1), max: waterHi.toFixed(1) }
       },
       {
-        id: 'bone_mass',
-        labelKey: 'measurements.bone_mass_range',
-        icon: 'fa-solid fa-bone',
-        iconColorClass: 'text-violet-500 dark:text-violet-400',
-        currentValue: currentBone,
-        min: ranges.boneMassMinKg,
-        max: ranges.boneMassMaxKg,
-        unit: 'kg'
+        id: 'bmi',
+        labelKey: 'measurements.bmi',
+        value: report.global.bmi ?? null,
+        unit: '',
+        bandLo: 18.5,
+        bandHi: 24.9,
+        classification: report.global.localizedBmiClassification ?? null,
+        badgeAppearance: this.getBmiBadgeAppearance(report.global.bmiClassification),
+        refKey: 'measurements.ref_bmi',
+        refParams: {}
+      },
+      {
+        id: 'body_fat',
+        labelKey: 'measurements.body_fat',
+        value: fatPct,
+        unit: '%',
+        bandLo: fatPctLo,
+        bandHi: fatPctHi,
+        classification: report.global.localizedBodyFatClassification ?? null,
+        badgeAppearance: this.getBodyFatBadgeAppearance(report.global.bodyFatClassification),
+        refKey: 'measurements.ref_body_fat',
+        refParams: { min: fatPctLo, max: fatPctHi }
+      },
+      {
+        id: 'visceral_fat',
+        labelKey: 'measurements.visceral_fat',
+        value: report.global.visceralFatLevel ?? null,
+        unit: '',
+        bandLo: 1,
+        bandHi: 9,
+        classification: null,
+        badgeAppearance: 'neutral',
+        refKey: 'measurements.ref_visceral',
+        refParams: {}
       }
     ];
 
-    return items.map(item => {
-      const status = this.getRangeStatus(item.currentValue, item.min, item.max);
+    return defs.map(def => {
+      const status = this.getRangeStatus(def.value, def.bandLo, def.bandHi);
+      const span = Math.max(def.bandHi - def.bandLo, 0.0001);
+      const scaleLo = def.bandLo - span;
+      const scaleHi = def.bandHi + span;
+      const toPct = (v: number) => Math.max(0, Math.min(100, (v - scaleLo) / (scaleHi - scaleLo) * 100));
+      const markerClass = status === 'within'
+        ? 'bg-ok'
+        : status === 'below'
+          ? 'bg-warn'
+          : status === 'above'
+            ? 'bg-err'
+            : 'bg-surface-400';
       return {
-        ...item,
-        displayValue: item.currentValue != null ? `${item.currentValue} ${item.unit}` : '—',
+        id: def.id,
+        labelKey: def.labelKey,
+        value: def.value,
+        unit: def.unit,
+        classification: def.classification,
         status,
-        badgeAppearance: this.getRangeBadgeAppearance(status),
-        markerPercent: this.getMarkerPercent(item.currentValue, item.min, item.max)
+        badgeAppearance: def.classification ? def.badgeAppearance : this.getRangeBadgeAppearance(status),
+        bandStartPct: toPct(def.bandLo),
+        bandEndPct: toPct(def.bandHi),
+        markerPct: def.value != null ? toPct(def.value) : 50,
+        markerClass,
+        refKey: def.refKey,
+        refParams: def.refParams
       };
     });
+  });
+
+  /** Filas del listado segmental (barra proporcional + reparto en % + asimetría). */
+  segmentalRows = computed<SegmentalRowItem[]>(() => {
+    const segs = [...this.segmentalMap().values()];
+    if (segs.length === 0) return [];
+    const maxValue = Math.max(...segs.map(s => this.segmentValue(s)), 0) || 1;
+    const threshold = this.asymmetryThreshold();
+    return segs.map(seg => {
+      const diff = this.segmentPairDiff(seg);
+      const asymmetric = diff !== null && diff > threshold;
+      const value = this.segmentValue(seg);
+      return {
+        id: seg.segment,
+        label: seg.localizedSegmentName,
+        valueText: `${this.segmentPct(seg).toFixed(1)} %`,
+        barPct: Math.max(4, Math.min(100, value / maxValue * 100)),
+        asymmetric,
+        diffPct: Math.round((diff ?? 0) * 10) / 10,
+        markerClass: asymmetric ? 'bg-err' : 'bg-ok'
+      };
+    });
+  });
+
+  /** Piezas del esquema corporal SVG. */
+  segmentalFigure = computed<SegmentalFigureItem[]>(() => {
+    const threshold = this.asymmetryThreshold();
+    return [...this.segmentalMap().values()].map(seg => {
+      const diff = this.segmentPairDiff(seg);
+      const asymmetric = diff !== null && diff > threshold;
+      const geo = SEGMENT_GEOMETRY[seg.segment];
+      const lbl = SEGMENT_LABEL[seg.segment];
+      const pct = this.segmentPct(seg);
+      return {
+        id: seg.segment,
+        x: geo.x,
+        y: geo.y,
+        width: geo.width,
+        height: geo.height,
+        rx: geo.rx,
+        labelX: lbl.x,
+        labelY: lbl.y,
+        labelAnchor: lbl.anchor,
+        valueText: `${pct.toFixed(1)}%`,
+        onTrunk: seg.segment === 'TRUNK',
+        color: asymmetric ? 'var(--err)' : 'var(--ok)',
+        title: `${seg.localizedSegmentName}: ${pct.toFixed(1)} % · ${this.segmentValue(seg).toFixed(2)} kg`
+      };
+    });
+  });
+
+  /** Notas clínicas de simetría bajo el listado segmental. */
+  segmentalNotes = computed<SegmentalNoteItem[]>(() => {
+    const map = this.segmentalMap();
+    const threshold = this.asymmetryThreshold();
+    const pairs: { part: 'arms' | 'legs'; ids: [BodySegment, BodySegment] }[] = [
+      { part: 'arms', ids: ['LEFT_ARM', 'RIGHT_ARM'] },
+      { part: 'legs', ids: ['LEFT_LEG', 'RIGHT_LEG'] }
+    ];
+    const notes: SegmentalNoteItem[] = [];
+    pairs.forEach(({ part, ids }) => {
+      const a = map.get(ids[0]);
+      const b = map.get(ids[1]);
+      if (!a || !b) return;
+      const va = this.segmentValue(a);
+      const vb = this.segmentValue(b);
+      const max = Math.max(va, vb);
+      const diff = max > 0 ? Math.abs(va - vb) / max * 100 : 0;
+      const asymmetric = diff > threshold;
+      notes.push({
+        tone: asymmetric ? 'err' : 'ok',
+        key: `measurements.seg_${asymmetric ? 'asymmetry' : 'symmetry'}_${part}`,
+        params: { pct: Math.round(diff * 10) / 10, threshold }
+      });
+    });
+    return notes;
   });
 
   editingGuidelines = signal(false);
@@ -334,6 +660,11 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   private savedStatusTimeout?: ReturnType<typeof setTimeout>;
 
   editProfileData = signal<Partial<UserTenantProfileDto>>({});
+
+  /** Nº de antecedentes marcados como activos (contador de la tarjeta). */
+  readonly activeChecklistCount = computed(() =>
+    this.checklistFields.filter(field => this.getChecklistValue(field.id)).length
+  );
 
   getChecklistValue(field: string): boolean {
     const data = this.editProfileData() as Record<string, unknown>;
@@ -839,7 +1170,11 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     this.loadingAppointments.set(true);
     this.appointmentService.getByPatient(tenantId, this.userId).subscribe({
       next: (res) => {
-        this.appointments.set(res || []);
+        // Historial de citas: de la más reciente a la más antigua.
+        const sorted = [...(res || [])].sort(
+          (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+        );
+        this.appointments.set(sorted);
         this.loadingAppointments.set(false);
       },
       error: () => this.loadingAppointments.set(false)
@@ -861,6 +1196,38 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       default: return 'info';
     }
   }
+
+  /** Apariencia de `tuiBadge` para el estado de una cita. */
+  getStatusAppearance(status: string): 'info' | 'positive' | 'neutral' | 'warning' {
+    switch (status) {
+      case 'COMPLETED': return 'positive';
+      case 'CANCELLED': return 'neutral';
+      case 'NO_SHOW': return 'warning';
+      case 'PROPOSED': return 'warning';
+      case 'SCHEDULED': return 'info';
+      default: return 'info';
+    }
+  }
+
+  /** Color del punto de la línea de tiempo del historial de citas. */
+  timelineDotClass(status: string): string {
+    switch (status) {
+      case 'COMPLETED': return 'border-ok bg-ok';
+      case 'NO_SHOW': return 'border-err bg-err';
+      case 'SCHEDULED':
+      case 'PROPOSED': return 'border-accent bg-surface';
+      default: return 'border-line-strong bg-surface';
+    }
+  }
+
+  /** Resumen de asistencia del historial de citas. */
+  readonly appointmentsMeta = computed(() => {
+    const list = this.appointments();
+    const attended = list.filter(a => a.status === 'COMPLETED').length;
+    const missed = list.filter(a => a.status === 'NO_SHOW').length;
+    const past = attended + missed;
+    return { attended, missed, past, rate: past ? Math.round((attended / past) * 100) : 0 };
+  });
 
   startEditGuidelines() {
     const profile = this.patientProfile();
@@ -1000,24 +1367,6 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     }
   }
 
-  getFrameBadgeAppearance(frame?: string): 'info' | 'positive' | 'primary' | 'neutral' {
-    switch (frame) {
-      case 'SMALL': return 'info';
-      case 'MEDIUM': return 'positive';
-      case 'LARGE': return 'primary';
-      default: return 'neutral';
-    }
-  }
-
-  getBoneEvalBadgeAppearance(evalType?: string): 'positive' | 'warning' | 'info' | 'neutral' {
-    switch (evalType) {
-      case 'NORMAL': return 'positive';
-      case 'LOW': return 'warning';
-      case 'HIGH': return 'info';
-      default: return 'neutral';
-    }
-  }
-
   getBodyFatBadgeAppearance(classification?: string | null): 'positive' | 'warning' | 'negative' | 'info' | 'neutral' {
     switch (classification) {
       case 'NORMAL': return 'positive';
@@ -1027,6 +1376,15 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       case 'OBESE_CLASS_II': return 'negative';
       case 'OBESE_CLASS_III': return 'negative';
       default: return 'neutral';
+    }
+  }
+
+  getBmiBadgeAppearance(classification?: string | null): 'positive' | 'warning' | 'info' | 'negative' {
+    switch (classification) {
+      case 'NORMAL': return 'positive';
+      case 'UNDERWEIGHT': return 'info';
+      case 'OVERWEIGHT': return 'warning';
+      default: return 'negative';
     }
   }
 
@@ -1043,34 +1401,6 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       case 'below':
       case 'above': return 'warning';
       default: return 'neutral';
-    }
-  }
-
-  getMarkerPercent(current: number | null | undefined, min: number | null | undefined, max: number | null | undefined): number {
-    if (current == null || min == null || max == null || min >= max) return 50;
-    const rangeSpan = max - min;
-    if (current < min) {
-      const lowerSpan = Math.max(rangeSpan * 0.75, 1);
-      const dist = Math.max(0, min - current);
-      const ratio = Math.min(1, dist / lowerSpan);
-      return Math.max(3, 25 - ratio * 22);
-    }
-    if (current > max) {
-      const upperSpan = Math.max(rangeSpan * 0.75, 1);
-      const dist = Math.max(0, current - max);
-      const ratio = Math.min(1, dist / upperSpan);
-      return Math.min(97, 75 + ratio * 22);
-    }
-    const ratio = (current - min) / rangeSpan;
-    return 25 + ratio * 50;
-  }
-
-  getMarkerColorClass(status: RangeStatus): string {
-    switch (status) {
-      case 'within': return 'bg-emerald-500 ring-2 ring-emerald-300 dark:ring-emerald-700';
-      case 'below':
-      case 'above': return 'bg-amber-500 ring-2 ring-amber-300 dark:ring-amber-700';
-      default: return 'bg-surface-400 ring-2 ring-surface-200 dark:ring-surface-700';
     }
   }
 
@@ -1132,6 +1462,29 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       data: { user: current }
     }).subscribe(() => {
       this.loadUser();
+    });
+  }
+
+  /**
+   * Agendado rápido en diálogo (mismo `QuickScheduleWidget` del panel). El
+   * paciente de la ficha ya viene seleccionado; para un miembro del equipo se
+   * agenda con él como profesional.
+   */
+  showNewAppointmentDialog() {
+    const current = this.user();
+    if (!current) return;
+
+    const isPatient = current.userType === 'PATIENT';
+    const patientLabel = `${current.firstName ?? ''} ${current.lastName ?? ''}`.trim() || current.email;
+
+    this.modal.open<boolean, QuickScheduleDialogData>(QuickScheduleDialog, {
+      label: this.transloco.translate('appointments.schedule_new'),
+      size: 'l',
+      data: isPatient
+        ? { patientId: current.id, patientLabel, patientEmail: current.email }
+        : { nutritionistId: current.id }
+    }).subscribe((created) => {
+      if (created) this.loadAppointments();
     });
   }
 

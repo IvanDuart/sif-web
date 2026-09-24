@@ -1,33 +1,103 @@
-import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectionStrategy, ViewChild, HostListener } from '@angular/core';
-import { RouterModule, ActivatedRoute } from '@angular/router';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
-import type { CalendarOptions, EventSourceInput, EventClickArg, DatesSetArg } from '@fullcalendar/core';
+import type {
+  CalendarOptions,
+  DatesSetArg,
+  EventClickArg,
+  EventSourceInput,
+} from '@fullcalendar/core';
 import { SkeletonComponent } from 'boneyard-js/angular';
 
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { AppointmentService } from '../../core/api/services/appointment.api';
-import { AppointmentDto, AppointmentStatus, UpdateAppointmentStatusRequest } from '../../core/api/models/appointment.model';
+import {
+  AppointmentDto,
+  AppointmentStatus,
+  UpdateAppointmentStatusRequest,
+} from '../../core/api/models/appointment.model';
 import { AppointmentFormDialog } from './appointment-form.dialog';
 import { AppointmentActionDialog } from './appointment-action.dialog';
-import { formatInstant, isPastInstant } from '../../shared/utils/date';
-import { statusColor, HOLIDAY_COLOR, CLOSED_COLOR, ACTIVE_HOURS_COLOR } from '../../shared/utils/status-colors';
+import { isPastInstant } from '../../shared/utils/date';
+import {
+  ACTIVE_HOURS_COLOR,
+  CLOSED_COLOR,
+  HOLIDAY_COLOR,
+  statusColor,
+} from '../../shared/utils/status-colors';
 import { hexToRgba } from '../../shared/utils/chart-config';
 import { ModalService, NotificationService } from '../../core/ui';
 import { TuiButton } from '@taiga-ui/core';
-import { TuiBadge } from '@taiga-ui/kit';
+import { TuiSegmented } from '@taiga-ui/kit';
 import { ScheduleAvailabilityService } from '../../core/api/services/schedule-availability.service';
+
+/** Vistas soportadas, en el orden del conmutador Día/Semana/Mes. */
+type AgendaViewType = 'timeGridDay' | 'timeGridWeek' | 'dayGridMonth';
+
+const VIEW_ORDER: readonly AgendaViewType[] = ['timeGridDay', 'timeGridWeek', 'dayGridMonth'];
+
+/** La vista elegida se recuerda mientras dure la pestaña (requisito de rediseño). */
+const VIEW_STORAGE_KEY = 'appointments:view';
+
+/** Clase CSS por estado para que la agenda distinga la cita propuesta, etc. */
+const STATUS_CLASS: Partial<Record<AppointmentStatus, string>> = {
+  PROPOSED: 'fc-event--proposed',
+  CANCELLED: 'fc-event--cancelled',
+  COMPLETED: 'fc-event--completed',
+  NO_SHOW: 'fc-event--no-show',
+};
+
+/**
+ * Vista previa/actual con el viewport del momento, o la última elegida por el
+ * usuario en esta pestaña. En móvil la semana es inusable, así que se fuerza el
+ * día aunque la preferencia guardada sea otra.
+ */
+function resolveInitialView(): AgendaViewType {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const stored =
+    typeof sessionStorage === 'undefined'
+      ? null
+      : (sessionStorage.getItem(VIEW_STORAGE_KEY) as AgendaViewType | null);
+
+  if (stored && VIEW_ORDER.includes(stored)) {
+    return isMobile ? 'timeGridDay' : stored;
+  }
+  return isMobile ? 'timeGridDay' : 'timeGridWeek';
+}
+
+function persistView(view: AgendaViewType): void {
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem(VIEW_STORAGE_KEY, view);
+  }
+}
 
 @Component({
   selector: 'app-appointments-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [RouterModule, FullCalendarModule, TranslocoDirective, SkeletonComponent, TuiButton, TuiBadge],
+  imports: [
+    FullCalendarModule,
+    TranslocoDirective,
+    SkeletonComponent,
+    TuiButton,
+    TuiSegmented,
+  ],
   templateUrl: './appointments.page.html',
   styleUrls: ['./appointments.page.scss'],
 })
@@ -53,12 +123,19 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
   updatingStatus = signal<string | null>(null);
   todayScheduleText = signal('');
 
+  /** Etiqueta del periodo visible ("21 – 26 de septiembre de 2026"). */
+  rangeLabel = signal('');
+
+  /** Vista recordada en la pestaña (o la que corresponde al viewport). */
+  private readonly initialViewType = resolveInitialView();
+  viewIndex = signal(VIEW_ORDER.indexOf(this.initialViewType));
+  private readonly currentView = signal<AgendaViewType>(this.initialViewType);
+
   todayStart = '';
   todayEnd = '';
   weekStart = '';
   weekEnd = '';
 
-  protected readonly formatInstant = formatInstant;
   protected readonly isPastInstant = isPastInstant;
   protected readonly statusColor = statusColor;
   protected readonly holidayColor = HOLIDAY_COLOR;
@@ -67,10 +144,10 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
 
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-    initialView: typeof window !== 'undefined' && window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek',
-    headerToolbar: typeof window !== 'undefined' && window.innerWidth < 768
-      ? { left: 'prev,next today', center: 'title', right: 'timeGridDay,timeGridWeek' }
-      : { left: 'prev,next today', center: 'title', right: 'timeGridWeek,timeGridDay' },
+    initialView: this.initialViewType,
+    // Los controles son propios (stepper + conmutador de vista), así que la
+    // barra nativa de FullCalendar se oculta.
+    headerToolbar: false,
     locales: [esLocale],
     locale: 'es',
     allDaySlot: false,
@@ -83,6 +160,7 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
     firstDay: 1,
     editable: false,
     selectable: false,
+    dayMaxEvents: 4,
     dateClick: (info: DateClickArg) => {
       this.handleDateClick(info);
     },
@@ -118,7 +196,14 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
 
     const api = this.calendarComponent?.getApi();
     if (!api) return;
-    api.changeView(isMobile ? 'timeGridDay' : 'timeGridWeek');
+
+    // En móvil solo el día es usable; al volver a escritorio se recupera la
+    // vista que el usuario tenía antes si no era ya el día.
+    if (isMobile) {
+      api.changeView('timeGridDay');
+    } else if (api.view.type === 'timeGridDay') {
+      api.changeView(this.currentView() === 'timeGridDay' ? 'timeGridWeek' : this.currentView());
+    }
   }
 
   ngOnInit() {
@@ -153,6 +238,35 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     clearTimeout(this.resizeTimeout);
   }
+
+  // ── Navegación ─────────────────────────────────────────────────────────
+
+  navigate(direction: -1 | 1) {
+    const api = this.calendarComponent?.getApi();
+    if (!api) return;
+    if (direction < 0) api.prev();
+    else api.next();
+  }
+
+  goToToday() {
+    this.calendarComponent?.getApi().today();
+  }
+
+  setViewByIndex(index: number) {
+    const view = VIEW_ORDER[index];
+    if (!view) return;
+    this.viewIndex.set(index);
+
+    const api = this.calendarComponent?.getApi();
+    if (api) {
+      api.changeView(view);
+    } else {
+      this.currentView.set(view);
+      persistView(view);
+    }
+  }
+
+  // ── Datos ──────────────────────────────────────────────────────────────
 
   private computeDateRanges() {
     const now = new Date();
@@ -202,11 +316,11 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
   private updateTodayScheduleText() {
     const dateStr = this.toLocalDateStr(new Date());
     if (this.scheduleAvailability.isHolidayCached(dateStr)) {
-      this.todayScheduleText.set('Cerrado (Festivo)');
+      this.todayScheduleText.set(this.transloco.translate('appointments.legend_holiday'));
       return;
     }
     const formatted = this.scheduleAvailability.getFormattedSchedule(dateStr);
-    this.todayScheduleText.set(formatted || 'Cerrado');
+    this.todayScheduleText.set(formatted || this.transloco.translate('appointments.legend_closed'));
   }
 
   private toLocalDateStr(date: Date): string {
@@ -253,6 +367,7 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
     }
 
     (appointments || []).forEach(a => {
+      const statusClass = STATUS_CLASS[a.status];
       events.push({
         id: a.id,
         title: a.patientName ?? this.transloco.translate('appointments.no_patient'),
@@ -260,6 +375,7 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
         end: a.endTime,
         backgroundColor: statusColor(a.status) + '20',
         borderColor: statusColor(a.status),
+        classNames: statusClass ? [statusClass] : [],
         extendedProps: {
           status: a.status,
           patientName: a.patientName,
@@ -274,10 +390,17 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
   }
 
   private onDatesSet(info: DatesSetArg) {
-    const start = info.start;
-    const end = info.end;
-    this.weekStart = start.toISOString();
-    this.weekEnd = end.toISOString();
+    this.rangeLabel.set(info.view.title);
+
+    const view = info.view.type as AgendaViewType;
+    if (VIEW_ORDER.includes(view)) {
+      this.currentView.set(view);
+      this.viewIndex.set(VIEW_ORDER.indexOf(view));
+      persistView(view);
+    }
+
+    this.weekStart = info.start.toISOString();
+    this.weekEnd = info.end.toISOString();
     this.loadWeekAppointments();
   }
 
@@ -302,7 +425,7 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
     } else {
       const patientName = (props['patientName'] as string) || this.transloco.translate('appointments.no_patient');
       this.notify.info(
-        `${patientName}: ${(props['typeName'] as string) || 'Cita'} — ${this.getStatusLabel(props['status'] as string)}`
+        `${patientName}: ${(props['typeName'] as string) || this.transloco.translate('appointments.title')} — ${this.getStatusLabel(props['status'] as string)}`
       );
     }
   }
@@ -319,16 +442,30 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
     const dateStr = this.toLocalDateStr(info.date);
 
     if (this.scheduleAvailability.isHolidayCached(dateStr)) {
-      this.notify.info('Festivo — el centro está cerrado');
+      this.notify.info(this.transloco.translate('appointments.holiday_closed_notice'));
       return;
     }
 
-    if (!this.scheduleAvailability.getScheduleForDate(dateStr)) {
-      this.notify.info('El centro está cerrado este día');
+    const schedule = this.scheduleAvailability.getScheduleForDate(dateStr);
+    if (!schedule) {
+      this.notify.info(this.transloco.translate('appointments.day_closed_notice'));
       return;
     }
 
-    this.showNewAppointmentDialog(info.date);
+    this.showNewAppointmentDialog(this.withOpeningTime(info.date, schedule.details));
+  }
+
+  /**
+   * En la vista de mes el clic llega a las 00:00; se propone la hora de
+   * apertura del centro en lugar de medianoche.
+   */
+  private withOpeningTime(date: Date, details: { startTime: string }[]): Date {
+    const result = new Date(date);
+    if (date.getHours() !== 0 || date.getMinutes() !== 0) return result;
+
+    const [hours, minutes] = (details[0]?.startTime ?? '09:00').split(':').map(Number);
+    result.setHours(hours || 0, minutes || 0, 0, 0);
+    return result;
   }
 
   markAttended(appointment: AppointmentDto) {

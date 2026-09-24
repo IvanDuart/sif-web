@@ -8,11 +8,12 @@ import { AuthService } from '../../../../core/auth/auth.service';
 import { WaterIntakeDto } from '../../../../core/api/models/water-intake.model';
 import { NotificationService } from '../../../../core/ui';
 import { TuiButton, TuiInput, TuiTextfield } from '@taiga-ui/core';
+import { TuiBadge } from '@taiga-ui/kit';
 
 @Component({
   selector: 'app-water-intake-widget',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslocoDirective, TuiButton, TuiInput, TuiTextfield],
+  imports: [CommonModule, FormsModule, TranslocoDirective, TuiButton, TuiInput, TuiTextfield, TuiBadge],
   templateUrl: './water-intake-widget.html'
 })
 export class WaterIntakeWidget implements OnInit {
@@ -25,6 +26,15 @@ export class WaterIntakeWidget implements OnInit {
   private readonly transloco = inject(TranslocoService);
 
   readonly circumference = 2 * Math.PI * 64; // r=64 -> 402.12
+
+  /** Escala de las barras del historial: 3 L equivalen al 100 %. */
+  private static readonly BAR_MAX_ML = 3000;
+  /** Posición de la marca del objetivo (2 L) sobre la barra. */
+  readonly goalPercent = (2000 / WaterIntakeWidget.BAR_MAX_ML) * 100;
+
+  barPercent(amountMl: number): number {
+    return Math.max(0, Math.min(100, (amountMl / WaterIntakeWidget.BAR_MAX_ML) * 100));
+  }
 
   loading = signal(false);
   history = signal<WaterIntakeDto[]>([]);

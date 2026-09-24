@@ -20,6 +20,7 @@ import { AppointmentDto, NutritionistPatientDto } from '../../core/api/models/ap
 import { ModalService, NotificationService, ConfirmService } from '../../core/ui';
 import { EmptyState } from '../../shared/ui/empty-state';
 import { EditUserDialog, EditUserDialogInput } from '../users/edit-user.dialog';
+import { QuickScheduleDialog, QuickScheduleDialogData } from '../appointments/quick-schedule.dialog';
 import { formatInstant, formatInstantWithTime } from '../../shared/utils/date';
 
 const DAY_MS = 86_400_000;
@@ -261,6 +262,23 @@ export default class StaffDetailPage implements OnInit {
       size: 'm',
       data: { user }
     }).subscribe(() => this.loadStaff());
+  }
+
+  /**
+   * Agendado rápido en diálogo (mismo `QuickScheduleWidget` del panel), con
+   * este profesional como titular de la cita.
+   */
+  showNewAppointmentDialog() {
+    if (!this.staffId) return;
+    this.modal.open<boolean, QuickScheduleDialogData>(QuickScheduleDialog, {
+      label: this.transloco.translate('appointments.schedule_new'),
+      size: 'l',
+      data: { nutritionistId: this.staffId }
+    }).subscribe((created) => {
+      if (created && this.canViewActivity()) {
+        this.loadActivity();
+      }
+    });
   }
 
   resetPassword() {
