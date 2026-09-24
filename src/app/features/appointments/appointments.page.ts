@@ -74,6 +74,9 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
     locales: [esLocale],
     locale: 'es',
     allDaySlot: false,
+    // Overlapping appointments render as side-by-side columns so staff can spot
+    // the intentional clash (the backend now allows it for nutritionists).
+    slotEventOverlap: false,
     slotMinTime: '06:00:00',
     slotMaxTime: '22:00:00',
     height: 'auto',

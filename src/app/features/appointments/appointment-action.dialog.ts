@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TuiButton, TuiTextfield, TuiLabel, TuiDropdown } from '@taiga-ui/core';
-import { TuiTextarea, TuiInputDate, TuiInputTime } from '@taiga-ui/kit';
+import { TuiButton, TuiTextfield, TuiLabel, TuiDropdown, TuiFilterByInputPipe } from '@taiga-ui/core';
+import { TuiTextarea, TuiInputDate, TuiInputTime, TuiComboBox, TuiDataListWrapper, TuiChevron } from '@taiga-ui/kit';
 import { TuiDay, TuiTime } from '@taiga-ui/cdk';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import type { TuiDialogContext } from '@taiga-ui/core';
@@ -10,7 +10,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AppointmentService } from '../../core/api/services/appointment.api';
 import { AppointmentTypeService } from '../../core/api/services/appointment-type.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
-import { AppointmentDto } from '../../core/api/models/appointment.model';
+import { AppointmentDto, RescheduleAppointmentRequest } from '../../core/api/models/appointment.model';
 import { NotificationService, ConfirmService } from '../../core/ui';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { ScheduleAvailabilityService } from '../../core/api/services/schedule-availability.service';
@@ -19,7 +19,7 @@ import { isPastInstant } from '../../shared/utils/date';
 @Component({
   selector: 'app-appointment-action-dialog',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton, TuiTextarea, TuiTextfield, TuiInputDate, TuiInputTime, TuiLabel, TuiDropdown],
+  imports: [FormsModule, ReactiveFormsModule, TranslocoDirective, TuiButton, TuiTextarea, TuiTextfield, TuiInputDate, TuiInputTime, TuiLabel, TuiDropdown, TuiFilterByInputPipe, TuiComboBox, TuiDataListWrapper, TuiChevron],
   templateUrl: './appointment-action.dialog.html'
 })
 export class AppointmentActionDialog implements OnInit {
@@ -44,6 +44,8 @@ export class AppointmentActionDialog implements OnInit {
   }
 
   appointmentTypes = signal<{ label: string; value: string }[]>([]);
+  typeLabels = computed(() => this.appointmentTypes().map(t => t.label));
+  typeStringify = (value: string): string => value;
   saving = signal(false);
   error = signal('');
 
@@ -120,7 +122,7 @@ export class AppointmentActionDialog implements OnInit {
     this.form.patchValue({
       date: day,
       time,
-      typeId: this.appointment.typeId || '',
+      typeId: this.appointment.typeName || '',
       notes: this.appointment.notes || ''
     });
   }
@@ -147,17 +149,34 @@ export class AppointmentActionDialog implements OnInit {
       return;
     }
 
-    this.saving.set(true);
-    this.error.set('');
-
     const startDate = day.toLocalNativeDate();
     startDate.setHours(time.hours, time.minutes, 0, 0);
 
-    this.appointmentService.reschedule(tenantId, this.appointment.id, {
+    const selectedType = this.appointmentTypes().find(t => t.label === raw.typeId);
+    if (!selectedType) {
+      this.error.set('Por favor, selecciona un tipo válido de la lista.');
+      return;
+    }
+
+    this.executeReschedule(tenantId, {
       startTime: startDate.toISOString(),
-      typeId: raw.typeId!,
+      typeId: selectedType.value,
       notes: raw.notes || undefined
-    }).subscribe({
+    });
+  }
+
+  /**
+   * Reschedules the appointment. When the new slot clashes with another one of
+   * the same nutritionist, staff can confirm and retry once with
+   * `allowOverlap: true`. Patients never see this option.
+   */
+  private executeReschedule(tenantId: string, request: RescheduleAppointmentRequest, allowOverlap = false): void {
+    this.saving.set(true);
+    this.error.set('');
+
+    const payload: RescheduleAppointmentRequest = allowOverlap ? { ...request, allowOverlap: true } : request;
+
+    this.appointmentService.reschedule(tenantId, this.appointment.id, payload).subscribe({
       next: () => {
         this.notify.success(
           this.transloco.translate('appointments.reschedule_success'),
@@ -168,9 +187,35 @@ export class AppointmentActionDialog implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
-        this.error.set(this.resolveRescheduleError(err));
+
+        if (allowOverlap || !this.isOverlapConflict(err) || !this.canManage()) {
+          this.error.set(this.resolveRescheduleError(err));
+          return;
+        }
+
+        this.confirm.confirm({
+          label: this.transloco.translate('appointments.overlap_confirm_title'),
+          content: this.transloco.translate('appointments.overlap_confirm'),
+          yes: this.transloco.translate('appointments.overlap_confirm_yes'),
+          no: this.transloco.translate('common.cancel'),
+        }).subscribe((confirmed) => {
+          if (confirmed) {
+            this.executeReschedule(tenantId, request, true);
+          } else {
+            this.error.set(this.resolveRescheduleError(err));
+          }
+        });
       }
     });
+  }
+
+  /**
+   * Treats any 409 as an overlap conflict except the "patient already has an
+   * active appointment" case, so the confirm-and-retry flow stays resilient to
+   * slight variations in the backend error payload.
+   */
+  private isOverlapConflict(err: { status?: number; error?: { error?: string } }): boolean {
+    return err?.status === 409 && err?.error?.error !== 'error.appointment_patient_has_active';
   }
 
   private resolveRescheduleError(err: { status?: number; error?: { error?: string } }): string {

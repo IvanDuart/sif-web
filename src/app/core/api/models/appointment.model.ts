@@ -29,6 +29,11 @@ export interface CreateAppointmentRequest {
   endTime?: string;
   typeId?: string;
   notes?: string;
+  /**
+   * Allows the new appointment to overlap another one of the same nutritionist.
+   * Only effective for staff with `MANAGE_APPOINTMENTS`; ignored for patients.
+   */
+  allowOverlap?: boolean;
 }
 
 export interface UpdateAppointmentStatusRequest {
@@ -40,6 +45,11 @@ export interface RescheduleAppointmentRequest {
   endTime?: string;
   typeId?: string;
   notes?: string;
+  /**
+   * Allows moving the appointment to a slot that overlaps another one of the
+   * same nutritionist. Only effective for staff with `MANAGE_APPOINTMENTS`.
+   */
+  allowOverlap?: boolean;
 }
 
 export interface NutritionistPatientDto {

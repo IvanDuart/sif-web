@@ -65,15 +65,16 @@
     }
 
     @if (canManage()) {
-      <div class="flex flex-col gap-1.5">
-        <label for="typeId" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('appointments.type') }}</label>
-        <select class="form-input" id="typeId" formControlName="typeId">
-          <option value="" disabled selected>{{ t('appointments.type') }}</option>
-          @for (t of appointmentTypes(); track t.value) {
-            <option [value]="t.value">{{ t.label }}</option>
-          }
-        </select>
-      </div>
+      <tui-textfield tuiChevron [stringify]="typeStringify">
+        <label tuiLabel for="rescheduleTypeId">{{ t('appointments.type') }}</label>
+        <input
+          id="rescheduleTypeId"
+          tuiComboBox
+          formControlName="typeId">
+        <tui-data-list-wrapper
+          *tuiDropdown
+          [items]="typeLabels() | tuiFilterByInput" />
+      </tui-textfield>
     }
 
     <div class="flex flex-col gap-1.5">

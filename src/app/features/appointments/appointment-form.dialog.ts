@@ -25,7 +25,8 @@ import { AuthService } from '../../core/auth/auth.service';
 import { AppointmentTypeDto } from '../../core/api/models/appointment-type.model';
 import { CreateAppointmentRequest } from '../../core/api/models/appointment.model';
 import { AppUserDto } from '../../core/api/models/user.model';
-import { NotificationService } from '../../core/ui';
+import { NotificationService, ConfirmService } from '../../core/ui';
+import { PermissionsService } from '../../core/permissions/permissions.service';
 import { ScheduleAvailabilityService } from '../../core/api/services/schedule-availability.service';
 
 interface PatientOption {
@@ -74,11 +75,22 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly notify = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
+  private readonly confirm = inject(ConfirmService);
+  private readonly permissionsService = inject(PermissionsService);
   private readonly scheduleAvailability = inject(ScheduleAvailabilityService);
 
   private readonly searchSubject = new Subject<string>();
 
   readonly context = injectContext<TuiDialogContext<boolean, { nutritionistId?: string; startTime?: Date; patientId?: string; patientLabel?: string }>>();
+
+  /**
+   * Only staff may decide to schedule appointments in parallel. The backend
+   * gates the flag by `MANAGE_APPOINTMENTS`; we also accept `STAFF` as a
+   * fallback so the dialog still shows if the permission list is incomplete.
+   */
+  canManageAppointments = computed(() =>
+    this.permissionsService.has('MANAGE_APPOINTMENTS') || this.authService.user()?.userType === 'STAFF'
+  );
 
   patients = signal<PatientOption[]>([]);
   appointmentTypes = signal<{ label: string; value: string }[]>([]);
@@ -360,9 +372,6 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
       return;
     }
 
-    this.saving.set(true);
-    this.error.set('');
-
     // Convert date and time to ISO string for API
     const startDate = day.toLocalNativeDate();
     startDate.setHours(time.hours, time.minutes, 0, 0);
@@ -379,7 +388,21 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
       request.patientId = selectedPatient.value;
     }
 
-    this.appointmentService.create(tenantId, request).subscribe({
+    this.executeCreate(tenantId, request);
+  }
+
+  /**
+   * Creates the appointment. When it clashes with another one of the same
+   * nutritionist, staff can confirm and retry once with `allowOverlap: true`.
+   * Patients never see this option (backend ignores the flag for them).
+   */
+  private executeCreate(tenantId: string, request: CreateAppointmentRequest, allowOverlap = false): void {
+    this.saving.set(true);
+    this.error.set('');
+
+    const payload: CreateAppointmentRequest = allowOverlap ? { ...request, allowOverlap: true } : request;
+
+    this.appointmentService.create(tenantId, payload).subscribe({
       next: () => {
         this.notify.success(
           this.transloco.translate('appointments.create_success'),
@@ -390,9 +413,35 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.saving.set(false);
-        this.error.set(this.resolveCreateError(err));
+
+        if (allowOverlap || !this.isOverlapConflict(err) || !this.canManageAppointments()) {
+          this.error.set(this.resolveCreateError(err));
+          return;
+        }
+
+        this.confirm.confirm({
+          label: this.transloco.translate('appointments.overlap_confirm_title'),
+          content: this.transloco.translate('appointments.overlap_confirm'),
+          yes: this.transloco.translate('appointments.overlap_confirm_yes'),
+          no: this.transloco.translate('common.cancel'),
+        }).subscribe((confirmed) => {
+          if (confirmed) {
+            this.executeCreate(tenantId, request, true);
+          } else {
+            this.error.set(this.resolveCreateError(err));
+          }
+        });
       }
     });
+  }
+
+  /**
+   * Treats any 409 as an overlap conflict except the "patient already has an
+   * active appointment" case, so the confirm-and-retry flow stays resilient to
+   * slight variations in the backend error payload.
+   */
+  private isOverlapConflict(err: { status?: number; error?: { error?: string } }): boolean {
+    return err?.status === 409 && err?.error?.error !== 'error.appointment_patient_has_active';
   }
 
   private resolveCreateError(err: { status?: number; error?: { error?: string } }): string {

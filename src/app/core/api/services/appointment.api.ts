@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AppointmentDto, CreateAppointmentRequest, UpdateAppointmentStatusRequest, RescheduleAppointmentRequest, NutritionistPatientDto } from '../models/appointment.model';
-import {ConfigService} from '../../config/config.service';
+import { ConfigService } from '../../config/config.service';
+import { SILENT_ERROR } from '../../http/error.interceptor';
 
 @Injectable({ providedIn: 'root' })
 export class AppointmentService {
@@ -18,11 +19,16 @@ export class AppointmentService {
   }
 
   create(tenantId: string, request: CreateAppointmentRequest): Observable<AppointmentDto> {
-    return this.http.post<AppointmentDto>(this.endpoint(tenantId), request);
+    return this.http.post<AppointmentDto>(this.endpoint(tenantId), request, {
+      // Errors are surfaced inline (and may trigger the overlap confirm dialog).
+      context: new HttpContext().set(SILENT_ERROR, true)
+    });
   }
 
   reschedule(tenantId: string, appointmentId: string, request: RescheduleAppointmentRequest): Observable<AppointmentDto> {
-    return this.http.patch<AppointmentDto>(`${this.endpoint(tenantId)}/${appointmentId}`, request);
+    return this.http.patch<AppointmentDto>(`${this.endpoint(tenantId)}/${appointmentId}`, request, {
+      context: new HttpContext().set(SILENT_ERROR, true)
+    });
   }
 
   getByNutritionist(
