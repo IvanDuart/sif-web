@@ -1,5 +1,12 @@
 # Design Tokens — SIF-WEB UX/UI System
 
+> ⚠️ **Superado (sep 2026).** Los tokens vigentes son los de la *Guía de diseño*
+> (`--canvas`, `--surface`, `--sunken`, `--line`, `--ink*`, `--primary`, `--accent`,
+> semánticos `--ok/warn/err/info`, `--r-sm/md/pill`, `--font-ui/display`), declarados
+> en `src/styles.less` y puenteados a Taiga. Este documento se mantiene solo como
+> referencia de la arquitectura de theming multi-centro (`--brand-primary`), que
+> sigue vigente.
+
 **Last Updated**: August 2026  
 **Status**: Production v1  
 **Scope**: Tenant-brand-aware design system with fixed semantic status palette

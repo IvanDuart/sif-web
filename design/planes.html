@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planes — Panel del profesional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@500,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light;
+    --canvas:#FBFAF8; --surface:#FFFFFF; --sunken:#F4F2EE;
+    --line:#EAE7E1; --line-strong:#D8D4CC;
+    --ink-3:#9A958C; --ink-2:#6B665E; --ink:#1F1D1A;
+    --primary:#2F5D4F; --primary-hover:#264B40; --primary-soft:#EDF2F0;
+    --accent:#C45608; --accent-soft:#FAF0EA;
+    --ok:#2D7A5F; --warn:#B5892C; --warn-soft:#FBF4E6; --err:#B04A3E; --err-soft:#FBF0EE; --info:#3C6E96;
+    --r-sm:8px; --r-md:12px; --r-pill:999px;
+    --font-ui:'Inter', system-ui, sans-serif;
+    --font-display:'Source Serif 4', Georgia, serif;
+    --display-weight:600; --display-spacing:-0.01em;
+    --shadow-float:0 1px 2px rgba(31,29,26,.04), 0 8px 24px rgba(31,29,26,.06);
+  }
+  html[data-type="a"]{ --font-display:'Inter Tight', system-ui, sans-serif; --display-weight:600; --display-spacing:-0.02em; }
+  html[data-type="c"]{ --font-display:'Satoshi', system-ui, sans-serif; --display-weight:700; --display-spacing:-0.02em; }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--canvas);color:var(--ink);font-family:var(--font-ui);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:var(--font-display);font-weight:var(--display-weight);letter-spacing:var(--display-spacing);line-height:1.2;margin:0;}
+  button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:pointer;}
+  a{color:inherit;text-decoration:none;}
+  :focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:4px;}
+
+  .app{display:grid;grid-template-columns:244px 1fr;min-height:100vh;}
+
+  .side{border-right:1px solid var(--line);background:var(--canvas);padding:24px 16px;display:flex;flex-direction:column;gap:32px;position:sticky;top:0;height:100vh;}
+  .brand{display:flex;align-items:center;gap:10px;padding:0 8px;}
+  .brand-logo{height:34px;width:auto;display:block;flex:none;}
+  .brand-sub{font-size:12px;color:var(--ink-3);}
+  .nav{display:flex;flex-direction:column;gap:2px;}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:var(--r-sm);color:var(--ink-2);font-size:14.5px;transition:background .12s ease,color .12s ease;}
+  .nav-item:hover{background:var(--sunken);color:var(--ink);}
+  .nav-item[aria-current="page"]{background:var(--primary-soft);color:var(--primary);font-weight:500;}
+  .nav-item svg{flex:none;}
+  .nav-badge{margin-left:auto;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums;}
+  .nav-foot{margin-top:auto;display:flex;flex-direction:column;gap:2px;padding-top:16px;border-top:1px solid var(--line);}
+  .who{display:flex;align-items:center;gap:10px;padding:8px 10px;}
+  .who .av{width:28px;height:28px;border-radius:var(--r-pill);background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:12px;font-weight:600;}
+  .who .nm{font-size:13.5px;line-height:1.25;}
+  .who .rl{font-size:12px;color:var(--ink-3);line-height:1.25;}
+
+  .main{padding:28px 32px 56px;max-width:1500px;}
+  .topbar{display:flex;align-items:flex-start;gap:20px;margin-bottom:24px;flex-wrap:wrap;}
+  .topbar h1{font-size:30px;}
+  .topbar .count{font-size:13px;color:var(--ink-3);margin:6px 0 0;}
+  .topbar-actions{margin-left:auto;display:flex;align-items:center;gap:10px;}
+
+  .btn-primary{background:var(--primary);color:#fff;padding:10px 16px;border-radius:var(--r-sm);font-size:14.5px;font-weight:500;display:flex;align-items:center;gap:7px;transition:background .12s ease;}
+  .btn-primary:hover{background:var(--primary-hover);}
+  .btn-quiet{background:var(--surface);border:1px solid var(--line);padding:8px 14px;border-radius:var(--r-sm);font-size:14px;color:var(--ink-2);transition:border-color .12s ease,color .12s ease;}
+  .btn-quiet:hover{border-color:var(--line-strong);color:var(--ink);}
+  .btn-danger{background:var(--err);color:#fff;padding:9px 16px;border-radius:var(--r-sm);font-size:14px;font-weight:500;}
+  .btn-danger:hover{background:#9A3F35;}
+
+  .filters{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+  .search{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:0 12px;min-width:290px;transition:border-color .12s ease;}
+  .search:focus-within{border-color:var(--primary);}
+  .search svg{color:var(--ink-3);flex:none;}
+  .search input{border:none;background:none;font:inherit;font-size:14px;padding:10px 0;width:100%;color:var(--ink);}
+  .search input:focus{outline:none;}
+  .search input::placeholder{color:var(--ink-3);}
+
+  .chips{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-pill);padding:7px 13px;font-size:13.5px;color:var(--ink-2);transition:border-color .12s ease,background .12s ease,color .12s ease;}
+  .chip:hover{border-color:var(--line-strong);color:var(--ink);}
+  .chip[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:#fff;}
+  .chip .n{opacity:.6;font-variant-numeric:tabular-nums;margin-left:5px;}
+
+  .prosbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0 0;}
+  .prosbar .lbl{font-size:12.5px;color:var(--ink-3);}
+  .pro-chip{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);border-radius:var(--r-pill);padding:5px 12px 5px 9px;font-size:13.5px;color:var(--ink-2);}
+  .pro-chip:hover{border-color:var(--line-strong);color:var(--ink);}
+  .pro-chip[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);font-weight:500;}
+  .pro-chip .sw{width:9px;height:9px;border-radius:var(--r-pill);flex:none;}
+  .pro-chip[aria-pressed="false"] .sw{opacity:.3;}
+
+  .selbar{display:none;align-items:center;gap:14px;margin-top:16px;padding:11px 16px;border:1px solid var(--primary);background:var(--primary-soft);border-radius:var(--r-sm);flex-wrap:wrap;}
+  .selbar.on{display:flex;}
+  .selbar .c{font-size:14px;font-weight:500;color:var(--primary);}
+  .selbar button{font-size:13.5px;color:var(--primary);border-bottom:1px solid transparent;}
+  .selbar button:hover{border-color:var(--primary);}
+  .selbar .danger{color:var(--err);}
+  .selbar .danger:hover{border-color:var(--err);}
+  .selbar .clear{margin-left:auto;color:var(--ink-2);}
+
+  .tablewrap{margin-top:22px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);overflow:hidden;}
+  table{width:100%;border-collapse:collapse;}
+  thead th{text-align:left;font-size:12.5px;font-weight:500;color:var(--ink-3);border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:2;white-space:nowrap;padding:0;}
+  thead th.pad{padding:12px 16px;}
+  thead th .sortbtn{display:flex;align-items:center;gap:5px;width:100%;padding:12px 16px;font-size:12.5px;font-weight:500;color:var(--ink-3);transition:color .12s ease,background .12s ease;}
+  thead th .sortbtn:hover{color:var(--ink);background:var(--canvas);}
+  thead th[aria-sort] .sortbtn{color:var(--ink);}
+  .caret{opacity:0;transition:opacity .12s ease,transform .12s ease;flex:none;}
+  thead th .sortbtn:hover .caret{opacity:.45;}
+  thead th[aria-sort] .caret{opacity:1;}
+  thead th[aria-sort="ascending"] .caret{transform:rotate(180deg);}
+
+  tbody tr{border-bottom:1px solid var(--line);transition:background .12s ease;cursor:pointer;}
+  tbody tr:last-child{border-bottom:none;}
+  tbody tr:hover{background:var(--canvas);}
+  tbody tr.sel{background:var(--primary-soft);}
+  tbody tr.off .pt .nm,tbody tr.off td.num{color:var(--ink-3);}
+  tbody tr.off .av{opacity:.55;}
+  td{padding:13px 16px;font-size:14px;vertical-align:middle;}
+  td.who-cell{min-width:230px;}
+  .pt{display:flex;align-items:center;gap:12px;}
+  .av{width:36px;height:36px;border-radius:var(--r-pill);display:grid;place-items:center;font-size:13px;font-weight:600;flex:none;background:var(--sunken);color:var(--ink-2);}
+  .pt .nm{font-size:14.5px;font-weight:500;line-height:1.25;}
+  .pt .meta{font-size:12.5px;color:var(--ink-3);line-height:1.25;}
+  .tag{border-radius:var(--r-pill);padding:3px 10px;font-size:12px;font-weight:500;white-space:nowrap;display:inline-block;}
+  .tag.activo{background:var(--primary-soft);color:var(--primary);}
+  .tag.pausa{background:var(--warn-soft);color:var(--warn);}
+  .tag.alta{background:var(--sunken);color:var(--ink-2);}
+  .tag.nuevo{background:var(--accent-soft);color:var(--accent);}
+  .tag.inactivo{background:var(--sunken);color:var(--ink-3);}
+  td.num{font-variant-numeric:tabular-nums;color:var(--ink-2);font-size:13.5px;white-space:nowrap;}
+  td.num .soft{color:var(--ink-3);}
+  td.tel a{color:var(--ink-2);font-variant-numeric:tabular-nums;font-size:13.5px;white-space:nowrap;}
+  td.tel a:hover{color:var(--primary);text-decoration:underline;}
+  td.acts{width:60px;}
+  .kebab{width:30px;height:30px;border-radius:var(--r-sm);border:1px solid transparent;color:var(--ink-3);display:grid;place-items:center;margin-left:auto;opacity:0;transition:opacity .12s ease,border-color .12s ease,color .12s ease;}
+  tr:hover .kebab,tr:focus-within .kebab,.kebab[aria-expanded="true"]{opacity:1;}
+  .kebab:hover,.kebab[aria-expanded="true"]{border-color:var(--line);color:var(--ink);background:var(--surface);}
+
+  .empty{padding:56px 24px;text-align:center;}
+  .empty h3{font-size:18px;margin-bottom:8px;}
+  .empty p{font-size:14px;color:var(--ink-2);margin:0 0 18px;}
+  .foot{display:flex;align-items:center;gap:14px;padding:14px 16px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3);}
+  .foot .more{margin-left:auto;}
+
+  .menu{position:absolute;z-index:40;min-width:210px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--shadow-float);padding:6px;display:none;}
+  .menu.on{display:block;}
+  .menu button{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:var(--r-sm);font-size:14px;color:var(--ink-2);text-align:left;}
+  .menu button:hover{background:var(--sunken);color:var(--ink);}
+  .menu button svg{flex:none;color:var(--ink-3);}
+  .menu button:hover svg{color:inherit;}
+  .menu .sep{height:1px;background:var(--line);margin:6px 4px;}
+  .menu .danger{color:var(--err);}
+  .menu .danger svg{color:var(--err);}
+  .menu .danger:hover{background:var(--err-soft);color:var(--err);}
+
+  .modal{position:fixed;inset:0;z-index:50;display:none;place-items:center;background:rgba(31,29,26,.22);padding:20px;}
+  .modal.on{display:grid;}
+  .modal .card{background:var(--surface);border-radius:var(--r-md);box-shadow:var(--shadow-float);max-width:430px;width:100%;padding:24px;max-height:min(84vh,780px);overflow-y:auto;}
+  @starting-style{ .modal.on .card{opacity:0;transform:translateY(10px) scale(.99);} }
+  .modal.on .card{transition:opacity .15s ease,transform .15s ease;}
+  .modal h3{font-size:19px;margin-bottom:10px;}
+  .modal p{font-size:14px;color:var(--ink-2);margin:0 0 20px;}
+  .modal .acts{display:flex;gap:10px;justify-content:flex-end;}
+
+  .toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,16px);z-index:60;background:var(--ink);color:#fff;border-radius:var(--r-pill);padding:11px 12px 11px 18px;font-size:14px;display:flex;align-items:center;gap:14px;opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;}
+  .toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto;}
+  .toast button{color:#fff;font-weight:500;border:1px solid rgba(255,255,255,.3);border-radius:var(--r-pill);padding:4px 12px;font-size:13px;}
+  .toast button:hover{background:rgba(255,255,255,.14);}
+
+  /* ===== Diálogos centrados (patrón único de la app) ===== */
+  .dialog{position:fixed;inset:0;z-index:31;display:none;place-items:center;padding:24px;background:rgba(31,29,26,.22);}
+  .dialog.on{display:grid;}
+  .dialog .panel{background:var(--surface);border-radius:var(--r-md);box-shadow:var(--shadow-float);width:100%;max-width:520px;max-height:min(84vh,780px);display:flex;flex-direction:column;overflow:hidden;opacity:0;transform:translateY(10px) scale(.99);transition:opacity .15s ease,transform .15s ease;}
+  .dialog.on .panel{opacity:1;transform:none;}
+  @starting-style{ .dialog.on .panel{opacity:0;transform:translateY(10px) scale(.99);} }
+  .dialog[data-size="sm"] .panel{max-width:440px;}
+  .dialog[data-size="md"] .panel{max-width:560px;}
+  .dialog[data-size="lg"] .panel{max-width:800px;}
+  .dialog header{display:flex;align-items:center;gap:12px;padding:20px 24px 16px;border-bottom:1px solid var(--line);}
+  .dialog header h2{font-size:19px;}
+  .dialog .close{margin-left:auto;color:var(--ink-2);padding:6px;border-radius:var(--r-sm);display:grid;place-items:center;}
+  .dialog .close:hover{background:var(--sunken);color:var(--ink);}
+  .dialog .body{padding:22px 24px;overflow-y:auto;flex:1;}
+  .dialog footer{padding:16px 24px;border-top:1px solid var(--line);display:flex;align-items:center;gap:12px;}
+  .dialog footer .sum{font-size:12.5px;color:var(--ink-3);line-height:1.35;}
+  @media (prefers-reduced-motion:reduce){ .dialog .panel{transition:none;} }
+  .dhead{display:flex;align-items:center;gap:13px;margin-bottom:20px;}
+  .dhead .av{width:46px;height:46px;font-size:15px;}
+  .dhead .nm{font-size:17px;font-weight:500;line-height:1.2;}
+  .dhead .meta{font-size:13px;color:var(--ink-3);}
+  .row{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px;}
+  .row .k{color:var(--ink-3);min-width:110px;font-size:13px;}
+  .spark{display:block;width:100%;height:46px;margin-top:6px;}
+  .sec{margin-top:24px;}
+  .sec .f-label{font-size:12.5px;color:var(--ink-2);margin:0 0 9px;}
+
+  .proto{position:fixed;right:20px;bottom:20px;z-index:20;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-pill);box-shadow:var(--shadow-float);padding:6px 8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .proto span{font-size:12px;color:var(--ink-3);padding-left:6px;}
+  .proto button{padding:6px 11px;border-radius:var(--r-pill);font-size:12.5px;color:var(--ink-2);}
+  .proto button[aria-pressed="true"]{background:var(--primary-soft);color:var(--primary);font-weight:500;}
+  .proto .sep{width:1px;height:20px;background:var(--line);}
+
+  @media (max-width:1180px){
+    .app{grid-template-columns:72px 1fr;}
+    .side{padding:24px 12px;}
+    .brand-text,.nav-item span,.who .txt{display:none;}
+    .nav-item{justify-content:center;}
+    .main{padding:24px 18px 56px;}
+    .tablewrap{overflow-x:auto;}
+    table{min-width:900px;}
+    .kebab{opacity:1;}
+  }
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important;} }
+
+  /* ---------- Planes ---------- */
+  .pname{display:flex;flex-direction:column;gap:3px;}
+  .pname .t{font-size:14px;color:var(--ink);}
+  .pname .m{font-size:12.5px;color:var(--ink-3);}
+  .obj{border-radius:var(--r-pill);padding:3px 10px;font-size:12px;font-weight:500;white-space:nowrap;display:inline-block;}
+  .obj.mant{background:var(--primary-soft);color:var(--primary);}
+  .obj.grasa{background:var(--accent-soft);color:var(--accent);}
+  .obj.musc{background:#EEF1F6;color:var(--info);}
+  .obj.pato{background:#F1EEF5;color:#6A5A88;}
+  .adapts{display:flex;gap:5px;flex-wrap:wrap;}
+  .ad{border:1px solid var(--line);border-radius:var(--r-pill);padding:2px 9px;font-size:11.5px;color:var(--ink-2);white-space:nowrap;}
+  .ad.none{border-style:dashed;color:var(--ink-3);}
+  .shared{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-3);}
+
+  /* ---------- Detalle del plan (cajón) ---------- */
+  .dsec{padding:18px 0;border-bottom:1px solid var(--line);}
+  .dsec:last-child{border-bottom:none;}
+  .dsec h4{font-size:12.5px;color:var(--ink-3);font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;}
+  .meals{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;}
+  .meal{display:grid;grid-template-columns:104px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);align-items:start;}
+  .meal:last-child{border-bottom:none;}
+  .meal .h{font-size:13px;color:var(--ink-2);}
+  .meal .h em{font-style:normal;display:block;color:var(--ink-3);font-size:11.5px;margin-top:2px;font-variant-numeric:tabular-nums;}
+  .meal .c{font-size:13.5px;line-height:1.55;color:var(--ink);}
+  .rac{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;}
+  .rac span{background:var(--sunken);border-radius:var(--r-sm);padding:2px 8px;font-size:11.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;}
+  .dkv{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .dkv .k{font-size:12px;color:var(--ink-3);}
+  .dkv .v{font-size:13.5px;margin-top:2px;}
+
+  /* ---------- Modal de asignación ---------- */
+  .modal .card.wide{max-width:520px;}
+  .modal label{display:block;font-size:12.5px;color:var(--ink-2);margin-bottom:5px;}
+  .modal .fld + .fld{margin-top:15px;}
+  .modal select,.modal input[type="date"],.modal input[type="text"]{width:100%;font:inherit;font-size:13.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:9px 11px;}
+  .modal select:focus,.modal input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft);}
+  .modal .two{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .modal .note{background:var(--sunken);border-radius:var(--r-sm);padding:11px 13px;font-size:12.5px;color:var(--ink-2);line-height:1.5;margin:16px 0 0;}
+  .modal .note.warn{background:var(--warn-soft);color:#7A5C16;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="side">
+    <div class="brand">
+      <svg class="brand-logo" viewBox="0 0 136 185" role="img" aria-label="Logotipo de la clínica">
+        <g transform="translate(0,185) scale(0.1,-0.1)" fill="#C45608" stroke="none">
+          <path d="M1220 1728 c-7 -18 -42 -60 -76 -93 -64 -60 -64 -61 -64 -116 0 -31 3 -59 6 -62 12 -11 80 33 97 63 10 17 17 50 17 83 0 33 8 74 20 103 11 26 19 49 17 51 -3 2 -10 -11 -17 -29z"/>
+          <path d="M976 1625 c-63 -137 -64 -186 -1 -249 23 -22 31 -20 44 13 22 52 16 109 -16 155 l-30 42 29 68 c45 106 28 87 -26 -29z"/>
+          <path d="M507 1605 c-75 -16 -192 -75 -239 -120 -142 -136 -175 -329 -85 -498 36 -69 95 -124 194 -180 l71 -41 -53 -58 c-29 -31 -67 -85 -84 -119 -32 -64 -35 -63 -46 11 -16 116 -110 230 -215 260 -28 8 -26 5 23 -40 55 -51 106 -133 133 -217 10 -31 19 -114 24 -233 9 -219 24 -293 32 -160 3 65 11 97 30 135 54 106 157 168 301 182 l72 7 -45 13 c-26 8 -75 13 -116 11 -60 -3 -80 -8 -123 -36 -29 -17 -55 -32 -57 -32 -3 0 10 28 28 62 37 68 139 177 268 284 168 141 315 312 379 444 l22 45 -23 -30 c-13 -16 -54 -68 -93 -115 l-70 -85 -5 55 c-5 50 -40 130 -59 130 -11 0 -40 -63 -42 -90 -4 -54 2 -80 27 -110 l27 -31 -34 -29 c-18 -17 -39 -30 -46 -30 -19 0 -157 75 -225 122 -99 70 -136 154 -108 253 15 53 68 112 125 140 44 21 173 27 253 12 l42 -9 0 45 0 45 -63 11 c-79 14 -145 13 -220 -4z m-206 -441 c32 -62 108 -130 208 -183 124 -67 120 -61 66 -105 -44 -36 -47 -37 -78 -25 -50 20 -138 77 -180 118 -87 82 -116 214 -72 326 l19 50 7 -67 c4 -38 18 -88 30 -114z"/>
+          <path d="M1295 1486 c-29 -50 -31 -51 -85 -56 -69 -7 -115 -31 -136 -71 -20 -39 -9 -49 52 -49 63 0 102 32 158 133 52 94 61 129 11 43z"/>
+          <path d="M846 1396 c-19 -40 -21 -98 -5 -129 14 -27 50 -67 60 -67 16 0 42 90 35 122 -7 33 -53 108 -66 108 -4 0 -15 -15 -24 -34z"/>
+          <path d="M1030 1238 c-74 -51 -68 -88 15 -88 49 0 59 4 95 36 60 55 51 74 -34 74 -28 0 -55 -8 -76 -22z"/>
+          <path d="M920 1078 c-49 -34 -60 -56 -36 -74 25 -18 89 -18 124 0 15 8 40 28 55 44 l28 30 -32 11 c-51 18 -103 13 -139 -11z"/>
+          <path d="M781 897 c-17 -18 -31 -36 -31 -39 0 -3 15 -11 33 -19 47 -19 147 -96 180 -137 59 -76 74 -232 31 -312 l-19 -35 -5 75 c-7 91 -35 146 -108 211 -40 36 -195 129 -214 129 -3 0 -22 -13 -42 -29 l-37 -30 58 -30 c177 -91 244 -161 251 -261 10 -135 -62 -219 -211 -250 -56 -11 -150 -4 -203 17 -13 5 -15 -2 -12 -43 4 -59 10 -62 153 -63 115 -1 177 13 263 59 122 65 196 156 228 281 51 198 -46 386 -252 492 -31 16 -32 15 -63 -16z"/>
+        </g>
+      </svg>
+      <div class="brand-text"><div class="brand-sub">Clínica Bonanova</div></div>
+    </div>
+
+    <nav class="nav" aria-label="Principal">
+      <a class="nav-item" href="dashboard-nutricionista.html">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+        <span>Inicio</span>
+      </a>
+      <a class="nav-item" href="agenda.html">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        <span>Agenda</span><em class="nav-badge">7</em>
+      </a>
+      <a class="nav-item" href="pacientes.html">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 11h5M18.5 8.5v5"/></svg>
+        <span>Pacientes</span>
+      </a>
+      <a class="nav-item" href="#" aria-current="page">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h5"/></svg>
+        <span>Planes</span>
+      </a>
+      <a class="nav-item" href="metricas.html">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h3.5l2.5-7 3.5 13 2.5-6H21"/></svg>
+        <span>Métricas del centro</span>
+      </a>
+      <a class="nav-item" href="#">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        <span>Informes</span>
+      </a>
+    </nav>
+
+    <div class="nav-foot">
+      <a class="nav-item" href="configuracion.html">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8M18.5 18.5l-1.8-1.8M7.3 7.3 5.5 5.5"/></svg>
+        <span>Configuración</span>
+      </a>
+      <div class="who">
+        <div class="av">MI</div>
+        <div class="txt">
+          <div class="nm">Marta Ibáñez</div>
+          <div class="rl" id="meRole">Nutricionista</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="topbar">
+      <div>
+        <h1>Planes</h1>
+        <p class="count" id="count">—</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn-quiet" type="button" id="btnImport">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m8 7 4-4 4 4"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg>
+          Importar
+        </button>
+        <button class="btn-primary" type="button" id="btnNew">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Crear plan
+        </button>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div class="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="text" placeholder="Nombre del plan o adaptación" autocomplete="off" aria-label="Buscar plan">
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div class="selbar" id="selbar">
+      <span class="c" id="selCount">0 seleccionados</span>
+      <button type="button" id="selExport">Exportar selección</button>
+      <button type="button" class="danger" id="selDelete">Eliminar</button>
+      <button type="button" class="clear" id="selClear">Quitar selección</button>
+    </div>
+
+    <div class="tablewrap">
+      <table id="tbl">
+        <thead>
+          <tr id="thead">
+            <th class="pad" style="width:42px"><input type="checkbox" id="chkAll" aria-label="Seleccionar todo"></th>
+            <th data-k="nombre">Plan</th>
+            <th data-k="objetivo">Objetivo</th>
+            <th data-k="adapt">Adaptaciones</th>
+            <th data-k="act">Actualizado</th>
+            <th class="pad acts"></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="foot" id="foot"></div>
+    </div>
+  </main>
+</div>
+
+<div class="menu" id="menu" role="menu"></div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="card">
+    <h3 id="modalTitle">Eliminar plan</h3>
+    <p id="modalText"></p>
+    <div class="acts">
+      <button class="btn-quiet" type="button" id="modalCancel">Cancelar</button>
+      <button class="btn-danger" type="button" id="modalOk">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="assign" role="dialog" aria-modal="true" aria-labelledby="assignTitle">
+  <div class="card wide">
+    <h3 id="assignTitle">Asignar plan</h3>
+    <p id="assignText"></p>
+    <div class="fld">
+      <label for="asgPac">Paciente</label>
+      <select id="asgPac"></select>
+    </div>
+    <div class="two" style="margin-top:15px">
+      <div class="fld" style="margin-top:0">
+        <label for="asgIni">Inicio</label>
+        <input type="date" id="asgIni" value="2026-09-28">
+      </div>
+      <div class="fld" style="margin-top:0">
+        <label for="asgDur">Duración</label>
+        <select id="asgDur">
+          <option value="14">2 semanas</option>
+          <option value="28" selected>4 semanas</option>
+          <option value="56">8 semanas</option>
+          <option value="0">Sin fecha de fin</option>
+        </select>
+      </div>
+    </div>
+    <p class="note" id="asgNote"></p>
+    <div class="acts" style="margin-top:20px">
+      <button class="btn-quiet" type="button" id="asgCancel">Cancelar</button>
+      <button class="btn-primary" type="button" id="asgOk">Asignar plan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastText"></span><button type="button" id="toastUndo">Deshacer</button></div>
+
+<div class="dialog" id="drawer" data-size="lg" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="drawerTitle">
+  <div class="panel">
+    <header>
+      <h2 id="drawerTitle">Detalle del plan</h2>
+      <button class="close" id="drawerClose" type="button" aria-label="Cerrar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </header>
+    <div class="body" id="drawerBody"></div>
+    <footer>
+      <button class="btn-primary" type="button" id="drawerAssign">Asignar a un paciente</button>
+      <button class="btn-quiet" type="button" onclick="location.href='plan-detalle.html'">Abrir detalle</button>
+    </footer>
+  </div>
+</div>
+
+<div class="proto" role="group" aria-label="Controles del prototipo">
+  <span>Rol</span>
+  <button type="button" data-role="pro" aria-pressed="true">Nutricionista</button>
+  <button type="button" data-role="admin" aria-pressed="false">Administrador</button>
+  <i class="sep"></i>
+  <span>Tipografía</span>
+  <button type="button" data-set="a" aria-pressed="false">Inter Tight</button>
+  <button type="button" data-set="b" aria-pressed="true">Source Serif</button>
+  <button type="button" data-set="c" aria-pressed="false">Satoshi</button>
+</div>
+
+<script>
+(function(){
+'use strict';
+var HOY = new Date(2026, 8, 24);
+
+var OBJ = {
+  mant:  { n:'Mantenimiento',        c:'mant' },
+  grasa: { n:'Pérdida de grasa',     c:'grasa' },
+  musc:  { n:'Ganancia muscular',    c:'musc' },
+  pato:  { n:'Adaptado a patología', c:'pato' }
+};
+
+var ME = 'Marta Ibáñez';
+
+/* Cada plan es una semana de comida y cena en texto libre.
+   Nunca kcal: las cantidades se expresan en raciones e intercambios. */
+var DIAS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+var SEMANA = [
+  { c:'Ensalada de lentejas con verdura asada y huevo duro.', n:'Crema de calabacín y tortilla francesa con pan integral.' },
+  { c:'Arroz integral salteado con pollo y pimiento.',        n:'Judías verdes con patata y merluza al horno.' },
+  { c:'Garbanzos guisados con espinacas.',                    n:'Ensalada templada de quinoa con queso fresco y tomate.' },
+  { c:'Pasta integral con atún, tomate natural y aceituna.',  n:'Revuelto de setas y gambas con pan integral.' },
+  { c:'Patata cocida con verdura y pavo a la plancha.',       n:'Sopa de verduras y tortilla de calabacín.' },
+  { c:'Paella de verduras con sepia.',                        n:'Ensalada completa con huevo, aguacate y pan.' },
+  { c:'Estofado de ternera con patata y zanahoria.',          n:'Puré de verduras y pescado blanco a la plancha.' }
+];
+
+var P = [
+  { id:1,  nm:'Mantenimiento general', obj:'mant',  ad:[], act:'2026-09-12', au:ME, sh:true,
+    d:'Plan de referencia del centro para pacientes en fase de mantenimiento. Base sobre la que se construyen la mayoría de las adaptaciones.' },
+  { id:2,  nm:'Pérdida de grasa · progresivo', obj:'grasa', ad:[], act:'2026-09-08', au:ME, sh:true,
+    d:'Reduce media ración de farináceo en la cena manteniendo la proteína y el volumen de verdura.' },
+  { id:3,  nm:'Ganancia muscular · refuerzo proteico', obj:'musc', ad:[], act:'2026-08-30', au:ME, sh:true,
+    d:'Comidas y cenas con proteína en ambas ingestas y una ración extra los días de entreno de fuerza.' },
+  { id:4,  nm:'Turnos rotativos · noche', obj:'mant', ad:['Turno de noche'], act:'2026-09-02', au:ME, sh:true,
+    d:'Comidas y cenas pensadas para tomar frías o recalentadas, para quien trabaja de noche.' },
+  { id:5,  nm:'Sin gluten · mantenimiento', obj:'mant', ad:['Sin gluten'], act:'2026-07-21', au:ME, sh:false,
+    d:'Sustituye los farináceos por equivalentes sin gluten manteniendo las mismas raciones.' },
+  { id:6,  nm:'Sin lactosa · pérdida de grasa', obj:'grasa', ad:['Sin lactosa'], act:'2026-06-14', au:ME, sh:false,
+    d:'Lácteos sustituidos por bebidas vegetales enriquecidas y proteína de otras fuentes.' },
+  { id:7,  nm:'Vegetariano · equilibrado', obj:'mant', ad:['Vegetariano'], act:'2026-08-11', au:'Aina Prats', sh:true,
+    d:'Combina legumbre, huevo y lácteo en comida y cena para cubrir la proteína sin recurrir a la carne.' },
+  { id:8,  nm:'Vegano · con suplementación', obj:'mant', ad:['Vegano','Sin lactosa'], act:'2026-05-29', au:'Aina Prats', sh:true,
+    d:'Requiere suplemento de B12. Combina legumbre y cereal en el mismo plato para completar el aporte proteico.' },
+  { id:9,  nm:'Diabetes tipo 2 · reparto estable', obj:'pato', ad:['Diabetes'], act:'2026-09-16', au:'Rubén Castells', sh:true,
+    d:'Reparte los farináceos de forma pareja entre comida y cena para evitar concentraciones. Prioriza integral y legumbre.' },
+  { id:10, nm:'Hipertensión · bajo en sodio', obj:'pato', ad:['Bajo en sodio'], act:'2026-04-18', au:'Rubén Castells', sh:true,
+    d:'Sustituye sal por especias y elimina embutido y conserva salada. Mantiene el resto de la estructura.' },
+  { id:11, nm:'Reflujo · cenas ligeras', obj:'pato', ad:['Reflujo'], act:'2026-03-27', au:ME, sh:false,
+    d:'Cenas ligeras, sin fritos, cítricos ni picante, y el mayor volumen del día en la comida.' },
+  { id:12, nm:'Deportista de resistencia', obj:'musc', ad:[], act:'2026-08-05', au:'Aina Prats', sh:true,
+    d:'Aumenta farináceos en la comida previa al entreno y mantiene la proteína en ambas ingestas.' },
+  { id:13, nm:'Primera visita · plan puente', obj:'mant', ad:[], act:'2026-02-20', au:ME, sh:true,
+    d:'Comidas y cenas sencillas para las dos primeras semanas, mientras se recoge el registro alimentario.' },
+  { id:14, nm:'Sin pescado azul · mantenimiento', obj:'mant', ad:['Sin pescado azul'], act:'2025-11-09', au:ME, sh:false,
+    d:'Sustituye el pescado azul por huevo, legumbre y carne magra manteniendo el reparto de grasas.' }
+];
+
+var PACIENTES = ['Elena Ferrer Vidal','Javier Nadal','Lucía Bermejo','Marc Oliveras','Nerea Zubiri',
+  'Pau Serrat','Rocío Jiménez','Sergi Company','Teresa Alonso','Víctor Manrique'];
+
+/* ---------- Utilidades ---------- */
+var $ = function(s,r){ return (r||document).querySelector(s); };
+var MES = ['ene','feb','mar','abr','may','jun','jul','ago','sept','oct','nov','dic'];
+function D(s){ var p = s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+function fecha(s){ var d = D(s); return d.getDate()+' '+MES[d.getMonth()]+' '+d.getFullYear(); }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function rel(s){
+  var d = Math.round((HOY - D(s))/86400000);
+  if (d <= 0) return 'hoy';
+  if (d === 1) return 'ayer';
+  if (d < 7) return 'hace '+d+' días';
+  if (d < 31) return 'hace '+Math.round(d/7)+' semanas';
+  if (d < 365) return 'hace '+Math.round(d/30)+' meses';
+  return 'hace más de un año';
+}
+
+var state = { f:'todos', q:'', k:'act', dir:-1, sel:{}, role:'pro' };
+var DEFAULT_DIR = { nombre:1, objetivo:1, adapt:-1, act:-1 };
+
+function mine(p){ return state.role === 'admin' || p.au === ME || p.sh; }
+function pool(){ return P.filter(mine); }
+
+var FILTROS = [
+  { k:'todos', n:'Todos' },
+  { k:'mant',  n:'Mantenimiento' },
+  { k:'grasa', n:'Pérdida de grasa' },
+  { k:'musc',  n:'Ganancia muscular' },
+  { k:'pato',  n:'Patología' }
+];
+function pasaFiltro(p, f){
+  if (f === 'todos') return true;
+  return p.obj === f;
+}
+function buildChips(){
+  $('#chips').innerHTML = FILTROS.map(function(f){
+    var c = pool().filter(function(p){ return pasaFiltro(p, f.k); }).length;
+    return '<button class="chip" type="button" data-f="'+f.k+'" aria-pressed="'+(state.f===f.k)+'">'+
+      f.n+'<span class="n">'+c+'</span></button>';
+  }).join('');
+}
+$('#chips').addEventListener('click', function(e){
+  var b = e.target.closest('[data-f]'); if (!b) return;
+  state.f = b.dataset.f; state.sel = {}; buildChips(); render();
+});
+$('#q').addEventListener('input', function(){ state.q = this.value.trim().toLowerCase(); render(); });
+
+function val(p, k){
+  if (k === 'nombre')    return p.nm;
+  if (k === 'objetivo')  return OBJ[p.obj].n;
+  if (k === 'adapt')     return p.ad.length;
+  return D(p.act).getTime();
+}
+function current(){
+  var q = state.q;
+  var list = pool().filter(function(p){
+    if (!pasaFiltro(p, state.f)) return false;
+    if (!q) return true;
+    return (p.nm+' '+p.ad.join(' ')+' '+OBJ[p.obj].n+' '+p.au).toLowerCase().indexOf(q) >= 0;
+  });
+  var k = state.k, dir = state.dir;
+  return list.sort(function(a, b){
+    var x = val(a,k), y = val(b,k);
+    var c = (typeof x === 'string') ? x.localeCompare(y,'es') : (x-y);
+    if (c === 0) c = a.nm.localeCompare(b.nm,'es');
+    return c*dir;
+  });
+}
+
+/* ---------- Ordenación por cabecera ---------- */
+(function(){
+  var CARET = '<svg class="caret" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+  Array.prototype.forEach.call(document.querySelectorAll('#thead th[data-k]'), function(th){
+    th.innerHTML = '<button type="button" class="sortbtn">'+th.textContent+CARET+'</button>';
+    th.addEventListener('click', function(){
+      var k = th.dataset.k;
+      if (state.k === k) state.dir = -state.dir;
+      else { state.k = k; state.dir = DEFAULT_DIR[k]; }
+      render();
+    });
+  });
+})();
+
+/* ---------- Render ---------- */
+var tbody = $('#tbody'), foot = $('#foot');
+var IC = {
+  ver:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.6"/></svg>',
+  asg:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 11h5M18.5 8.5v5"/></svg>',
+  del:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5h6v2"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg>'
+};
+
+function render(){
+  var list = current();
+  Array.prototype.forEach.call(document.querySelectorAll('#thead th[data-k]'), function(th){
+    if (th.dataset.k === state.k) th.setAttribute('aria-sort', state.dir === 1 ? 'ascending' : 'descending');
+    else th.removeAttribute('aria-sort');
+  });
+
+  var conAd = pool().filter(function(p){ return p.ad.length; }).length;
+  $('#count').textContent = pool().length + ' plantillas en la biblioteca · ' + conAd + ' con adaptaciones';
+
+  if (!list.length){
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><h3>Ningún plan coincide</h3>'+
+      '<p>Prueba con otro objetivo o crea una plantilla nueva desde cero.</p>'+
+      '<button class="btn-primary" type="button" onclick="document.getElementById(\'btnNew\').click()">Crear plan</button></div></td></tr>';
+    foot.innerHTML = '';
+    syncSel(); return;
+  }
+
+  tbody.innerHTML = list.map(function(p){
+    var ads = p.ad.length
+      ? p.ad.map(function(a){ return '<span class="ad">'+esc(a)+'</span>'; }).join('')
+      : '<span class="ad none">Sin adaptaciones</span>';
+    return '<tr data-id="'+p.id+'"'+(state.sel[p.id]?' class="sel"':'')+'>'+
+      '<td class="pad"><input type="checkbox" data-s="'+p.id+'"'+(state.sel[p.id]?' checked':'')+' aria-label="Seleccionar '+esc(p.nm)+'"></td>'+
+      '<td class="who-cell"><div class="pname"><span class="t">'+esc(p.nm)+'</span>'+
+        '<span class="m">'+esc(p.au)+(p.sh ? ' · compartido con el centro' : ' · solo tú')+'</span></div></td>'+
+      '<td><span class="obj '+OBJ[p.obj].c+'">'+OBJ[p.obj].n+'</span></td>'+
+      '<td><div class="adapts">'+ads+'</div></td>'+
+      '<td class="num">'+rel(p.act)+'<br><span class="soft" style="font-size:12px">'+fecha(p.act)+'</span></td>'+
+      '<td class="pad acts"><button class="kebab" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Acciones de '+esc(p.nm)+'">'+
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5.5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="18.5" r="1.6"/></svg>'+
+      '</button></td>'+
+    '</tr>';
+  }).join('');
+
+  foot.innerHTML = '<span>'+list.length+' de '+pool().length+' planes</span>'+
+    '<span class="more">Ordenado por '+({nombre:'nombre',objetivo:'objetivo',adapt:'adaptaciones',act:'fecha de actualización'})[state.k]+
+    ' ('+(state.dir===1?'ascendente':'descendente')+')</span>';
+
+  Array.prototype.forEach.call(tbody.querySelectorAll('tr[data-id]'), function(tr){
+    var p = byId(+tr.dataset.id);
+    tr.addEventListener('click', function(e){
+      if (e.target.closest('input[type="checkbox"]') || e.target.closest('.kebab')) return;
+      openDrawer(p);
+    });
+    var kb = tr.querySelector('.kebab');
+    if (kb) kb.addEventListener('click', function(e){ e.stopPropagation(); openMenu(kb, p); });
+    var cb = tr.querySelector('input[data-s]');
+    if (cb) cb.addEventListener('change', function(){
+      if (cb.checked) state.sel[p.id] = true; else delete state.sel[p.id];
+      tr.classList.toggle('sel', cb.checked); syncSel();
+    });
+  });
+  syncSel();
+}
+function byId(id){ for (var i=0;i<P.length;i++) if (P[i].id === id) return P[i]; return null; }
+
+/* ---------- Selección ---------- */
+function selected(){ return P.filter(function(p){ return state.sel[p.id]; }); }
+function syncSel(){
+  var s = selected();
+  $('#selbar').classList.toggle('on', s.length > 0);
+  $('#selCount').textContent = s.length + (s.length === 1 ? ' plan seleccionado' : ' planes seleccionados');
+  var vis = current();
+  var all = vis.length > 0 && vis.every(function(p){ return state.sel[p.id]; });
+  $('#chkAll').checked = all;
+  $('#chkAll').indeterminate = !all && s.length > 0;
+}
+$('#chkAll').addEventListener('change', function(){
+  var on = this.checked;
+  current().forEach(function(p){ if (on) state.sel[p.id] = true; else delete state.sel[p.id]; });
+  render();
+});
+$('#selClear').addEventListener('click', function(){ state.sel = {}; render(); });
+$('#selExport').addEventListener('click', function(){ toast(selected().length+' planes exportados en formato PDF.', null); });
+$('#selDelete').addEventListener('click', function(){ askDelete(selected()); });
+
+/* ---------- Menú de acciones ---------- */
+var menu = $('#menu'), menuOwner = null;
+function openMenu(btn, p){
+  if (menuOwner === btn){ closeMenu(); return; }
+  closeMenu();
+  menuOwner = btn;
+  menu.innerHTML =
+    '<button type="button" role="menuitem" data-a="ver">'+IC.ver+'Visualizar el detalle</button>'+
+    '<button type="button" role="menuitem" data-a="asignar">'+IC.asg+'Asignar a un paciente</button>'+
+    '<div class="sep"></div>'+
+    '<button type="button" role="menuitem" class="danger" data-a="del">'+IC.del+'Borrar</button>';
+  menu.classList.add('on');
+  btn.setAttribute('aria-expanded','true');
+  var r = btn.getBoundingClientRect(), h = menu.offsetHeight, w = menu.offsetWidth;
+  var top = r.bottom + window.scrollY + 6;
+  if (r.bottom + h + 12 > window.innerHeight) top = r.top + window.scrollY - h - 6;
+  menu.style.top = top + 'px';
+  menu.style.left = Math.max(10, r.right + window.scrollX - w) + 'px';
+  Array.prototype.forEach.call(menu.querySelectorAll('[data-a]'), function(b){
+    b.addEventListener('click', function(){
+      var a = b.dataset.a; closeMenu();
+      if (a === 'del') { askDelete([p]); return; }
+      if (a === 'asignar') { openAssign(p); return; }
+      location.href = 'plan-detalle.html';
+    });
+  });
+  menu.querySelector('button').focus();
+}
+function closeMenu(){
+  menu.classList.remove('on');
+  if (menuOwner) menuOwner.setAttribute('aria-expanded','false');
+  menuOwner = null;
+}
+document.addEventListener('click', function(e){
+  if (menu.classList.contains('on') && !e.target.closest('#menu') && !e.target.closest('.kebab')) closeMenu();
+});
+window.addEventListener('scroll', closeMenu, true);
+window.addEventListener('resize', closeMenu);
+
+/* ---------- Borrado ---------- */
+var modal = $('#modal'), pending = [];
+function askDelete(list){
+  if (!list.length) return;
+  pending = list.slice();
+  $('#modalTitle').textContent = list.length === 1 ? 'Borrar plan' : 'Borrar '+list.length+' planes';
+  var base = list.length === 1
+    ? 'Se borrará la plantilla «'+list[0].nm+'» de la biblioteca.'
+    : 'Se borrarán '+list.length+' plantillas de la biblioteca.';
+  var extra = ' Los menús ya asignados a pacientes no se tocan: cada paciente tiene su propia copia personalizada.';
+  $('#modalText').textContent = base + extra;
+  modal.classList.add('on');
+  $('#modalOk').focus();
+}
+function closeModal(){ modal.classList.remove('on'); pending = []; }
+$('#modalCancel').addEventListener('click', closeModal);
+modal.addEventListener('click', function(e){ if (e.target === modal) closeModal(); });
+$('#modalOk').addEventListener('click', function(){
+  var removed = pending.map(function(p){ return { p:p, i:P.indexOf(p) }; });
+  removed.slice().reverse().forEach(function(r){ P.splice(r.i,1); delete state.sel[r.p.id]; });
+  var msg = removed.length === 1 ? 'Plan «'+removed[0].p.nm+'» borrado' : removed.length+' planes borrados';
+  closeModal(); buildChips(); render();
+  toast(msg, function(){
+    removed.forEach(function(r){ P.splice(r.i, 0, r.p); });
+    buildChips(); render();
+  });
+});
+
+/* ---------- Asignación ---------- */
+var assign = $('#assign'), asgPlan = null;
+$('#asgPac').innerHTML = PACIENTES.map(function(n){ return '<option>'+esc(n)+'</option>'; }).join('');
+function openAssign(p){
+  asgPlan = p;
+  $('#assignTitle').textContent = 'Asignar «'+p.nm+'»';
+  $('#assignText').textContent = OBJ[p.obj].n + ' · comida y cena de lunes a domingo' +
+    (p.ad.length ? ' · ' + p.ad.join(', ') : '');
+  updateNote();
+  assign.classList.add('on');
+  $('#asgPac').focus();
+}
+function updateNote(){
+  var d = +$('#asgDur').value, ini = $('#asgIni').value;
+  var nota = $('#asgNote');
+  if (!ini){ nota.className = 'note warn'; nota.textContent = 'Indica una fecha de inicio.'; return; }
+  nota.className = 'note';
+  var f = D(ini), txt = 'El plan empieza el '+fecha(ini);
+  if (d){ var fin = new Date(f.getTime() + d*86400000);
+    txt += ' y termina el '+fecha(fin.getFullYear()+'-'+String(fin.getMonth()+1).padStart(2,'0')+'-'+String(fin.getDate()).padStart(2,'0'))+'.';
+  } else { txt += ' y se mantiene hasta que lo sustituyas.'; }
+  nota.textContent = txt + ' Se copia como menú propio del paciente: los cambios que hagas después en la plantilla no le afectarán.';
+}
+$('#asgDur').addEventListener('change', updateNote);
+$('#asgIni').addEventListener('change', updateNote);
+function closeAssign(){ assign.classList.remove('on'); asgPlan = null; }
+$('#asgCancel').addEventListener('click', closeAssign);
+assign.addEventListener('click', function(e){ if (e.target === assign) closeAssign(); });
+$('#asgOk').addEventListener('click', function(){
+  var p = asgPlan, pac = $('#asgPac').value;
+  if (!p) return;
+  closeAssign(); closeDrawer();
+  toast('Menú creado para '+pac+' a partir de «'+p.nm+'»', null);
+});
+
+/* ---------- Toast ---------- */
+var toastEl = $('#toast'), toastUndo = $('#toastUndo'), toastT = null, undoFn = null;
+function toast(msg, undo){
+  $('#toastText').textContent = msg;
+  undoFn = undo || null;
+  toastUndo.hidden = !undoFn;
+  toastEl.classList.add('on');
+  clearTimeout(toastT);
+  toastT = setTimeout(function(){ toastEl.classList.remove('on'); undoFn = null; }, 6000);
+}
+toastUndo.addEventListener('click', function(){
+  if (undoFn) undoFn();
+  toastEl.classList.remove('on'); undoFn = null;
+});
+
+/* ---------- Cajón de detalle ---------- */
+var drawer = $('#drawer'), drawerPlan = null;
+function openDrawer(p){
+  drawerPlan = p;
+  $('#drawerTitle').textContent = p.nm;
+  var comidas = SEMANA.map(function(m, i){
+    return '<div class="meal"><div class="h">'+DIAS[i]+'</div>'+
+      '<div class="c"><b style="font-weight:500">Comida.</b> '+esc(m.c)+
+      '<br><b style="font-weight:500">Cena.</b> '+esc(m.n)+'</div></div>';
+  }).join('');
+  $('#drawerBody').innerHTML =
+    '<div class="dsec"><span class="obj '+OBJ[p.obj].c+'">'+OBJ[p.obj].n+'</span>'+
+      '<p style="font-size:13.5px;line-height:1.6;color:var(--ink-2);margin:12px 0 0">'+esc(p.d)+'</p></div>'+
+    '<div class="dsec"><div class="dkv">'+
+      '<div><div class="k">Adaptaciones</div><div class="v">'+(p.ad.length ? esc(p.ad.join(', ')) : 'Ninguna')+'</div></div>'+
+      '<div><div class="k">Ámbito</div><div class="v">'+(p.sh ? 'Compartida con el centro' : 'Solo tú') + '</div></div>'+
+      '<div><div class="k">Autora</div><div class="v">'+esc(p.au)+'</div></div>'+
+      '<div><div class="k">Actualizado</div><div class="v">'+fecha(p.act)+'</div></div>'+
+    '</div></div>'+
+    '<div class="dsec"><h4>Comida y cena de la semana</h4><div class="meals">'+comidas+'</div>'+
+      '<p style="font-size:12.5px;color:var(--ink-3);margin:12px 0 0;line-height:1.55">El desayuno, el almuerzo y la merienda se gestionan como pautas fijas en la ficha de cada paciente.</p>'+
+    '</div>';
+  focoPrevio = document.activeElement;
+  drawer.classList.add('on'); drawer.setAttribute('aria-hidden','false');
+  var c = drawer.querySelector('.close'); if (c) c.focus();
+}
+var focoPrevio = null;
+function closeDrawer(){
+  drawer.classList.remove('on');
+  if (focoPrevio && focoPrevio.focus) focoPrevio.focus();
+  drawer.setAttribute('aria-hidden','true'); drawerPlan = null;
+}
+$('#drawerClose').addEventListener('click', closeDrawer);
+drawer.addEventListener('click', function (e) { if (e.target === drawer) closeDrawer(); });
+$('#drawerAssign').addEventListener('click', function(){ if (drawerPlan) openAssign(drawerPlan); });
+
+document.addEventListener('keydown', function(e){
+  if (e.key !== 'Escape') return;
+  if (menu.classList.contains('on')) { closeMenu(); return; }
+  if (assign.classList.contains('on')) { closeAssign(); return; }
+  if (modal.classList.contains('on')) { closeModal(); return; }
+  closeDrawer();
+});
+
+/* ---------- Crear e importar ---------- */
+$('#btnNew').addEventListener('click', function(){ toast('En el prototipo, aquí se abriría el editor de planes por raciones.', null); });
+$('#btnImport').addEventListener('click', function(){ toast('En el prototipo, aquí se importaría un plan desde archivo o desde otra clínica.', null); });
+
+/* ---------- Controles del prototipo ---------- */
+Array.prototype.forEach.call(document.querySelectorAll('.proto [data-role]'), function(b){
+  b.addEventListener('click', function(){
+    Array.prototype.forEach.call(document.querySelectorAll('.proto [data-role]'), function(o){ o.setAttribute('aria-pressed', String(o === b)); });
+    state.role = b.dataset.role; state.sel = {}; buildChips(); render();
+  });
+});
+Array.prototype.forEach.call(document.querySelectorAll('.proto [data-set]'), function(b){
+  b.addEventListener('click', function(){
+    Array.prototype.forEach.call(document.querySelectorAll('.proto [data-set]'), function(o){ o.setAttribute('aria-pressed', String(o === b)); });
+    document.documentElement.setAttribute('data-type', b.dataset.set);
+  });
+});
+document.documentElement.setAttribute('data-type','b');
+
+buildChips();
+render();
+})();
+</script>
+</body>
+</html>

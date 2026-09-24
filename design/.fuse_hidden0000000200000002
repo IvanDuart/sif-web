@@ -1,0 +1,102 @@
+
+    <!-- MEDICIONES -->
+    <section class="panel" id="p-medic" role="tabpanel">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Evolución</h2>
+            <p class="hint">Línea suavizada sobre las mediciones registradas. Selecciona qué indicador quieres ver.</p>
+          </div>
+          <div class="right">
+            <div class="metricbar" id="mbar"></div>
+          </div>
+        </div>
+        <svg class="chart" id="chart" viewBox="0 0 900 280" preserveAspectRatio="none" role="img" aria-label="Gráfico de evolución"></svg>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Registro de mediciones</h2>
+            <p class="hint">De la más reciente a la más antigua. La variación se calcula respecto a la visita anterior.</p>
+          </div>
+          <div class="right"><button class="btn-quiet" type="button">Exportar</button></div>
+        </div>
+        <div class="tw">
+          <table>
+            <thead><tr>
+              <th>Fecha</th><th class="num">Peso</th><th class="num">IMC</th>
+              <th class="num">% Grasa</th><th class="num">% Agua</th><th class="num">% Masa muscular</th><th>Origen</th>
+            </tr></thead>
+            <tbody id="tbMed"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPOSICIÓN -->
+    <section class="panel" id="p-comp" role="tabpanel">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Análisis de composición corporal</h2>
+            <p class="hint" id="compMeta">—</p>
+          </div>
+          <div class="right"><span class="tag mute">Importado de báscula</span></div>
+        </div>
+        <div class="cols-3" style="margin-bottom:18px">
+          <div>
+            <div class="fig" style="border:1px solid var(--line);border-radius:var(--r-md)">
+              <div class="k">Complexión física · índice de Grant</div>
+              <div class="v" id="grantV">—</div>
+              <div class="d flat" id="grantD">—</div>
+            </div>
+          </div>
+          <div>
+            <div class="fig" style="border:1px solid var(--line);border-radius:var(--r-md)">
+              <div class="k">Masa ósea</div>
+              <div class="v" id="oseaV">—</div>
+              <div class="d flat" id="oseaD">—</div>
+            </div>
+          </div>
+          <div>
+            <div class="fig" style="border:1px solid var(--line);border-radius:var(--r-md)">
+              <div class="k">Peso · altura</div>
+              <div class="v">62,4<span class="u">kg</span></div>
+              <div class="d flat">168 cm · muñeca 16,0 cm</div>
+            </div>
+          </div>
+        </div>
+        <div class="comp" id="compGrid"></div>
+        <div style="margin-top:14px" id="compNotes"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Análisis segmental</h2>
+            <p class="hint">Distribución de masa magra y grasa por segmento. Se avisa cuando la diferencia entre lados supera el 5 %.</p>
+          </div>
+          <div class="right">
+            <div class="metricbar" id="segbar">
+              <button class="mchip" type="button" data-s="magra" aria-pressed="true">Masa magra</button>
+              <button class="mchip" type="button" data-s="grasa" aria-pressed="false">Masa grasa</button>
+            </div>
+          </div>
+        </div>
+        <div class="split">
+          <div>
+            <svg class="body-fig" id="bodyFig" viewBox="0 0 140 230" role="img" aria-label="Esquema corporal por segmentos"></svg>
+            <div class="legend">
+              <span><i style="background:#2F5D4F"></i> En rango</span>
+              <span><i style="background:#B5892C"></i> Bajo</span>
+              <span><i style="background:#B04A3E"></i> Asimetría &gt; 5 %</span>
+            </div>
+          </div>
+          <div>
+            <div class="seglist" id="segList"></div>
+            <div style="margin-top:14px" id="segNotes"></div>
+          </div>
+        </div>
+      </div>
+    </section>

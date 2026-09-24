@@ -2,27 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 @import '@taiga-ui/styles/taiga-ui-theme.less';
-@import '@taiga-ui/styles/taiga-ui-fonts.less';
+/* No importamos @taiga-ui/styles/taiga-ui-fonts.less: solo carga Manrope vía
+   Google Fonts. Las familias de la Guía (§4) se declaran en index.html y se
+   inyectan en Taiga más abajo (--tui-typography-family-*). */
 
 /* ─────────────────────────────────────────────
-   PRIME FALLBACK — surface/primary tokens
-   (replaces what PrimeNG + tailwindcss-primeui provided)
+   SISTEMA DE DISEÑO SIF — Guía de diseño v1
+   Fuente de verdad de color (Guía §3), formas (§3) y tipografía (§4).
+   El acento por centro (--brand-primary) sigue siendo la única ancla
+   configurable; el resto se deriva con color-mix().
    ───────────────────────────────────────────── */
 :root {
-  --p-surface-0: #ffffff;
-  --p-surface-50: #f8fafc;
-  --p-surface-100: #f1f5f9;
-  --p-surface-200: #e2e8f0;
-  --p-surface-300: #cbd5e1;
-  --p-surface-400: #94a3b8;
-  --p-surface-500: #64748b;
-  --p-surface-600: #475569;
-  --p-surface-700: #334155;
-  --p-surface-800: #1e293b;
-  --p-surface-900: #0f172a;
-  --p-surface-950: #020617;
+  color-scheme: light;
+
+  /* — Neutros cálidos (Guía §3) — */
+  --canvas: #fbfaf8;
+  --surface: #ffffff;
+  --sunken: #f4f2ee;
+  --line: #eae7e1;
+  --line-strong: #d8d4cc;
+  --ink-3: #9a958c;
+  --ink-2: #6b665e;
+  --ink: #1f1d1a;
+
+  /* — Marca (Guía §3) — */
+  --primary: var(--brand-primary);
+  --primary-hover: color-mix(in srgb, var(--brand-primary) 88%, black);
+  --primary-soft: color-mix(in srgb, var(--brand-primary) 10%, white);
+  --accent: #c45608;
+  --accent-soft: #faf0ea;
+
+  /* — Colores semánticos de estado (Guía §3) —
+     Solo para estados; nunca como decoración. Las citas mantienen su
+     propia paleta fija en --status-* (más abajo). */
+  --ok: #2d7a5f;
+  --warn: #b5892c;
+  --warn-soft: #fbf4e6;
+  --err: #b04a3e;
+  --err-soft: #fbf0ee;
+  --info: #3c6e96;
+
+  /* — Formas y sombra (Guía §3) — */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-pill: 999px;
+  --shadow-float: 0 1px 2px rgba(31, 29, 26, 0.04), 0 8px 24px rgba(31, 29, 26, 0.06);
+
+  /* — Tipografía (Guía §4, variante Satoshi) — */
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-display: 'Satoshi', system-ui, sans-serif;
+  --display-weight: 700;
+  --display-spacing: -0.02em;
+
   /* Brand primary — single source of truth (tenant overrides via setPrimary) */
-  --brand-primary: #059669;
+  --brand-primary: #2f5d4f;
   --p-primary-50: color-mix(in srgb, var(--brand-primary) 12%, white);
   --p-primary-100: color-mix(in srgb, var(--brand-primary) 22%, white);
   --p-primary-200: color-mix(in srgb, var(--brand-primary) 34%, white);
@@ -35,10 +68,25 @@
   --p-primary-900: color-mix(in srgb, var(--brand-primary) 42%, black);
   --p-primary-950: color-mix(in srgb, var(--brand-primary) 30%, black);
   --p-primary-contrast-color: #ffffff;
-  --p-content-background: var(--p-surface-0);
-  --p-text-color: var(--p-surface-700);
-  --p-font-family: 'system-ui', -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --p-text-muted-color: var(--p-surface-400);
+
+  /* Rampa neutra cálida expuesta como --p-surface-* (la consumen los estilos
+     propios y el fallback de Tailwind). Ancla: los neutros de la Guía §3. */
+  --p-surface-0: var(--surface);
+  --p-surface-50: var(--canvas);
+  --p-surface-100: var(--sunken);
+  --p-surface-200: var(--line);
+  --p-surface-300: var(--line-strong);
+  --p-surface-400: var(--ink-3);
+  --p-surface-500: var(--ink-2);
+  --p-surface-600: #55504a;
+  --p-surface-700: #3a3631;
+  --p-surface-800: #2a2723;
+  --p-surface-900: var(--ink);
+  --p-surface-950: #16140f;
+  --p-content-background: var(--surface);
+  --p-text-color: var(--ink);
+  --p-font-family: var(--font-ui);
+  --p-text-muted-color: var(--ink-3);
   
   /* Phase 5: Motion & Animation Tokens */
   --motion-duration-fast: 120ms;
@@ -49,24 +97,57 @@
 }
 
 /* ─────────────────────────────────────────────
-    TAIGA UI THEME — Emerald + Slate palette
+    TAIGA UI — puente a los tokens de la Guía
+    Taiga se alimenta del mismo sistema: aquí solo se mapean sus
+    variables a los tokens semánticos. Cambiar un neutro de la Guía
+    repinta Tailwind, Taiga y los estilos propios a la vez.
     ───────────────────────────────────────────── */
-:root {
+/* `[tuiTheme]` es necesario además de `:root`: en modo oscuro Taiga escribe
+   `tuiTheme="dark"` en <body> y sus overlays (dropdowns, hints), y esas
+   declaraciones propias sombrean las heredadas de <html>. Con la misma
+   especificidad y posterior en el orden de cascada, ganan las nuestras. */
+:root,
+[tuiTheme] {
   --tui-primary: var(--brand-primary);
-  --tui-primary-hover: color-mix(in srgb, var(--brand-primary) 88%, black);
+  --tui-primary-hover: var(--primary-hover);
   --tui-background-accent-1: var(--brand-primary);
-  --tui-background-accent-1-hover: color-mix(in srgb, var(--brand-primary) 88%, black);
-  --tui-background-base: #f8fafc;
-  --tui-background-neutral-1: #f8fafc;
-  --tui-background-neutral-2: #f1f5f9;
-  --tui-background-elevation-3: #ffffff;
-  --tui-clear: rgba(0, 0, 0, 0.04);
-  --tui-clear-hover: rgba(0, 0, 0, 0.08);
-  --tui-text-primary: #1e293b;
-  --tui-text-secondary: #55657c;
-  --tui-border: #e2e8f0;
-  --tui-border-normal: #e2e8f0;
-  --tui-background: #f1f5f9;
+  --tui-background-accent-1-hover: var(--primary-hover);
+  --tui-background-base: var(--canvas);
+  --tui-background-base-alt: var(--sunken);
+  --tui-background-neutral-1: var(--sunken);
+  --tui-background-neutral-1-hover: var(--line);
+  --tui-background-neutral-2: var(--line);
+  --tui-background-neutral-2-hover: var(--line-strong);
+  --tui-background-elevation-1: var(--surface);
+  --tui-background-elevation-2: var(--surface);
+  --tui-background-elevation-3: var(--surface);
+  --tui-clear: rgba(31, 29, 26, 0.04);
+  --tui-clear-hover: rgba(31, 29, 26, 0.08);
+  --tui-text-primary: var(--ink);
+  --tui-text-secondary: var(--ink-2);
+  --tui-text-tertiary: var(--ink-3);
+  --tui-border: var(--line);
+  --tui-border-normal: var(--line);
+  --tui-border-hover: var(--line-strong);
+  --tui-background: var(--canvas);
+
+  /* Tipografía (Guía §4) */
+  --tui-typography-family-text: var(--font-ui);
+  --tui-typography-family-display: var(--font-display);
+  --tui-typography-heading-h1: var(--display-weight) calc(var(--tui-font-offset) + 1.875rem) / 1.2 var(--tui-typography-family-display);
+  --tui-typography-heading-h2: var(--display-weight) calc(var(--tui-font-offset) + 1.5rem) / 1.25 var(--tui-typography-family-display);
+  --tui-typography-heading-h3: var(--display-weight) calc(var(--tui-font-offset) + 1.3125rem) / 1.28 var(--tui-typography-family-display);
+  --tui-typography-heading-h4: var(--display-weight) calc(var(--tui-font-offset) + 1.1875rem) / 1.3 var(--tui-typography-family-display);
+  --tui-typography-heading-h5: var(--display-weight) calc(var(--tui-font-offset) + 1.125rem) / 1.35 var(--tui-typography-family-display);
+  --tui-typography-heading-h6: var(--display-weight) calc(var(--tui-font-offset) + 1rem) / 1.4 var(--tui-typography-family-display);
+
+  /* Formas (Guía §3) */
+  --tui-radius-xs: 6px;
+  --tui-radius-s: var(--r-sm);
+  --tui-radius-m: var(--r-md);
+  --tui-radius-l: 16px;
+  --tui-radius-xl: 20px;
+  --tui-shadow-popup: var(--shadow-float);
 
   /* Semantic status palette — fixed, NOT tenant-driven */
   --status-scheduled: #3b82f6;
@@ -80,38 +161,54 @@
 }
 
 .dark {
-  --tui-primary: color-mix(in srgb, var(--brand-primary) 78%, white);
-  --tui-primary-hover: color-mix(in srgb, var(--brand-primary) 62%, white);
-  --tui-background-accent-1: color-mix(in srgb, var(--brand-primary) 78%, white);
-  --tui-background-accent-1-hover: color-mix(in srgb, var(--brand-primary) 62%, white);
-  --tui-background-base: #1e293b;
-  --tui-background-neutral-1: #1e293b;
-  --tui-background-neutral-2: #334155;
-  --tui-background-elevation-3: #1e293b;
+  color-scheme: dark;
+
+  /* — Neutros cálidos en oscuro (derivados de la Guía §3) — */
+  --canvas: #1a1917;
+  --surface: #232120;
+  --sunken: #2b2927;
+  --line: #38352f;
+  --line-strong: #4a463f;
+  --ink-3: #8a857c;
+  --ink-2: #b4aea4;
+  --ink: #f4f2ee;
+
+  /* — Marca en oscuro — */
+  --primary: color-mix(in srgb, var(--brand-primary) 78%, white);
+  --primary-hover: color-mix(in srgb, var(--brand-primary) 62%, white);
+  --primary-soft: color-mix(in srgb, var(--brand-primary) 22%, var(--surface));
+  --accent: #e08a5c;
+  --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
+
+  /* — Semánticos en oscuro — */
+  --ok: #5fbf9a;
+  --warn: #d9ae55;
+  --warn-soft: color-mix(in srgb, var(--warn) 18%, var(--surface));
+  --err: #d98377;
+  --err-soft: color-mix(in srgb, var(--err) 18%, var(--surface));
+  --info: #7fadcf;
+  --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.32), 0 8px 24px rgba(0, 0, 0, 0.36);
+
   --tui-clear: rgba(255, 255, 255, 0.04);
   --tui-clear-hover: rgba(255, 255, 255, 0.08);
-  --tui-text-primary: #f1f5f9;
-  --tui-text-secondary: #cbd5e1;
-  --tui-border: #334155;
-  --tui-border-normal: #334155;
-  --tui-background: #0f172a;
+  --tui-shadow-popup: var(--shadow-float);
 
-  /* Prime Fallback — dark mode tokens */
-  --p-surface-0: #0f172a;
-  --p-surface-50: #1e293b;
-  --p-surface-100: #334155;
-  --p-surface-200: #475569;
-  --p-surface-300: #64748b;
-  --p-surface-400: #94a3b8;
-  --p-surface-500: #cbd5e1;
-  --p-surface-600: #e2e8f0;
-  --p-surface-700: #f1f5f9;
-  --p-surface-800: #f8fafc;
-  --p-surface-900: #ffffff;
-  --p-surface-950: #ffffff;
-  --p-content-background: var(--p-surface-0);
-  --p-text-color: var(--p-surface-700);
-  --p-text-muted-color: var(--p-surface-400);
+  /* Prime fallback — rampa neutra cálida invertida */
+  --p-surface-0: var(--canvas);
+  --p-surface-50: #26241f;
+  --p-surface-100: var(--sunken);
+  --p-surface-200: var(--line);
+  --p-surface-300: var(--line-strong);
+  --p-surface-400: var(--ink-3);
+  --p-surface-500: var(--ink-2);
+  --p-surface-600: #d8d4cc;
+  --p-surface-700: #e4e0d9;
+  --p-surface-800: #eeebe5;
+  --p-surface-900: var(--ink);
+  --p-surface-950: #fbfaf8;
+  --p-content-background: var(--surface);
+  --p-text-color: var(--ink);
+  --p-text-muted-color: var(--ink-3);
 
   /* Brand primary — dark ramp (lighter family, anchored on the tenant color) */
   --p-primary-50: color-mix(in srgb, var(--brand-primary) 14%, white);
@@ -176,16 +273,27 @@ tui-dropdown.tui-leave {
   }
 }
 
-/* Headings — Poppins for visual hierarchy */
+/* Headings — Source Serif 4 (Guía §4). Nunca fijan familia: heredan
+   de --font-display, de modo que un cambio de sistema editorial no
+   obligue a tocar cada título. */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-spacing);
+  line-height: 1.2;
   text-wrap: balance;
 }
 
-h1, h2 {
-  letter-spacing: -0.02em;
+h1 {
+  font-size: 1.875rem; /* 30px — título de pantalla */
+}
+
+h2 {
+  font-size: 1.1875rem; /* 19px — título de tarjeta o diálogo */
+}
+
+h3 {
+  font-size: 1.125rem; /* 18px — subtítulo */
 }
 
 p {
@@ -197,36 +305,32 @@ html, body, tui-root {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: var(--tui-background) !important;
-  color: var(--tui-text-primary);
+  font-family: var(--font-ui);
+  background-color: var(--canvas) !important;
+  color: var(--ink);
 }
 
 /* ─────────────────────────────────────────────
    NATIVE TABLE — data-card design
    ───────────────────────────────────────────── */
 .data-card {
-  background: var(--tui-background-elevation-3, white);
-  border-radius: 14px;
+  background: var(--surface);
+  border-radius: var(--r-md);
   padding: 1.25rem;
   position: relative;
   min-height: 120px;
-  border: 1px solid var(--tui-border, #e2e8f0);
-  
+  border: 1px solid var(--line);
+
   /* Opt-in brand tint for cards */
   &[data-brand-tint] {
-    background: color-mix(in srgb, var(--brand-primary) 5%, var(--tui-background-elevation-3));
-    border-color: color-mix(in srgb, var(--brand-primary) 15%, var(--tui-border));
+    background: color-mix(in srgb, var(--brand-primary) 5%, var(--surface));
+    border-color: color-mix(in srgb, var(--brand-primary) 15%, var(--line));
   }
 }
 
-.dark .data-card {
-  background: var(--tui-background-neutral-1, #1e293b);
-  
-  &[data-brand-tint] {
-    background: color-mix(in srgb, var(--brand-primary) 8%, var(--tui-background-neutral-1));
-    border-color: color-mix(in srgb, var(--brand-primary) 20%, var(--tui-border));
-  }
+.dark .data-card[data-brand-tint] {
+  background: color-mix(in srgb, var(--brand-primary) 10%, var(--surface));
+  border-color: color-mix(in srgb, var(--brand-primary) 22%, var(--line));
 }
 
 .table-loading {
@@ -572,10 +676,10 @@ tui-toast[data-appearance="info"] {
   display: block;
   width: 100%;
   padding: 0.625rem 0.75rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--tui-border, #e2e8f0);
-  background: var(--tui-background-neutral-1, #f8fafc);
-  color: var(--tui-text-primary, #1e293b);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
   font-size: 0.875rem;
   font-family: inherit;
   line-height: 1.25rem;
@@ -584,20 +688,14 @@ tui-toast[data-appearance="info"] {
 }
 
 .form-input:focus {
-  border-color: var(--tui-primary, #059669);
-  background: color-mix(in srgb, var(--brand-primary) 3%, var(--tui-background-neutral-1));
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--tui-primary, #059669) 15%, transparent);
-}
-
-.dark .form-input {
-  border-color: var(--tui-border, #334155);
-  background: var(--tui-background-neutral-1, #1e293b);
-  color: var(--tui-text-primary, #f1f5f9);
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--brand-primary) 3%, var(--surface));
+  box-shadow: 0 0 0 3px var(--primary-soft);
 }
 
 .dark .form-input:focus {
-  background: color-mix(in srgb, var(--brand-primary) 5%, var(--tui-background-neutral-1));
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--tui-primary, #059669) 15%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
 }
 
 /* ─────────────────────────────────────────────
@@ -694,21 +792,15 @@ button[tuiIconButton]:not(:disabled) {
   }
 }
 
-/* Phase 6: Comprehensive focus ring coverage */
-.nav-link:focus-visible,
-.tenant-pill:focus-visible,
-.icon-btn:focus-visible,
+/* Phase 6: Comprehensive focus ring coverage.
+   Las clases internas del shell (.nav-item, .brand-tenant, .icon-btn, .who,
+   .bottom-nav-item, .mobile-nav-link, .mobile-action-btn) declaran ya su propio
+   `:focus-visible` en shell.scss; aquí solo quedan los botones de Taiga. */
 button[tuiButton][appearance="flat"]:focus-visible,
 button[tuiButton][appearance="secondary"]:focus-visible,
 button[tuiIconButton][appearance="flat"]:focus-visible {
   outline: 2px solid var(--tui-primary);
   outline-offset: 2px;
-}
-
-/* Skip link enhancement - Phase 6 */
-.skip-to-content {
-  background: var(--tui-text-primary);
-  color: var(--tui-background);
 }
 
 /* ─────────────────────────────────────────────

@@ -1,5 +1,13 @@
 # Design System: SIF Web Clinic
 
+> ⚠️ **Este documento describe el sistema anterior (Emerald + Slate, Poppins).**
+> El rediseño de septiembre 2026 lo sustituye por la *Guía de diseño* en
+> `.agents/skills/guia-diseno` (neutros cálidos, verde `#2F5D4F`, Inter +
+> Source Serif 4). Los prototipos viven en `design/` y la fuente de verdad de los
+> tokens es `src/styles.less`. Ver `doc/rediseno-gap-analysis.md` y el plan en
+> `~/.opencode/plan/plan-rediseño.md`. Las secciones siguientes se conservan como
+> referencia histórica hasta completar la migración (Fase 3).
+
 ## 1. Visual Theme & Atmosphere
 A restrained, clean, and clinical interface with a precise daily-app balance. The atmosphere is professional and clinical yet welcoming — characterized by a structured layout, a balanced Emerald + Slate color palette, and clear typography. Layouts are designed to serve data and work, ensuring high efficiency for nutritionists and physiotherapists during patient consultations.
 

@@ -1,0 +1,86 @@
+
+    <p class="crumb">
+      <a href="pacientes.html">Pacientes</a>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+      <span>Elena Ferrer Vidal</span>
+    </p>
+
+    <div class="phead">
+      <div class="av">EF</div>
+      <div>
+        <h1>Elena Ferrer Vidal</h1>
+        <p class="sub">
+          <span class="tag activo">Activa</span>
+          <span class="dot"></span><span>41 años</span>
+          <span class="dot"></span><span>Mujer</span>
+          <span class="dot"></span><span>34 · 168 cm</span>
+          <span class="dot"></span><span>Alta: 14 feb 2025</span>
+          <span class="dot"></span><span>Marta Ibáñez</span>
+        </p>
+      </div>
+      <div class="phead-actions">
+        <button class="btn-quiet" type="button" id="btnEdit">Editar datos</button>
+        <button class="btn-primary" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Nueva medición
+        </button>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" id="tabs">
+      <button class="tab" role="tab" data-p="perfil" aria-selected="true">Perfil</button>
+      <button class="tab" role="tab" data-p="medic" aria-selected="false">Mediciones</button>
+      <button class="tab" role="tab" data-p="comp" aria-selected="false">Composición corporal</button>
+      <button class="tab" role="tab" data-p="menus" aria-selected="false">Menús</button>
+      <button class="tab" role="tab" data-p="agua" aria-selected="false">Agua</button>
+      <button class="tab" role="tab" data-p="medico" aria-selected="false">Perfil médico</button>
+      <button class="tab" role="tab" data-p="pautas" aria-selected="false">Pautas fijas</button>
+      <button class="tab" role="tab" data-p="citas" aria-selected="false">Historial de citas</button>
+    </div>
+
+    <!-- PERFIL -->
+    <section class="panel on" id="p-perfil" role="tabpanel">
+      <div class="figs" id="resumen"></div>
+      <div class="cols-2-1" style="margin-top:18px">
+        <div>
+          <div class="card">
+            <h2>Datos básicos</h2>
+            <p class="hint">Información de contacto y administrativa.</p>
+            <div class="kv">
+              <div class="i"><div class="k">Nombre completo</div><div class="v">Elena Ferrer Vidal</div></div>
+              <div class="i"><div class="k">Fecha de nacimiento</div><div class="v">3 de junio de 1985 <span class="muted">(41)</span></div></div>
+              <div class="i"><div class="k">Documento</div><div class="v">46 812 335-K</div></div>
+              <div class="i"><div class="k">Sexo</div><div class="v">Mujer</div></div>
+              <div class="i"><div class="k">Altura</div><div class="v">168 cm</div></div>
+              <div class="i"><div class="k">Muñeca</div><div class="v">16,0 cm</div></div>
+              <div class="i"><div class="k">Teléfono</div><div class="v">676 40 12 89</div></div>
+              <div class="i"><div class="k">Email</div><div class="v">elena.ferrer@mail.com</div></div>
+              <div class="i"><div class="k">Profesional</div><div class="v">Marta Ibáñez</div></div>
+              <div class="i"><div class="k">Alta en el centro</div><div class="v">14 feb 2025</div></div>
+              <div class="i"><div class="k">Procedencia</div><div class="v">Recomendación de paciente</div></div>
+              <div class="i"><div class="k">Consentimiento RGPD</div><div class="v">Firmado · 14 feb 2025</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Objetivo del seguimiento</h2>
+            <p class="hint">Acordado con la paciente en la primera visita y revisado cada trimestre.</p>
+            <p style="font-size:14px;line-height:1.6;color:var(--ink-2)">Mejorar la composición corporal manteniendo el peso en un rango estable, con foco en aumentar masa muscular y ordenar los horarios de comida alrededor de los turnos de trabajo. Revisión del objetivo prevista para <b style="color:var(--ink)">diciembre de 2026</b>.</p>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-head"><div><h2>Situación actual</h2></div></div>
+            <div id="sitNow"></div>
+          </div>
+          <div class="card">
+            <h2>Próxima cita</h2>
+            <p class="hint">Revisión trimestral con bioimpedancia.</p>
+            <p style="font-size:15px"><b>Martes 6 de octubre</b><br><span class="muted">10:30 · 30 min · consulta 2</span></p>
+            <div style="display:flex;gap:9px;margin-top:14px">
+              <button class="btn-quiet" type="button">Reprogramar</button>
+              <button class="btn-quiet" type="button">Recordatorio</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>

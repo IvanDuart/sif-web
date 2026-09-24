@@ -5,81 +5,54 @@
 <a href="#main-content" class="skip-to-content">{{ 'common.back' | transloco }}</a>
 
 <div class="app-layout">
-  <nav class="top-nav">
-    <div class="nav-container">
 
-      <!-- Logo -->
-      <div class="nav-brand" routerLink="/">
-        <div class="brand-text">
-          @if (tenantLogoUrl() && !logoError()) {
-            <img [src]="tenantLogoUrl()" alt="Logo" class="nav-logo" (error)="logoError.set(true)" />
-          } @else {
-            <img src="logo-sif.svg" alt="Logo" class="nav-logo" />
-          }
-        </div>
-      </div>
-
-      <!-- Desktop Navigation -->
-      <ul class="nav-menu desktop-only" role="menubar">
-        <span class="nav-pill" [style.transform]="navPillTransform()" [style.width.px]="navPillWidth()" aria-hidden="true"></span>
-        @for (item of visibleNavItems(); track item.route) {
-          <li role="none">
-            <a
-              [routerLink]="item.route"
-              routerLinkActive="active-link"
-              [routerLinkActiveOptions]="{ exact: false }"
-              (isActiveChange)="onNavLinkActive($event, navLinkEl)"
-              #navLinkEl
-              class="nav-link"
-              role="menuitem"
-            >
-              <i [class]="item.icon"></i>
-              <span>{{ navLabel(item) }}</span>
-            </a>
-          </li>
+  <!-- ═══════════ Barra lateral (desktop / tablet) ═══════════ -->
+  <aside class="side" [attr.aria-label]="'shell.navigation' | transloco">
+    <div class="brand">
+      <a routerLink="/" class="brand-link" [attr.aria-label]="'shell.home' | transloco">
+        @if (tenantLogoUrl() && !logoError()) {
+          <img [src]="tenantLogoUrl()" alt="" class="brand-logo" (error)="logoError.set(true)" />
+        } @else {
+          <img src="logo-sif.svg" alt="" class="brand-logo" />
         }
-      </ul>
+      </a>
 
-      <!-- Desktop Tools -->
-      <div class="nav-tools desktop-only">
-
-        <!-- Tenant Switcher (desktop) -->
+      <div class="brand-text">
         @if (tenants().length > 1) {
           <button
             type="button"
-            class="tenant-pill"
+            class="brand-tenant"
             [tuiDropdown]="tenantDropdown"
             [(tuiDropdownOpen)]="tenantMenuOpen"
             [attr.aria-label]="authTranslations()['select_tenant']"
           >
-            <i class="fa-solid fa-building"></i>
-            <span class="tenant-name">{{ activeTenant()?.tenantName || authTranslations()['select_tenant'] }}</span>
-            <i class="fa-solid fa-chevron-down chevron"></i>
+            <span class="brand-tenant-name">{{ activeTenant()?.tenantName || authTranslations()['select_tenant'] }}</span>
+            <i class="fa-solid fa-chevron-down chevron" aria-hidden="true"></i>
           </button>
-
-          <ng-template #tenantDropdown>
-            <div class="dropdown-menu-content" tuiDropdownContent>
-              <div class="menu-section-title">{{ authTranslations()['change_tenant'] }}</div>
-              @for (tenant of tenants(); track tenant.tenantId) {
-                <button type="button" class="menu-item-action" (click)="selectTenant(tenant)">
-                  <span class="tenant-label">{{ tenant.tenantName }}</span>
-                  @if (activeTenant()?.tenantId === tenant.tenantId) {
-                    <i class="fa-solid fa-check check-icon"></i>
-                  }
-                </button>
-              }
-            </div>
-          </ng-template>
         } @else if (activeTenant()) {
-          <div class="tenant-pill static">
-            <i class="fa-solid fa-building"></i>
-            <span class="tenant-name">{{ activeTenant()?.tenantName }}</span>
-          </div>
+          <span class="brand-sub">{{ activeTenant()?.tenantName }}</span>
         }
+      </div>
+    </div>
 
-        <div class="separator" aria-hidden="true"></div>
+    <nav class="nav">
+      @for (item of visibleNavItems(); track item.route) {
+        <a
+          class="nav-item"
+          [routerLink]="item.route"
+          routerLinkActive="active-link"
+          [routerLinkActiveOptions]="{ exact: false }"
+          [attr.title]="compactNav() ? navLabel(item) : null"
+        >
+          <i [class]="item.icon" aria-hidden="true"></i>
+          <span class="nav-label">{{ navLabel(item) }}</span>
+        </a>
+      }
+    </nav>
 
-        <!-- Theme Toggle -->
+    <div class="nav-foot">
+      <div class="side-tools">
+        <!-- Tema -->
         <button
           type="button"
           class="icon-btn"
@@ -88,107 +61,159 @@
           [attr.aria-label]="'shell.change_theme' | transloco"
         >
           <span class="theme-icon-swap">
-            <i class="fa-solid fa-moon text-slate-500" [class.is-hidden]="themeService.colorScheme() === 'dark'"></i>
-            <i class="fa-solid fa-sun text-amber-500" [class.is-hidden]="themeService.colorScheme() === 'light'"></i>
+            <i class="fa-solid fa-moon" [class.is-hidden]="themeService.colorScheme() === 'dark'"></i>
+            <i class="fa-solid fa-sun" [class.is-hidden]="themeService.colorScheme() === 'light'"></i>
           </span>
         </button>
 
-        <!-- Notification Bell (Staff Only) -->
+        <!-- Propuestas de reagenda (solo staff) -->
         @if (permissionsService.has('VIEW_APPOINTMENTS') || permissionsService.has('MANAGE_APPOINTMENTS')) {
           <button
             type="button"
-            class="icon-btn relative"
+            class="icon-btn"
             [tuiDropdown]="bellDropdown"
             [(tuiDropdownOpen)]="bellMenuOpen"
             [attr.aria-label]="'shell.notifications' | transloco"
           >
-            <i class="fa-solid fa-bell"></i>
+            <i class="fa-solid fa-bell" aria-hidden="true"></i>
             @if (proposedAppointments().length > 0) {
-              <span class="absolute top-0 right-0 min-w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1 transform translate-x-1/3 -translate-y-1/3 shadow-sm border border-white">
-                {{ proposedAppointments().length }}
-              </span>
+              <span class="dot-badge">{{ proposedAppointments().length }}</span>
             }
           </button>
-
-          <ng-template #bellDropdown>
-            <div class="dropdown-menu-content p-2 w-72" tuiDropdownContent>
-              <div class="menu-section-title px-2 py-1 font-bold text-xs uppercase text-surface-400 tracking-wider">
-                {{ 'shell.reschedule_proposals' | transloco }}
-              </div>
-              <div class="user-menu-divider my-1.5"></div>
-              
-              <div class="max-h-60 overflow-y-auto">
-                @for (appt of proposedAppointments(); track appt.id) {
-                  <button type="button" class="w-full text-left p-2 hover:bg-surface-50 dark:hover:bg-surface-800 rounded-lg flex flex-col gap-1 transition-colors" (click)="goToProposedDate(appt)">
-                    <div class="flex justify-between items-start gap-1">
-                      <span class="text-xs font-semibold text-surface-900 dark:text-surface-0 truncate">
-                        {{ appt.patientName }}
-                      </span>
-                      <span class="text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/20 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                        {{ 'shell.pending' | transloco }}
-                      </span>
-                    </div>
-                    <span class="text-[11px] text-surface-500 flex items-center gap-1">
-                      <i class="fa-regular fa-clock"></i>
-                      {{ formatDate(appt.startTime) }}
-                    </span>
-                  </button>
-                } @empty {
-                  <div class="py-4 text-center text-xs text-surface-400">
-                    {{ 'shell.no_pending_proposals' | transloco }}
-                  </div>
-                }
-              </div>
-            </div>
-          </ng-template>
         }
-
-        <!-- User Avatar + Dropdown -->
-        <button
-          type="button"
-          class="avatar-btn"
-          [tuiDropdown]="userDropdown"
-          [(tuiDropdownOpen)]="userMenuOpen"
-          (click)="userMenuOpen.set(!userMenuOpen())"
-          [attr.aria-label]="'shell.user_menu' | transloco"
-        >
-          <span tuiAvatar [attr.data-initials]="userInitials()" size="m" [round]="true" class="user-avatar">
-            {{ userInitials() }}
-          </span>
-        </button>
-
-        <ng-template #userDropdown>
-          <div class="user-menu-popover" tuiDropdownContent>
-            <div class="user-menu-header">
-              <span tuiAvatar [attr.data-initials]="userInitials()" size="l" [round]="true" class="user-avatar">
-                {{ userInitials() }}
-              </span>
-              <div class="user-menu-details">
-                <div class="user-menu-name">{{ userFullName() }}</div>
-                <div class="user-menu-email">{{ userEmail() }}</div>
-              </div>
-            </div>
-            <div class="user-menu-divider"></div>
-            <a [routerLink]="'/help'" class="user-menu-item" (click)="userMenuOpen.set(false)">
-              <i class="fa-solid fa-circle-question"></i>
-              <span>{{ 'common.help' | transloco }}</span>
-            </a>
-            <button type="button" class="user-menu-item logout-item" (click)="logout()">
-              <i class="fa-solid fa-right-from-bracket"></i>
-              <span>{{ authTranslations()['logout'] }}</span>
-            </button>
-          </div>
-        </ng-template>
       </div>
 
-      <!-- Mobile Hamburger -->
-      <button type="button" class="hamburger mobile-only" (click)="toggleMobileMenu()" [attr.aria-label]="'shell.menu' | transloco">
-        <i [class]="mobileMenuOpen() ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'"></i>
+      <!-- Usuario -->
+      <button
+        type="button"
+        class="who"
+        [tuiDropdown]="userDropdown"
+        [(tuiDropdownOpen)]="userMenuOpen"
+        [attr.aria-label]="'shell.user_menu' | transloco"
+      >
+        <span tuiAvatar [attr.data-initials]="userInitials()" size="m" [round]="true" class="av">
+          {{ userInitials() }}
+        </span>
+        <span class="txt">
+          <span class="nm">{{ userFullName() }}</span>
+          <span class="rl">{{ userRoleLabel() }}</span>
+        </span>
+        <i class="fa-solid fa-ellipsis-vertical who-more" aria-hidden="true"></i>
       </button>
     </div>
+
+    <!-- Menú de centro -->
+    <ng-template #tenantDropdown>
+      <div class="dropdown-menu-content" tuiDropdownContent>
+        <div class="menu-section-title">{{ authTranslations()['change_tenant'] }}</div>
+        @for (tenant of tenants(); track tenant.tenantId) {
+          <button type="button" class="menu-item-action" (click)="selectTenant(tenant)">
+            <span class="tenant-label">{{ tenant.tenantName }}</span>
+            @if (activeTenant()?.tenantId === tenant.tenantId) {
+              <i class="fa-solid fa-check check-icon" aria-hidden="true"></i>
+            }
+          </button>
+        }
+      </div>
+    </ng-template>
+
+    <!-- Propuestas de reagenda -->
+    <ng-template #bellDropdown>
+      <div class="dropdown-menu-content bell-menu" tuiDropdownContent>
+        <div class="menu-section-title">{{ 'shell.reschedule_proposals' | transloco }}</div>
+        <div class="user-menu-divider"></div>
+
+        <div class="bell-list">
+          @for (appt of proposedAppointments(); track appt.id) {
+            <button type="button" class="bell-item" (click)="goToProposedDate(appt)">
+              <span class="bell-item-top">
+                <span class="bell-item-name">{{ appt.patientName }}</span>
+                <span class="tag tag-proposed">{{ 'shell.pending' | transloco }}</span>
+              </span>
+              <span class="bell-item-date">
+                <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                {{ formatDate(appt.startTime) }}
+              </span>
+            </button>
+          } @empty {
+            <p class="bell-empty">{{ 'shell.no_pending_proposals' | transloco }}</p>
+          }
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- Menú de usuario -->
+    <ng-template #userDropdown>
+      <div class="user-menu-popover" tuiDropdownContent>
+        <div class="user-menu-header">
+          <span tuiAvatar [attr.data-initials]="userInitials()" size="l" [round]="true" class="av">
+            {{ userInitials() }}
+          </span>
+          <div class="user-menu-details">
+            <div class="user-menu-name">{{ userFullName() }}</div>
+            <div class="user-menu-email">{{ userEmail() }}</div>
+          </div>
+        </div>
+        <div class="user-menu-divider"></div>
+        <a [routerLink]="'/help'" class="user-menu-item" (click)="userMenuOpen.set(false)">
+          <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+          <span>{{ 'common.help' | transloco }}</span>
+        </a>
+        <button type="button" class="user-menu-item logout-item" (click)="logout()">
+          <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+          <span>{{ authTranslations()['logout'] }}</span>
+        </button>
+      </div>
+    </ng-template>
+  </aside>
+
+  <!-- ═══════════ Cabecera móvil ═══════════ -->
+  <header class="mobile-bar">
+    <a routerLink="/" class="brand-link" [attr.aria-label]="'shell.home' | transloco">
+      @if (tenantLogoUrl() && !logoError()) {
+        <img [src]="tenantLogoUrl()" alt="" class="brand-logo" (error)="logoError.set(true)" />
+      } @else {
+        <img src="logo-sif.svg" alt="" class="brand-logo" />
+      }
+    </a>
+    <span class="mobile-bar-tenant">{{ activeTenant()?.tenantName }}</span>
+  </header>
+
+  <!-- ═══════════ Contenido ═══════════ -->
+  <main id="main-content" class="content-viewport">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- ═══════════ Bottom navigation (móvil) ═══════════ -->
+  <nav class="bottom-nav" [attr.aria-label]="'shell.navigation' | transloco">
+    @for (item of bottomNavItems(); track item.route) {
+      <a
+        class="bottom-nav-item"
+        [routerLink]="item.route"
+        routerLinkActive="active-link"
+        [routerLinkActiveOptions]="{ exact: false }"
+      >
+        <i [class]="item.icon" aria-hidden="true"></i>
+        <span>{{ navLabel(item) }}</span>
+      </a>
+    }
+
+    <button
+      type="button"
+      class="bottom-nav-item"
+      [attr.aria-expanded]="mobileMenuOpen()"
+      aria-controls="mobile-menu"
+      (click)="toggleMobileMenu()"
+    >
+      <i class="fa-solid fa-bars" aria-hidden="true"></i>
+      <span>{{ 'shell.more' | transloco }}</span>
+      @if (proposedAppointments().length > 0) {
+        <span class="dot-badge">{{ proposedAppointments().length }}</span>
+      }
+    </button>
   </nav>
 
-  <!-- Mobile Menu Overlay -->
+  <!-- ═══════════ Panel «Más» (móvil) ═══════════ -->
   @if (mobileMenuOpen()) {
     <div
       class="mobile-overlay"
@@ -199,6 +224,7 @@
     ></div>
     <div
       #mobileMenuPanel
+      id="mobile-menu"
       class="mobile-menu"
       role="dialog"
       aria-modal="true"
@@ -215,22 +241,35 @@
         (pointerup)="onMobileMenuDragEnd()"
         (pointercancel)="onMobileMenuDragEnd()"
       ></div>
+
       <ul class="mobile-nav-list">
         @for (item of visibleNavItems(); track item.route) {
           <li>
             <a
+              class="mobile-nav-link"
               [routerLink]="item.route"
               routerLinkActive="active-link"
               [routerLinkActiveOptions]="{ exact: false }"
-              class="mobile-nav-link"
               (click)="closeMobileMenu()"
             >
-              <i [class]="item.icon"></i>
+              <i [class]="item.icon" aria-hidden="true"></i>
               <span>{{ navLabel(item) }}</span>
             </a>
           </li>
         }
       </ul>
+
+      @if (proposedAppointments().length > 0) {
+        <div class="mobile-block">
+          <div class="mobile-section-title">{{ 'shell.reschedule_proposals' | transloco }}</div>
+          @for (appt of proposedAppointments(); track appt.id) {
+            <button type="button" class="menu-item-action" (click)="goToProposedDate(appt)">
+              <span class="tenant-label">{{ appt.patientName }}</span>
+              <span class="tenant-meta">{{ formatDate(appt.startTime) }}</span>
+            </button>
+          }
+        </div>
+      }
 
       <div class="mobile-footer">
         @if (tenants().length > 1) {
@@ -239,7 +278,7 @@
             <button type="button" class="menu-item-action" (click)="selectTenant(tenant)">
               <span class="tenant-label">{{ tenant.tenantName }}</span>
               @if (activeTenant()?.tenantId === tenant.tenantId) {
-                <i class="fa-solid fa-check check-icon"></i>
+                <i class="fa-solid fa-check check-icon" aria-hidden="true"></i>
               }
             </button>
           }
@@ -254,15 +293,16 @@
           <span>{{ 'shell.change_theme_mobile' | transloco }}</span>
         </button>
 
+        <a [routerLink]="'/help'" class="mobile-action-btn" (click)="closeMobileMenu()">
+          <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+          <span>{{ 'common.help' | transloco }}</span>
+        </a>
+
         <button type="button" class="mobile-action-btn logout-item" (click)="logout()">
-          <i class="fa-solid fa-right-from-bracket"></i>
+          <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
           <span>{{ authTranslations()['logout'] }}</span>
         </button>
       </div>
     </div>
   }
-
-  <main id="main-content" class="content-viewport">
-    <router-outlet></router-outlet>
-  </main>
 </div>

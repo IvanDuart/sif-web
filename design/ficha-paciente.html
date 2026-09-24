@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ficha del paciente — Panel del profesional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@500,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light;
+    --canvas:#FBFAF8; --surface:#FFFFFF; --sunken:#F4F2EE;
+    --line:#EAE7E1; --line-strong:#D8D4CC;
+    --ink-3:#9A958C; --ink-2:#6B665E; --ink:#1F1D1A;
+    --primary:#2F5D4F; --primary-hover:#264B40; --primary-soft:#EDF2F0;
+    --accent:#C45608; --accent-soft:#FAF0EA;
+    --ok:#2D7A5F; --warn:#B5892C; --warn-soft:#FBF4E6; --err:#B04A3E; --err-soft:#FBF0EE; --info:#3C6E96;
+    --r-sm:8px; --r-md:12px; --r-pill:999px;
+    --font-ui:'Inter', system-ui, sans-serif;
+    --font-display:'Source Serif 4', Georgia, serif;
+    --display-weight:600; --display-spacing:-0.01em;
+    --shadow-float:0 1px 2px rgba(31,29,26,.04), 0 8px 24px rgba(31,29,26,.06);
+  }
+  html[data-type="a"]{ --font-display:'Inter Tight', system-ui, sans-serif; --display-weight:600; --display-spacing:-0.02em; }
+  html[data-type="c"]{ --font-display:'Satoshi', system-ui, sans-serif; --display-weight:700; --display-spacing:-0.02em; }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--canvas);color:var(--ink);font-family:var(--font-ui);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:var(--font-display);font-weight:var(--display-weight);letter-spacing:var(--display-spacing);line-height:1.2;margin:0;}
+  button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:pointer;}
+  a{color:inherit;text-decoration:none;}
+  :focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:4px;}
+
+  .app{display:grid;grid-template-columns:244px 1fr;min-height:100vh;}
+
+  .side{border-right:1px solid var(--line);background:var(--canvas);padding:24px 16px;display:flex;flex-direction:column;gap:32px;position:sticky;top:0;height:100vh;}
+  .brand{display:flex;align-items:center;gap:10px;padding:0 8px;}
+  .brand-logo{height:34px;width:auto;display:block;flex:none;}
+  .brand-sub{font-size:12px;color:var(--ink-3);}
+  .nav{display:flex;flex-direction:column;gap:2px;}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:var(--r-sm);color:var(--ink-2);font-size:14.5px;transition:background .12s ease,color .12s ease;}
+  .nav-item:hover{background:var(--sunken);color:var(--ink);}
+  .nav-item[aria-current="page"]{background:var(--primary-soft);color:var(--primary);font-weight:500;}
+  .nav-item svg{flex:none;}
+  .nav-badge{margin-left:auto;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums;}
+  .nav-foot{margin-top:auto;display:flex;flex-direction:column;gap:2px;padding-top:16px;border-top:1px solid var(--line);}
+  .who{display:flex;align-items:center;gap:10px;padding:8px 10px;}
+  .who .av{width:28px;height:28px;border-radius:var(--r-pill);background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:12px;font-weight:600;}
+  .who .nm{font-size:13.5px;line-height:1.25;}
+  .who .rl{font-size:12px;color:var(--ink-3);line-height:1.25;}
+
+  .main{padding:28px 32px 56px;max-width:1500px;}
+  .topbar{display:flex;align-items:flex-start;gap:20px;margin-bottom:24px;flex-wrap:wrap;}
+  .topbar h1{font-size:30px;}
+  .topbar .count{font-size:13px;color:var(--ink-3);margin:6px 0 0;}
+  .topbar-actions{margin-left:auto;display:flex;align-items:center;gap:10px;}
+
+  .btn-primary{background:var(--primary);color:#fff;padding:10px 16px;border-radius:var(--r-sm);font-size:14.5px;font-weight:500;display:flex;align-items:center;gap:7px;transition:background .12s ease;}
+  .btn-primary:hover{background:var(--primary-hover);}
+  .btn-quiet{background:var(--surface);border:1px solid var(--line);padding:8px 14px;border-radius:var(--r-sm);font-size:14px;color:var(--ink-2);transition:border-color .12s ease,color .12s ease;}
+  .btn-quiet:hover{border-color:var(--line-strong);color:var(--ink);}
+  .btn-danger{background:var(--err);color:#fff;padding:9px 16px;border-radius:var(--r-sm);font-size:14px;font-weight:500;}
+  .btn-danger:hover{background:#9A3F35;}
+
+  /* ---------- Cabecera de la ficha ---------- */
+  .crumb{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-3);margin-bottom:14px;}
+  .crumb a:hover{color:var(--ink);text-decoration:underline;}
+  .phead{display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap;}
+  .phead .av{width:58px;height:58px;border-radius:var(--r-pill);background:var(--sunken);color:var(--ink-2);display:grid;place-items:center;font-size:19px;font-weight:600;flex:none;}
+  .phead h1{font-size:28px;}
+  .phead .sub{font-size:13.5px;color:var(--ink-3);margin-top:5px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+  .phead .sub .dot{width:3px;height:3px;border-radius:var(--r-pill);background:var(--line-strong);}
+  .phead-actions{margin-left:auto;display:flex;gap:10px;align-items:center;}
+  .tag{border-radius:var(--r-pill);padding:3px 10px;font-size:12px;font-weight:500;white-space:nowrap;display:inline-block;}
+  .tag.activo{background:var(--primary-soft);color:var(--primary);}
+  .tag.ok{background:var(--primary-soft);color:var(--primary);}
+  .tag.warn{background:var(--warn-soft);color:var(--warn);}
+  .tag.err{background:var(--err-soft);color:var(--err);}
+  .tag.mute{background:var(--sunken);color:var(--ink-2);}
+
+  /* ---------- Pestañas ---------- */
+  .tabs{display:flex;gap:2px;margin:26px 0 0;border-bottom:1px solid var(--line);overflow-x:auto;}
+  .tab{padding:11px 14px;font-size:14.5px;color:var(--ink-2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color .12s ease,border-color .12s ease;}
+  .tab:hover{color:var(--ink);}
+  .tab[aria-selected="true"]{color:var(--primary);border-color:var(--primary);font-weight:500;}
+  .panel{display:none;padding-top:26px;}
+  .panel.on{display:block;}
+
+  /* ---------- Bloques ---------- */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:22px;}
+  .card + .card{margin-top:18px;}
+  .card > h2{font-size:18px;margin-bottom:4px;}
+  .card > .hint{font-size:13px;color:var(--ink-3);margin:0 0 18px;}
+  .card-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;flex-wrap:wrap;}
+  .card-head h2{font-size:18px;}
+  .card-head .hint{font-size:13px;color:var(--ink-3);margin:4px 0 0;}
+  .card-head .right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;}
+  .cols-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start;}
+  .cols-2-1{display:grid;grid-template-columns:2fr 1fr;gap:18px;align-items:start;}
+  @media (max-width:1100px){ .cols,.cols-3,.cols-2-1{grid-template-columns:1fr;} }
+
+  .kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2px 26px;}
+  .kv .i{padding:11px 0;border-bottom:1px solid var(--line);}
+  .kv .k{font-size:12.5px;color:var(--ink-3);}
+  .kv .v{font-size:14.5px;}
+
+  .figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;}
+  .fig{background:var(--surface);padding:15px 16px;}
+  .fig .k{font-size:12px;color:var(--ink-3);display:flex;align-items:center;gap:6px;}
+  .fig .v{font-size:23px;font-family:var(--font-display);font-weight:var(--display-weight);letter-spacing:var(--display-spacing);font-variant-numeric:tabular-nums;margin-top:3px;}
+  .fig .v .u{font-size:13px;color:var(--ink-3);font-family:var(--font-ui);font-weight:400;margin-left:3px;}
+  .fig .d{font-size:12.5px;margin-top:2px;font-variant-numeric:tabular-nums;}
+  .fig .d.down{color:var(--ok);} .fig .d.up{color:var(--err);} .fig .d.flat{color:var(--ink-3);}
+
+  /* ---------- Gráfico ---------- */
+  .metricbar{display:flex;gap:6px;flex-wrap:wrap;}
+  .mchip{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-pill);padding:6px 13px;font-size:13.5px;color:var(--ink-2);}
+  .mchip:hover{border-color:var(--line-strong);color:var(--ink);}
+  .mchip[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:#fff;}
+  .chart{width:100%;height:280px;display:block;}
+  .chart .grid{stroke:var(--line);stroke-width:1;}
+  .chart .axis{fill:var(--ink-3);font-size:11px;font-family:var(--font-ui);}
+  .chart .ln{fill:none;stroke:var(--primary);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
+  .chart .ar{fill:var(--primary-soft);opacity:.55;}
+  .chart .pt{fill:var(--surface);stroke:var(--primary);stroke-width:2;}
+  .chart .pt:hover{fill:var(--primary);}
+  .chart .lbl{fill:var(--ink-2);font-size:11px;font-family:var(--font-ui);font-variant-numeric:tabular-nums;}
+
+  /* ---------- Tablas ---------- */
+  .tw{border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;background:var(--surface);}
+  table{width:100%;border-collapse:collapse;}
+  thead th{background:var(--sunken);font-size:12px;font-weight:500;color:var(--ink-2);text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  thead th.num{text-align:right;}
+  tbody td{padding:11px 12px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:middle;}
+  tbody td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--canvas);}
+  .muted{color:var(--ink-3);}
+  .delta{font-size:12.5px;font-variant-numeric:tabular-nums;}
+  .delta.down{color:var(--ok);} .delta.up{color:var(--err);} .delta.flat{color:var(--ink-3);}
+
+  /* ---------- Composición corporal ---------- */
+  .comp{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;}
+  @media (max-width:760px){ .comp{grid-template-columns:1fr;} }
+  .comp .c{background:var(--surface);padding:15px 16px;}
+  .comp .c .k{font-size:12.5px;color:var(--ink-3);}
+  .comp .c .row{display:flex;align-items:baseline;gap:9px;margin-top:3px;flex-wrap:wrap;}
+  .comp .c .v{font-size:20px;font-family:var(--font-display);font-weight:var(--display-weight);font-variant-numeric:tabular-nums;}
+  .comp .c .v .u{font-size:12.5px;color:var(--ink-3);font-family:var(--font-ui);font-weight:400;margin-left:2px;}
+  .comp .c .ref{font-size:12px;color:var(--ink-3);margin-top:7px;}
+  .scale{height:5px;border-radius:var(--r-pill);background:var(--sunken);margin-top:9px;position:relative;overflow:visible;}
+  .scale .band{position:absolute;top:0;bottom:0;background:var(--primary-soft);}
+  .scale .mk{position:absolute;top:-3px;width:3px;height:11px;border-radius:2px;background:var(--ink);}
+  .scale .mk.warn{background:var(--warn);} .scale .mk.err{background:var(--err);} .scale .mk.ok{background:var(--ok);}
+
+  .split{display:grid;grid-template-columns:minmax(0,220px) 1fr;gap:26px;align-items:start;}
+  @media (max-width:900px){ .split{grid-template-columns:1fr;} }
+  .body-fig{width:100%;max-width:220px;margin:0 auto;display:block;}
+  .body-fig .seg{stroke:var(--surface);stroke-width:2;transition:opacity .12s ease;cursor:default;}
+  .body-fig .seg:hover{opacity:.82;}
+  .body-fig .sl{fill:var(--ink-2);font-size:9px;font-family:var(--font-ui);font-variant-numeric:tabular-nums;text-anchor:middle;}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:12px;font-size:12px;color:var(--ink-2);}
+  .legend span{display:flex;align-items:center;gap:6px;}
+  .legend i{width:10px;height:10px;border-radius:3px;display:block;}
+
+  .seglist{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;}
+  .seg-row{background:var(--surface);padding:12px 14px;display:grid;grid-template-columns:118px 1fr auto;gap:14px;align-items:center;}
+  .seg-row .n{font-size:13.5px;}
+  .seg-row .bar{height:6px;border-radius:var(--r-pill);background:var(--sunken);overflow:hidden;}
+  .seg-row .bar i{display:block;height:100%;border-radius:var(--r-pill);background:var(--primary);}
+  .seg-row .val{font-size:13.5px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;}
+  .seg-row .val em{font-style:normal;color:var(--ink-3);font-size:12px;margin-left:5px;}
+
+  .note{border-radius:var(--r-sm);padding:12px 14px;font-size:13px;display:flex;gap:10px;align-items:flex-start;line-height:1.5;}
+  .note svg{flex:none;margin-top:1px;}
+  .note.warn{background:var(--warn-soft);color:#7A5C16;}
+  .note.err{background:var(--err-soft);color:#8A3A30;}
+  .note.ok{background:var(--primary-soft);color:var(--primary);}
+  .note.info{background:var(--sunken);color:var(--ink-2);}
+  .note + .note{margin-top:9px;}
+  .note b{font-weight:600;}
+
+  /* ---------- Menús ---------- */
+  .menu-hero{border:1px solid var(--primary);background:var(--primary-soft);border-radius:var(--r-md);padding:18px 20px;}
+  .menu-hero .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .menu-hero h3{font-size:17px;}
+  .menu-hero .meta{font-size:13px;color:var(--ink-2);margin-top:5px;}
+  .menu-hero .right{margin-left:auto;display:flex;gap:8px;}
+  .mlist{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;}
+  .mitem{background:var(--surface);padding:14px 16px;display:flex;align-items:center;gap:14px;}
+  .mitem:hover{background:var(--canvas);}
+  .mitem .nm{font-size:14px;}
+  .mitem .mt{font-size:12.5px;color:var(--ink-3);margin-top:3px;}
+  .mitem .right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+
+  /* ---------- Agua ---------- */
+  .water-days{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;}
+  .wd{background:var(--surface);padding:11px 14px;display:grid;grid-template-columns:150px 1fr 96px;gap:14px;align-items:center;}
+  @media (max-width:640px){ .wd{grid-template-columns:110px 1fr 84px;} }
+  .wd .d{font-size:13.5px;}
+  .wd .d em{font-style:normal;color:var(--ink-3);font-size:12px;display:block;margin-top:1px;}
+  .wd .track{height:16px;border-radius:var(--r-sm);background:var(--sunken);position:relative;overflow:hidden;}
+  .wd .track i{position:absolute;left:0;top:0;bottom:0;background:var(--info);opacity:.85;border-radius:var(--r-sm);}
+  .wd .track i.hit{background:var(--primary);}
+  .wd .goal{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--line-strong);}
+  .wd .q{font-size:13.5px;font-variant-numeric:tabular-nums;text-align:right;}
+  .wd .q em{font-style:normal;color:var(--ink-3);font-size:12px;margin-left:4px;}
+
+  /* ---------- Formularios ---------- */
+  label{display:block;}
+  .fl{font-size:12.5px;color:var(--ink-2);margin-bottom:5px;display:block;}
+  input[type="text"],textarea,select{width:100%;font:inherit;font-size:13.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:9px 11px;transition:border-color .12s ease,box-shadow .12s ease;}
+  textarea{resize:vertical;min-height:76px;line-height:1.55;}
+  input[type="text"]:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft);}
+  .field + .field{margin-top:15px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:15px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;}
+  @media (max-width:900px){ .grid2,.grid3{grid-template-columns:1fr;} }
+
+  .anam{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;}
+  .ai{background:var(--surface);padding:12px 14px;transition:background .12s ease;}
+  .ai.on{background:var(--accent-soft);}
+  .ai .hd{display:flex;align-items:center;gap:9px;}
+  .ai .hd label{font-size:13.5px;display:flex;align-items:center;gap:9px;cursor:pointer;flex:1;}
+  .ai .hd .st{margin-left:auto;font-size:11.5px;color:var(--ink-3);}
+  .ai.on .hd .st{color:var(--accent);}
+  .ai .det{margin-top:9px;}
+  .ai .det input{font-size:13px;padding:7px 10px;}
+  input[type="checkbox"]{width:15px;height:15px;accent-color:var(--primary);flex:none;cursor:pointer;margin:0;}
+  .ai.on input[type="checkbox"]{accent-color:var(--accent);}
+  .savebar{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(251,250,248,0),var(--canvas) 34%);padding:16px 0 0;margin-top:18px;display:flex;align-items:center;gap:12px;}
+  .savebar .s{font-size:12.5px;color:var(--ink-3);}
+  .savebar .right{margin-left:auto;display:flex;gap:10px;}
+
+  /* ---------- Historial ---------- */
+  .tl{position:relative;padding-left:26px;}
+  .tl::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:1px;background:var(--line);}
+  .tl .ev{position:relative;padding:0 0 20px;}
+  .tl .ev:last-child{padding-bottom:0;}
+  .tl .ev::before{content:"";position:absolute;left:-24px;top:5px;width:9px;height:9px;border-radius:var(--r-pill);background:var(--surface);border:2px solid var(--line-strong);}
+  .tl .ev.ok::before{border-color:var(--primary);background:var(--primary);}
+  .tl .ev.err::before{border-color:var(--err);background:var(--err);}
+  .tl .ev.next::before{border-color:var(--accent);background:var(--surface);}
+  .tl .dt{font-size:12.5px;color:var(--ink-3);}
+  .tl .ti{font-size:14px;margin-top:2px;}
+  .tl .tx{font-size:13px;color:var(--ink-2);margin-top:4px;line-height:1.55;}
+
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);background:var(--ink);color:#fff;border-radius:var(--r-md);padding:12px 16px;font-size:13.5px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow-float);opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;z-index:60;}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;}
+  .toast button{color:#fff;font-weight:500;text-decoration:underline;font-size:13.5px;}
+  @media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important;} }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="side">
+    <div class="brand">
+      <svg class="brand-logo" viewBox="0 0 136 185" role="img" aria-label="Logotipo de la clínica">
+        <g transform="translate(0,185) scale(0.1,-0.1)" fill="#C45608" stroke="none">
+          <path d="M1220 1728 c-7 -18 -42 -60 -76 -93 -64 -60 -64 -61 -64 -116 0 -31 3 -59 6 -62 12 -11 80 33 97 63 10 17 17 50 17 83 0 33 8 74 20 103 11 26 19 49 17 51 -3 2 -10 -11 -17 -29z"/>
+          <path d="M976 1625 c-63 -137 -64 -186 -1 -249 23 -22 31 -20 44 13 22 52 16 109 -16 155 l-30 42 29 68 c45 106 28 87 -26 -29z"/>
+          <path d="M507 1605 c-75 -16 -192 -75 -239 -120 -142 -136 -175 -329 -85 -498 36 -69 95 -124 194 -180 l71 -41 -53 -58 c-29 -31 -67 -85 -84 -119 -32 -64 -35 -63 -46 11 -16 116 -110 230 -215 260 -28 8 -26 5 23 -40 55 -51 106 -133 133 -217 10 -31 19 -114 24 -233 9 -219 24 -293 32 -160 3 65 11 97 30 135 54 106 157 168 301 182 l72 7 -45 13 c-26 8 -75 13 -116 11 -60 -3 -80 -8 -123 -36 -29 -17 -55 -32 -57 -32 -3 0 10 28 28 62 37 68 139 177 268 284 168 141 315 312 379 444 l22 45 -23 -30 c-13 -16 -54 -68 -93 -115 l-70 -85 -5 55 c-5 50 -40 130 -59 130 -11 0 -40 -63 -42 -90 -4 -54 2 -80 27 -110 l27 -31 -34 -29 c-18 -17 -39 -30 -46 -30 -19 0 -157 75 -225 122 -99 70 -136 154 -108 253 15 53 68 112 125 140 44 21 173 27 253 12 l42 -9 0 45 0 45 -63 11 c-79 14 -145 13 -220 -4z m-206 -441 c32 -62 108 -130 208 -183 124 -67 120 -61 66 -105 -44 -36 -47 -37 -78 -25 -50 20 -138 77 -180 118 -87 82 -116 214 -72 326 l19 50 7 -67 c4 -38 18 -88 30 -114z"/>
+          <path d="M1295 1486 c-29 -50 -31 -51 -85 -56 -69 -7 -115 -31 -136 -71 -20 -39 -9 -49 52 -49 63 0 102 32 158 133 52 94 61 129 11 43z"/>
+          <path d="M846 1396 c-19 -40 -21 -98 -5 -129 14 -27 50 -67 60 -67 16 0 42 90 35 122 -7 33 -53 108 -66 108 -4 0 -15 -15 -24 -34z"/>
+          <path d="M1030 1238 c-74 -51 -68 -88 15 -88 49 0 59 4 95 36 60 55 51 74 -34 74 -28 0 -55 -8 -76 -22z"/>
+          <path d="M920 1078 c-49 -34 -60 -56 -36 -74 25 -18 89 -18 124 0 15 8 40 28 55 44 l28 30 -32 11 c-51 18 -103 13 -139 -11z"/>
+          <path d="M781 897 c-17 -18 -31 -36 -31 -39 0 -3 15 -11 33 -19 47 -19 147 -96 180 -137 59 -76 74 -232 31 -312 l-19 -35 -5 75 c-7 91 -35 146 -108 211 -40 36 -195 129 -214 129 -3 0 -22 -13 -42 -29 l-37 -30 58 -30 c177 -91 244 -161 251 -261 10 -135 -62 -219 -211 -250 -56 -11 -150 -4 -203 17 -13 5 -15 -2 -12 -43 4 -59 10 -62 153 -63 115 -1 177 13 263 59 122 65 196 156 228 281 51 198 -46 386 -252 492 -31 16 -32 15 -63 -16z"/>
+        </g>
+      </svg>
+      <div class="brand-text"><div class="brand-sub">Clínica Bonanova</div></div>
+    </div>
+
+    <nav class="nav" aria-label="Principal">
+      <a class="nav-item" href="dashboard-nutricionista.html">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+        <span>Inicio</span>
+      </a>
+      <a class="nav-item" href="agenda.html">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        <span>Agenda</span><em class="nav-badge">7</em>
+      </a>
+      <a class="nav-item" href="pacientes.html" aria-current="page">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 11h5M18.5 8.5v5"/></svg>
+        <span>Pacientes</span>
+      </a>
+      <a class="nav-item" href="planes.html">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h5"/></svg>
+        <span>Planes</span>
+      </a>
+      <a class="nav-item" href="metricas.html">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h3.5l2.5-7 3.5 13 2.5-6H21"/></svg>
+        <span>Métricas del centro</span>
+      </a>
+      <a class="nav-item" href="#">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        <span>Informes</span>
+      </a>
+    </nav>
+
+    <div class="nav-foot">
+      <a class="nav-item" href="configuracion.html">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8M18.5 18.5l-1.8-1.8M7.3 7.3 5.5 5.5"/></svg>
+        <span>Configuración</span>
+      </a>
+      <div class="who">
+        <div class="av">MI</div>
+        <div class="txt">
+          <div class="nm">Marta Ibáñez</div>
+          <div class="rl" id="meRole">Nutricionista</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <p class="crumb">
+      <a href="pacientes.html">Pacientes</a>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+      <span>Elena Ferrer Vidal</span>
+    </p>
+
+    <div class="phead">
+      <div class="av">EF</div>
+      <div>
+        <h1>Elena Ferrer Vidal</h1>
+        <p class="sub">
+          <span class="tag activo">Activa</span>
+          <span class="dot"></span><span>41 años</span>
+          <span class="dot"></span><span>Mujer</span>
+          <span class="dot"></span><span>168 cm</span>
+          <span class="dot"></span><span>Alta: 14 feb 2025</span>
+          <span class="dot"></span><span>Marta Ibáñez</span>
+        </p>
+      </div>
+      <div class="phead-actions">
+        <button class="btn-quiet" type="button" id="btnEdit">Editar datos</button>
+        <button class="btn-primary" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Nueva medición
+        </button>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" id="tabs">
+      <button class="tab" role="tab" data-p="perfil" aria-selected="true">Perfil</button>
+      <button class="tab" role="tab" data-p="medic" aria-selected="false">Mediciones</button>
+      <button class="tab" role="tab" data-p="comp" aria-selected="false">Composición corporal</button>
+      <button class="tab" role="tab" data-p="menus" aria-selected="false">Menús</button>
+      <button class="tab" role="tab" data-p="agua" aria-selected="false">Agua</button>
+      <button class="tab" role="tab" data-p="medico" aria-selected="false">Perfil médico</button>
+      <button class="tab" role="tab" data-p="pautas" aria-selected="false">Pautas fijas</button>
+      <button class="tab" role="tab" data-p="citas" aria-selected="false">Historial de citas</button>
+    </div>
+
+    <!-- PERFIL -->
+    <section class="panel on" id="p-perfil" role="tabpanel">
+      <div class="figs" id="resumen"></div>
+      <div class="cols-2-1" style="margin-top:18px">
+        <div>
+          <div class="card">
+            <h2>Datos básicos</h2>
+            <p class="hint">Información de contacto y administrativa.</p>
+            <div class="kv">
+              <div class="i"><div class="k">Nombre completo</div><div class="v">Elena Ferrer Vidal</div></div>
+              <div class="i"><div class="k">Fecha de nacimiento</div><div class="v">3 de junio de 1985 <span class="muted">(41)</span></div></div>
+              <div class="i"><div class="k">Sexo</div><div class="v">Mujer</div></div>
+              <div class="i"><div class="k">Altura</div><div class="v">168 cm</div></div>
+              <div class="i"><div class="k">Muñeca</div><div class="v">16,0 cm</div></div>
+              <div class="i"><div class="k">Teléfono</div><div class="v">676 40 12 89</div></div>
+              <div class="i"><div class="k">Email</div><div class="v">elena.ferrer@mail.com</div></div>
+              <div class="i"><div class="k">Profesional</div><div class="v">Marta Ibáñez</div></div>
+              <div class="i"><div class="k">Alta en el centro</div><div class="v">14 feb 2025</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Objetivo del seguimiento</h2>
+            <p class="hint">Acordado con la paciente en la primera visita y revisado cada trimestre.</p>
+            <p style="font-size:14px;line-height:1.6;color:var(--ink-2)">Mejorar la composición corporal manteniendo el peso en un rango estable, con foco en aumentar masa muscular y ordenar los horarios de comida alrededor de los turnos de trabajo. Revisión del objetivo prevista para <b style="color:var(--ink)">diciembre de 2026</b>.</p>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-head"><div><h2>Situación actual</h2></div></div>
+            <div id="sitNow"></div>
+          </div>
+          <div class="card">
+            <h2>Próxima cita</h2>
+            <p class="hint">Revisión trimestral con bioimpedancia.</p>
+            <p style="font-size:15px"><b>Martes 6 de octubre</b><br><span class="muted">10:30 · 30 min · consulta 2</span></p>
+            <div style="display:flex;gap:9px;margin-top:14px">
+              <button class="btn-quiet" type="button">Reprogramar</button>
+              <button class="btn-quiet" type="button">Recordatorio</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MEDICIONES -->
+    <section class="panel" id="p-medic" role="tabpanel">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Evolución</h2>
+            <p class="hint">Línea suavizada sobre las mediciones registradas. Selecciona qué indicador quieres ver.</p>
+          </div>
+          <div class="right">
+            <div class="metricbar" id="mbar"></div>
+          </div>
+        </div>
+        <svg class="chart" id="chart" viewBox="0 0 900 280" role="img" aria-label="Gráfico de evolución"></svg>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Registro de mediciones</h2>
+            <p class="hint">De la más reciente a la más antigua. La variación se calcula respecto a la visita anterior.</p>
+          </div>
+          <div class="right"><button class="btn-quiet" type="button">Exportar</button></div>
+        </div>
+        <div class="tw">
+          <table>
+            <thead><tr>
+              <th>Fecha</th><th class="num">Peso</th><th class="num">IMC</th>
+              <th class="num">% Grasa</th><th class="num">% Agua</th><th class="num">% Masa muscular</th><th>Origen</th>
+            </tr></thead>
+            <tbody id="tbMed"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPOSICIÓN -->
+    <section class="panel" id="p-comp" role="tabpanel">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Análisis de composición corporal</h2>
+            <p class="hint" id="compMeta">—</p>
+          </div>
+          <div class="right"><span class="tag mute">Importado de báscula</span></div>
+        </div>
+        <div class="cols-3" style="margin-bottom:18px">
+          <div>
+            <div class="fig" style="border:1px solid var(--line);border-radius:var(--r-md)">
+              <div class="k">Complexión física · índice de Grant</div>
+              <div class="v" id="grantV">—</div>
+              <div class="d flat" id="grantD">—</div>
+            </div>
+          </div>
+          <div>
+            <div class="fig" style="border:1px solid var(--line);border-radius:var(--r-md)">
+              <div class="k">Masa ósea</div>
+              <div class="v" id="oseaV">—</div>
+              <div class="d flat" id="oseaD">—</div>
+            </div>
+          </div>
+          <div>
+            <div class="fig" style="border:1px solid var(--line);border-radius:var(--r-md)">
+              <div class="k">Peso · altura</div>
+              <div class="v">62,4<span class="u">kg</span></div>
+              <div class="d flat">168 cm · muñeca 16,0 cm</div>
+            </div>
+          </div>
+        </div>
+        <div class="comp" id="compGrid"></div>
+        <div style="margin-top:14px" id="compNotes"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Análisis segmental</h2>
+            <p class="hint">Distribución de masa magra y grasa por segmento. Se avisa cuando la diferencia entre lados supera el 5 %.</p>
+          </div>
+          <div class="right">
+            <div class="metricbar" id="segbar">
+              <button class="mchip" type="button" data-s="magra" aria-pressed="true">Masa magra</button>
+              <button class="mchip" type="button" data-s="grasa" aria-pressed="false">Masa grasa</button>
+            </div>
+          </div>
+        </div>
+        <div class="split">
+          <div>
+            <svg class="body-fig" id="bodyFig" viewBox="0 0 140 230" role="img" aria-label="Esquema corporal por segmentos"></svg>
+            <div class="legend">
+              <span><i style="background:#2F5D4F"></i> En rango</span>
+              <span><i style="background:#B5892C"></i> Bajo</span>
+              <span><i style="background:#B04A3E"></i> Asimetría &gt; 5 %</span>
+            </div>
+          </div>
+          <div>
+            <div class="seglist" id="segList"></div>
+            <div style="margin-top:14px" id="segNotes"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MENÚS -->
+    <section class="panel" id="p-menus" role="tabpanel">
+      <div class="card">
+        <div class="card-head">
+          <div><h2>Menú activo</h2><p class="hint">El que la paciente ve ahora mismo en su aplicación.</p></div>
+          <div class="right"><button class="btn-primary" type="button">Crear menú</button></div>
+        </div>
+        <div class="menu-hero" id="menuHero"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><h2>Historial de menús</h2><p class="hint">Del más reciente al más antiguo.</p></div></div>
+        <div class="mlist" id="menuList"></div>
+      </div>
+    </section>
+
+    <!-- AGUA -->
+    <section class="panel" id="p-agua" role="tabpanel">
+      <div class="card">
+        <div class="card-head">
+          <div><h2>Consumo de agua</h2><p class="hint">Objetivo diario: al menos 2 litros. Registro desde la aplicación de la paciente.</p></div>
+          <div class="right">
+            <div class="metricbar" id="wbar">
+              <button class="mchip" type="button" data-w="14" aria-pressed="true">14 días</button>
+              <button class="mchip" type="button" data-w="30" aria-pressed="false">30 días</button>
+            </div>
+          </div>
+        </div>
+        <div class="figs" id="waterFigs" style="margin-bottom:18px"></div>
+        <div class="water-days" id="waterDays"></div>
+      </div>
+    </section>
+
+    <!-- PERFIL MÉDICO -->
+    <section class="panel" id="p-medico" role="tabpanel">
+      <div class="card">
+        <div class="card-head"><div><h2>Anamnesis</h2><p class="hint">Los campos están siempre editables. Marca la casilla de los antecedentes que estén activos.</p></div></div>
+        <div class="field"><label class="fl" for="aMotivo">Motivo de consulta</label><textarea id="aMotivo">Quiere reordenar las comidas alrededor de los turnos rotativos del hospital y recuperar masa muscular tras un año con poca actividad.</textarea></div>
+        <div class="grid2" style="margin-top:15px">
+          <div class="field" style="margin-top:0"><label class="fl" for="aMed">Medicación</label><textarea id="aMed">Levotiroxina 50 µg (1-0-0, en ayunas).</textarea></div>
+          <div class="field" style="margin-top:0"><label class="fl" for="aSup">Suplementación</label><textarea id="aSup">Vitamina D3 1000 UI diaria (octubre a marzo). Magnesio 300 mg por la noche.</textarea></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><div><h2>Hábitos y estilo de vida</h2></div></div>
+        <div class="grid2">
+          <div class="field" style="margin-top:0"><label class="fl" for="hHab">Hábitos</label><textarea id="hHab">Cinco ingestas la mayoría de días. Café sin azúcar por la mañana. Alcohol ocasional, fin de semana.</textarea></div>
+          <div class="field" style="margin-top:0"><label class="fl" for="hEst">Estilo de vida</label><textarea id="hEst">Enfermera con turnos rotativos. Cocina en casa entre semana, come fuera en los turnos de tarde.</textarea></div>
+          <div class="field" style="margin-top:0"><label class="fl" for="hAct">Actividad física</label><textarea id="hAct">Fuerza dos días por semana desde junio. Camina unos 6 000 pasos diarios.</textarea></div>
+          <div class="field" style="margin-top:0"><label class="fl" for="hPsi">Estado psicológico / emocional</label><textarea id="hPsi">Estable. Refiere ansiedad puntual en semanas de guardia, con picoteo nocturno.</textarea></div>
+          <div class="field" style="margin-top:0;grid-column:1 / -1"><label class="fl" for="hPref">Preferencias alimentarias</label><textarea id="hPref">No come pescado azul. Prefiere legumbre y huevo como fuente proteica. Sin restricciones religiosas ni éticas.</textarea></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><div><h2>Antecedentes</h2><p class="hint" id="anamCount">—</p></div></div>
+        <div class="anam" id="anam"></div>
+        <div class="savebar">
+          <span class="s" id="saveState">Sin cambios sin guardar</span>
+          <div class="right"><button class="btn-primary" type="button" id="btnSaveMed">Guardar perfil médico</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAUTAS FIJAS -->
+    <section class="panel" id="p-pautas" role="tabpanel">
+      <div class="card">
+        <div class="card-head"><div><h2>Pautas fijas</h2><p class="hint">Indicaciones que se mantienen entre menús. La paciente las ve junto a su menú activo.</p></div></div>
+        <div class="grid3">
+          <div class="field" style="margin-top:0"><label class="fl" for="pDes">Desayuno</label><textarea id="pDes" style="min-height:120px">Café con leche + 2 raciones de cereal integral (pan 60 g o copos 40 g) + 1 ración de proteína (huevo, queso fresco o jamón) + fruta.</textarea></div>
+          <div class="field" style="margin-top:0"><label class="fl" for="pAlm">Almuerzo</label><textarea id="pAlm" style="min-height:120px">1 ración de fruta o 1 yogur natural. En turnos de noche, añadir 1 ración de fruto seco (30 g).</textarea></div>
+          <div class="field" style="margin-top:0"><label class="fl" for="pMer">Merienda</label><textarea id="pMer" style="min-height:120px">1 ración de proteína (yogur griego, requesón o 2 lonchas de pavo) + 1 ración de fruta. Los días de entreno, después de la sesión.</textarea></div>
+        </div>
+        <div class="field"><label class="fl" for="pObs">Observaciones</label><textarea id="pObs" style="min-height:96px">Intercambios: media taza de legumbre cocida equivale a 1 ración de farináceo + 1 de proteína. Priorizar verdura en comida y cena. Mantener el agua por encima de 2 L, sobre todo en los turnos largos.</textarea></div>
+        <div class="savebar">
+          <span class="s" id="savePaut">Última actualización: 2 sept 2026 · Marta Ibáñez</span>
+          <div class="right"><button class="btn-primary" type="button" id="btnSavePaut">Guardar pautas</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTORIAL DE CITAS -->
+    <section class="panel" id="p-citas" role="tabpanel">
+      <div class="card">
+        <div class="card-head">
+          <div><h2>Historial de citas</h2><p class="hint" id="citasMeta">—</p></div>
+          <div class="right"><button class="btn-quiet" type="button">Agendar cita</button></div>
+        </div>
+        <div class="tl" id="tl"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============ Datos de la paciente ============ */
+var ALT = 1.68, MUN = 16.0, SEXO = 'f', EDAD = 41;
+var HOY = new Date(2026, 8, 24); // 24 sept 2026
+
+var MED = [
+  { f:'2025-02-14', peso:69.8, grasa:36.4, agua:47.1, musc:25.9, src:'bascula' },
+  { f:'2025-03-21', peso:68.9, grasa:35.8, agua:47.5, musc:26.2, src:'bascula' },
+  { f:'2025-05-09', peso:67.4, grasa:34.9, agua:48.0, musc:26.6, src:'bascula' },
+  { f:'2025-06-27', peso:66.1, grasa:34.1, agua:48.4, musc:27.0, src:'bascula' },
+  { f:'2025-09-12', peso:65.2, grasa:33.4, agua:48.9, musc:27.4, src:'bascula' },
+  { f:'2025-12-05', peso:64.6, grasa:32.8, agua:49.2, musc:27.8, src:'manual' },
+  { f:'2026-02-13', peso:64.0, grasa:32.1, agua:49.6, musc:28.2, src:'bascula' },
+  { f:'2026-04-10', peso:63.5, grasa:31.4, agua:50.0, musc:28.6, src:'bascula' },
+  { f:'2026-06-05', peso:63.0, grasa:30.6, agua:50.4, musc:29.1, src:'bascula' },
+  { f:'2026-07-17', peso:62.7, grasa:30.0, agua:50.7, musc:29.5, src:'bascula' },
+  { f:'2026-09-02', peso:62.4, grasa:29.4, agua:51.0, musc:29.9, src:'bascula' }
+];
+MED.forEach(function(m){ m.imc = +(m.peso/(ALT*ALT)).toFixed(1); });
+var LAST = MED[MED.length-1], PREV = MED[MED.length-2];
+
+var COMP = {
+  fecha:'2026-09-02', equipo:'InBody 270 · consulta 2',
+  masaGrasa:18.3, masaMagra:44.1, aguaL:31.8, masaOsea:2.6, visceral:6
+};
+
+var SEG = [
+  { id:'tronco', n:'Tronco',        magra:20.40, grasa:8.10, refM:[18.5,23.0] },
+  { id:'bi',     n:'Brazo izquierdo', magra:2.05, grasa:1.35, refM:[2.0,2.8], par:'bd', lado:'izq' },
+  { id:'bd',     n:'Brazo derecho',   magra:2.28, grasa:1.30, refM:[2.0,2.8], par:'bi', lado:'der' },
+  { id:'pi',     n:'Pierna izquierda',magra:7.35, grasa:3.70, refM:[6.5,8.3], par:'pd', lado:'izq' },
+  { id:'pd',     n:'Pierna derecha',  magra:7.52, grasa:3.62, refM:[6.5,8.3], par:'pi', lado:'der' }
+];
+
+var MENUS = [
+  { nm:'Menú otoño · turnos rotativos', desde:'2026-09-08', hasta:'2026-10-06', act:true,
+    det:'Comida y cena de lunes a domingo · variantes para turno de noche', autor:'Marta Ibáñez' },
+  { nm:'Menú verano · ligero',        desde:'2026-07-01', hasta:'2026-09-07', act:false, det:'Comida y cena de lunes a domingo', autor:'Marta Ibáñez' },
+  { nm:'Menú primavera · fuerza',     desde:'2026-04-12', hasta:'2026-06-30', act:false, det:'Comida y cena de lunes a domingo · refuerzo proteico', autor:'Marta Ibáñez' },
+  { nm:'Menú invierno',               desde:'2026-01-08', hasta:'2026-04-11', act:false, det:'Comida y cena de lunes a domingo', autor:'Marta Ibáñez' },
+  { nm:'Menú de inicio',              desde:'2025-02-14', hasta:'2026-01-07', act:false, det:'Comida y cena de lunes a domingo', autor:'Marta Ibáñez' }
+];
+
+var AGUA = [2.4,2.1,1.7,2.3,2.6,2.0,1.4,2.2,2.5,1.9,2.1,2.4,1.6,2.3,
+            2.0,2.2,1.5,2.4,2.1,1.8,2.3,2.6,1.7,2.0,2.2,1.9,2.4,2.1,1.6,2.3];
+
+var ANAM = [
+  { k:'Diabetes',              on:false, d:'' },
+  { k:'Hipertensión',          on:false, d:'' },
+  { k:'Enfermedad cardíaca',   on:false, d:'' },
+  { k:'Colesterol',            on:true,  d:'LDL 138 mg/dL en analítica de junio; en seguimiento sin tratamiento.' },
+  { k:'Alergias / asma',       on:true,  d:'Rinitis alérgica estacional (gramíneas). Sin alergias alimentarias.' },
+  { k:'Enfermedad hepática',   on:false, d:'' },
+  { k:'Enfermedad biliar',     on:false, d:'' },
+  { k:'Enfermedad renal',      on:false, d:'' },
+  { k:'Enfermedad gástrica',   on:true,  d:'Reflujo ocasional en turnos de noche; evita cenas tardías copiosas.' },
+  { k:'Ácido úrico / gota',    on:false, d:'' },
+  { k:'Circulación',           on:true,  d:'Pesadez en piernas al final de turnos de 12 h.' },
+  { k:'Tiroides',              on:true,  d:'Hipotiroidismo subclínico desde 2021, tratado con levotiroxina 50 µg.' },
+  { k:'Anemia',                on:false, d:'' },
+  { k:'Estreñimiento',         on:false, d:'' },
+  { k:'Musculoesqueléticos',   on:true,  d:'Molestia en hombro izquierdo desde marzo; limita empuje vertical.' },
+  { k:'Cirugías previas',      on:true,  d:'Apendicectomía (2009). Cesárea (2016).' },
+  { k:'Ciclo menstrual',       on:true,  d:'Regular, 28 días. Mayor apetito en fase lútea.' },
+  { k:'Sueño',                 on:true,  d:'5-6 h en semanas de guardia; 7-8 h el resto.' }
+];
+
+var CITAS = [
+  { f:'2026-10-06', t:'10:30', tipo:'Revisión trimestral', est:'prox', pro:'Marta Ibáñez', nota:'Incluye bioimpedancia y revisión del objetivo.' },
+  { f:'2026-09-02', t:'11:00', tipo:'Seguimiento',       est:'ok',   pro:'Marta Ibáñez', nota:'Se ajusta el menú a los turnos de otoño. Buena adherencia al entreno de fuerza.' },
+  { f:'2026-07-17', t:'09:30', tipo:'Seguimiento',       est:'ok',   pro:'Marta Ibáñez', nota:'Se refuerza la hidratación en turnos largos.' },
+  { f:'2026-06-05', t:'17:00', tipo:'Revisión trimestral',est:'ok',  pro:'Marta Ibáñez', nota:'Aumento sostenido de masa muscular. Se detecta asimetría en brazos.' },
+  { f:'2026-05-14', t:'17:00', tipo:'Seguimiento',       est:'no',   pro:'Marta Ibáñez', nota:'No asistió. Avisó el mismo día por guardia imprevista.' },
+  { f:'2026-04-10', t:'10:00', tipo:'Seguimiento',       est:'ok',   pro:'Marta Ibáñez', nota:'Se introduce el menú de primavera con refuerzo proteico.' },
+  { f:'2026-02-13', t:'12:00', tipo:'Revisión trimestral',est:'ok',  pro:'Marta Ibáñez', nota:'Revisión de analítica. Se mantiene la pauta.' },
+  { f:'2025-12-05', t:'16:30', tipo:'Seguimiento',       est:'ok',   pro:'Rubén Castells', nota:'Cubre Rubén. Medición manual, sin báscula disponible.' },
+  { f:'2025-09-12', t:'11:30', tipo:'Seguimiento',       est:'ok',   pro:'Marta Ibáñez', nota:'Vuelta a la rutina tras vacaciones.' },
+  { f:'2025-02-14', t:'10:00', tipo:'Primera visita',    est:'ok',   pro:'Marta Ibáñez', nota:'Anamnesis completa y primera bioimpedancia.' }
+];
+
+/* ============ Utilidades ============ */
+var $ = function(s,r){ return (r||document).querySelector(s); };
+var MES = ['ene','feb','mar','abr','may','jun','jul','ago','sept','oct','nov','dic'];
+var DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+function D(s){ var p = s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+function fecha(s){ var d = D(s); return d.getDate()+' '+MES[d.getMonth()]+' '+d.getFullYear(); }
+function fechaCorta(s){ var d = D(s); return d.getDate()+' '+MES[d.getMonth()]; }
+function dias(a,b){ return Math.round((b-a)/86400000); }
+function n(v,dec){ return v.toFixed(dec==null?1:dec).replace('.',','); }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function relativo(s){
+  var d = dias(D(s), HOY);
+  if (d === 0) return 'hoy';
+  if (d === 1) return 'ayer';
+  if (d === -1) return 'mañana';
+  if (d < 0) { var k = -d; return k < 7 ? ('en '+k+' días') : (k < 31 ? ('en '+Math.round(k/7)+' semanas') : ('en '+Math.round(k/30)+' meses')); }
+  if (d < 7) return 'hace '+d+' días';
+  if (d < 31) return 'hace '+Math.round(d/7)+' semanas';
+  if (d < 365) return 'hace '+Math.round(d/30)+' meses';
+  return 'hace más de un año';
+}
+var ICO = {
+  warn:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 3 2.5 20h19z"/><path d="M12 10v4M12 17.2v.1"/></svg>',
+  ok:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7"/></svg>',
+  info:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.1"/></svg>'
+};
+function nota(tipo, html){ return '<div class="note '+tipo+'">'+(ICO[tipo]||ICO.info)+'<div>'+html+'</div></div>'; }
+function toast(msg){
+  var t = $('#toast'); $('#toastMsg').textContent = msg;
+  t.classList.add('on'); clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ t.classList.remove('on'); }, 3200);
+}
+
+/* ============ Pestañas ============ */
+(function(){
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  function go(id){
+    tabs.forEach(function(t){ t.setAttribute('aria-selected', String(t.dataset.p === id)); });
+    document.querySelectorAll('.panel').forEach(function(p){ p.classList.toggle('on', p.id === 'p-'+id); });
+    if (location.hash.slice(1) !== id) history.replaceState(null, '', '#'+id);
+    if (id === 'medic') chart();
+  }
+  tabs.forEach(function(t){ t.addEventListener('click', function(){ go(t.dataset.p); }); });
+  document.addEventListener('keydown', function(e){
+    if (document.activeElement && document.activeElement.classList.contains('tab')) {
+      var i = tabs.indexOf(document.activeElement), j = -1;
+      if (e.key === 'ArrowRight') j = (i+1) % tabs.length;
+      if (e.key === 'ArrowLeft')  j = (i-1+tabs.length) % tabs.length;
+      if (j >= 0) { e.preventDefault(); tabs[j].focus(); go(tabs[j].dataset.p); }
+    }
+  });
+  var h = location.hash.slice(1);
+  if (h && document.getElementById('p-'+h)) go(h);
+})();
+
+/* ============ Perfil: resumen y situación ============ */
+(function(){
+  function delta(a, b, dec, inv){
+    var d = a - b, cls = Math.abs(d) < 0.05 ? 'flat' : ((d < 0) === !inv ? 'down' : 'up');
+    var sig = d > 0 ? '+' : (d < 0 ? '−' : '');
+    return '<div class="d '+cls+'">'+sig+n(Math.abs(d), dec)+' desde la visita anterior</div>';
+  }
+  $('#resumen').innerHTML =
+    '<div class="fig"><div class="k">Peso</div><div class="v">'+n(LAST.peso)+'<span class="u">kg</span></div>'+delta(LAST.peso, PREV.peso, 1)+'</div>'+
+    '<div class="fig"><div class="k">IMC</div><div class="v">'+n(LAST.imc)+'</div>'+delta(LAST.imc, PREV.imc, 1)+'</div>'+
+    '<div class="fig"><div class="k">% Grasa</div><div class="v">'+n(LAST.grasa)+'<span class="u">%</span></div>'+delta(LAST.grasa, PREV.grasa, 1)+'</div>'+
+    '<div class="fig"><div class="k">% Agua</div><div class="v">'+n(LAST.agua)+'<span class="u">%</span></div>'+delta(LAST.agua, PREV.agua, 1, true)+'</div>'+
+    '<div class="fig"><div class="k">% Masa muscular</div><div class="v">'+n(LAST.musc)+'<span class="u">%</span></div>'+delta(LAST.musc, PREV.musc, 1, true)+'</div>';
+
+  var media14 = AGUA.slice(0,14).reduce(function(a,b){ return a+b; },0)/14;
+  var cumple = AGUA.slice(0,14).filter(function(v){ return v >= 2; }).length;
+  $('#sitNow').innerHTML =
+    nota('ok', '<b>'+MED.length+' mediciones</b> registradas desde el alta. La última, '+relativo(LAST.f)+'.')+
+    nota(media14 >= 2 ? 'ok' : 'warn', 'Agua: media de <b>'+n(media14)+' L/día</b> en 14 días, con objetivo cumplido '+cumple+' de 14 días.')+
+    nota('warn', 'Composición corporal: asimetría del <b>10,1 %</b> entre brazos en la última medición.')+
+    nota('info', 'Menú activo desde el '+fecha(MENUS[0].desde)+'.');
+})();
+
+/* ============ Mediciones: gráfico y tabla ============ */
+var METRICS = [
+  { k:'peso',  n:'Peso',            u:' kg', dec:1 },
+  { k:'imc',   n:'IMC',             u:'',    dec:1 },
+  { k:'grasa', n:'% Grasa',         u:' %',  dec:1 },
+  { k:'agua',  n:'% Agua',          u:' %',  dec:1 },
+  { k:'musc',  n:'% Masa muscular', u:' %',  dec:1 }
+];
+var metric = 'peso';
+
+$('#mbar').innerHTML = METRICS.map(function(m){
+  return '<button class="mchip" type="button" data-m="'+m.k+'" aria-pressed="'+(m.k===metric)+'">'+m.n+'</button>';
+}).join('');
+$('#mbar').addEventListener('click', function(e){
+  var b = e.target.closest('[data-m]'); if (!b) return;
+  metric = b.dataset.m;
+  Array.prototype.forEach.call(this.children, function(c){ c.setAttribute('aria-pressed', String(c.dataset.m === metric)); });
+  chart();
+});
+
+function suave(pts){
+  if (pts.length < 3) return 'M'+pts.map(function(p){ return p[0]+' '+p[1]; }).join(' L');
+  var d = 'M'+pts[0][0]+' '+pts[0][1];
+  for (var i = 0; i < pts.length-1; i++){
+    var p0 = pts[i-1] || pts[i], p1 = pts[i], p2 = pts[i+1], p3 = pts[i+2] || p2;
+    var c1x = p1[0] + (p2[0]-p0[0])/6, c1y = p1[1] + (p2[1]-p0[1])/6;
+    var c2x = p2[0] - (p3[0]-p1[0])/6, c2y = p2[1] - (p3[1]-p1[1])/6;
+    d += ' C'+c1x.toFixed(1)+' '+c1y.toFixed(1)+','+c2x.toFixed(1)+' '+c2y.toFixed(1)+','+p2[0].toFixed(1)+' '+p2[1].toFixed(1);
+  }
+  return d;
+}
+
+function chart(){
+  var svg = $('#chart'), W = Math.max(520, svg.clientWidth || 900), H = 280;
+  svg.setAttribute('viewBox', '0 0 '+W+' '+H);
+  var m = METRICS.filter(function(x){ return x.k === metric; })[0];
+  var L = 46, R = 16, T = 18, B = 34, iw = W-L-R, ih = H-T-B;
+  var vals = MED.map(function(r){ return r[metric]; });
+  var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+  var pad = Math.max((hi-lo) * 0.28, 0.6); lo -= pad; hi += pad;
+  var t0 = D(MED[0].f).getTime(), t1 = D(LAST.f).getTime();
+  var X = function(f){ return L + (D(f).getTime()-t0)/(t1-t0) * iw; };
+  var Y = function(v){ return T + (1-(v-lo)/(hi-lo)) * ih; };
+  var s = '';
+  for (var g = 0; g <= 4; g++){
+    var v = lo + (hi-lo)*g/4, y = Y(v);
+    s += '<line class="grid" x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+(W-R)+'" y2="'+y.toFixed(1)+'"/>'+
+         '<text class="axis" x="'+(L-9)+'" y="'+(y+3.5).toFixed(1)+'" text-anchor="end">'+n(v, m.dec)+'</text>';
+  }
+  var pts = MED.map(function(r){ return [X(r.f), Y(r[metric])]; });
+  var d = suave(pts);
+  s += '<path class="ar" d="'+d+' L'+pts[pts.length-1][0].toFixed(1)+' '+(T+ih)+' L'+pts[0][0].toFixed(1)+' '+(T+ih)+' Z"/>';
+  s += '<path class="ln" d="'+d+'"/>';
+  MED.forEach(function(r, i){
+    var x = pts[i][0], y = pts[i][1];
+    s += '<circle class="pt" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="3.6"><title>'+fecha(r.f)+' · '+n(r[metric], m.dec)+m.u+'</title></circle>';
+    if (i === 0 || i === MED.length-1 || i === Math.floor(MED.length/2)){
+      s += '<text class="axis" x="'+x.toFixed(1)+'" y="'+(H-12)+'" text-anchor="'+(i===0?'start':(i===MED.length-1?'end':'middle'))+'">'+fechaCorta(r.f)+' '+D(r.f).getFullYear()+'</text>';
+    }
+  });
+  var lx = pts[pts.length-1][0], ly = pts[pts.length-1][1];
+  s += '<text class="lbl" x="'+(lx-8).toFixed(1)+'" y="'+(ly-11).toFixed(1)+'" text-anchor="end">'+n(LAST[metric], m.dec)+m.u+'</text>';
+  svg.innerHTML = s;
+}
+window.addEventListener('resize', function(){ if ($('#p-medic').classList.contains('on')) chart(); });
+
+(function(){
+  var rows = MED.slice().reverse();
+  $('#tbMed').innerHTML = rows.map(function(r, i){
+    var p = rows[i+1];
+    function c(k, dec, inv){
+      var t = n(r[k], dec);
+      if (!p) return '<td class="num">'+t+'</td>';
+      var d = r[k]-p[k], cls = Math.abs(d) < 0.05 ? 'flat' : ((d < 0) === !inv ? 'down' : 'up');
+      var sig = d > 0 ? '+' : (d < 0 ? '−' : '±');
+      return '<td class="num">'+t+'<br><span class="delta '+cls+'">'+sig+n(Math.abs(d), dec)+'</span></td>';
+    }
+    return '<tr><td>'+fecha(r.f)+'<br><span class="muted" style="font-size:12px">'+relativo(r.f)+'</span></td>'+
+      c('peso',1)+c('imc',1)+c('grasa',1)+c('agua',1,true)+c('musc',1,true)+
+      '<td>'+(r.src === 'bascula' ? '<span class="tag mute">Báscula</span>' : '<span class="tag mute">Manual</span>')+'</td></tr>';
+  }).join('');
+})();
+
+/* ============ Composición corporal ============ */
+(function(){
+  $('#compMeta').textContent = 'Medición del '+fecha(COMP.fecha)+' · '+COMP.equipo+' · '+relativo(COMP.fecha);
+
+  /* Índice de Grant: altura (cm) / perímetro de muñeca (cm) */
+  var grant = (ALT*100) / MUN;
+  var comp = SEXO === 'f'
+    ? (grant > 11.0 ? 'Pequeña' : (grant >= 10.1 ? 'Mediana' : 'Grande'))
+    : (grant > 10.4 ? 'Pequeña' : (grant >= 9.6 ? 'Mediana' : 'Grande'));
+  $('#grantV').innerHTML = esc(comp)+'<span class="u">'+n(grant,1)+'</span>';
+  $('#grantD').textContent = 'Complexión '+comp.toLowerCase()+' · referencia mujer: >11,0 pequeña · 10,1–11,0 mediana · <10,1 grande';
+  $('#oseaV').innerHTML = n(COMP.masaOsea,1)+'<span class="u">kg</span>';
+  $('#oseaD').textContent = 'Referencia 2,4–2,9 kg · en rango';
+
+  function estado(v, band){
+    if (v < band[0]) return { t:'Bajo', c:'warn' };
+    if (v > band[1]) return { t:'Elevado', c:'err' };
+    return { t:'Normopeso', c:'ok' };
+  }
+  var pesoL = LAST.peso;
+  var CELLS = [
+    { k:'Masa grasa',        v:COMP.masaGrasa, u:'kg', dec:1, band:[pesoL*0.21, pesoL*0.33], min:8,  max:32,
+      ref:'Rango saludable '+n(pesoL*0.21)+'–'+n(pesoL*0.33)+' kg (21–33 % del peso)' },
+    { k:'Masa magra',        v:COMP.masaMagra, u:'kg', dec:1, band:[pesoL*0.67, pesoL*0.79], min:32, max:54, inv:true,
+      ref:'Rango esperado '+n(pesoL*0.67)+'–'+n(pesoL*0.79)+' kg' },
+    { k:'Agua corporal',     v:COMP.aguaL,     u:'L',  dec:1, band:[pesoL*0.45, pesoL*0.60], min:22, max:44, inv:true,
+      ref:n(LAST.agua)+' % del peso · rango mujer 45–60 %' },
+    { k:'IMC',               v:LAST.imc,       u:'',   dec:1, band:[18.5, 24.9], min:15, max:40,
+      ref:'Bajo peso <18,5 · normopeso 18,5–24,9 · sobrepeso 25–29,9 · obesidad ≥30' },
+    { k:'% Grasa corporal',  v:LAST.grasa,     u:'%',  dec:1, band:[21, 33], min:10, max:48,
+      ref:'Mujer 40–59 años · normal 21–33 % · elevado 33–39 % · obesidad ≥39 %' },
+    { k:'Grasa visceral',    v:COMP.visceral,  u:'',   dec:0, band:[1, 9], min:0, max:20,
+      ref:'Normal 1–9 · elevado 10–14 · muy elevado ≥15' }
+  ];
+
+  $('#compGrid').innerHTML = CELLS.map(function(c){
+    var e = estado(c.v, c.band);
+    if (c.inv && e.t === 'Elevado') e = { t:'En rango alto', c:'ok' };
+    if (c.k === 'IMC' && c.v > 29.9) e = { t:'Obesidad', c:'err' };
+    if (c.k === 'IMC' && c.v > 24.9 && c.v <= 29.9) e = { t:'Sobrepeso', c:'warn' };
+    if (c.k === '% Grasa corporal' && c.v >= 39) e = { t:'Obesidad', c:'err' };
+    if (c.k === '% Grasa corporal' && c.v > 33 && c.v < 39) e = { t:'Elevado', c:'warn' };
+    if (c.k === 'Grasa visceral' && c.v >= 15) e = { t:'Muy elevado', c:'err' };
+    if (c.k === 'Grasa visceral' && c.v >= 10 && c.v < 15) e = { t:'Elevado', c:'warn' };
+    if ((c.k === 'Masa magra' || c.k === 'Agua corporal') && e.t === 'Normopeso') e = { t:'En rango', c:'ok' };
+    if (c.k === 'Masa grasa' && e.t === 'Elevado') e = { t:'Elevado', c:'warn' };
+    var pc = function(v){ return Math.max(0, Math.min(100, (v-c.min)/(c.max-c.min)*100)); };
+    return '<div class="c">'+
+      '<div class="k">'+esc(c.k)+'</div>'+
+      '<div class="row"><span class="v">'+n(c.v, c.dec)+(c.u ? '<span class="u">'+c.u+'</span>' : '')+'</span>'+
+      '<span class="tag '+e.c+'">'+e.t+'</span></div>'+
+      '<div class="scale"><span class="band" style="left:'+pc(c.band[0]).toFixed(1)+'%;right:'+(100-pc(c.band[1])).toFixed(1)+'%"></span>'+
+      '<span class="mk '+e.c+'" style="left:calc('+pc(c.v).toFixed(1)+'% - 1.5px)"></span></div>'+
+      '<div class="ref">'+esc(c.ref)+'</div>'+
+    '</div>';
+  }).join('');
+
+  $('#compNotes').innerHTML =
+    nota('ok', 'IMC de <b>'+n(LAST.imc)+'</b> y grasa corporal del <b>'+n(LAST.grasa)+' %</b>: ambos valores corresponden a <b>normopeso</b> para una mujer de '+EDAD+' años.')+
+    nota('ok', 'Grasa visceral en <b>'+COMP.visceral+'</b>, dentro del rango normal (1–9).')+
+    nota('info', 'Complexión <b>'+comp.toLowerCase()+'</b> según el índice de Grant ('+n(grant,1)+'). Los rangos de peso y masa magra de arriba ya están ajustados a esta complexión.');
+})();
+
+/* ============ Análisis segmental ============ */
+(function(){
+  var modo = 'magra';
+  var COL = { ok:'#2F5D4F', warn:'#B5892C', err:'#B04A3E' };
+  var byId = {}; SEG.forEach(function(s){ byId[s.id] = s; });
+
+  function asim(s){
+    if (!s.par) return null;
+    var o = byId[s.par], a = s[modo], b = o[modo], mx = Math.max(a,b);
+    return mx ? Math.abs(a-b)/mx*100 : 0;
+  }
+  function calc(s){
+    var v = s[modo], as = asim(s);
+    var c = 'ok', t = 'En rango';
+    if (modo === 'magra' && v < s.refM[0]) { c = 'warn'; t = 'Bajo'; }
+    if (as !== null && as > 5) { c = 'err'; t = 'Asimetría '+n(as,1)+' %'; }
+    return { v:v, as:as, c:c, t:t };
+  }
+
+  var GEO = {
+    tronco:'<rect x="52" y="38" width="36" height="66" rx="9"/>',
+    bd:'<rect x="34" y="42" width="14" height="58" rx="7"/>',
+    bi:'<rect x="92" y="42" width="14" height="58" rx="7"/>',
+    pd:'<rect x="53" y="108" width="16" height="84" rx="8"/>',
+    pi:'<rect x="71" y="108" width="16" height="84" rx="8"/>'
+  };
+  var LBL = { tronco:[70,74], bd:[41,128], bi:[99,128], pd:[61,205], pi:[79,205] };
+
+  function render(){
+    var fig = '<circle cx="70" cy="20" r="13" fill="#E3DFD8"/>';
+    SEG.forEach(function(s){
+      var r = calc(s);
+      fig += GEO[s.id].replace('<rect', '<rect class="seg" fill="'+COL[r.c]+'"')
+        .replace('/>', '><title>'+esc(s.n)+': '+n(r.v,2)+' kg</title></rect>');
+    });
+    SEG.forEach(function(s){
+      var r = calc(s), p = LBL[s.id];
+      fig += '<text class="sl" x="'+p[0]+'" y="'+p[1]+'"'+(s.id==='tronco'?' fill="#FFFFFF"':'')+'>'+n(r.v,1)+'</text>';
+    });
+    fig += '<text class="sl" x="41" y="217">Der.</text><text class="sl" x="99" y="217">Izq.</text>';
+    $('#bodyFig').innerHTML = fig;
+
+    $('#segList').innerHTML = SEG.map(function(s){
+      var r = calc(s), top = s.refM[1] * 1.08;
+      var w = Math.max(4, Math.min(100, r.v/top*100));
+      return '<div class="seg-row">'+
+        '<span class="n">'+esc(s.n)+'</span>'+
+        '<span class="bar"><i style="width:'+w.toFixed(1)+'%;background:'+COL[r.c]+'"></i></span>'+
+        '<span class="val">'+n(r.v,2)+' kg <em>'+r.t+'</em></span>'+
+      '</div>';
+    }).join('');
+
+    var pares = [['bi','bd','brazos'], ['pi','pd','piernas']];
+    var out = '';
+    pares.forEach(function(p){
+      var a = byId[p[0]], b = byId[p[1]], mx = Math.max(a[modo], b[modo]);
+      var dif = Math.abs(a[modo]-b[modo])/mx*100;
+      var fuerte = a[modo] > b[modo] ? 'izquierdo' : 'derecho';
+      var etiqueta = p[2] === 'brazos' ? 'brazo' : 'la pierna';
+      if (dif > 5) {
+        out += nota('err', 'Asimetría del <b>'+n(dif,1)+' %</b> entre '+p[2]+' en masa '+modo+
+          ' ('+n(a[modo],2)+' kg izq. · '+n(b[modo],2)+' kg der.). Supera el umbral del 5 %: predomina el lado '+fuerte+'.');
+      } else {
+        out += nota('ok', 'Diferencia del '+n(dif,1)+' % entre '+p[2]+' en masa '+modo+', por debajo del umbral del 5 %.');
+      }
+    });
+    $('#segNotes').innerHTML = out;
+  }
+
+  $('#segbar').addEventListener('click', function(e){
+    var b = e.target.closest('[data-s]'); if (!b) return;
+    modo = b.dataset.s;
+    Array.prototype.forEach.call(this.children, function(c){ c.setAttribute('aria-pressed', String(c.dataset.s === modo)); });
+    render();
+  });
+  render();
+})();
+
+/* ============ Menús ============ */
+(function(){
+  var act = MENUS.filter(function(m){ return m.act; })[0] || MENUS[0];
+  var restan = dias(HOY, D(act.hasta));
+  $('#menuHero').innerHTML =
+    '<div class="top">'+
+      '<h3>'+esc(act.nm)+'</h3>'+
+      '<span class="tag ok">Activo</span>'+
+      '<div class="right">'+
+        '<button class="btn-quiet" type="button">Duplicar</button>'+
+        '<button class="btn-quiet" type="button" onclick="location.href=\'plan-detalle.html#paciente\'">Abrir menú</button>'+
+      '</div>'+
+    '</div>'+
+    '<p class="meta">'+esc(act.det)+'</p>'+
+    '<p class="meta">Vigente del '+fecha(act.desde)+' al '+fecha(act.hasta)+
+      ' · <b>'+(restan > 0 ? 'quedan '+restan+' días' : 'caducado')+'</b> · creado por '+esc(act.autor)+'</p>';
+
+  $('#menuList').innerHTML = MENUS.map(function(m){
+    return '<div class="mitem">'+
+      '<div><div class="nm">'+esc(m.nm)+(m.act ? ' <span class="tag ok">Activo</span>' : '')+'</div>'+
+      '<div class="mt">'+fecha(m.desde)+' — '+fecha(m.hasta)+' · '+esc(m.det)+'</div></div>'+
+      '<div class="right"><span class="muted" style="font-size:12.5px">'+relativo(m.desde)+'</span>'+
+      '<button class="btn-quiet" type="button" onclick="location.href=\'plan-detalle.html#paciente\'">Ver</button></div>'+
+    '</div>';
+  }).join('');
+})();
+
+/* ============ Agua ============ */
+(function(){
+  var rango = 14, META = 2.0;
+  function render(){
+    var d = AGUA.slice(0, rango);
+    var media = d.reduce(function(a,b){ return a+b; },0)/d.length;
+    var ok = d.filter(function(v){ return v >= META; }).length;
+    var racha = 0; for (var i = 0; i < d.length; i++){ if (d[i] >= META) racha++; else break; }
+    $('#waterFigs').innerHTML =
+      '<div class="fig"><div class="k">Media diaria</div><div class="v">'+n(media)+'<span class="u">L</span></div>'+
+      '<div class="d '+(media >= META ? 'down' : 'up')+'">objetivo '+n(META)+' L</div></div>'+
+      '<div class="fig"><div class="k">Días con objetivo cumplido</div><div class="v">'+ok+'<span class="u">/ '+rango+'</span></div>'+
+      '<div class="d flat">'+Math.round(ok/rango*100)+' % de los días</div></div>'+
+      '<div class="fig"><div class="k">Racha actual</div><div class="v">'+racha+'<span class="u">días</span></div>'+
+      '<div class="d flat">'+(racha ? 'cumpliendo el objetivo' : 'por debajo del objetivo')+'</div></div>'+
+      '<div class="fig"><div class="k">Mejor día</div><div class="v">'+n(Math.max.apply(null,d))+'<span class="u">L</span></div>'+
+      '<div class="d flat">peor día '+n(Math.min.apply(null,d))+' L</div></div>';
+
+    var MX = 3.0;
+    $('#waterDays').innerHTML = d.map(function(v, i){
+      var f = new Date(HOY.getTime() - i*86400000);
+      var hit = v >= META;
+      var etq = i === 0 ? 'hoy' : (i === 1 ? 'ayer' : DIAS[f.getDay()]);
+      return '<div class="wd">'+
+        '<span class="d">'+etq.charAt(0).toUpperCase()+etq.slice(1)+'<em>'+f.getDate()+' '+MES[f.getMonth()]+'</em></span>'+
+        '<span class="track"><i class="'+(hit?'hit':'')+'" style="width:'+(v/MX*100).toFixed(1)+'%"></i>'+
+        '<span class="goal" style="left:'+(META/MX*100).toFixed(1)+'%"></span></span>'+
+        '<span class="q">'+n(v)+' L<em>'+(hit ? '✓' : n(META-v)+' L')+'</em></span>'+
+      '</div>';
+    }).join('');
+  }
+  $('#wbar').addEventListener('click', function(e){
+    var b = e.target.closest('[data-w]'); if (!b) return;
+    rango = +b.dataset.w;
+    Array.prototype.forEach.call(this.children, function(c){ c.setAttribute('aria-pressed', String(+c.dataset.w === rango)); });
+    render();
+  });
+  render();
+})();
+
+/* ============ Perfil médico: anamnesis ============ */
+(function(){
+  var sucio = false;
+  function marcarSucio(){
+    if (sucio) return;
+    sucio = true;
+    $('#saveState').textContent = 'Cambios sin guardar';
+    $('#saveState').style.color = 'var(--accent)';
+  }
+  function contar(){
+    var a = ANAM.filter(function(x){ return x.on; }).length;
+    $('#anamCount').textContent = a + ' de ' + ANAM.length + ' antecedentes marcados como activos.';
+  }
+  $('#anam').innerHTML = ANAM.map(function(a, i){
+    return '<div class="ai'+(a.on?' on':'')+'" data-i="'+i+'">'+
+      '<div class="hd"><label><input type="checkbox" data-c="'+i+'"'+(a.on?' checked':'')+'> '+esc(a.k)+'</label>'+
+      '<span class="st">'+(a.on?'Activo':'No referido')+'</span></div>'+
+      '<div class="det"><input type="text" data-d="'+i+'" value="'+esc(a.d)+'" placeholder="Detalle, fecha o tratamiento" aria-label="Detalle de '+esc(a.k)+'"></div>'+
+    '</div>';
+  }).join('');
+  $('#anam').addEventListener('change', function(e){
+    var c = e.target.closest('[data-c]'); if (!c) return;
+    var i = +c.dataset.c, box = $('.ai[data-i="'+i+'"]');
+    ANAM[i].on = c.checked;
+    box.classList.toggle('on', c.checked);
+    $('.st', box).textContent = c.checked ? 'Activo' : 'No referido';
+    contar(); marcarSucio();
+  });
+  $('#anam').addEventListener('input', function(e){
+    var d = e.target.closest('[data-d]'); if (!d) return;
+    ANAM[+d.dataset.d].d = d.value; marcarSucio();
+  });
+  document.querySelectorAll('#p-medico textarea').forEach(function(t){ t.addEventListener('input', marcarSucio); });
+  $('#btnSaveMed').addEventListener('click', function(){
+    sucio = false;
+    $('#saveState').textContent = 'Guardado hace un momento';
+    $('#saveState').style.color = '';
+    toast('Perfil médico guardado.');
+  });
+  contar();
+})();
+
+/* ============ Pautas fijas ============ */
+(function(){
+  var sucio = false;
+  document.querySelectorAll('#p-pautas textarea').forEach(function(t){
+    t.addEventListener('input', function(){
+      if (sucio) return;
+      sucio = true;
+      $('#savePaut').textContent = 'Cambios sin guardar';
+      $('#savePaut').style.color = 'var(--accent)';
+    });
+  });
+  $('#btnSavePaut').addEventListener('click', function(){
+    sucio = false;
+    $('#savePaut').textContent = 'Última actualización: hace un momento · Marta Ibáñez';
+    $('#savePaut').style.color = '';
+    toast('Pautas fijas guardadas.');
+  });
+})();
+
+/* ============ Historial de citas ============ */
+(function(){
+  var asistidas = CITAS.filter(function(c){ return c.est === 'ok'; }).length;
+  var faltas = CITAS.filter(function(c){ return c.est === 'no'; }).length;
+  var pasadas = asistidas + faltas;
+  $('#citasMeta').textContent = pasadas+' citas registradas · '+asistidas+' asistidas · '+faltas+
+    ' no asistidas · asistencia del '+Math.round(asistidas/pasadas*100)+' %';
+  var EST = {
+    prox:{ c:'next', t:'<span class="tag warn">Próxima</span>' },
+    ok:  { c:'ok',   t:'<span class="tag ok">Asistió</span>' },
+    no:  { c:'err',  t:'<span class="tag err">No asistió</span>' }
+  };
+  $('#tl').innerHTML = CITAS.map(function(c){
+    var e = EST[c.est];
+    return '<div class="ev '+e.c+'">'+
+      '<div class="dt">'+fecha(c.f)+' · '+c.t+' · '+relativo(c.f)+'</div>'+
+      '<div class="ti">'+esc(c.tipo)+' '+e.t+'</div>'+
+      '<div class="tx">'+esc(c.nota)+' <span class="muted">· '+esc(c.pro)+'</span></div>'+
+    '</div>';
+  }).join('');
+})();
+
+$('#btnEdit').addEventListener('click', function(){ toast('En el prototipo, aquí se abriría el formulario de datos básicos.'); });
+
+})();
+</script>
+</body>
+</html>

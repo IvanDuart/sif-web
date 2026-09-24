@@ -976,7 +976,9 @@
     "user_menu": "User menu",
     "navigation": "Navigation",
     "change_theme_mobile": "Change Theme",
-    "menu": "Menu"
+    "menu": "Menu",
+    "home": "Home",
+    "more": "More"
   },
   "errors": {
     "not_authorized_title": "403",

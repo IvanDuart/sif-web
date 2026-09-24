@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, viewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, computed, DestroyRef, inject, NgZone, signal, viewChild, ElementRef, OnInit } from '@angular/core';
 import { RouterOutlet, RouterModule, Router } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -83,8 +83,14 @@ export class Shell implements OnInit {
   userMenuOpen = signal(false);
   tenantMenuOpen = signal(false);
 
-  navPillTransform = signal('translateX(0px)');
-  navPillWidth = signal(0);
+  /**
+   * Raíl compacto (72px, 768–1080px): las etiquetas del nav se ocultan por CSS
+   * y sólo quedan los iconos, así que exponemos el nombre como `title` nativo
+   * para que siga siendo descubrible con ratón. `matchMedia` es una API externa
+   * a la zona de Angular, por eso el listener notifica dentro de `NgZone.run`.
+   */
+  private readonly compactQuery = globalThis.matchMedia?.('(max-width: 1080px)');
+  readonly compactNav = signal(this.compactQuery?.matches ?? false);
 
   private readonly mobileMenuPanel = viewChild<ElementRef<HTMLElement>>('mobileMenuPanel');
   private dragging = false;
@@ -92,6 +98,17 @@ export class Shell implements OnInit {
   private dragCurrentY = 0;
   private dragVelocity = 0;
   private dragLastMoveTime = 0;
+
+  constructor() {
+    const query = this.compactQuery;
+    if (query) {
+      const zone = inject(NgZone);
+      const destroyRef = inject(DestroyRef);
+      const onChange = (event: MediaQueryListEvent) => zone.run(() => this.compactNav.set(event.matches));
+      query.addEventListener('change', onChange);
+      destroyRef.onDestroy(() => query.removeEventListener('change', onChange));
+    }
+  }
 
   ngOnInit() {
     this.loadProposals();
@@ -136,6 +153,11 @@ export class Shell implements OnInit {
     { initialValue: {} as Record<string, string> }
   );
 
+  private readonly usersTranslations = toSignal(
+    this.transloco.selectTranslateObject('users'),
+    { initialValue: {} as Record<string, string> }
+  );
+
   visibleNavItems = computed<NavItem[]>(() => {
     const nav = this.navTranslations();
     if (!nav || Object.keys(nav).length === 0) return [];
@@ -175,6 +197,44 @@ export class Shell implements OnInit {
     return nav[item.labelKey] || item.labelKey;
   }
 
+  /**
+   * La barra inferior móvil sólo cabe ~4 destinos; el resto (más tema, centro
+   * y sesión) vive en el panel «Más».
+   *
+   * Se ordena por prioridad móvil en vez de recortar `visibleNavItems()`: ese
+   * orden (el del sidebar, que manda el diseño) pondría "Equipo" antes que
+   * "Citas" o "Ingresos", que son los destinos realmente frecuentes.
+   */
+  private static readonly MOBILE_PRIORITY = [
+    '/dashboard', '/appointments', '/patients', '/revenue',
+    '/menus', '/shopping-lists', '/staff', '/templates', '/settings', '/admin',
+  ];
+
+  readonly bottomNavItems = computed<NavItem[]>(() => {
+    const priority = Shell.MOBILE_PRIORITY;
+    const rank = (route: string) => {
+      const index = priority.indexOf(route);
+      return index === -1 ? priority.length : index;
+    };
+    return [...this.visibleNavItems()].sort((a, b) => rank(a.route) - rank(b.route)).slice(0, 4);
+  });
+
+  userRoleLabel = computed(() => {
+    const users = this.usersTranslations();
+    const roleKey: Record<string, string> = {
+      ADMIN: 'role_admin',
+      NUTRITIONIST: 'role_nutritionist',
+      USER: 'role_user',
+      PATIENT: 'role_user',
+    };
+    const roleCode = this.tenantCtx.currentMembership()?.roleCode;
+    const key = roleCode ? roleKey[roleCode] : undefined;
+    if (key && users[key]) return users[key];
+    return this.activeTenant()?.userType === 'STAFF'
+      ? (users['role_nutritionist'] ?? 'NUTRITIONIST')
+      : (users['role_user'] ?? 'PATIENT');
+  });
+
   userInitials = computed(() => {
     const u = this.user();
     if (u?.firstName && u?.lastName) {
@@ -211,12 +271,6 @@ export class Shell implements OnInit {
 
   closeMobileMenu(): void {
     this.mobileMenuOpen.set(false);
-  }
-
-  onNavLinkActive(isActive: boolean, el: HTMLAnchorElement): void {
-    if (!isActive) return;
-    this.navPillTransform.set(`translateX(${el.offsetLeft}px)`);
-    this.navPillWidth.set(el.offsetWidth);
   }
 
   private prefersReducedMotion(): boolean {

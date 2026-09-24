@@ -1003,7 +1003,9 @@
     "user_menu": "Menú de usuario",
     "navigation": "Navegación",
     "change_theme_mobile": "Cambiar Tema",
-    "menu": "Menú"
+    "menu": "Menú",
+    "home": "Inicio",
+    "more": "Más"
   },
   "errors": {
     "not_authorized_title": "403",
