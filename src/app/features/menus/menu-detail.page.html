@@ -27,7 +27,7 @@
               <button
                 type="button"
                 tuiButton appearance="flat" size="s"
-                [class.text-emerald-600]="menu()?.isActive"
+                [class.text-ok]="menu()?.isActive"
                 [class.text-surface-400]="!menu()?.isActive"
                 (click)="toggleActiveMenu()"
                 [title]="menu()?.isActive ? t('menu_history.deactivate') : t('menu_history.activate')">

@@ -74,8 +74,8 @@ export const appConfig: ApplicationConfig = {
       scrollbars: 'native',
     }),
     tuiToastOptionsProvider({
-      block: 'start',
-      inline: 'end',
+      block: 'end',
+      inline: 'center',
     }),
     tuiValidationErrorsProvider(provideTuiValidationErrors),
     getKeycloakProvider(),

@@ -31,7 +31,9 @@
     "accept": "Accept",
     "remove": "Remove",
     "search": "Search",
-    "help": "Help"
+    "help": "Help",
+    "undo": "Undo",
+    "item_removed": "Item removed"
   },
   "validation": {
     "required": "This field is required",

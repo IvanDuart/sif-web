@@ -95,7 +95,7 @@
                         @if (canActivateMenu()) {
                           <button
                             tuiButton appearance="flat" size="s" type="button"
-                            [class.text-emerald-600]="menu.isActive"
+                            [class.text-ok]="menu.isActive"
                             [class.text-surface-400]="!menu.isActive"
                             (click)="toggleActiveMenu(menu)"
                             [title]="menu.isActive ? t('menu_history.deactivate') : t('menu_history.activate')">
@@ -163,7 +163,7 @@
                   @if (canActivateMenu()) {
                     <button
                       tuiButton appearance="flat" size="s" type="button"
-                      [class.text-emerald-600]="menu.isActive"
+                      [class.text-ok]="menu.isActive"
                       [class.text-surface-400]="!menu.isActive"
                       (click)="toggleActiveMenu(menu)"
                       [title]="menu.isActive ? t('menu_history.deactivate') : t('menu_history.activate')">

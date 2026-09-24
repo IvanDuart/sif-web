@@ -77,15 +77,15 @@
       </tui-textfield>
     }
 
-    <div class="flex flex-col gap-1.5">
-      <label for="notes" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('appointments.notes') }}</label>
+    <tui-textfield class="w-full">
+      <label tuiLabel for="notes">{{ t('appointments.notes') }}</label>
       <textarea
         id="notes"
-        class="form-input w-full rounded-lg border border-surface-300 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 px-3 py-2 text-sm"
+        tuiTextarea
         formControlName="notes"
         rows="3">
       </textarea>
-    </div>
+    </tui-textfield>
 
     @if (error()) {
       <p class="text-red-500 text-sm mt-2">{{ error() }}</p>
@@ -93,7 +93,7 @@
 
     <div class="flex flex-col sm:flex-row sm:flex-wrap justify-between items-stretch sm:items-center gap-4 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
       @if (canManage()) {
-        <button type="button" tuiButton appearance="destructive" size="m" [disabled]="saving()" (click)="confirmCancel()">
+        <button type="button" tuiButton appearance="secondary-destructive" size="m" [disabled]="saving()" (click)="confirmCancel()">
           @if (saving()) {
             <i class="fa-solid fa-spinner fa-spin mr-1"></i>
           } @else {

@@ -19,24 +19,17 @@
 
     <!-- Tabs Navigation -->
     <div class="border-b border-surface-200 dark:border-surface-700 overflow-x-auto">
-      <div class="flex gap-0">
+      <tui-tabs
+        class="bg-transparent"
+        [activeItemIndex]="activeTabIndex()"
+        (activeItemIndexChange)="onTabIndexChange($event)">
         @for (tab of tabs(); track tab.id) {
-          <button 
-            type="button"
-            (click)="onTabChange(tab.id)"
-            class="flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap"
-            [class.border-primary-500]="activeTab() === tab.id"
-            [class.border-transparent]="activeTab() !== tab.id"
-            [class.text-primary-600]="activeTab() === tab.id"
-            [class.text-surface-600]="activeTab() !== tab.id"
-            [class.dark:text-primary-400]="activeTab() === tab.id"
-            [class.dark:text-surface-400]="activeTab() !== tab.id"
-          >
-            <i [class]="tab.icon + ' w-4 h-4'"></i>
-            <span>{{ tab.label }}</span>
+          <button tuiTab type="button" class="flex items-center gap-2 px-1 pb-1">
+            <i [class]="tab.icon + ' text-[1.1em] opacity-80'"></i>
+            <span class="font-medium text-sm">{{ tab.label }}</span>
           </button>
         }
-      </div>
+      </tui-tabs>
     </div>
   </div>
 
@@ -55,11 +48,12 @@
           {{ t('help.no_results_desc') }}
         </p>
         <button 
-          type="button" 
+          type="button"
+          tuiButton
+          size="m"
           (click)="onSearchChange('')"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors"
         >
-          <i class="fa-solid fa-arrow-rotate-left"></i>
+          <i class="fa-solid fa-arrow-rotate-left mr-1"></i>
           {{ t('help.clear_search') }}
         </button>
       </div>

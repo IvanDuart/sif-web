@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { TuiButton } from '@taiga-ui/core';
+import { TuiTabs } from '@taiga-ui/kit';
 
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { HELP_CONTENT, HelpSection } from './content/help-content';
@@ -19,6 +21,8 @@ import { HelpAccordionComponent } from './components/help-accordion.component';
     TranslocoModule,
     HelpSearchComponent,
     HelpAccordionComponent,
+    TuiButton,
+    TuiTabs,
   ],
   templateUrl: './help.page.html',
   styleUrls: ['./help.page.scss'],
@@ -128,12 +132,32 @@ export default class HelpPage {
   // ========== Event Handlers ==========
 
   /**
+   * Índice activo derivado del id: tui-tabs trabaja por índice.
+   */
+  readonly activeTabIndex = computed(() => {
+    const index = this.tabs().findIndex(tab => tab.id === this.activeTab());
+
+    return index < 0 ? 0 : index;
+  });
+
+  /**
    * Handle tab change
    */
   onTabChange(tabId: string): void {
     this.activeTab.set(tabId);
     // Reset search when changing tab for cleaner UX
     this.searchQuery.set('');
+  }
+
+  /**
+   * Handle tab change coming from tui-tabs (index based)
+   */
+  onTabIndexChange(index: number): void {
+    const tab = this.tabs()[index];
+
+    if (tab) {
+      this.onTabChange(tab.id);
+    }
   }
 
   /**

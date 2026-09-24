@@ -27,12 +27,12 @@
         @for (item of items; track item.id; let i = $index) {
           <tr tuiTr>
             <td tuiTd class="text-surface-400 text-center text-sm">{{ i + 1 }}</td>
-            <td tuiTd><input class="form-input" [(ngModel)]="item.name" /></td>
+            <td tuiTd><input class="field-inline" [(ngModel)]="item.name" /></td>
             <td tuiTd>
-              <input class="form-input" type="number" step="0.1" min="0" [(ngModel)]="item.quantity" />
+              <input class="field-inline" type="number" step="0.1" min="0" [(ngModel)]="item.quantity" />
             </td>
             <td tuiTd>
-              <select class="form-input" [(ngModel)]="item.unit">
+              <select class="field-inline" [(ngModel)]="item.unit">
                 <option value=""></option>
                 <option value="kg">kg</option>
                 <option value="g">g</option>
@@ -45,13 +45,13 @@
                 <option value="botella">botella</option>
               </select>
             </td>
-            <td tuiTd><input class="form-input" [(ngModel)]="item.category" /></td>
+            <td tuiTd><input class="field-inline" [(ngModel)]="item.category" /></td>
             <td tuiTd>
-              <input class="form-input" type="number" step="0.01" min="0" [(ngModel)]="item.estimatedPrice" />
+              <input class="field-inline" type="number" step="0.01" min="0" [(ngModel)]="item.estimatedPrice" />
             </td>
-            <td tuiTd><input class="form-input" [(ngModel)]="item.notes" /></td>
+            <td tuiTd><input class="field-inline" [(ngModel)]="item.notes" /></td>
             <td tuiTd class="text-center">
-              <button tuiIconButton appearance="flat" size="s" type="button" class="text-red-500 hover:text-red-700" (click)="deleteItem(i)">
+              <button tuiIconButton appearance="flat" size="s" type="button" class="text-err" (click)="deleteItem(i)">
                 <i class="fa-solid fa-trash"></i>
               </button>
             </td>
@@ -66,8 +66,8 @@
       <div class="rounded-lg border border-surface-200 dark:border-surface-700 p-3">
         <div class="flex items-start justify-between gap-2">
           <span class="text-surface-400 text-sm shrink-0 mt-2">{{ i + 1 }}</span>
-          <input class="form-input flex-1" [(ngModel)]="item.name" [placeholder]="'shopping_list.product' | transloco" />
-          <button tuiIconButton appearance="flat" size="s" type="button" class="text-red-500 hover:text-red-700 shrink-0" (click)="deleteItem(i)">
+          <input class="field-inline flex-1" [(ngModel)]="item.name" [placeholder]="'shopping_list.product' | transloco" />
+          <button tuiIconButton appearance="flat" size="s" type="button" class="text-err shrink-0" (click)="deleteItem(i)">
             <i class="fa-solid fa-trash"></i>
           </button>
         </div>
@@ -75,11 +75,11 @@
         <div class="grid grid-cols-2 gap-2 mt-2">
           <label class="text-xs text-surface-500 flex flex-col gap-1">
             {{ 'shopping_list.quantity' | transloco }}
-            <input class="form-input w-full" type="number" step="0.1" min="0" [(ngModel)]="item.quantity" />
+            <input class="field-inline w-full" type="number" step="0.1" min="0" [(ngModel)]="item.quantity" />
           </label>
           <label class="text-xs text-surface-500 flex flex-col gap-1">
             {{ 'shopping_list.unit' | transloco }}
-            <select class="form-input w-full" [(ngModel)]="item.unit">
+            <select class="field-inline w-full" [(ngModel)]="item.unit">
               <option value=""></option>
               <option value="kg">kg</option>
               <option value="g">g</option>
@@ -94,17 +94,17 @@
           </label>
           <label class="text-xs text-surface-500 flex flex-col gap-1">
             {{ 'shopping_list.category' | transloco }}
-            <input class="form-input w-full" [(ngModel)]="item.category" />
+            <input class="field-inline w-full" [(ngModel)]="item.category" />
           </label>
           <label class="text-xs text-surface-500 flex flex-col gap-1">
             {{ 'shopping_list.price' | transloco }}
-            <input class="form-input w-full" type="number" step="0.01" min="0" [(ngModel)]="item.estimatedPrice" />
+            <input class="field-inline w-full" type="number" step="0.01" min="0" [(ngModel)]="item.estimatedPrice" />
           </label>
         </div>
 
         <label class="text-xs text-surface-500 flex flex-col gap-1 mt-2">
           {{ 'shopping_list.notes' | transloco }}
-          <input class="form-input w-full" [(ngModel)]="item.notes" />
+          <input class="field-inline w-full" [(ngModel)]="item.notes" />
         </label>
       </div>
     }

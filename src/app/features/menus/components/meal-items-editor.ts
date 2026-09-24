@@ -13,7 +13,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { Observable, Subject, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 import { TuiButton, TuiDataList, TuiDropdown, TuiHint, TuiInput, TuiTextfield } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
@@ -30,6 +30,7 @@ import {
 import { MealItemRequest } from '../../../core/api/services/meal.api';
 import { FoodService } from '../../../core/api/services/food.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
+import { NotificationService } from '../../../core/ui';
 import { FoodCreatePanel } from './food-create-panel';
 
 /** Una fila del editor. `food` puede ser un `FoodRef` sin nutrientes si viene del servidor. */
@@ -89,6 +90,8 @@ export class MealItemsEditor {
   private readonly foodService = inject(FoodService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly notify = inject(NotificationService);
+  private readonly transloco = inject(TranslocoService);
 
   meal = input.required<Meal>();
   canManage = input(false);
@@ -402,10 +405,21 @@ export class MealItemsEditor {
       this.queueSave();
       return;
     }
+    const removed = rows[index];
     this.rows.update(list => list.filter((_, i) => i !== index));
     this.closeSuggestions();
     this.queueSave();
     this.focusSearch(Math.max(0, index - 1));
+
+    // Se puede reinsertar en su índice original (Guía §6).
+    this.notify.undo(this.transloco.translate('common.item_removed'), () => {
+      this.rows.update(list => {
+        const next = [...list];
+        next.splice(index, 0, removed);
+        return next;
+      });
+      this.queueSave();
+    }, this.transloco.translate('common.undo'));
   }
 
   moveRow(index: number, offset: number): void {

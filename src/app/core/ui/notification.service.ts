@@ -1,6 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { TuiToastService } from '@taiga-ui/kit';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { take } from 'rxjs';
+
+import { ToastUndo, type ToastUndoData } from '../../shared/ui/toast-undo';
 
 export type NotificationStatus = 'success' | 'error' | 'warning' | 'info';
 
@@ -109,5 +112,26 @@ export class NotificationService {
     } else {
       this.show(message, { status: 'info', autoClose: titleOrAutoClose });
     }
+  }
+
+  /**
+   * Display an undoable notification (Guía §6). The action stays available
+   * while the toast is open (6 s); if the user taps it, `onUndo` runs and the
+   * toast closes.
+   */
+  undo(message: string, onUndo: () => void, undoLabel = 'Deshacer'): void {
+    const data: ToastUndoData = { message, undoLabel, onUndo };
+
+    this.toast
+      .open(new PolymorpheusComponent(ToastUndo), {
+        appearance: 'info',
+        autoClose: 6000,
+        closable: false,
+        block: 'end',
+        inline: 'center',
+        data,
+      })
+      .pipe(take(1))
+      .subscribe();
   }
 }

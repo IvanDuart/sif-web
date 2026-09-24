@@ -49,7 +49,10 @@ module.exports = {
           DEFAULT: 'var(--accent)',
           soft: 'var(--accent-soft)',
         },
-        ok: 'var(--ok)',
+        ok: {
+          DEFAULT: 'var(--ok)',
+          soft: 'var(--ok-soft)',
+        },
         warn: 'var(--warn)',
         err: 'var(--err)',
         info: 'var(--info)',

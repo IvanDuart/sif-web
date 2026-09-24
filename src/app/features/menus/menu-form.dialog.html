@@ -1,8 +1,8 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
-  <div class="field flex flex-col gap-1.5">
-    <label for="name" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.form_name_label' | transloco }}</label>
-    <input id="name" formControlName="name" class="form-input" [placeholder]="'diets.form_name_placeholder' | transloco" />
-  </div>
+  <tui-textfield class="w-full">
+    <label tuiLabel for="name">{{ 'diets.form_name_label' | transloco }}</label>
+    <input id="name" formControlName="name" tuiInput [placeholder]="'diets.form_name_placeholder' | transloco" />
+  </tui-textfield>
 
   <div class="field flex flex-col gap-1.5">
     <label for="appUserId" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.form_patient_label' | transloco }}</label>
@@ -12,10 +12,10 @@
     </tui-textfield>
   </div>
 
-  <div class="flex items-center gap-2 mt-2">
-    <input type="checkbox" id="isActive" formControlName="isActive" class="h-4 w-4 rounded border-surface-300 text-emerald-600 focus:ring-emerald-500" />
-    <label for="isActive" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.form_set_active' | transloco }}</label>
-  </div>
+  <label class="flex items-center gap-2 mt-2 cursor-pointer">
+    <input type="checkbox" id="isActive" formControlName="isActive" tuiCheckbox />
+    <span class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.form_set_active' | transloco }}</span>
+  </label>
 
   <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
     <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>

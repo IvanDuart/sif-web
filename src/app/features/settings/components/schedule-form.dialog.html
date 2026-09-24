@@ -52,11 +52,11 @@
                <label tuiLabel for="scheduleEndTime">{{ t('schedule_settings.end_time') }}</label>
                <input id="scheduleEndTime" tuiInputTime formControlName="endTime" />
              </tui-textfield>
-            <button type="button"
-              class="inline-flex items-center justify-center w-9 h-9 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 hover:text-red-700 transition-colors self-end justify-self-end md:justify-self-auto"
+            <button tuiIconButton appearance="flat" size="s" type="button"
+              class="text-err self-end justify-self-end md:justify-self-auto"
               [title]="t('schedule_settings.remove_block')"
               (click)="removeBlock(i)">
-              <i class="fa-solid fa-trash text-xs"></i>
+              <i class="fa-solid fa-trash"></i>
             </button>
           </div>
         } @empty {

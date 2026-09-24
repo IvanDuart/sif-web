@@ -116,8 +116,8 @@
                 {{ item.amountMl }} ml
               </span>
               @if (canManage()) {
-                <button (click)="deleteRecord(item)" class="text-surface-400 hover:text-red-500 transition-colors p-1" [title]="t('common.delete')">
-                  <i class="fa-solid fa-trash-can text-xs"></i>
+                <button tuiIconButton appearance="flat" size="xs" type="button" class="text-err" (click)="deleteRecord(item)" [title]="t('common.delete')">
+                  <i class="fa-solid fa-trash-can"></i>
                 </button>
               }
             </div>

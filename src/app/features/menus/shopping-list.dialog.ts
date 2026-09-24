@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiButton, TuiDialogContext } from '@taiga-ui/core';
 import { TuiTable } from '@taiga-ui/addon-table';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ShoppingListDto, ShoppingListItemDto } from '../../core/api/models/shopping-list.model';
 import { NotificationService } from '../../core/ui/notification.service';
 
@@ -40,6 +40,7 @@ const SUPERMARKET_LABELS: Record<string, string> = {
 })
 export class ShoppingListDialog {
   private readonly notify = inject(NotificationService);
+  private readonly transloco = inject(TranslocoService);
   readonly context = injectContext<TuiDialogContext<void, ShoppingListDialogInput>>();
 
   items: ShoppingListItemDto[] = this.context.data.shoppingList.items.map(i => ({ ...i }));
@@ -72,7 +73,14 @@ export class ShoppingListDialog {
   }
 
   deleteItem(index: number): void {
-    this.items.splice(index, 1);
+    const [removed] = this.items.splice(index, 1);
+
+    // Deshacer reinserta el producto en su índice original (Guía §6).
+    this.notify.undo(
+      this.transloco.translate('common.item_removed'),
+      () => this.items.splice(index, 0, removed),
+      this.transloco.translate('common.undo'),
+    );
   }
 
   copyToClipboard(): void {

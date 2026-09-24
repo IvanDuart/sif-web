@@ -31,7 +31,9 @@
     "accept": "Aceptar",
     "remove": "Eliminar",
     "search": "Buscar",
-    "help": "Ayuda"
+    "help": "Ayuda",
+    "undo": "Deshacer",
+    "item_removed": "Elemento eliminado"
   },
   "validation": {
     "required": "Este campo es obligatorio",

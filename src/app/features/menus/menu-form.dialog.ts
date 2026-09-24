@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal, OnDestroy } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Subject, Observable, of, debounceTime, distinctUntilChanged, switchMap, map } from 'rxjs';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext, TuiTextfield, TuiDropdown } from '@taiga-ui/core';
+import { TuiDialogContext, TuiTextfield, TuiInput, TuiDropdown, TuiCheckbox } from '@taiga-ui/core';
 import { TuiComboBox, TuiDataListWrapper, TuiChevron } from '@taiga-ui/kit';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { MenuService, CreateMenuRequest } from '../../core/api/services/menu.api';
@@ -13,7 +13,7 @@ import { AppUserDto } from '../../core/api/models/user.model';
 @Component({
   selector: 'app-menu-form',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, TranslocoPipe, TuiTextfield, TuiDropdown, TuiComboBox, TuiDataListWrapper, TuiChevron],
+  imports: [FormsModule, ReactiveFormsModule, TranslocoPipe, TuiTextfield, TuiInput, TuiCheckbox, TuiDropdown, TuiComboBox, TuiDataListWrapper, TuiChevron],
   templateUrl: './menu-form.dialog.html'
 })
 export class MenuFormDialog implements OnInit, OnDestroy {

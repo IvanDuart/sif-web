@@ -47,7 +47,7 @@ import { Chart, registerables } from 'chart.js';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
 import { TuiButton, TuiCheckbox, TuiTextfield } from '@taiga-ui/core';
-import { TuiBadge, TuiProgress, TuiTabs, TuiTextarea } from '@taiga-ui/kit';
+import { TuiBadge, TuiPagination, TuiProgress, TuiSegmented, TuiSelect, TuiTabs, TuiTextarea } from '@taiga-ui/kit';
 import { TuiTable } from '@taiga-ui/addon-table';
 
 Chart.register(...registerables);
@@ -89,7 +89,10 @@ export interface ReferenceRangeCardItem {
     TuiTabs,
     TuiTextfield,
     TuiTextarea,
-    TuiCheckbox
+    TuiCheckbox,
+    TuiPagination,
+    TuiSegmented,
+    TuiSelect
   ],
   templateUrl: './user-detail.page.html',
   styleUrls: ['./user-detail.page.scss']
@@ -613,14 +616,9 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     this.loadMeasurements(0, size);
   }
 
-  getPageNumbers(): number[] {
-    const total = Math.ceil(this.totalRecords() / this.size());
-    const pages: number[] = [];
-    const start = Math.max(0, this.page() - 2);
-    const end = Math.min(total, this.page() + 3);
-    for (let i = start; i < end; i++) pages.push(i);
-    return pages;
-  }
+  /** Número total de páginas de la tabla de mediciones (tui-pagination). */
+  readonly totalPages = computed(() => Math.ceil(this.totalRecords() / this.size()) || 1);
+
 
   private loadEvolution() {
     const tenantId = this.tenantCtx.currentTenantId();

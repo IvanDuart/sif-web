@@ -30,7 +30,7 @@
         (action)="showCreateDialog()">
       </app-empty-state>
     } @else {
-      <div class="table-wrapper">
+      <div class="table-wrapper hidden md:block">
         <table tuiTable class="w-full">
           <thead>
             <tr>
@@ -69,6 +69,46 @@
             }
           </tbody>
         </table>
+      </div>
+
+      <!-- Móvil: los mismos datos como tarjetas, sin scroll horizontal -->
+      <div class="md:hidden space-y-3 p-2">
+        @for (tenant of tenants(); track tenant.id) {
+          <div class="rounded-lg border border-surface-200 dark:border-surface-700 p-3">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-2.5 h-2.5 rounded-full inline-block shrink-0"
+                  [style.background]="tenant.preferences?.primary_color || '#059669'"></span>
+                <p class="font-medium text-surface-900 dark:text-surface-0 truncate">{{ tenant.name }}</p>
+              </div>
+              @if (tenant.adminTenant) {
+                <span tuiBadge appearance="accent">
+                  <i class="fa-solid fa-shield-halved mr-1"></i>{{ t('admin.badge_admin') }}
+                </span>
+              } @else {
+                <span tuiBadge appearance="neutral">{{ t('admin.badge_center') }}</span>
+              }
+            </div>
+            <dl class="mt-2 text-sm space-y-1">
+              <div class="flex justify-between gap-2">
+                <dt class="text-surface-500">{{ t('admin.col_cif') }}</dt>
+                <dd>{{ tenant.cif || '—' }}</dd>
+              </div>
+              <div class="flex justify-between gap-2">
+                <dt class="text-surface-500">{{ t('admin.col_phone') }}</dt>
+                <dd>{{ tenant.phone || '—' }}</dd>
+              </div>
+              <div class="flex justify-between gap-2">
+                <dt class="text-surface-500">{{ t('admin.col_city') }}</dt>
+                <dd>{{ tenant.city || '—' }}</dd>
+              </div>
+              <div class="flex justify-between gap-2">
+                <dt class="text-surface-500">{{ t('admin.col_created') }}</dt>
+                <dd class="font-mono">{{ formatInstant(tenant.createdAt) }}</dd>
+              </div>
+            </dl>
+          </div>
+        }
       </div>
       @if (totalRecords() > tenants().length) {
         <div class="table-footer">

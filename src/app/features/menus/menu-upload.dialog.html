@@ -46,7 +46,7 @@
               <span class="text-sm font-medium text-primary-700 dark:text-primary-300 px-3 text-center truncate max-w-full">{{ file.name }}</span>
               <span class="text-xs text-primary-500">({{ (file.size / 1024).toFixed(1) }} KB)</span>
             </div>
-            <button type="button" class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600 transition-colors" (click)="removeFile(); $event.stopPropagation()" [title]="'common.remove' | transloco">
+            <button tuiIconButton appearance="flat-destructive" size="xs" type="button" class="absolute -top-2 -right-2 shadow" (click)="removeFile(); $event.stopPropagation()" [title]="'common.remove' | transloco">
               <i class="fa-solid fa-xmark" aria-hidden="true"></i>
             </button>
           </div>

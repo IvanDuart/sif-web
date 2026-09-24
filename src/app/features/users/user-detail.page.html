@@ -1,13 +1,10 @@
 <div class="p-4" *transloco="let t">
   <!-- Back button -->
   <div class="flex items-center gap-3 mb-6">
-    <button
-      type="button"
-      class="text-surface-600 hover:text-surface-900 transition-colors"
-      [routerLink]="backRoute">
-      <i class="fa-solid fa-arrow-left"></i>
+    <a tuiButton appearance="flat" size="m" [routerLink]="backRoute">
+      <i class="fa-solid fa-arrow-left mr-1"></i>
       {{ t('patients.back_to_list') }}
-    </button>
+    </a>
   </div>
 
   <boneyard-skeleton name="user-detail-header" [loading]="loadingUser()">
@@ -239,10 +236,12 @@
             <div class="data-card mb-4">
               <div class="flex items-center justify-between px-4 pt-4">
                 <h2 class="text-xl font-semibold m-0">{{ t('measurements.chart_title') }}</h2>
-                <div class="flex gap-1 bg-surface-100 dark:bg-surface-800 p-1 rounded-lg">
-                  <button [class.active]="chartType() === 'composition'" (click)="setChartType('composition')" class="px-3 py-1 text-xs font-medium rounded-md transition-colors text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:text-surface-900 [&.active]:shadow-sm">{{ t('measurements.chart_composition') }}</button>
-                  <button [class.active]="chartType() === 'anthropometry'" (click)="setChartType('anthropometry')" class="px-3 py-1 text-xs font-medium rounded-md transition-colors text-surface-500 hover:text-surface-700 [&.active]:bg-white [&.active]:text-surface-900 [&.active]:shadow-sm">{{ t('measurements.chart_anthropometry') }}</button>
-                </div>
+                <tui-segmented
+                  [activeItemIndex]="chartType() === 'composition' ? 0 : 1"
+                  (activeItemIndexChange)="setChartType($event === 0 ? 'composition' : 'anthropometry')">
+                  <button type="button">{{ t('measurements.chart_composition') }}</button>
+                  <button type="button">{{ t('measurements.chart_anthropometry') }}</button>
+                </tui-segmented>
               </div>
               <div class="relative" style="height: 300px">
                 <canvas #chartCanvas></canvas>
@@ -368,22 +367,21 @@
                   }
                 </div>
                 <!-- Simple paginator -->
-                <div class="flex items-center justify-between px-4 py-3 border-t border-surface-200 dark:border-surface-700">
-                  <div class="flex items-center gap-2 text-sm text-surface-500">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 border-t border-surface-200 dark:border-surface-700">
+                  <div class="flex items-center gap-3 text-sm text-surface-500">
                     <span>{{ t('common.total_records', { total: totalRecords() }) }}</span>
-                    <select [ngModel]="size()" (ngModelChange)="onSizeChange($event)" class="border border-surface-300 rounded px-2 py-1 text-sm">
-                      <option [value]="25">25</option>
-                      <option [value]="50">50</option>
-                      <option [value]="100">100</option>
-                    </select>
+                    <tui-textfield>
+                      <select tuiSelect [ngModel]="size()" (ngModelChange)="onSizeChange($event)">
+                        <option [ngValue]="25">25</option>
+                        <option [ngValue]="50">50</option>
+                        <option [ngValue]="100">100</option>
+                      </select>
+                    </tui-textfield>
                   </div>
-                  <div class="flex items-center gap-1">
-                    <button (click)="onPageChange(page() - 1)" [disabled]="page() === 0" class="px-2 py-1 text-sm rounded border border-surface-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-100">&laquo;</button>
-                    @for (p of getPageNumbers(); track p) {
-                      <button (click)="onPageChange(p)" [class.bg-primary-500]="page() === p" [class.text-white]="page() === p" class="px-3 py-1 text-sm rounded border border-surface-300 hover:bg-surface-100">{{ p + 1 }}</button>
-                    }
-                    <button (click)="onPageChange(page() + 1)" [disabled]="(page() + 1) * size() >= totalRecords()" class="px-2 py-1 text-sm rounded border border-surface-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-100">&raquo;</button>
-                  </div>
+                  <tui-pagination
+                    [length]="totalPages()"
+                    [index]="page()"
+                    (indexChange)="onPageChange($event)" />
                 </div>
               }
             </boneyard-skeleton>
@@ -507,7 +505,7 @@
                     </div>
                     <div>
                       <span class="text-xs text-surface-400">{{ t('measurements.lean_mass') }}</span>
-                      <p class="text-base font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-0.5 mb-0">
+                      <p class="text-base font-bold font-mono text-ok mt-0.5 mb-0">
                         {{ report.global.fatFreeMassKg }} kg
                       </p>
                     </div>
@@ -597,7 +595,7 @@
                               <!-- Zona Izquierda (Bajo) 25% -->
                               <div class="w-1/4 h-full bg-amber-200/80 dark:bg-amber-900/40 border-r border-white/40 dark:border-surface-800/60"></div>
                               <!-- Zona Central (Óptimo) 50% -->
-                              <div class="w-2/4 h-full bg-emerald-300/90 dark:bg-emerald-600/50 border-r border-white/40 dark:border-surface-800/60"></div>
+                              <div class="w-2/4 h-full bg-ok border-r border-white/40 dark:border-surface-800/60"></div>
                               <!-- Zona Derecha (Elevado) 25% -->
                               <div class="w-1/4 h-full bg-amber-200/80 dark:bg-amber-900/40"></div>
 
@@ -613,7 +611,7 @@
                             <!-- Leyenda de límites -->
                             <div class="flex justify-between items-center text-[10px] text-surface-400 font-mono px-0.5">
                               <span>{{ card.min }}</span>
-                              <span class="text-emerald-600 dark:text-emerald-400 font-semibold">{{ card.unit }}</span>
+                              <span class="text-ok font-semibold">{{ card.unit }}</span>
                               <span>{{ card.max }}</span>
                             </div>
                           </div>
@@ -647,7 +645,7 @@
                             </div>
                             <div class="flex items-center justify-between text-xs mb-1">
                               <span class="text-surface-500">{{ t('measurements.lean_mass') }}:</span>
-                              <span class="font-mono font-medium text-emerald-600 dark:text-emerald-400">{{ seg.leanMassKg }} kg</span>
+                              <span class="font-mono font-medium text-ok">{{ seg.leanMassKg }} kg</span>
                             </div>
                           </div>
                           <div class="pt-2 mt-2 border-t border-surface-200 dark:border-surface-700 flex items-center justify-between text-xs font-semibold text-surface-600 dark:text-surface-400">
@@ -792,7 +790,7 @@
                         {{ t('patient_profile.saving') }}
                       </span>
                     } @else if (saveStatus() === 'saved') {
-                      <span class="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                      <span class="text-xs text-ok flex items-center gap-1.5">
                         <i class="fa-solid fa-check"></i>
                         {{ t('patient_profile.saved') }}
                       </span>
@@ -1116,7 +1114,7 @@
                             <button
                               type="button"
                               tuiButton appearance="flat" size="s"
-                              [class.text-emerald-600]="menu.isActive || menu.active"
+                              [class.text-ok]="menu.isActive || menu.active"
                               [class.text-surface-400]="!(menu.isActive || menu.active)"
                               (click)="toggleActiveMenu(menu)"
                               [title]="(menu.isActive || menu.active) ? t('menu_history.deactivate') : t('menu_history.activate')">
@@ -1133,13 +1131,14 @@
                               <i class="fa-solid fa-trash"></i>
                             </button>
                           }
-                          <button
-                            type="button"
-                            class="text-surface-500 hover:text-surface-700 transition-colors p-1 rounded-full"
+                          <a
+                            tuiButton
+                            appearance="flat"
+                            size="s"
                             [routerLink]="['/menus', menu.id]"
                             [title]="t('menu_history.view_detail')">
                             <i class="fa-solid fa-eye"></i>
-                          </button>
+                          </a>
                         </div>
                       </div>
                     }
