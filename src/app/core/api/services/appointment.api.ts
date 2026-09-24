@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AppointmentDto, CreateAppointmentRequest, UpdateAppointmentStatusRequest, RescheduleAppointmentRequest, NutritionistPatientDto } from '../models/appointment.model';
+import { AppointmentDto, CreateAppointmentRequest, UpdateAppointmentStatusRequest, RescheduleAppointmentRequest, NutritionistPatientDto, AppointmentMetricsDto, AppointmentMetricsQuery } from '../models/appointment.model';
 import { ConfigService } from '../../config/config.service';
 import { SILENT_ERROR } from '../../http/error.interceptor';
 
@@ -95,6 +95,28 @@ export class AppointmentService {
   ): Observable<NutritionistPatientDto[]> {
     return this.http.get<NutritionistPatientDto[]>(
       `${this.endpoint(tenantId)}/nutritionist/${nutritionistId}/patients`
+    );
+  }
+
+  /**
+   * Panel agregado de métricas del centro en una sola llamada.
+   * Requiere `VIEW_REVENUE`. `nutritionistId` solo se respeta con
+   * `MANAGE_TENANT`; sin él el backend devuelve solo los datos propios y
+   * `byNutritionist`/`byServiceType` vacíos.
+   */
+  getMetrics(
+    tenantId: string,
+    query: AppointmentMetricsQuery
+  ): Observable<AppointmentMetricsDto> {
+    let params = new HttpParams()
+      .set('from', query.from)
+      .set('to', query.to);
+    if (query.nutritionistId) params = params.set('nutritionistId', query.nutritionistId);
+    if (query.granularity) params = params.set('granularity', query.granularity);
+    if (query.bucketCount != null) params = params.set('bucketCount', query.bucketCount.toString());
+    return this.http.get<AppointmentMetricsDto>(
+      `${this.endpoint(tenantId)}/metrics`,
+      { params }
     );
   }
 }

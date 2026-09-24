@@ -1,38 +1,36 @@
 import { Component, inject, signal, computed, OnInit, ViewChild, ElementRef, OnDestroy, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { forkJoin, of } from 'rxjs';
-import { catchError, finalize } from 'rxjs/operators';
-import { TuiTable } from '@taiga-ui/addon-table';
-import { TuiButton, TuiDropdown, TuiTextfield, TuiFilterByInputPipe } from '@taiga-ui/core';
-import {TuiChevron, TuiComboBox, TuiDataListWrapper, TuiTabs, TuiInputDateRange, TuiCalendarRange} from '@taiga-ui/kit';
-import { TuiDay, TuiDayRange } from '@taiga-ui/cdk';
+import { finalize } from 'rxjs/operators';
 
 import { Chart, registerables } from 'chart.js';
 import type { ChartConfiguration } from 'chart.js/auto';
+
+import { TuiTable } from '@taiga-ui/addon-table';
+import { TuiButton, TuiDropdown, TuiTextfield, TuiFilterByInputPipe } from '@taiga-ui/core';
+import { TuiChevron, TuiComboBox, TuiDataListWrapper, TuiTabs, TuiInputDateRange, TuiCalendarRange, TuiSegmented } from '@taiga-ui/kit';
+import { TuiDay, TuiDayRange } from '@taiga-ui/cdk';
 
 import { AppointmentService } from '../../core/api/services/appointment.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { AuthService } from '../../core/auth/auth.service';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
-import { PermissionsService } from '../../core/permissions/permissions.service';
-import { NotificationService } from '../../core/ui';
 import { ThemeService } from '../../core/branding/theme.service';
-import { buildChartConfig, themePrimary } from '../../shared/utils/chart-config';
+import { buildBarChartConfig, buildChartConfig, themePrimary } from '../../shared/utils/chart-config';
 import type { AppUserDto } from '../../core/api/models/user.model';
+import type {
+  AppointmentMetricsDto,
+  MetricsGranularity,
+} from '../../core/api/models/appointment.model';
 
 Chart.register(...registerables);
 
-type Granularity = 'day' | 'week' | 'month';
-type ViewMode = 'chart' | 'table';
+type PresetKey = 'month' | 'quarter' | 'year';
 
-interface Bucket {
-  label: string;
-  start: string;
-  end: string;
-}
-
+const GRANULARITIES: MetricsGranularity[] = ['DAY', 'WEEK', 'MONTH', 'QUARTER'];
 const MAX_BUCKETS = 60;
+/** Color de la línea de objetivo: `--warn` de la Guía. */
+const TARGET_COLOR = '#B5892C';
 
 @Component({
   selector: 'app-revenue-page',
@@ -43,6 +41,7 @@ const MAX_BUCKETS = 60;
     TuiTable,
     TuiButton, TuiDropdown, TuiTextfield, TuiFilterByInputPipe,
     TuiChevron, TuiComboBox, TuiDataListWrapper, TuiTabs, TuiInputDateRange, TuiCalendarRange,
+    TuiSegmented,
   ],
   templateUrl: './revenue.page.html',
 })
@@ -52,36 +51,50 @@ export default class RevenuePage implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly transloco = inject(TranslocoService);
-  readonly permissionsService = inject(PermissionsService);
-  private readonly notify = inject(NotificationService);
   private readonly themeService = inject(ThemeService);
 
   constructor() {
     effect(() => {
+      // El tema (claro/oscuro) cambia los colores de los ejes y del tooltip.
       this.themeService.colorScheme();
-      if (this.chartLoaded()) {
-        requestAnimationFrame(() => this.buildChart());
+      if (this.metrics()) {
+        requestAnimationFrame(() => this.buildCharts());
       }
     });
   }
 
+  activeTab = signal(0);
+  /** Vista de la serie del periodo activo: gráfica o tabla. */
+  viewMode = signal<'chart' | 'table'>('chart');
+
   dateRange = signal(
     new TuiDayRange(
-      this.dateToTuiDay(new Date(new Date().getFullYear(), new Date().getMonth(), 1)),
+      this.dateToTuiDay(new Date(new Date().getFullYear(), new Date().getMonth() - 11, 1)),
       this.dateToTuiDay(new Date())
     )
   );
-  granularity = signal<Granularity>('month');
-  viewMode = signal<ViewMode>('chart');
+  granularity = signal<MetricsGranularity>('MONTH');
+  granularityIndex = computed(() => GRANULARITIES.indexOf(this.granularity()));
 
   loading = signal(false);
+  metrics = signal<AppointmentMetricsDto | null>(null);
+
   nutritionists = signal<AppUserDto[]>([]);
   selectedNutritionistId = signal<string | ''>('');
+  nutritionistDisplay = signal('');
+
+  currentUser = this.authService.user;
+
+  isAdmin = computed(() => {
+    const u = this.currentUser();
+    if (!u) return false;
+    return u.memberships?.some(m => m.permissions.includes('MANAGE_TENANT')) ?? false;
+  });
+  canSelectNutritionist = computed(() => this.isAdmin());
 
   nutritionistMap = computed(() => {
     const map = new Map<string, string>();
-    const allLabel = this.transloco.translate('revenue.all_nutritionists');
-    map.set(allLabel, '');
+    map.set(this.transloco.translate('revenue.all_nutritionists'), '');
     for (const n of this.nutritionists()) {
       map.set(`${n.firstName} ${n.lastName}`, n.id);
     }
@@ -99,45 +112,95 @@ export default class RevenuePage implements OnInit, OnDestroy {
     return labels;
   });
 
-  nutritionistDisplay = signal('');
+  /** Nº de cubos que abarca el rango (sin recortar). */
+  rawBucketCount = computed(() => this.countBuckets(this.dateRange(), this.granularity(), false));
+  /** Nº de cubos enviado al backend, recortado al máximo admitido. */
+  bucketCount = computed(() => Math.min(MAX_BUCKETS, this.rawBucketCount()));
+  /** El rango abarca más cubos de los que devuelve la serie. */
+  seriesCapped = computed(() => this.rawBucketCount() > MAX_BUCKETS);
 
-  revenueData = signal<{ label: string; value: number }[]>([]);
+  // ── Serie (para la vista de tabla) ────────────────────────────────────
+  readonly revenueSeries = computed(() => this.metrics()?.series.revenue ?? []);
+  readonly attendanceSeries = computed(() => this.metrics()?.series.attendanceRate ?? []);
 
-  // Chart
-  chartData: ChartConfiguration<'line'>['data'] | null = null;
-  chartOptions: ChartConfiguration<'line'>['options'] | null = null;
-  chartLoaded = signal(false);
-  private _chartCanvasEl?: ElementRef<HTMLCanvasElement>;
-  @ViewChild('chartCanvas') set chartCanvasEl(el: ElementRef<HTMLCanvasElement> | undefined) {
-    this._chartCanvasEl = el;
-    if (el) this.renderChartIfReady();
+  // ── KPIs ──────────────────────────────────────────────────────────────
+  readonly revenue = computed(() => this.metrics()?.revenue ?? null);
+  readonly attendance = computed(() => this.metrics()?.attendance ?? null);
+
+  /** El backend aún no calcula huecos recuperados: la tarjeta se omite si es null. */
+  readonly hasRecoveredSlots = computed(() => this.attendance()?.recoveredSlots != null);
+
+  // ── Desgloses ─────────────────────────────────────────────────────────
+  readonly byNutritionist = computed(() => this.metrics()?.byNutritionist ?? []);
+  readonly byServiceType = computed(() => this.metrics()?.byServiceType ?? []);
+  readonly byTimeBand = computed(() => this.metrics()?.byTimeBand ?? []);
+  /** Sin `MANAGE_TENANT` el backend no expone los desgloses del centro. */
+  readonly hasStaffBreakdown = computed(() => this.byNutritionist().length > 0);
+
+  readonly maxNutritionistRevenue = computed(() =>
+    Math.max(1, ...this.byNutritionist().map(n => n.revenue))
+  );
+  readonly maxServiceRevenue = computed(() =>
+    Math.max(1, ...this.byServiceType().map(s => s.revenue))
+  );
+
+  /**
+   * `scheduled` agrupa los estados SCHEDULED/COMPLETED/CANCELLED/NO_SHOW, así
+   * que las citas aún sin resolver (SCHEDULED dentro del rango) no encajan en
+   * ningún resultado. Se pintan como «pendientes» para que la barra cuadre con
+   * la tarjeta de programadas.
+   */
+  readonly resolvedTotal = computed(() => {
+    const a = this.attendance();
+    if (!a) return 0;
+    return a.attended + a.cancelledInTime + a.cancelledLate + a.noShow;
+  });
+
+  readonly outcomeTotal = computed(() => this.attendance()?.scheduled ?? 0);
+
+  readonly pendingTotal = computed(() => Math.max(0, this.outcomeTotal() - this.resolvedTotal()));
+
+  readonly hasOutcomes = computed(() => this.resolvedTotal() > 0);
+
+  outcomeShare(value: number): number {
+    const total = this.outcomeTotal();
+    return total > 0 ? (value / total) * 100 : 0;
   }
-  private chartInstance: Chart | null = null;
 
-  currentUser = this.authService.user;
+  /** Color de la barra de una franja horaria según su tasa (Guía §6). */
+  bandTone(rate: number): string {
+    if (rate < 0.8) return 'bg-err';
+    if (rate < 0.9) return 'bg-warn';
+    return 'bg-primary-500';
+  }
 
-  isAdmin = computed(() => {
-    const u = this.currentUser();
-    if (!u) return false;
-    return u.memberships?.some(m => m.permissions.includes('MANAGE_TENANT')) ?? false;
-  });
+  // ── Charts ────────────────────────────────────────────────────────────
+  private revenueChart: Chart | null = null;
+  private attendanceChart: Chart | null = null;
+  private revenueChartConfig: ChartConfiguration<'bar'> | null = null;
+  private attendanceChartConfig: ChartConfiguration<'line'> | null = null;
 
-  isNutritionist = computed(() => {
-    const u = this.currentUser();
-    if (!u) return false;
-    return u.memberships?.some(m => m.permissions.includes('VIEW_REVENUE')) ?? false;
-  });
+  private _revenueCanvasEl?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('revenueCanvas') set revenueCanvasEl(el: ElementRef<HTMLCanvasElement> | undefined) {
+    this._revenueCanvasEl = el;
+    if (el) {
+      this.renderRevenueChart();
+    } else {
+      this.revenueChart?.destroy();
+      this.revenueChart = null;
+    }
+  }
 
-  canSelectNutritionist = computed(() => this.isAdmin());
-  nutritionistLocked = computed(() => !this.canSelectNutritionist());
-
-  buckets = computed(() => this.computeBuckets(this.dateRange(), this.granularity()));
-  bucketCount = computed(() => this.buckets().length);
-  totalRevenue = computed(() => this.revenueData().reduce((acc, d) => acc + d.value, 0));
-  averageRevenue = computed(() => {
-    const count = this.bucketCount();
-    return count > 0 ? this.totalRevenue() / count : 0;
-  });
+  private _attendanceCanvasEl?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('attendanceCanvas') set attendanceCanvasEl(el: ElementRef<HTMLCanvasElement> | undefined) {
+    this._attendanceCanvasEl = el;
+    if (el) {
+      this.renderAttendanceChart();
+    } else {
+      this.attendanceChart?.destroy();
+      this.attendanceChart = null;
+    }
+  }
 
   ngOnInit(): void {
     const user = this.currentUser();
@@ -159,50 +222,43 @@ export default class RevenuePage implements OnInit, OnDestroy {
     });
   }
 
-  setGranularity(g: Granularity): void {
+  setGranularity(index: number): void {
+    const g = GRANULARITIES[index] ?? 'MONTH';
+    if (g === this.granularity()) return;
     this.granularity.set(g);
     this.loadData();
   }
 
-  setViewMode(m: ViewMode): void {
-    this.viewMode.set(m);
+  setViewMode(index: number): void {
+    this.viewMode.set(index === 1 ? 'table' : 'chart');
   }
 
-  applyPreset(label: string): void {
+  applyPreset(label: PresetKey): void {
     const now = new Date();
     let start: Date;
-    let end: Date;
+    let granularity: MetricsGranularity;
 
     switch (label) {
-      case 'this_month': {
-        start = new Date(now.getFullYear(), now.getMonth(), 1);
-        end = now;
+      case 'month':
+        start = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+        granularity = 'MONTH';
         break;
-      }
-      case 'last_month': {
-        start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        end = new Date(now.getFullYear(), now.getMonth(), 0);
-        break;
-      }
-      case 'quarter': {
-        start = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-        end = now;
-        break;
-      }
+      case 'quarter':
       case 'year': {
-        start = new Date(now.getFullYear(), 0, 1);
-        end = now;
+        // Alinear al inicio de trimestre para que el rango cubra cubos enteros:
+        // 8 trimestres (2 años) o 16 (4 años).
+        const quartersBack = label === 'quarter' ? 7 : 15;
+        const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
+        start = new Date(now.getFullYear(), quarterStartMonth - quartersBack * 3, 1);
+        granularity = 'QUARTER';
         break;
       }
-      case 'last_12m': {
-        start = new Date(now.getFullYear() - 1, now.getMonth(), 1);
-        end = now;
-        break;
-      }
-      default: return;
+      default:
+        return;
     }
 
-    this.dateRange.set(new TuiDayRange(this.dateToTuiDay(start), this.dateToTuiDay(end)));
+    this.granularity.set(granularity);
+    this.dateRange.set(new TuiDayRange(this.dateToTuiDay(start), this.dateToTuiDay(now)));
     this.loadData();
   }
 
@@ -210,52 +266,31 @@ export default class RevenuePage implements OnInit, OnDestroy {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
 
-    const buckets = this.buckets();
-    if (buckets.length === 0) {
-      this.revenueData.set([]);
-      return;
-    }
+    const range = this.dateRange();
+    if (!range?.from || !range?.to) return;
 
     this.loading.set(true);
-    const nutritionistId = this.selectedNutritionistId() || undefined;
+    const nutritionistId = this.canSelectNutritionist() ? (this.selectedNutritionistId() || undefined) : undefined;
 
-    forkJoin(
-      buckets.map(b =>
-        this.appointmentService.getRevenue(tenantId, b.start, b.end, nutritionistId).pipe(
-          catchError(() => of(0))
-        )
-      )
-    ).pipe(finalize(() => this.loading.set(false)))
-      .subscribe(results => {
-        this.revenueData.set(
-          buckets.map((b, i) => ({ label: b.label, value: results[i] ?? 0 }))
-        );
-        this.buildChart();
+    this.appointmentService.getMetrics(tenantId, {
+      from: this.dayStartIso(range.from),
+      to: this.dayEndIso(range.to),
+      nutritionistId,
+      granularity: this.granularity(),
+      bucketCount: this.bucketCount(),
+    }).pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (res) => {
+          this.metrics.set(res);
+          this.buildCharts();
+        },
+        error: () => this.metrics.set(null),
       });
   }
 
-  formatEUR(value: number): string {
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(value);
-  }
-
-  granularityIndex = signal(0);
-
-  viewModeIndex = signal(0);
-
   onNutritionistChange(label: string): void {
     this.nutritionistDisplay.set(label);
-    const id = this.nutritionistMap().get(label) || '';
-    this.selectedNutritionistId.set(id);
-    this.loadData();
-  }
-
-  onGranularityChange(index: number): void {
-    this.granularityIndex.set(index);
-    const map: Granularity[] = ['month', 'week', 'day'];
-    this.granularity.set(map[index] ?? 'month');
+    this.selectedNutritionistId.set(this.nutritionistMap().get(label) || '');
     this.loadData();
   }
 
@@ -263,152 +298,133 @@ export default class RevenuePage implements OnInit, OnDestroy {
     this.loadData();
   }
 
-  nutritionistTrackBy(_: number, n: AppUserDto): string {
-    return n.id;
+  // ── Formato ───────────────────────────────────────────────────────────
+  formatEUR(value: number): string {
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(value);
   }
 
-  private computeBuckets(dateRange: TuiDayRange | null, granularity: Granularity): Bucket[] {
-    if (!dateRange || !dateRange.from || !dateRange.to) return [];
-
-    const startDay = dateRange.from;
-    const endDay = dateRange.to;
-
-    // Construct dates securely: at 00:00:00 for start, 23:59:59 for end
-    const start = new Date(startDay.year, startDay.month, startDay.day, 0, 0, 0);
-    const end = new Date(endDay.year, endDay.month, endDay.day, 23, 59, 59);
-
-    if (start > end) return [];
-
-    const buckets: Bucket[] = [];
-    const current = new Date(start);
-
-    let granularityFinal = granularity;
-    let estimated: number;
-
-    let shouldContinue = true;
-    while (shouldContinue) {
-      const diffMs = end.getTime() - start.getTime();
-      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
-      if (granularityFinal === 'day') estimated = diffDays + 1;
-      else if (granularityFinal === 'week') estimated = Math.ceil((diffDays + 1) / 7);
-      else estimated = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
-
-      if (estimated > MAX_BUCKETS && granularityFinal === 'day') {
-        granularityFinal = 'week';
-      } else if (estimated > MAX_BUCKETS && granularityFinal === 'week') {
-        granularityFinal = 'month';
-      } else {
-        shouldContinue = false;
-      }
-    }
-
-    while (current <= end) {
-      let bucketStart: Date;
-      let bucketEnd: Date;
-      let label: string;
-
-      if (granularityFinal === 'day') {
-        bucketStart = new Date(current.getFullYear(), current.getMonth(), current.getDate(), 0, 0, 0);
-        bucketEnd = new Date(current.getFullYear(), current.getMonth(), current.getDate(), 23, 59, 59);
-        label = current.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
-        current.setDate(current.getDate() + 1);
-      } else if (granularityFinal === 'week') {
-        const dayOfWeek = current.getDay();
-        bucketStart = new Date(current);
-        bucketStart.setDate(current.getDate() - dayOfWeek);
-        bucketStart.setHours(0, 0, 0, 0);
-        bucketEnd = new Date(bucketStart);
-        bucketEnd.setDate(bucketStart.getDate() + 6);
-        bucketEnd.setHours(23, 59, 59, 999);
-        const weekStart = bucketStart.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
-        label = weekStart;
-        current.setDate(current.getDate() + 7);
-      } else {
-        bucketStart = new Date(current.getFullYear(), current.getMonth(), 1, 0, 0, 0);
-        bucketEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0, 23, 59, 59);
-        label = current.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
-        current.setMonth(current.getMonth() + 1);
-      }
-
-      if (bucketStart > end) break;
-
-      const bStart = bucketStart < start ? new Date(start) : bucketStart;
-      const bEnd = bucketEnd > end ? new Date(end) : bucketEnd;
-
-      buckets.push({
-        label,
-        start: bStart.toISOString(),
-        end: bEnd.toISOString(),
-      });
-    }
-
-    return buckets;
+  formatNumber(value: number): string {
+    return new Intl.NumberFormat('es-ES').format(value);
   }
 
-  private toDateInput(date: Date): string {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+  formatPercent(value: number, digits = 1): string {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'percent',
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }).format(value);
+  }
+
+  // ── Charts ────────────────────────────────────────────────────────────
+  private buildCharts(): void {
+    const m = this.metrics();
+    if (!m) {
+      this.revenueChartConfig = null;
+      this.attendanceChartConfig = null;
+      return;
+    }
+
+    const revenueLabels = m.series.revenue.map(p => p.label);
+    this.revenueChartConfig = buildBarChartConfig(
+      revenueLabels,
+      {
+        label: this.transloco.translate('revenue.series_revenue'),
+        data: m.series.revenue.map(p => p.value),
+        color: themePrimary(),
+        highlightLast: true,
+      },
+      { y: this.transloco.translate('revenue.amount') }
+    );
+
+    const attendanceLabels = m.series.attendanceRate.map(p => p.label);
+    const target = m.attendance.targetRate;
+    this.attendanceChartConfig = buildChartConfig(
+      attendanceLabels,
+      [
+        {
+          label: this.transloco.translate('revenue.series_attendance'),
+          data: m.series.attendanceRate.map(p => this.toPercentValue(p.value)),
+          borderColor: themePrimary(),
+          backgroundColor: themePrimary(),
+          unit: ' %',
+        },
+        {
+          label: this.transloco.translate('revenue.series_target'),
+          data: attendanceLabels.map(() => this.toPercentValue(target)),
+          borderColor: TARGET_COLOR,
+          backgroundColor: TARGET_COLOR,
+          fill: false,
+          borderDash: [6, 4],
+          pointRadius: 0,
+          unit: ' %',
+        },
+      ],
+      { y: this.transloco.translate('revenue.percent') }
+    );
+
+    this.renderRevenueChart();
+    this.renderAttendanceChart();
+  }
+
+  private renderRevenueChart(): void {
+    if (!this.revenueChartConfig || !this._revenueCanvasEl) return;
+    this.revenueChart?.destroy();
+    this.revenueChart = new Chart(this._revenueCanvasEl.nativeElement, this.revenueChartConfig);
+  }
+
+  private renderAttendanceChart(): void {
+    if (!this.attendanceChartConfig || !this._attendanceCanvasEl) return;
+    this.attendanceChart?.destroy();
+    this.attendanceChart = new Chart(this._attendanceCanvasEl.nativeElement, this.attendanceChartConfig);
+  }
+
+  private toPercentValue(rate: number): number {
+    return Math.round(rate * 1000) / 10;
+  }
+
+  // ── Fechas ────────────────────────────────────────────────────────────
+  private countBuckets(range: TuiDayRange | null, granularity: MetricsGranularity, cap = true): number {
+    if (!range?.from || !range?.to) return 1;
+
+    const start = new Date(range.from.year, range.from.month, range.from.day);
+    const end = new Date(range.to.year, range.to.month, range.to.day);
+    if (start > end) return 1;
+
+    const diffDays = Math.floor((end.getTime() - start.getTime()) / 86_400_000) + 1;
+    const diffMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
+
+    let count: number;
+    switch (granularity) {
+      case 'DAY':
+        count = diffDays;
+        break;
+      case 'WEEK':
+        count = Math.ceil(diffDays / 7);
+        break;
+      case 'QUARTER':
+        count = Math.ceil(diffMonths / 3);
+        break;
+      default:
+        count = diffMonths;
+    }
+
+    return cap ? Math.min(MAX_BUCKETS, Math.max(1, count)) : Math.max(1, count);
+  }
+
+  private dayStartIso(day: TuiDay): string {
+    return new Date(day.year, day.month, day.day, 0, 0, 0, 0).toISOString();
+  }
+
+  private dayEndIso(day: TuiDay): string {
+    return new Date(day.year, day.month, day.day, 23, 59, 59, 999).toISOString();
   }
 
   private dateToTuiDay(date: Date): TuiDay {
     return new TuiDay(date.getFullYear(), date.getMonth(), date.getDate());
   }
 
-  private tuiDayToString(day: TuiDay | null): string {
-    if (!day) return '';
-    const y = day.year;
-    const m = String(day.month + 1).padStart(2, '0');
-    const d = String(day.day).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  }
-
-  private buildChart(): void {
-    const data = this.revenueData();
-    if (!data || data.length === 0) {
-      this.chartLoaded.set(false);
-      return;
-    }
-
-    const labels = data.map(d => d.label);
-    const values = data.map(d => d.value);
-
-    const config = buildChartConfig(
-      labels,
-      [{
-        label: this.transloco.translate('revenue.title'),
-        data: values,
-        borderColor: themePrimary(),
-        backgroundColor: themePrimary(),
-      }]
-    );
-
-    if (config.options?.plugins?.legend) {
-      config.options.plugins.legend.display = false;
-    }
-
-    this.chartData = config.data;
-    this.chartOptions = config.options;
-    this.chartLoaded.set(true);
-    this.renderChartIfReady();
-  }
-
-  private renderChartIfReady(): void {
-    if (!this.chartData || !this._chartCanvasEl) return;
-    if (this.chartInstance) this.chartInstance.destroy();
-    this.chartInstance = new Chart(this._chartCanvasEl.nativeElement, {
-      type: 'line',
-      data: this.chartData,
-      options: this.chartOptions ?? undefined,
-    });
-  }
-
   ngOnDestroy(): void {
-    if (this.chartInstance) {
-      this.chartInstance.destroy();
-      this.chartInstance = null;
-    }
+    this.revenueChart?.destroy();
+    this.attendanceChart?.destroy();
   }
 }

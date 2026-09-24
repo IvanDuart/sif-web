@@ -14,6 +14,109 @@ export interface AppointmentDto {
   status: AppointmentStatus;
   notes: string | null;
   createdAt: string;
+  /** Momento en que la cita pasó a `CANCELLED`. `null` si no aplica. */
+  cancelledAt?: string | null;
+  /**
+   * Horas de antelación con que se canceló respecto a `startTime`.
+   * Positivo = avisó con margen. `null` en cancelaciones históricas.
+   */
+  cancellationNoticeHours?: number | null;
+}
+
+/** Granularidad de la serie temporal del panel de métricas. */
+export type MetricsGranularity = 'DAY' | 'WEEK' | 'MONTH' | 'QUARTER';
+
+export interface AppointmentMetricsRangeDto {
+  from: string;
+  to: string;
+}
+
+export interface RevenueMetricsDto {
+  total: number;
+  currency: string;
+  completedAppointments: number;
+  averageTicket: number;
+  patientsSeen: number;
+}
+
+export interface AttendanceMetricsDto {
+  scheduled: number;
+  attended: number;
+  attendanceRate: number;
+  noShow: number;
+  cancelledInTime: number;
+  cancelledLate: number;
+  /** Siempre `null` por ahora: no existe el concepto de lista de espera. */
+  recoveredSlots: number | null;
+  /** Objetivo del centro normalizado a 0..1. */
+  targetRate: number;
+}
+
+export interface NutritionistMetricsDto {
+  nutritionistId: string;
+  nutritionistName: string;
+  revenue: number;
+  scheduled: number;
+  attended: number;
+  attendanceRate: number;
+  noShow: number;
+}
+
+export interface ServiceTypeMetricsDto {
+  typeId: string | null;
+  typeName: string;
+  revenue: number;
+  scheduled: number;
+  attended: number;
+  attendanceRate: number;
+  noShow: number;
+}
+
+export interface TimeBandMetricsDto {
+  label: string;
+  scheduled: number;
+  attended: number;
+  attendanceRate: number;
+}
+
+/** Punto de una serie temporal (`series.revenue` / `series.attendanceRate`). */
+export interface MetricsSeriesPointDto {
+  label: string;
+  from: string;
+  to: string;
+  value: number;
+  /** Solo en `attendanceRate`: citas programadas del cubo (para contexto). */
+  scheduled?: number;
+}
+
+export interface AppointmentMetricsSeriesDto {
+  granularity: MetricsGranularity;
+  revenue: MetricsSeriesPointDto[];
+  attendanceRate: MetricsSeriesPointDto[];
+}
+
+export interface AppointmentMetricsDto {
+  range: AppointmentMetricsRangeDto;
+  revenue: RevenueMetricsDto;
+  attendance: AttendanceMetricsDto;
+  /** Vacío sin `MANAGE_TENANT` (no se expone el desglose del centro). */
+  byNutritionist: NutritionistMetricsDto[];
+  /** Vacío sin `MANAGE_TENANT`. */
+  byServiceType: ServiceTypeMetricsDto[];
+  byTimeBand: TimeBandMetricsDto[];
+  series: AppointmentMetricsSeriesDto;
+}
+
+export interface AppointmentMetricsQuery {
+  /** ISO-8601, inclusive. */
+  from: string;
+  /** ISO-8601, inclusive. */
+  to: string;
+  /** Solo se respeta con `MANAGE_TENANT`. */
+  nutritionistId?: string;
+  granularity?: MetricsGranularity;
+  /** Nº de cubos de la serie (1..60). El último es el que contiene `to`. */
+  bucketCount?: number;
 }
 
 export interface CreateAppointmentRequest {

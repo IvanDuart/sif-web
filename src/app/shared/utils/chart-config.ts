@@ -67,6 +67,12 @@ export interface ChartDatasetInput {
   fill?: boolean;
   /** Unit suffix appended in the tooltip, e.g. ' kg', ' %', ' cm'. */
   unit?: string;
+  /** Dashed stroke, e.g. `[5, 4]` for a reference line. */
+  borderDash?: number[];
+  /** Override the point radius (0 hides the points). */
+  pointRadius?: number;
+  /** Skip the gradient fill and paint `backgroundColor` as a solid. */
+  flat?: boolean;
 }
 
 export interface ChartAxisTitles {
@@ -174,10 +180,13 @@ export function buildChartConfig(
     ...dataset,
     fill: dataset.fill ?? true,
     tension: 0.3,
-    backgroundColor: (context: { chart: Chart }) => createGradientFill(dataset.borderColor, context),
+    backgroundColor: dataset.flat
+      ? dataset.backgroundColor
+      : (context: { chart: Chart }) => createGradientFill(dataset.borderColor, context),
     borderWidth: 2,
-    pointRadius: 4,
-    pointHoverRadius: 6,
+    borderDash: dataset.borderDash,
+    pointRadius: dataset.pointRadius ?? 4,
+    pointHoverRadius: (dataset.pointRadius ?? 4) === 0 ? 0 : 6,
     pointBackgroundColor: dataset.borderColor,
     pointBorderColor: bgElevation3,
     pointBorderWidth: 2,
@@ -188,5 +197,96 @@ export function buildChartConfig(
     type: 'line',
     data: { labels, datasets: styledDatasets },
     options: chartOptions,
+  };
+}
+
+/** Paleta derivada de los tokens de tema para gráficas de barras. */
+export interface ChartTheme {
+  textSecondary: string;
+  borderColor: string;
+  surface: string;
+}
+
+export function chartTheme(): ChartTheme {
+  const cssVariables = getComputedStyle(document.documentElement);
+  return {
+    textSecondary: cssVariables.getPropertyValue('--tui-text-secondary').trim() || '#64748b',
+    borderColor: cssVariables.getPropertyValue('--tui-border').trim() || '#e2e8f0',
+    surface: cssVariables.getPropertyValue('--tui-background-elevation-3').trim() || '#ffffff',
+  };
+}
+
+export interface BarDatasetInput {
+  label: string;
+  data: number[];
+  color: string;
+  /** Highlight the last bucket (the one in progress). */
+  highlightLast?: boolean;
+}
+
+/**
+ * Barras verticales con el mismo lenguaje visual que el resto de gráficas
+ * (tooltip de superficie, rejilla suave). La última barra se pinta con el
+ * acento sólido y el resto translúcidas, como en el prototipo de Métricas.
+ */
+export function buildBarChartConfig(
+  labels: string[],
+  dataset: BarDatasetInput,
+  axisTitles?: ChartAxisTitles
+): ChartConfiguration<'bar'> {
+  const theme = chartTheme();
+
+  return {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: dataset.label,
+          data: dataset.data,
+          backgroundColor: labels.map((_, i) =>
+            dataset.highlightLast && i === labels.length - 1
+              ? dataset.color
+              : hexToRgba(dataset.color, 0.28)
+          ),
+          hoverBackgroundColor: hexToRgba(dataset.color, 0.85),
+          borderColor: dataset.color,
+          borderWidth: 0,
+          borderRadius: 6,
+          maxBarThickness: 34,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: theme.surface,
+          titleColor: theme.textSecondary,
+          bodyColor: theme.textSecondary,
+          borderColor: theme.borderColor,
+          borderWidth: 1,
+          padding: 8,
+          displayColors: false,
+          titleFont: { weight: 'bold' as const, size: 12 },
+          bodyFont: { size: 12 },
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { maxRotation: 45, color: theme.textSecondary, font: { size: 12 } },
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: theme.borderColor },
+          ticks: { color: theme.textSecondary, font: { size: 12 } },
+          ...(axisTitles?.y ? { title: axisTitleConfig(axisTitles.y, theme.textSecondary) } : {}),
+        },
+      },
+    },
   };
 }

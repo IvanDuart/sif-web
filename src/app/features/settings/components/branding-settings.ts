@@ -5,7 +5,7 @@ import { TuiSwitch, TuiComboBox, TuiDataListWrapper, TuiChevron, TuiFiles } from
 import { TenantBrandingService } from '../../../core/api/services/tenant-branding.api';
 import { TenantService } from '../../../core/api/services/tenant.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
-import { TenantPreferences } from '../../../core/api/models/tenant.model';
+import { AppointmentTimeBand, TenantPreferences } from '../../../core/api/models/tenant.model';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ThemeService } from '../../../core/branding/theme.service';
 import { NotificationService } from '../../../core/ui';
@@ -39,6 +39,9 @@ const DEFAULT_PREFERENCES: TenantPreferences = {
   show_price: false,
   enable_appointment_reminders: true,
   menu_creation_mode: 'MANUAL',
+  attendance_target_rate: 0.9,
+  cancellation_notice_threshold_hours: 24,
+  appointment_time_bands: [],
 };
 
 @Component({
@@ -65,6 +68,53 @@ export class BrandingSettings implements OnInit, OnDestroy {
   preferences = signal<TenantPreferences>({ ...DEFAULT_PREFERENCES });
 
   readonly isBedcaMode = computed(() => this.preferences().menu_creation_mode === 'BEDCA');
+
+  /**
+   * Objetivo de asistencia en % (0..100). Se guarda en preferencias como 0..1.
+   * Redondeo a 1 decimal para que el input no muestre colas de coma flotante.
+   */
+  readonly targetRatePercent = computed(() =>
+    Math.round((this.preferences().attendance_target_rate ?? 0.9) * 1000) / 10
+  );
+
+  readonly timeBands = computed<AppointmentTimeBand[]>(
+    () => this.preferences().appointment_time_bands ?? []
+  );
+
+  setTargetRatePercent(value: number | string | null): void {
+    const raw = typeof value === 'string' ? value.trim() : value;
+    // Mientras se borra el campo no se pisa el valor guardado.
+    if (raw === '' || raw == null) return;
+    const n = typeof raw === 'string' ? Number(raw.replace(',', '.')) : raw;
+    const safe = Number.isNaN(n) ? 0.9 : Math.min(1, Math.max(0, n / 100));
+    this.preferences.update(p => ({ ...p, attendance_target_rate: safe }));
+  }
+
+  addTimeBand(): void {
+    this.preferences.update(p => ({
+      ...p,
+      appointment_time_bands: [
+        ...(p.appointment_time_bands ?? []),
+        { label: '', from: '09:00', to: '14:00' },
+      ],
+    }));
+  }
+
+  removeTimeBand(index: number): void {
+    this.preferences.update(p => ({
+      ...p,
+      appointment_time_bands: (p.appointment_time_bands ?? []).filter((_, i) => i !== index),
+    }));
+  }
+
+  updateTimeBand(index: number, field: keyof AppointmentTimeBand, value: string): void {
+    this.preferences.update(p => ({
+      ...p,
+      appointment_time_bands: (p.appointment_time_bands ?? []).map((band, i) =>
+        i === index ? { ...band, [field]: value } : band
+      ),
+    }));
+  }
 
   setBedcaMode(enabled: boolean) {
     this.preferences.update(prefs => ({
@@ -126,6 +176,15 @@ export class BrandingSettings implements OnInit, OnDestroy {
         const prefs: TenantPreferences = { ...DEFAULT_PREFERENCES, ...(tenant.preferences ?? {}) };
         if (prefs.enable_appointment_reminders === undefined || prefs.enable_appointment_reminders === null) {
           prefs.enable_appointment_reminders = true;
+        }
+        if (prefs.attendance_target_rate === undefined || prefs.attendance_target_rate === null) {
+          prefs.attendance_target_rate = DEFAULT_PREFERENCES.attendance_target_rate;
+        }
+        if (prefs.cancellation_notice_threshold_hours === undefined || prefs.cancellation_notice_threshold_hours === null) {
+          prefs.cancellation_notice_threshold_hours = DEFAULT_PREFERENCES.cancellation_notice_threshold_hours;
+        }
+        if (!Array.isArray(prefs.appointment_time_bands)) {
+          prefs.appointment_time_bands = [];
         }
         this.preferences.set(prefs);
         const found = LANGUAGE_OPTIONS.find(l => l.value === prefs.default_language);

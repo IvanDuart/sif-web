@@ -570,7 +570,10 @@
 .content-viewport {
   min-width: 0;
   width: 100%;
-  max-width: 1360px;
+  /* Los prototipos (metricas, pacientes, agenda, planes) usan 1500px; solo
+     el dashboard se quedaba en 1360px. Se toma el mayor para aprovechar el
+     ancho en pantallas grandes. En móvil se anula más abajo. */
+  max-width: 1500px;
   margin-inline: auto;
   padding: 28px 40px 64px;
 }
