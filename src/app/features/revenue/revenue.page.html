@@ -71,7 +71,7 @@
   }
 
   @if (loading()) {
-    <div class="flex items-center justify-center py-16">
+    <div class="flex items-center justify-center py-16" role="status" [attr.aria-label]="t('common.loading')">
       <div class="loading-spinner"></div>
     </div>
   } @else if (!metrics()) {
@@ -128,7 +128,7 @@
             </div>
           } @else {
             <div class="table-wrapper mt-4">
-              <table tuiTable class="w-full">
+              <table [attr.aria-label]="t('revenue.table')" tuiTable class="w-full">
                 <thead>
                   <tr>
                     <th tuiTh scope="col">{{ t('revenue.column_period') }}</th>
@@ -280,7 +280,7 @@
             </div>
           } @else {
             <div class="table-wrapper mt-4">
-              <table tuiTable class="w-full">
+              <table [attr.aria-label]="t('revenue.chart_attendance_title')" tuiTable class="w-full">
                 <thead>
                   <tr>
                     <th tuiTh scope="col">{{ t('revenue.column_period') }}</th>

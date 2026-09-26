@@ -175,8 +175,7 @@ export interface ProfileFigure {
     TuiSegmented,
     TuiSelect
   ],
-  templateUrl: './user-detail.page.html',
-  styleUrls: ['./user-detail.page.scss']
+  templateUrl: './user-detail.page.html'
 })
 export default class UserDetailPage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);

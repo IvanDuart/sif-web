@@ -3,6 +3,7 @@ import { Shell } from './layout/shell/shell';
 import { brandingResolver } from './core/branding/branding.resolver';
 import { authGuard } from './core/auth/auth.guard';
 import { adminGuard } from './core/auth/admin.guard';
+import { sandboxRoutes } from './features/sandbox/sandbox.routes';
 
 export const routes: Routes = [
   {
@@ -10,10 +11,7 @@ export const routes: Routes = [
     pathMatch: 'full',
     redirectTo: 'dashboard'
   },
-  {
-    path: 'sandbox',
-    loadComponent: () => import('./features/sandbox/sandbox.component').then(m => m.SandboxComponent)
-  },
+  ...sandboxRoutes,
   {
     path: '',
     component: Shell,

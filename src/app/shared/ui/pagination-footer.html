@@ -1,0 +1,32 @@
+<div class="table-footer mt-3 flex items-center justify-between gap-3 border-t border-line pt-3">
+  <span class="tabular-nums">
+    {{ 'common.pagination_report' | transloco: { first: first(), last: last(), totalRecords: total() } }}
+  </span>
+  <div class="flex items-center gap-1">
+    <button
+      tuiButton
+      appearance="flat"
+      size="s"
+      type="button"
+      [disabled]="busy() || !hasPrev()"
+      (click)="prev.emit()"
+      [attr.title]="'common.previous' | transloco"
+      [attr.aria-label]="'common.previous' | transloco"
+    >
+      <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+    </button>
+    <span class="px-2 text-surface-500">{{ 'common.page' | transloco: { page: page() + 1 } }}</span>
+    <button
+      tuiButton
+      appearance="flat"
+      size="s"
+      type="button"
+      [disabled]="busy() || !hasNext()"
+      (click)="next.emit()"
+      [attr.title]="'common.next' | transloco"
+      [attr.aria-label]="'common.next' | transloco"
+    >
+      <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    </button>
+  </div>
+</div>

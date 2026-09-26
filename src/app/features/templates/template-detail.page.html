@@ -45,7 +45,7 @@
         <h2 class="text-base font-bold mb-4 uppercase tracking-widest text-surface-400">{{ t('template_detail.title') }}</h2>
 
         <div class="overflow-x-auto">
-          <table tuiTable class="w-full min-w-[640px] menu-table">
+          <table [attr.aria-label]="t('template_detail.title')" tuiTable class="w-full min-w-[640px] menu-table">
             <thead>
               <tr>
                 <th tuiTh class="menu-table__day-head">{{ t('template_detail.day_column') }}</th>

@@ -23,7 +23,7 @@
           [description]="t('shopping_list.empty', {defaultValue: 'Aún no se ha generado ninguna lista de la compra'})">
         </app-empty-state>
       } @else {
-        <table tuiTable class="w-full">
+        <table [attr.aria-label]="t('shopping_list.title')" tuiTable class="w-full">
           <thead>
             <tr>
               <th tuiTh scope="col">{{ t('shopping_list.list_name') }}</th>

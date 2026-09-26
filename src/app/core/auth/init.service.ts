@@ -7,6 +7,7 @@ import { KEYCLOAK_EVENT_SIGNAL, KeycloakEventType, ReadyArgs, typeEventArgs } fr
 import { AppUserDto, TenantMembershipDto } from '../api/models/user.model';
 import { firstValueFrom } from 'rxjs';
 import {ConfigService} from '../config/config.service';
+import {environment} from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -30,13 +31,19 @@ export class InitService {
         const isAuthenticated = typeEventArgs<ReadyArgs>(event.args);
         if (isAuthenticated) {
           await this.postLoginActions();
-        } else if (!globalThis.location.pathname.startsWith('/sandbox')) {
+        } else if (!this.isSandboxPreview()) {
           this.#keycloak.login();
         }
       } else if (event.type === KeycloakEventType.AuthSuccess) {
         await this.postLoginActions();
       }
     });
+  }
+
+  /** El bypass de Keycloak de `/sandbox` sólo aplica en desarrollo. */
+  private isSandboxPreview(): boolean {
+    return !environment.production
+      && globalThis.location.pathname.startsWith('/sandbox');
   }
 
   private async postLoginActions(): Promise<void> {

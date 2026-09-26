@@ -322,6 +322,14 @@ html, body, tui-root {
   color: var(--ink);
 }
 
+/* Desplazamiento suave para enlaces profundos (p. ej. anclas de la ayuda).
+   Se desactiva cuando el usuario pide menos movimiento. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 /* ─────────────────────────────────────────────
    NATIVE TABLE — data-card design
    ───────────────────────────────────────────── */
@@ -459,6 +467,31 @@ table[tuiTable] {
   }
 }
 
+/* Cabecera ordenable: el botón es el control real (foco y teclado), y la
+   flecha sólo indica la dirección. Hereda tipografía y color del `th`. */
+.sort-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  inline-size: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--tui-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
 
 /* ─────────────────────────────────────────────
    RESPONSIVE — compact tables & cards on mobile
@@ -476,17 +509,6 @@ table[tuiTable] {
     tbody td[tuiTd] {
       padding: 0.625rem 0.5rem !important;
     }
-  }
-  
-  /* Hide columns on mobile - use with .hidden.sm:table-cell in templates */
-  .hidden\.sm\:table-cell {
-    display: none;
-  }
-}
-
-@media (min-width: 641px) {
-  .hidden\.sm\:table-cell {
-    display: table-cell;
   }
 }
 
@@ -680,15 +702,6 @@ button[tuiIconButton][appearance="flat"]:focus-visible {
    ───────────────────────────────────────────── */
 @layer utilities {
   /* Phase 1: Brand-Responsive Surface Tints */
-  .bg-brand-tint-02 {
-    background-color: color-mix(in srgb, var(--brand-primary) 2%, transparent);
-  }
-  .bg-brand-tint-04 {
-    background-color: color-mix(in srgb, var(--brand-primary) 4%, transparent);
-  }
-  .bg-brand-tint-05 {
-    background-color: color-mix(in srgb, var(--brand-primary) 5%, transparent);
-  }
   .bg-brand-tint-08 {
     background-color: color-mix(in srgb, var(--brand-primary) 8%, transparent);
   }
@@ -701,14 +714,8 @@ button[tuiIconButton][appearance="flat"]:focus-visible {
   .bg-brand-tint-30 {
     background-color: color-mix(in srgb, var(--brand-primary) 30%, transparent);
   }
-  .bg-brand-tint-50 {
-    background-color: color-mix(in srgb, var(--brand-primary) 50%, transparent);
-  }
-  
+
   /* Phase 1: Brand-Tinted Borders */
-  .border-brand-tint-15 {
-    border-color: color-mix(in srgb, var(--brand-primary) 15%, var(--tui-border));
-  }
   .border-brand-tint-20 {
     border-color: color-mix(in srgb, var(--brand-primary) 20%, var(--tui-border));
   }
@@ -718,22 +725,10 @@ button[tuiIconButton][appearance="flat"]:focus-visible {
   .border-brand-tint-50 {
     border-color: color-mix(in srgb, var(--brand-primary) 50%, transparent);
   }
-  
+
   /* Text utilities for tenant-aware contrast */
   .text-brand-primary {
     color: var(--tui-primary);
-  }
-  .text-brand-contrast {
-    color: var(--p-primary-contrast-color);
-  }
-  
-  /* Gradients */
-  .from-brand-tint-10 {
-    --tw-gradient-from: color-mix(in srgb, var(--brand-primary) 10%, transparent);
-    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, transparent);
-  }
-  .to-brand-tint-10 {
-    --tw-gradient-to: color-mix(in srgb, var(--brand-primary) 10%, transparent);
   }
 }
 

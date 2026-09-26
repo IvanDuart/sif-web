@@ -14,6 +14,7 @@ import { AppUserDto } from '../../core/api/models/user.model';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { EmptyState } from '../../shared/ui/empty-state';
+import { PaginationFooter } from '../../shared/ui/pagination-footer';
 import { NotificationService, ModalService, ConfirmService } from '../../core/ui';
 import { formatInstant } from '../../shared/utils/date';
 import { InviteUserDialog, InviteUserDialogInput } from '../users/invite-user.dialog';
@@ -86,6 +87,7 @@ function relativeStamp(iso: string | null | undefined): RelativeStamp | null {
     IfPermissionDirective,
     TranslocoDirective,
     EmptyState,
+    PaginationFooter,
     SkeletonComponent,
     TuiTable,
     TuiButton,

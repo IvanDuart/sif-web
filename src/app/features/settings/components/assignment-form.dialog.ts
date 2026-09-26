@@ -24,7 +24,6 @@ export interface AssignmentFormDialogInput {
     TuiComboBox, TuiDataListWrapper, TuiChevron, TuiInputDate, TuiCheckbox,
   ],
   templateUrl: './assignment-form.dialog.html',
-  styleUrls: ['./assignment-form.dialog.scss'],
 })
 export class AssignmentFormDialog {
   private readonly fb = inject(FormBuilder);

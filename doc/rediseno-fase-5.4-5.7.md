@@ -632,9 +632,13 @@ tarjeta móvil distinta). Se reescribe con el patrón estándar de listado
 
 ## 6. Siguiente paso
 
-Con 5.4–5.7 cerradas, quedan únicamente:
+Con 5.4–5.7 cerradas, las Fases 6 y 7 se completaron en
+[`rediseno-fase-6-7.md`](./rediseno-fase-6-7.md):
 
-- **Fase 6 — QA**: limpieza de CSS muerto, accesibilidad (teclado, contraste en
-  oscuro, ARIA en diálogos) y consolidación de utilidades repetidas.
-- **Fase 7 — Validación de integración**: despliegue con backend + Keycloak,
-  verificación de rutas protegidas y PR a la rama principal.
+- **Fase 6 — QA**: limpieza de CSS y componentes muertos, accesibilidad (teclado
+  en cabeceras ordenables, nombres de tabla, estados de carga, *skip link*,
+  ARIA en diálogos) y consolidación de utilidades repetidas
+  (`PaginationFooter`, `.sort-header`).
+- **Fase 7 — Validación de integración**: aislamiento del `sandbox` del build de
+  producción (`fileReplacements`), repaso de rutas y guardias, build de
+  producción validado y checklist de validación manual con backend + Keycloak.

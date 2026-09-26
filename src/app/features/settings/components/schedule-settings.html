@@ -22,9 +22,9 @@
 
       <div class="hidden md:block table-wrapper">
         @if (loadingSchedules()) {
-          <div class="table-loading"><div class="loading-spinner"></div></div>
+          <div class="table-loading" role="status" [attr.aria-label]="t('common.loading')"><div class="loading-spinner"></div></div>
         } @else {
-          <table tuiTable class="w-full">
+          <table [attr.aria-label]="t('schedule_settings.schedules_tab')" tuiTable class="w-full">
             <thead>
               <tr>
                 <th tuiTh scope="col">{{ t('schedule_settings.name') }}</th>
@@ -126,9 +126,9 @@
 
       <div class="hidden md:block table-wrapper">
         @if (loadingAssignments()) {
-          <div class="table-loading"><div class="loading-spinner"></div></div>
+          <div class="table-loading" role="status" [attr.aria-label]="t('common.loading')"><div class="loading-spinner"></div></div>
         } @else {
-          <table tuiTable class="w-full">
+          <table [attr.aria-label]="t('schedule_settings.assignments_tab')" tuiTable class="w-full">
             <thead>
               <tr>
                 <th tuiTh scope="col">{{ t('schedule_settings.name') }}</th>
@@ -248,9 +248,9 @@
 
       <div class="hidden md:block table-wrapper">
         @if (loadingHolidays()) {
-          <div class="table-loading"><div class="loading-spinner"></div></div>
+          <div class="table-loading" role="status" [attr.aria-label]="t('common.loading')"><div class="loading-spinner"></div></div>
         } @else {
-          <table tuiTable class="w-full">
+          <table [attr.aria-label]="t('schedule_settings.holidays_tab')" tuiTable class="w-full">
             <thead>
               <tr>
                 <th tuiTh scope="col">{{ t('schedule_settings.holiday_date') }}</th>

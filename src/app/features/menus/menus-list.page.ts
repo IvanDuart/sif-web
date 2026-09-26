@@ -20,6 +20,7 @@ import { MenuFormDialog } from './menu-form.dialog';
 import { MenuUploadDialog } from './menu-upload.dialog';
 import { MenuRenameDialog, MenuRenameDialogInput } from './menu-rename.dialog';
 import { EmptyState } from '../../shared/ui/empty-state';
+import { PaginationFooter } from '../../shared/ui/pagination-footer';
 
 /** Chip de estado del listado de menús. `all` no envía el parámetro `isActive`. */
 export type MenuStatusFilter = 'all' | 'active' | 'inactive';
@@ -27,7 +28,7 @@ export type MenuStatusFilter = 'all' | 'active' | 'inactive';
 @Component({
   selector: 'app-menus-list',
   standalone: true,
-  imports: [RouterModule, DatePipe, ReactiveFormsModule, IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent, TuiButton, TuiBadge, TuiTable, TuiInput, TuiSegmented, TuiDropdown, TuiDataList],
+  imports: [RouterModule, DatePipe, ReactiveFormsModule, IfPermissionDirective, TranslocoDirective, EmptyState, PaginationFooter, SkeletonComponent, TuiButton, TuiBadge, TuiTable, TuiInput, TuiSegmented, TuiDropdown, TuiDataList],
   templateUrl: './menus-list.page.html'
 })
 export default class MenusListPage implements OnInit {

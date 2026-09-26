@@ -64,12 +64,12 @@
       } @else {
         <!-- Tabla (escritorio) -->
         <div class="hidden md:block table-wrapper">
-          <table tuiTable class="w-full">
+          <table [attr.aria-label]="t('templates.title')" tuiTable class="w-full">
             <thead>
               <tr>
                 <th tuiTh scope="col" class="w-14"><span class="sr-only">{{ t('common.actions') }}</span></th>
-                <th tuiTh scope="col" class="cursor-pointer select-none" (click)="onSort('name')">
-                  <span class="inline-flex items-center gap-1.5">
+                <th tuiTh scope="col" [attr.aria-sort]="sortKey() === 'name' ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null">
+                  <button type="button" class="sort-header" (click)="onSort('name')">
                     {{ t('diets.name') }}
                     <i
                       class="fa-solid text-[10px]"
@@ -78,10 +78,10 @@
                       [class.opacity-0]="sortKey() !== 'name'"
                       aria-hidden="true"
                     ></i>
-                  </span>
+                  </button>
                 </th>
-                <th tuiTh scope="col" class="cursor-pointer select-none" (click)="onSort('description')">
-                  <span class="inline-flex items-center gap-1.5">
+                <th tuiTh scope="col" [attr.aria-sort]="sortKey() === 'description' ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null">
+                  <button type="button" class="sort-header" (click)="onSort('description')">
                     {{ t('templates.description') }}
                     <i
                       class="fa-solid text-[10px]"
@@ -90,10 +90,10 @@
                       [class.opacity-0]="sortKey() !== 'description'"
                       aria-hidden="true"
                     ></i>
-                  </span>
+                  </button>
                 </th>
-                <th tuiTh scope="col" class="w-44 cursor-pointer select-none" (click)="onSort('createdAt')">
-                  <span class="inline-flex items-center gap-1.5">
+                <th tuiTh scope="col" class="w-44" [attr.aria-sort]="sortKey() === 'createdAt' ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null">
+                  <button type="button" class="sort-header" (click)="onSort('createdAt')">
                     {{ t('templates.created_at') }}
                     <i
                       class="fa-solid text-[10px]"
@@ -102,7 +102,7 @@
                       [class.opacity-0]="sortKey() !== 'createdAt'"
                       aria-hidden="true"
                     ></i>
-                  </span>
+                  </button>
                 </th>
               </tr>
             </thead>
@@ -224,20 +224,14 @@
         </div>
 
         <!-- Paginación -->
-        <div class="table-footer mt-3 flex items-center justify-between gap-3 border-t border-line pt-3">
-          <span class="tabular-nums">
-            {{ t('common.pagination_report', { first: totalRecords() === 0 ? 0 : lastPage * lastSize + 1, last: lastPage * lastSize + templates().length, totalRecords: totalRecords() }) }}
-          </span>
-          <div class="flex items-center gap-1">
-            <button tuiButton appearance="flat" size="s" type="button" (click)="prevPage()" [disabled]="lastPage === 0 || paginating()" [attr.title]="t('common.previous')" [attr.aria-label]="t('common.previous')">
-              <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-            </button>
-            <span class="px-2 text-surface-500">{{ t('common.page', { page: lastPage + 1 }) }}</span>
-            <button tuiButton appearance="flat" size="s" type="button" (click)="nextPage()" [disabled]="(lastPage + 1) * lastSize >= totalRecords() || paginating()" [attr.title]="t('common.next')" [attr.aria-label]="t('common.next')">
-              <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-            </button>
-          </div>
-        </div>
+        <app-pagination-footer
+          [page]="lastPage"
+          [size]="lastSize"
+          [total]="totalRecords()"
+          [busy]="paginating()"
+          (prev)="prevPage()"
+          (next)="nextPage()"
+        />
       }
     </div>
   </boneyard-skeleton>

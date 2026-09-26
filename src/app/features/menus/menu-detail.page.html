@@ -122,7 +122,7 @@
         }
 
         <div class="hidden md:block overflow-x-auto">
-          <table tuiTable class="w-full min-w-[640px] menu-table">
+          <table [attr.aria-label]="t('diets.title')" tuiTable class="w-full min-w-[640px] menu-table">
             <thead>
               <tr>
                 <th tuiTh class="menu-table__day-head">{{ t('diet_detail.day_column') }}</th>

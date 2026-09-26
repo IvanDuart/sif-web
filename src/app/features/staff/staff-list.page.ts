@@ -14,6 +14,7 @@ import { AppUserDto } from '../../core/api/models/user.model';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { EmptyState } from '../../shared/ui/empty-state';
+import { PaginationFooter } from '../../shared/ui/pagination-footer';
 import { NotificationService, ModalService, ConfirmService } from '../../core/ui';
 import { InviteUserDialog, InviteUserDialogInput } from '../users/invite-user.dialog';
 import { EditUserDialog, EditUserDialogInput } from '../users/edit-user.dialog';
@@ -36,6 +37,7 @@ export type StaffStatusFilter = 'all' | 'active' | 'inactive';
     IfPermissionDirective,
     TranslocoDirective,
     EmptyState,
+    PaginationFooter,
     SkeletonComponent,
     TuiTable,
     TuiButton,

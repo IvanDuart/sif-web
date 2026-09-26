@@ -99,7 +99,6 @@ function persistView(view: AgendaViewType): void {
     TuiSegmented,
   ],
   templateUrl: './appointments.page.html',
-  styleUrls: ['./appointments.page.scss'],
 })
 export default class AppointmentsPage implements OnInit, OnDestroy {
   private readonly tenantCtx = inject(TenantContextService);

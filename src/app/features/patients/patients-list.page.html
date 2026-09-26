@@ -139,7 +139,7 @@
       } @else {
         <!-- Tabla (escritorio) -->
         <div class="hidden md:block table-wrapper">
-          <table tuiTable class="w-full">
+          <table [attr.aria-label]="t('patients.title')" tuiTable class="w-full">
             <thead>
               <tr>
                 <th tuiTh scope="col" class="w-10">
@@ -155,11 +155,9 @@
                 <th
                   tuiTh
                   scope="col"
-                  class="cursor-pointer select-none"
-                  (click)="onSort('firstName')"
                   [attr.aria-sort]="isSorted('firstName') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
                 >
-                  <span class="inline-flex items-center gap-1.5">
+                  <button type="button" class="sort-header" (click)="onSort('firstName')">
                     {{ t('patients.col_patient') }}
                     <i
                       class="fa-solid text-[10px]"
@@ -168,16 +166,15 @@
                       [class.opacity-0]="!isSorted('firstName')"
                       aria-hidden="true"
                     ></i>
-                  </span>
+                  </button>
                 </th>
                 <th
                   tuiTh
                   scope="col"
-                  class="w-32 cursor-pointer select-none"
-                  (click)="onSort('enabled')"
+                  class="w-32"
                   [attr.aria-sort]="isSorted('enabled') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
                 >
-                  <span class="inline-flex items-center gap-1.5">
+                  <button type="button" class="sort-header" (click)="onSort('enabled')">
                     {{ t('users.status') }}
                     <i
                       class="fa-solid text-[10px]"
@@ -186,16 +183,15 @@
                       [class.opacity-0]="!isSorted('enabled')"
                       aria-hidden="true"
                     ></i>
-                  </span>
+                  </button>
                 </th>
                 <th
                   tuiTh
                   scope="col"
-                  class="w-24 cursor-pointer select-none"
-                  (click)="onSort('birthDate')"
+                  class="w-24"
                   [attr.aria-sort]="isSorted('birthDate') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
                 >
-                  <span class="inline-flex items-center gap-1.5">
+                  <button type="button" class="sort-header" (click)="onSort('birthDate')">
                     {{ t('users.age') }}
                     <i
                       class="fa-solid text-[10px]"
@@ -204,7 +200,7 @@
                       [class.opacity-0]="!isSorted('birthDate')"
                       aria-hidden="true"
                     ></i>
-                  </span>
+                  </button>
                 </th>
                 @if (isTenantAdmin()) {
                   <th tuiTh scope="col" class="w-44">{{ t('patients.col_professional') }}</th>
@@ -212,11 +208,10 @@
                 <th
                   tuiTh
                   scope="col"
-                  class="w-36 cursor-pointer select-none"
-                  (click)="onSort('phone')"
+                  class="w-36"
                   [attr.aria-sort]="isSorted('phone') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
                 >
-                  <span class="inline-flex items-center gap-1.5">
+                  <button type="button" class="sort-header" (click)="onSort('phone')">
                     {{ t('users.phone') }}
                     <i
                       class="fa-solid text-[10px]"
@@ -225,16 +220,15 @@
                       [class.opacity-0]="!isSorted('phone')"
                       aria-hidden="true"
                     ></i>
-                  </span>
+                  </button>
                 </th>
                 <th
                   tuiTh
                   scope="col"
-                  class="w-32 cursor-pointer select-none"
-                  (click)="onSort('lastAppointmentDate')"
+                  class="w-32"
                   [attr.aria-sort]="isSorted('lastAppointmentDate') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
                 >
-                  <span class="inline-flex items-center gap-1.5">
+                  <button type="button" class="sort-header" (click)="onSort('lastAppointmentDate')">
                     {{ t('patients.col_last_visit') }}
                     <i
                       class="fa-solid text-[10px]"
@@ -243,16 +237,15 @@
                       [class.opacity-0]="!isSorted('lastAppointmentDate')"
                       aria-hidden="true"
                     ></i>
-                  </span>
+                  </button>
                 </th>
                 <th
                   tuiTh
                   scope="col"
-                  class="w-32 cursor-pointer select-none"
-                  (click)="onSort('nextAppointmentDate')"
+                  class="w-32"
                   [attr.aria-sort]="isSorted('nextAppointmentDate') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
                 >
-                  <span class="inline-flex items-center gap-1.5">
+                  <button type="button" class="sort-header" (click)="onSort('nextAppointmentDate')">
                     {{ t('patients.col_next_appointment') }}
                     <i
                       class="fa-solid text-[10px]"
@@ -261,7 +254,7 @@
                       [class.opacity-0]="!isSorted('nextAppointmentDate')"
                       aria-hidden="true"
                     ></i>
-                  </span>
+                  </button>
                 </th>
               </tr>
             </thead>
@@ -487,20 +480,14 @@
         </div>
 
         <!-- Paginación -->
-        <div class="table-footer mt-3 flex items-center justify-between gap-3 border-t border-line pt-3">
-          <span class="tabular-nums">
-            {{ t('common.pagination_report', { first: totalRecords() === 0 ? 0 : lastPage * lastSize + 1, last: lastPage * lastSize + users().length, totalRecords: totalRecords() }) }}
-          </span>
-          <div class="flex items-center gap-1">
-            <button tuiButton appearance="flat" size="s" type="button" [disabled]="lastPage === 0 || paginating()" (click)="prevPage()" [attr.title]="t('common.previous')" [attr.aria-label]="t('common.previous')">
-              <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-            </button>
-            <span class="px-2 text-surface-500">{{ t('common.page', { page: lastPage + 1 }) }}</span>
-            <button tuiButton appearance="flat" size="s" type="button" [disabled]="(lastPage + 1) * lastSize >= totalRecords() || paginating()" (click)="nextPage()" [attr.title]="t('common.next')" [attr.aria-label]="t('common.next')">
-              <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-            </button>
-          </div>
-        </div>
+        <app-pagination-footer
+          [page]="lastPage"
+          [size]="lastSize"
+          [total]="totalRecords()"
+          [busy]="paginating()"
+          (prev)="prevPage()"
+          (next)="nextPage()"
+        />
       }
     </div>
   </boneyard-skeleton>

@@ -14,6 +14,7 @@ import { MenuTemplate } from '../../core/api/models/menu-template.model';
 import { Menu } from '../../core/api/models/menu.model';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
 import { EmptyState } from '../../shared/ui/empty-state';
+import { PaginationFooter } from '../../shared/ui/pagination-footer';
 import { NotificationService, ModalService, ConfirmService } from '../../core/ui';
 import { TemplateFormDialog } from './template-form.dialog';
 import { TemplateUploadDialog } from './template-upload.dialog';
@@ -22,7 +23,7 @@ import { InstantiateTemplateDialog, InstantiateTemplateDialogInput } from './ins
 @Component({
   selector: 'app-templates-list',
   standalone: true,
-  imports: [RouterModule, ReactiveFormsModule, IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent, TuiButton, TuiTable, DatePipe, TuiInput, TuiDropdown, TuiDataList],
+  imports: [RouterModule, ReactiveFormsModule, IfPermissionDirective, TranslocoDirective, EmptyState, PaginationFooter, SkeletonComponent, TuiButton, TuiTable, DatePipe, TuiInput, TuiDropdown, TuiDataList],
   templateUrl: './templates-list.page.html'
 })
 export default class TemplatesListPage implements OnInit {

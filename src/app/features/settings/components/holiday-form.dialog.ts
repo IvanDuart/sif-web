@@ -18,7 +18,6 @@ import { NotificationService } from '../../../core/ui';
     TuiComboBox, TuiDataListWrapper, TuiChevron, TuiInputDate,
   ],
   templateUrl: './holiday-form.dialog.html',
-  styleUrls: ['./holiday-form.dialog.scss'],
 })
 export class HolidayFormDialog {
   private readonly fb = inject(FormBuilder);

@@ -58,7 +58,7 @@
         </app-empty-state>
       } @else {
         <div class="hidden md:block table-wrapper">
-          <table tuiTable class="w-full">
+          <table [attr.aria-label]="t('patients.my_title')" tuiTable class="w-full">
             <thead>
               <tr>
                 <th tuiTh scope="col">{{ t('appointments.patient') }}</th>

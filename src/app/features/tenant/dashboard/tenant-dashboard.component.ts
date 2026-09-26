@@ -76,7 +76,6 @@ interface TimelineRow {
     EmptyState,
   ],
   templateUrl: './tenant-dashboard.component.html',
-  styleUrls: ['./tenant-dashboard.component.scss'],
 })
 export class TenantDashboardComponent implements OnInit, OnDestroy {
   private readonly tenantCtx = inject(TenantContextService);
