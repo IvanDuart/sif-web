@@ -4,6 +4,7 @@
       <div class="flex flex-col gap-1.5 py-1">
         <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
           <textarea
+            #mealTextarea
             tuiTextarea
             [ngModel]="draft()"
             (ngModelChange)="draftChange.emit($event)"
@@ -43,7 +44,7 @@
       </div>
     } @else {
       <div class="menu-table__meal">
-        <span class="menu-table__meal-text">
+        <ng-template #mealText>
           {{ m.description }}
           @if (macros(); as macro) {
             <span class="menu-table__meal-macros">
@@ -52,7 +53,22 @@
               {{ t('food.carbs_short') }} {{ macro.carbs | number: '1.0-1' }} g
             </span>
           }
-        </span>
+        </ng-template>
+
+        @if (canManage()) {
+          <button
+            type="button"
+            class="menu-table__meal-text"
+            (click)="edit.emit()"
+            [attr.title]="t('common.edit')"
+            [attr.aria-label]="t('common.edit')">
+            <ng-container *ngTemplateOutlet="mealText" />
+          </button>
+        } @else {
+          <span class="menu-table__meal-text">
+            <ng-container *ngTemplateOutlet="mealText" />
+          </span>
+        }
         @if (kcal() !== null) {
           <span tuiBadge appearance="neutral" size="s" class="menu-table__meal-kcal">
             {{ kcal() | number: '1.0-0' }} kcal
@@ -60,10 +76,7 @@
         }
         @if (canManage()) {
           <span class="menu-table__meal-actions">
-            <button tuiIconButton appearance="flat" size="xs" type="button" (click)="edit.emit()" [title]="t('common.edit')">
-              <i class="fa-solid fa-pen-to-square"></i>
-            </button>
-            <button tuiIconButton appearance="flat" size="xs" type="button" class="text-red-500 hover:text-red-700" (click)="remove.emit()" [title]="t('common.delete')">
+            <button tuiIconButton appearance="flat" size="xs" type="button" class="text-err" (click)="remove.emit()" [title]="t('common.delete')">
               <i class="fa-solid fa-trash"></i>
             </button>
           </span>

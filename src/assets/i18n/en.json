@@ -230,6 +230,15 @@
   "staff": {
     "title": "Staff",
     "invite": "Invite Member",
+    "invite_dialog_title": "Invite New Team Member",
+    "invite_success": "Member invited successfully",
+    "count": "{{total}} members",
+    "search_placeholder": "Name, email or role",
+    "filter_all": "All",
+    "filter_active": "Active",
+    "filter_inactive": "Inactive",
+    "no_results_title": "No results",
+    "no_results": "No member matches the search or filter.",
     "back_to_list": "Back to Staff",
     "empty_title": "No staff yet",
     "empty": "No staff members in this clinic.",
@@ -292,7 +301,19 @@
     "process_and_create": "Process & Create",
     "empty": "No menus yet. Start by creating one manually or uploading a file.",
     "empty_title": "No menus yet",
-    "view": "View detail"
+    "view": "View detail",
+    "count": "{{total}} menus",
+    "search_placeholder": "Menu name",
+    "filter_all": "All",
+    "filter_active": "Active",
+    "filter_inactive": "Inactive",
+    "no_results_title": "No results",
+    "no_results": "No menu matches the search or the filter.",
+    "delete_confirm": "Delete the menu \"{{name}}\"? Plans already assigned to patients are not affected.",
+    "menu_actions": "Menu actions",
+    "created_success": "Menu created successfully",
+    "upload_title": "Upload Menu (AI recognition)",
+    "create_title": "Create Menu Manually"
   },
   "measurements": {
     "title": "Body Measurements",
@@ -559,6 +580,17 @@
     "created_at": "Created at",
     "updated": "Updated:",
     "not_found": "Template not found...",
+    "count": "{{total}} templates",
+    "search_placeholder": "Name or description",
+    "no_results_title": "No results",
+    "no_results": "No template matches the search.",
+    "template_actions": "Template actions",
+    "created_success": "Template created",
+    "deleted_success": "Template deleted",
+    "duplicate": "Duplicate",
+    "duplicate_success": "Template duplicated",
+    "duplicate_name": "{{name}} (copy)",
+    "upload_title": "Upload Template (AI recognition)",
     "form_name_label": "Template Name",
     "form_name_optional": "Template Name (optional)",
     "form_name_placeholder": "E.g.: Week 1 Template",
@@ -714,6 +746,8 @@
     "history_meta": "{{total}} appointments · {{attended}} attended · {{missed}} missed · {{rate}} % attendance"
   },
   "settings": {
+    "subtitle": "Clinic settings: branding, appointment types, schedule and address",
+    "nav_group": "Center",
     "branding_tab": "Branding",
     "branding": "Brand & Colors",
     "primary_color": "Primary Color",
@@ -760,7 +794,8 @@
     "band_to": "To",
     "add_band": "Add band",
     "remove_band": "Remove band",
-    "no_bands": "No bands: the clinic defaults are used."
+    "no_bands": "No bands: the clinic defaults are used.",
+    "address_subtitle2": "Tax address and location of the clinic."
   },
   "appointment_types": {
     "title": "Appointment Types",
@@ -775,7 +810,8 @@
     "update_success": "Appointment type updated",
     "delete_confirm": "Deactivate appointment type '{{name}}'?",
     "delete_success": "Appointment type deactivated",
-    "empty": "No appointment types configured"
+    "empty": "No appointment types configured",
+    "subtitle": "Duration, price and availability for each consultation type."
   },
   "schedule_settings": {
     "title": "Schedules & Holidays",
@@ -843,7 +879,8 @@
     "update": "Update",
     "assign": "Assign",
     "update_assignment": "Update",
-    "edit_assignment": "Edit Assignment"
+    "edit_assignment": "Edit Assignment",
+    "subtitle": "Working schedules, staff assignments and clinic holidays."
   },
   "primeng": {
     "startsWith": "Starts with",
@@ -1131,7 +1168,9 @@
   },
   "errors": {
     "not_authorized_title": "403",
-    "not_authorized": "Not Authorized"
+    "not_authorized": "Not authorized",
+    "not_authorized_desc": "You do not have permission to access this section. If you think this is a mistake, contact your clinic administrator.",
+    "go_dashboard": "Back to home"
   },
   "admin": {
     "dashboard_title": "Admin Dashboard",
@@ -1162,6 +1201,7 @@
   },
   "shopping_list": {
     "title": "Shopping List",
+    "count": "{{total}} lists",
     "list_name": "Name",
     "supermarket": "Supermarket",
     "total_price": "Total Price",

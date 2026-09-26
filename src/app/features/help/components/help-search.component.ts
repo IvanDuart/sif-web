@@ -9,24 +9,24 @@ import { FormsModule } from '@angular/forms';
   template: `
     <div class="help-search relative w-full lg:w-80">
       <div class="relative">
-        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-500"></i>
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-500" aria-hidden="true"></i>
         <input
           type="text"
-          class="w-full pl-10 pr-10 py-2 rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-800 text-surface-900 dark:text-surface-0 placeholder-surface-400 dark:placeholder-surface-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+          class="w-full rounded-sm border border-line bg-surface-0 py-2 pl-10 pr-10 text-surface-900 transition-colors placeholder:text-surface-400 focus:border-primary-600 focus:outline-none dark:bg-surface-800 dark:text-surface-0 dark:focus:border-primary-300"
           [value]="query"
           [placeholder]="placeholder"
           (input)="onInput($event)"
           (keydown.escape)="onEscape()"
-          aria-label="Search help"
+          [attr.aria-label]="placeholder"
         />
         @if (query.length > 0) {
           <button
             type="button"
             (click)="onClear()"
-            class="absolute right-4 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600 dark:text-surface-500 dark:hover:text-surface-300 transition-colors"
-            aria-label="Clear search"
+            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-surface-400 transition-colors hover:text-surface-600 dark:text-surface-500 dark:hover:text-surface-300"
+            [attr.aria-label]="clearLabel"
           >
-            <i class="fa-solid fa-xmark"></i>
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
           </button>
         }
       </div>
@@ -42,6 +42,7 @@ import { FormsModule } from '@angular/forms';
 export class HelpSearchComponent {
   @Input() query = '';
   @Input() placeholder = 'Search help...';
+  @Input() clearLabel = 'Clear search';
   @Output() queryChange = new EventEmitter<string>();
 
   onInput(event: Event): void {

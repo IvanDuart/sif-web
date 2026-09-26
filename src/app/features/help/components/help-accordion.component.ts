@@ -12,43 +12,42 @@ import { HelpSection } from '../content/help-content';
     <div class="help-accordion" *transloco="let t">
       <div class="space-y-2">
         @for (topic of section.topics; track topic.id) {
-          <div class="border border-surface-200 dark:border-surface-700 rounded-lg overflow-hidden bg-surface-0 dark:bg-surface-800">
+          <div class="overflow-hidden rounded-md border border-line bg-surface-0 dark:bg-surface-800">
             <!-- Header -->
             <button
               type="button"
               (click)="toggleTopic(topic.id)"
-              class="w-full px-6 py-4 flex items-start gap-3 hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors text-left"
+              class="flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-surface-50 dark:hover:bg-surface-700"
               [attr.aria-expanded]="isTopicOpen(topic.id)"
             >
               <i
-                class="fa-solid transition-transform duration-200"
+                class="fa-solid text-xs text-surface-400 transition-transform duration-200"
                 [class.fa-chevron-down]="!isTopicOpen(topic.id)"
                 [class.fa-chevron-up]="isTopicOpen(topic.id)"
+                aria-hidden="true"
               ></i>
-              <div class="flex-1">
-                <h4 class="font-semibold text-surface-900 dark:text-surface-0">
-                  {{ t(topic.titleKey) }}
-                </h4>
-              </div>
+              <span class="flex-1 font-medium text-surface-900 dark:text-surface-0">
+                {{ t(topic.titleKey) }}
+              </span>
             </button>
 
             <!-- Content -->
             @if (isTopicOpen(topic.id)) {
-              <div class="px-6 pb-4 bg-surface-50 dark:bg-surface-800/50 border-t border-surface-200 dark:border-surface-700 space-y-4">
+              <div class="space-y-4 border-t border-line bg-surface-50 px-5 pb-5 pt-4 dark:bg-surface-900">
                 <!-- Description -->
-                <p class="text-surface-600 dark:text-surface-300 text-sm leading-relaxed">
+                <p class="text-[14px] leading-relaxed text-surface-600 dark:text-surface-300">
                   {{ t(topic.descKey) }}
                 </p>
 
                 <!-- Steps (if available) -->
                 @if (topic.steps && topic.steps.length > 0) {
-                  <div class="bg-surface-0 dark:bg-surface-800 rounded-lg p-4 border border-surface-200 dark:border-surface-700">
-                    <h5 class="font-semibold text-surface-900 dark:text-surface-0 mb-3 text-sm">
+                  <div class="rounded-sm border border-line bg-surface-0 p-4 dark:bg-surface-800">
+                    <h3 class="mb-2 text-[13px] font-semibold text-surface-900 dark:text-surface-0">
                       {{ t('help.steps_label') }}
-                    </h5>
-                    <ol class="space-y-2 list-decimal list-inside">
+                    </h3>
+                    <ol class="list-inside list-decimal space-y-1.5">
                       @for (step of topic.steps; track step; let i = $index) {
-                        <li class="text-surface-700 dark:text-surface-200 text-sm leading-relaxed">
+                        <li class="text-[14px] leading-relaxed text-surface-700 dark:text-surface-200">
                           {{ t(step) }}
                         </li>
                       }
@@ -62,9 +61,9 @@ import { HelpSection } from '../content/help-content';
                     @for (route of topic.relatedRoutes; track route) {
                       <a
                         [routerLink]="route"
-                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs font-medium hover:bg-primary-200 dark:hover:bg-primary-900/50 transition-colors"
+                        class="inline-flex items-center gap-1.5 rounded-pill bg-brand-tint-10 px-3 py-1.5 text-xs font-medium text-primary-700 transition-colors hover:bg-brand-tint-20 dark:text-primary-300"
                       >
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
                         {{ t('help.go_to_app') }}
                       </a>
                     }

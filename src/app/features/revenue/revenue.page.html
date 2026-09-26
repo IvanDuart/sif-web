@@ -1,10 +1,14 @@
-<div *transloco="let t" class="py-4 space-y-6">
-  <div>
-    <h2 class="text-xl font-display font-bold tracking-tight text-surface-900 dark:text-surface-0 text-balance">
-      {{ t('revenue.title') }}
-    </h2>
-    <p class="text-sm text-surface-500 mt-1">{{ t('revenue.subtitle') }}</p>
-  </div>
+<div *transloco="let t" class="space-y-6 pb-4">
+  <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+    <div class="min-w-0">
+      <h1
+        class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]"
+      >
+        {{ t('revenue.title') }}
+      </h1>
+      <p class="mt-1.5 text-[13px] text-surface-400">{{ t('revenue.subtitle') }}</p>
+    </div>
+  </header>
 
   <tui-tabs [(activeItemIndex)]="activeTab">
     <button tuiTab type="button">{{ t('revenue.tab_revenue') }}</button>

@@ -1,25 +1,25 @@
 <boneyard-skeleton name="menu-detail-content" [loading]="loading() && !menu()">
   @if (menu()) {
-  <div class="p-4" *transloco="let t">
-    <div class="mb-6">
-      <a (click)="goBack()" (keydown.enter)="goBack()" tabindex="0" role="link" class="inline-flex items-center gap-1 text-sm font-semibold text-surface-500 hover:text-primary-600 mb-4 transition-colors cursor-pointer">
-        <i class="fa-solid fa-arrow-left text-xs"></i> {{ t('diet_detail.back') }}
+  <div class="space-y-6 pb-4" *transloco="let t">
+    <div>
+      <a (click)="goBack()" (keydown.enter)="goBack()" tabindex="0" role="link" class="mb-3 inline-flex items-center gap-1 text-[13px] text-surface-400 hover:text-primary-600 dark:hover:text-primary-300 transition-colors cursor-pointer">
+        <i class="fa-solid fa-arrow-left text-[10px]"></i> {{ t('diet_detail.back') }}
       </a>
 
       <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-        <div>
+        <div class="min-w-0">
           <div class="flex items-center gap-2 mb-2">
-            <h1 class="text-3xl font-display font-bold tracking-tight text-balance">{{ menu()?.name }}</h1>
+            <h1 class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]">{{ menu()?.name }}</h1>
             <button
               *appIfPermission="'MANAGE_MENU'"
               tuiButton appearance="flat" size="s" type="button"
               (click)="renameMenu()"
-              [title]="t('common.edit')">
-              <i class="fa-solid fa-pen"></i>
+              [attr.title]="t('common.edit')" [attr.aria-label]="t('common.edit')">
+              <i class="fa-solid fa-pen" aria-hidden="true"></i>
             </button>
           </div>
-          @if (menu()?.description) { <p class="text-sm text-surface-500 dark:text-surface-400 mt-1">{{ menu()?.description }}</p> }
-          <div class="flex gap-2 items-center">
+          @if (menu()?.description) { <p class="text-[14px] text-surface-500 dark:text-surface-400">{{ menu()?.description }}</p> }
+          <div class="mt-2.5 flex flex-wrap gap-x-3 gap-y-1.5 items-center text-[13px] text-surface-400">
             <span tuiBadge [appearance]="menu()?.isActive ? 'positive' : 'neutral'">
               {{ menu()?.isActive ? t('diets.active_badge') : t('diets.inactive_badge') }}
             </span>
@@ -30,15 +30,14 @@
                 [class.text-ok]="menu()?.isActive"
                 [class.text-surface-400]="!menu()?.isActive"
                 (click)="toggleActiveMenu()"
-                [title]="menu()?.isActive ? t('menu_history.deactivate') : t('menu_history.activate')">
-                <i class="fa-solid" [class.fa-toggle-on]="menu()?.isActive" [class.fa-toggle-off]="!menu()?.isActive"></i>
+                [attr.title]="menu()?.isActive ? t('menu_history.deactivate') : t('menu_history.activate')"
+                [attr.aria-label]="menu()?.isActive ? t('menu_history.deactivate') : t('menu_history.activate')">
+                <i class="fa-solid" [class.fa-toggle-on]="menu()?.isActive" [class.fa-toggle-off]="!menu()?.isActive" aria-hidden="true"></i>
               </button>
             }
-            <span class="text-surface-500 text-sm">{{ t('diets.created') }} {{ menu()?.createdAt | date:'longDate' }}</span>
+            <span class="tabular-nums">{{ t('diets.created') }} {{ menu()?.createdAt | date:'longDate' }}</span>
             @if (menuKcal(); as kcal) {
-              <span tuiBadge appearance="info">
-                {{ t('food.menu_total') }}: {{ kcal | number: '1.0-0' }} kcal
-              </span>
+              <span class="tabular-nums text-surface-400">{{ t('food.menu_total') }}: {{ kcal | number: '1.0-0' }} kcal</span>
             }
           </div>
         </div>
@@ -111,7 +110,7 @@
       </div>
     </div>
 
-    <div class="data-card mt-6">
+    <div class="data-card">
       <div class="p-6">
         <h2 class="text-base font-bold mb-4 uppercase tracking-widest text-surface-400">{{ t('diet_detail.title') }}</h2>
 
@@ -127,60 +126,51 @@
             <thead>
               <tr>
                 <th tuiTh class="menu-table__day-head">{{ t('diet_detail.day_column') }}</th>
-                <th tuiTh>
-                  <div class="menu-table__meal-head">
-                    <i class="fa-solid fa-utensils text-xs"></i>
-                    {{ t('diet_detail.meal_types.lunch') }}
-                  </div>
-                </th>
-                <th tuiTh>
-                  <div class="menu-table__meal-head">
-                    <i class="fa-solid fa-moon text-xs"></i>
-                    {{ t('diet_detail.meal_types.dinner') }}
-                  </div>
-                </th>
+                <th tuiTh>{{ t('diet_detail.meal_types.lunch') }}</th>
+                <th tuiTh>{{ t('diet_detail.meal_types.dinner') }}</th>
               </tr>
             </thead>
             <tbody tuiTbody>
               @for (day of allDays; track day) {
                 <tr tuiTr>
-                  <td tuiTd class="menu-table__day">
-                    <i class="fa-regular fa-calendar text-xs"></i>
-                    <span>{{ dayLabel(day) }}</span>
-                    @if (dayKcal(day); as kcal) {
-                      <span class="menu-table__day-kcal">{{ kcal | number: '1.0-0' }} kcal</span>
-                    }
-                    @if (canManageMeal() && mealCountOfDay(day) > 0) {
-                      <span
-                        [tuiDropdown]="copyDayMenu"
-                        tuiDropdownAlign="start"
-                        [tuiDropdownOpen]="copyDayMenuOpen() === day"
-                        (tuiDropdownOpenChange)="copyDayMenuOpen.set($event ? day : null)">
-                        <button
-                          tuiIconButton
-                          appearance="flat"
-                          size="xs"
-                          type="button"
-                          [title]="t('food.copy_day')">
-                          <i class="fa-solid fa-clone" aria-hidden="true"></i>
-                        </button>
-                        <ng-template #copyDayMenu>
-                          <tui-data-list>
-                            <div class="menu-table__copy-head">{{ t('food.copy_day_to') }}</div>
-                            @for (target of allDays; track target) {
-                              @if (target !== day) {
-                                <button tuiOption type="button" (click)="copyDay(day, target)">
-                                  {{ dayLabel(target) }}
-                                  @if (mealCountOfDay(target) > 0) {
-                                    <i class="fa-solid fa-triangle-exclamation text-xs ml-1.5 text-amber-500" aria-hidden="true"></i>
-                                  }
-                                </button>
+                  <td tuiTd class="menu-table__day-cell">
+                    <div class="menu-table__day">
+                      <span>{{ dayLabel(day) }}</span>
+                      @if (dayKcal(day); as kcal) {
+                        <span class="menu-table__day-kcal">{{ kcal | number: '1.0-0' }} kcal</span>
+                      }
+                      @if (canManageMeal() && mealCountOfDay(day) > 0) {
+                        <span
+                          [tuiDropdown]="copyDayMenu"
+                          tuiDropdownAlign="start"
+                          [tuiDropdownOpen]="copyDayMenuOpen() === day"
+                          (tuiDropdownOpenChange)="copyDayMenuOpen.set($event ? day : null)">
+                          <button
+                            tuiIconButton
+                            appearance="flat"
+                            size="xs"
+                            type="button"
+                            [title]="t('food.copy_day')">
+                            <i class="fa-solid fa-clone" aria-hidden="true"></i>
+                          </button>
+                          <ng-template #copyDayMenu>
+                            <tui-data-list>
+                              <div class="menu-table__copy-head">{{ t('food.copy_day_to') }}</div>
+                              @for (target of allDays; track target) {
+                                @if (target !== day) {
+                                  <button tuiOption type="button" (click)="copyDay(day, target)">
+                                    {{ dayLabel(target) }}
+                                    @if (mealCountOfDay(target) > 0) {
+                                      <i class="fa-solid fa-triangle-exclamation text-xs ml-1.5 text-warn" aria-hidden="true"></i>
+                                    }
+                                  </button>
+                                }
                               }
-                            }
-                          </tui-data-list>
-                        </ng-template>
-                      </span>
-                    }
+                            </tui-data-list>
+                          </ng-template>
+                        </span>
+                      }
+                    </div>
                   </td>
                   @for (mealType of mealTypes; track mealType) {
                     <td
@@ -232,14 +222,14 @@
 
         <div class="md:hidden space-y-4">
           @for (day of allDays; track day) {
-            <div class="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden">
-              <div class="menu-table__day px-3 py-2">
+            <div class="rounded-lg border border-line overflow-hidden">
+              <div class="menu-table__day-cell menu-table__day px-3 py-2">
                 <i class="fa-regular fa-calendar text-xs"></i>
                 <span>{{ dayLabel(day) }}</span>
               </div>
 
               @for (mealType of mealTypes; track mealType) {
-                <div class="px-3 py-2 border-t border-surface-200 dark:border-surface-700">
+                <div class="px-3 py-2 border-t border-line">
                   <div class="menu-table__meal-head mb-1.5 text-surface-500">
                     <i class="fa-solid text-xs" [class]="mealTypeIcon(mealType)"></i>
                     {{ t(mealTypeLabelKey('diet_detail', mealType)) }}

@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
-import { TuiButton } from '@taiga-ui/core';
 import { TuiTable } from '@taiga-ui/addon-table';
 
 import { ShoppingListService } from '../../core/api/services/shopping-list.api';
@@ -31,7 +30,7 @@ const SUPERMARKET_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-shopping-lists',
   standalone: true,
-  imports: [DatePipe, TranslocoDirective, EmptyState, SkeletonComponent, TuiButton, TuiTable],
+  imports: [DatePipe, TranslocoDirective, EmptyState, SkeletonComponent, TuiTable],
   templateUrl: './shopping-lists.page.html'
 })
 export default class ShoppingListsPage implements OnInit {
@@ -67,8 +66,14 @@ export default class ShoppingListsPage implements OnInit {
     return SUPERMARKET_LABELS[supermarket] || supermarket;
   }
 
+  private readonly currency = new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: 2
+  });
+
   totalLabel(list: ShoppingListDto): string {
-    return list.totalEstimatedPrice != null ? `${list.totalEstimatedPrice.toFixed(2)} €` : '—';
+    return list.totalEstimatedPrice != null ? this.currency.format(list.totalEstimatedPrice) : '—';
   }
 
   viewList(list: ShoppingListDto) {

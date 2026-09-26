@@ -1,24 +1,26 @@
-<div class="help-page min-h-screen bg-surface-0 dark:bg-surface-900 p-4 lg:p-6" *transloco="let t">
+<div class="space-y-6 pb-4" *transloco="let t">
   <!-- Header Section -->
-  <div class="mb-8">
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
-      <div>
-        <h1 class="text-3xl font-display font-bold text-surface-900 dark:text-surface-0 mb-2">
+  <div>
+    <div class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
+      <div class="min-w-0">
+        <h1 class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]">
           {{ t('help.title') }}
         </h1>
-        <p class="text-surface-600 dark:text-surface-300 text-sm">
+        <p class="mt-1.5 text-[13px] text-surface-500 dark:text-surface-400">
           {{ t('help.subtitle') }}
         </p>
       </div>
-      <app-help-search 
-        [query]="searchQuery()" 
+      <app-help-search
+        class="lg:shrink-0"
+        [query]="searchQuery()"
         (queryChange)="onSearchChange($event)"
         [placeholder]="t('help.search_placeholder')"
+        [clearLabel]="t('help.clear_search')"
       />
     </div>
 
     <!-- Tabs Navigation -->
-    <div class="border-b border-surface-200 dark:border-surface-700 overflow-x-auto">
+    <div class="overflow-x-auto border-b border-line">
       <tui-tabs
         class="bg-transparent"
         [activeItemIndex]="activeTabIndex()"
@@ -26,7 +28,7 @@
         @for (tab of tabs(); track tab.id) {
           <button tuiTab type="button" class="flex items-center gap-2 px-1 pb-1">
             <i [class]="tab.icon + ' text-[1.1em] opacity-80'"></i>
-            <span class="font-medium text-sm">{{ tab.label }}</span>
+            <span class="text-sm font-medium">{{ tab.label }}</span>
           </button>
         }
       </tui-tabs>
@@ -38,29 +40,30 @@
     @if (hasNoResults()) {
       <!-- No Results State -->
       <div class="py-16 text-center">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-surface-100 dark:bg-surface-800 mb-4">
+        <div class="mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-pill bg-surface-100 dark:bg-surface-800">
           <i class="fa-solid fa-magnifying-glass text-2xl text-surface-400 dark:text-surface-500"></i>
         </div>
-        <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-2">
+        <h2 class="mb-2 font-display text-[18px] font-bold text-surface-900 dark:text-surface-0">
           {{ t('help.no_results_title') }}
-        </h3>
-        <p class="text-surface-600 dark:text-surface-300 mb-4">
+        </h2>
+        <p class="mb-4 text-surface-500 dark:text-surface-400">
           {{ t('help.no_results_desc') }}
         </p>
-        <button 
+        <button
           type="button"
           tuiButton
+          appearance="secondary"
           size="m"
           (click)="onSearchChange('')"
         >
-          <i class="fa-solid fa-arrow-rotate-left mr-1"></i>
+          <i class="fa-solid fa-arrow-rotate-left mr-1.5" aria-hidden="true"></i>
           {{ t('help.clear_search') }}
         </button>
       </div>
     } @else {
       <!-- Accordion Sections -->
       @for (section of filteredSections(); track section.id) {
-        <app-help-accordion 
+        <app-help-accordion
           [section]="section"
           [deepLinkId]="section.id"
           (openSection)="onSectionOpen(section.id)"

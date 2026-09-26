@@ -151,6 +151,7 @@
                     [attr.aria-label]="t('patients.select_all')"
                   />
                 </th>
+                <th tuiTh scope="col" class="w-14"><span class="sr-only">{{ t('common.actions') }}</span></th>
                 <th
                   tuiTh
                   scope="col"
@@ -262,7 +263,6 @@
                     ></i>
                   </span>
                 </th>
-                <th tuiTh scope="col" class="w-14"><span class="sr-only">{{ t('common.actions') }}</span></th>
               </tr>
             </thead>
             <tbody tuiTbody>
@@ -280,6 +280,54 @@
                       (ngModelChange)="toggleRow(row.user.id)"
                       [attr.aria-label]="t('patients.select_row', { name: row.user.firstName + ' ' + row.user.lastName })"
                     />
+                  </td>
+                  <td tuiTd (click)="$event.stopPropagation()">
+                    <div
+                      class="inline-block"
+                      [tuiDropdown]="rowMenu"
+                      tuiDropdownAuto
+                      tuiDropdownAlign="start"
+                      tuiDropdownLimitWidth="min"
+                    >
+                      <button
+                        tuiButton
+                        appearance="flat"
+                        size="s"
+                        type="button"
+                        [attr.aria-label]="t('common.actions') + ': ' + row.user.firstName + ' ' + row.user.lastName"
+                      >
+                        <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                      </button>
+                      <ng-template #rowMenu>
+                        <tui-data-list>
+                          <button tuiOption type="button" [routerLink]="['/users', row.user.id]">
+                            <i class="fa-solid fa-arrow-up-right-from-square mr-2" aria-hidden="true"></i>
+                            {{ t('patients.action_open') }}
+                          </button>
+                          @if (canManageUsers()) {
+                            <button tuiOption type="button" (click)="editUser(row.user)">
+                              <i class="fa-solid fa-pen mr-2" aria-hidden="true"></i>
+                              {{ t('users.edit') }}
+                            </button>
+                            <button tuiOption type="button" (click)="toggleEnabled(row.user)">
+                              <i
+                                class="fa-solid mr-2"
+                                [class.fa-toggle-off]="row.user.enabled !== false"
+                                [class.fa-toggle-on]="row.user.enabled === false"
+                                aria-hidden="true"
+                              ></i>
+                              {{ row.user.enabled !== false ? t('users.disable') : t('users.enable') }}
+                            </button>
+                          }
+                          @if (canDeleteUsers()) {
+                            <button tuiOption type="button" class="text-err" (click)="revokeAccess(row.user)">
+                              <i class="fa-solid fa-user-xmark mr-2" aria-hidden="true"></i>
+                              {{ t('users.revoke') }}
+                            </button>
+                          }
+                        </tui-data-list>
+                      </ng-template>
+                    </div>
                   </td>
                   <td tuiTd>
                     <div class="flex items-center gap-3">
@@ -330,54 +378,6 @@
                     } @else {
                       <span class="text-surface-300 dark:text-surface-600">{{ t('patients.no_next_appointment') }}</span>
                     }
-                  </td>
-                  <td tuiTd class="text-right">
-                    <div
-                      class="inline-block"
-                      [tuiDropdown]="rowMenu"
-                      tuiDropdownAlign="end"
-                      tuiDropdownLimitWidth="min"
-                    >
-                      <button
-                        tuiButton
-                        appearance="flat"
-                        size="s"
-                        type="button"
-                        (click)="$event.stopPropagation()"
-                        [attr.aria-label]="t('common.actions') + ': ' + row.user.firstName + ' ' + row.user.lastName"
-                      >
-                        <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
-                      </button>
-                      <ng-template #rowMenu>
-                        <tui-data-list>
-                          <button tuiOption type="button" [routerLink]="['/users', row.user.id]">
-                            <i class="fa-solid fa-arrow-up-right-from-square mr-2" aria-hidden="true"></i>
-                            {{ t('patients.action_open') }}
-                          </button>
-                          @if (canManageUsers()) {
-                            <button tuiOption type="button" (click)="editUser(row.user)">
-                              <i class="fa-solid fa-pen mr-2" aria-hidden="true"></i>
-                              {{ t('users.edit') }}
-                            </button>
-                            <button tuiOption type="button" (click)="toggleEnabled(row.user)">
-                              <i
-                                class="fa-solid mr-2"
-                                [class.fa-toggle-off]="row.user.enabled !== false"
-                                [class.fa-toggle-on]="row.user.enabled === false"
-                                aria-hidden="true"
-                              ></i>
-                              {{ row.user.enabled !== false ? t('users.disable') : t('users.enable') }}
-                            </button>
-                          }
-                          @if (canDeleteUsers()) {
-                            <button tuiOption type="button" class="text-err" (click)="revokeAccess(row.user)">
-                              <i class="fa-solid fa-user-xmark mr-2" aria-hidden="true"></i>
-                              {{ t('users.revoke') }}
-                            </button>
-                          }
-                        </tui-data-list>
-                      </ng-template>
-                    </div>
                   </td>
                 </tr>
               }

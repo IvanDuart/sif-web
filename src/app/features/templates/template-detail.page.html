@@ -1,18 +1,18 @@
 <boneyard-skeleton name="template-detail-content" [loading]="loading() && !template()">
   @if (template()) {
-  <div class="p-4" *transloco="let t">
-    <div class="mb-6">
-      <a routerLink="/templates" class="inline-flex items-center gap-1 text-sm font-semibold text-surface-500 hover:text-primary-600 mb-4 transition-colors">
-        <i class="fa-solid fa-arrow-left text-xs"></i> {{ t('template_detail.back') }}
+  <div class="space-y-6 pb-4" *transloco="let t">
+    <div>
+      <a routerLink="/templates" class="mb-3 inline-flex items-center gap-1 text-[13px] text-surface-400 hover:text-primary-600 dark:hover:text-primary-300 transition-colors">
+        <i class="fa-solid fa-arrow-left text-[10px]"></i> {{ t('template_detail.back') }}
       </a>
 
-      <div class="flex justify-between items-start">
-        <div>
-          <h1 class="text-3xl font-display font-bold tracking-tight text-balance mb-2">{{ template()?.name }}</h1>
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+        <div class="min-w-0">
+          <h1 class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]">{{ template()?.name }}</h1>
           @if (template()?.description) {
-          <p class="text-surface-500 text-sm mb-2">{{ template()?.description }}</p>
+          <p class="mt-1.5 text-[14px] text-surface-500 dark:text-surface-400">{{ template()?.description }}</p>
           }
-          <div class="flex gap-3 items-center text-xs text-surface-400">
+          <div class="mt-2.5 flex flex-wrap gap-x-3 gap-y-1.5 items-center text-[13px] tabular-nums text-surface-400">
             @if (template()?.createdAt) {
             <span>{{ t('templates.created') }} {{ template()?.createdAt | date:'longDate' }}</span>
             }
@@ -21,19 +21,26 @@
             }
           </div>
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
+          <button
+            *appIfPermission="'MANAGE_TEMPLATE'"
+            tuiButton appearance="secondary" size="m"
+            (click)="duplicateTemplate()">
+            <i class="fa-solid fa-clone mr-1" aria-hidden="true"></i>
+            {{ t('templates.duplicate') }}
+          </button>
           <button
             *appIfPermission="'INSTANTIATE_TEMPLATE'"
-            tuiButton appearance="secondary" size="m"
+            tuiButton appearance="primary" size="m"
             (click)="instantiateTemplate()">
-            <i class="fa-solid fa-user-plus"></i>
+            <i class="fa-solid fa-user-plus mr-1" aria-hidden="true"></i>
             {{ t('templates.assign') }}
           </button>
         </div>
       </div>
     </div>
 
-    <div class="data-card mt-6">
+    <div class="data-card">
       <div class="p-6">
         <h2 class="text-base font-bold mb-4 uppercase tracking-widest text-surface-400">{{ t('template_detail.title') }}</h2>
 
@@ -42,26 +49,17 @@
             <thead>
               <tr>
                 <th tuiTh class="menu-table__day-head">{{ t('template_detail.day_column') }}</th>
-                <th tuiTh>
-                  <div class="menu-table__meal-head">
-                    <i class="fa-solid fa-utensils text-xs"></i>
-                    {{ t('template_detail.meal_types.lunch') }}
-                  </div>
-                </th>
-                <th tuiTh>
-                  <div class="menu-table__meal-head">
-                    <i class="fa-solid fa-moon text-xs"></i>
-                    {{ t('template_detail.meal_types.dinner') }}
-                  </div>
-                </th>
+                <th tuiTh>{{ t('template_detail.meal_types.lunch') }}</th>
+                <th tuiTh>{{ t('template_detail.meal_types.dinner') }}</th>
               </tr>
             </thead>
             <tbody tuiTbody>
               @for (day of allDays; track day) {
                 <tr tuiTr>
-                  <td tuiTd class="menu-table__day">
-                    <i class="fa-regular fa-calendar text-xs"></i>
-                    <span>{{ dayLabel(day) }}</span>
+                  <td tuiTd class="menu-table__day-cell">
+                    <div class="menu-table__day">
+                      <span>{{ dayLabel(day) }}</span>
+                    </div>
                   </td>
                   @for (mealType of mealTypes; track mealType) {
                     <td tuiTd class="menu-table__cell">

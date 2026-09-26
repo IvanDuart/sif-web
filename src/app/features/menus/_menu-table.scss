@@ -1,5 +1,8 @@
-// Estilos de la rejilla semanal de comidas, compartidos por el detalle de menú
-// y el de plantilla.
+// Estilos de la rejilla semanal de comidas que viven en las plantillas de
+// página: la cabecera, la celda del día y la celda genérica. Lo que pinta por
+// dentro la celda de comida está en `components/meal-cell.scss`, en el ámbito
+// de ese componente (la encapsulación de Angular no deja alcanzarlo desde
+// aquí).
 //
 // Estaban duplicados en los dos `.scss`, con las dos copias ya divergiendo
 // (`__meal-text` había perdido el `min-width` en una de ellas). Las reglas
@@ -7,22 +10,13 @@
 // ámbito, así que compartir el fichero no filtra estilos entre pantallas.
 
 .menu-table {
-  th[tuiTh],
-  th {
-    background: var(--p-primary-500);
-    color: var(--p-primary-contrast-color);
-    font-weight: 600;
-    border: none;
-  }
-
-  tbody {
-    border-top: 1px solid var(--p-surface-200);
-  }
-
+  // El aspecto de la cabecera (fondo, color, tamaño y padding) lo pone el
+  // estilo global de `table[tuiTable]` (Guía §6). Aquí sólo lo propio.
+  //
+  // Ojo: nada de iconos ni estilos en la `th` que desplacen el texto respecto
+  // al cuerpo — es lo que descuadraba la columna del día con las comidas.
   .menu-table__day-head {
     width: 12rem;
-    color: var(--p-primary-contrast-color);
-    background: var(--p-primary-600);
   }
 
   .menu-table__meal-head {
@@ -32,78 +26,33 @@
   }
 }
 
+// La celda del día va en un `<td>` de verdad (table-cell): así respeta el
+// `padding`/`vertical-align` de la tabla y cuadra con las comidas. El reparto
+// en fila lo hace el wrapper interno `.menu-table__day`, nunca el propio `td`
+// (poner `display:flex` en un `td` lo saca del modelo de tabla).
+.menu-table__day-cell {
+  background: var(--p-primary-50);
+  white-space: nowrap;
+}
+
+:host-context(.dark) .menu-table__day-cell {
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .menu-table__day {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
+  // La rampa `--p-surface-*` ya se invierte en oscuro (700 = #e4e0d9), así que
+  // no hace falta override: con `--p-surface-0` el texto quedaba oscuro sobre
+  // fondo oscuro (en oscuro `--p-surface-0` es el canvas).
   color: var(--p-surface-700);
   white-space: nowrap;
-  background: var(--p-primary-50);
-}
-
-:host-context(.dark) .menu-table__day {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--p-surface-0);
 }
 
 .menu-table__cell {
   vertical-align: top;
-}
-
-.menu-table__meal {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.menu-table__meal-text {
-  flex: 1;
-  min-width: 0;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--p-surface-700);
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-}
-
-.menu-table__meal-actions {
-  display: flex;
-  gap: 0.125rem;
-  opacity: 0.55;
-  transition: opacity 0.12s ease;
-}
-
-.menu-table__cell:hover .menu-table__meal-actions,
-.menu-table__meal-actions:focus-within {
-  opacity: 1;
-}
-
-.menu-table__empty {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  color: var(--p-surface-400);
-  font-size: 0.8125rem;
-  font-style: italic;
-}
-
-// Reparto de macros bajo el texto de la comida. Va en la vista de solo lectura
-// también: el paciente ve el reparto, no sólo las calorías.
-.menu-table__meal-macros {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: 0.6875rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--p-surface-400);
-}
-
-// Tabular para que la cifra no baile de fila en fila.
-.menu-table__meal-kcal {
-  flex: 0 0 auto;
-  font-variant-numeric: tabular-nums;
 }
 
 // La fila del editor ocupa las tres columnas, así que no lleva padding de
@@ -176,10 +125,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .menu-table__meal-actions {
-    transition: none;
-  }
-
   // A 0ms animation can skip firing `animationend` in some browsers, which
   // would make Angular's animate.leave wait out its 4s fallback timeout
   // before removing the row — 0.01ms still fires the event but is instant.

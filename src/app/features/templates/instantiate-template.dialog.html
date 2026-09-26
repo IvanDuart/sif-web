@@ -1,5 +1,5 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
-  <div class="bg-primary-50 dark:bg-brand-tint-20 p-4 rounded-lg text-sm mb-2">
+  <div class="bg-brand-tint-08 p-4 rounded-lg text-sm mb-2">
     {{ 'templates.creating_from' | transloco }} <strong>{{ template?.name }}</strong>
   </div>
 
@@ -22,7 +22,7 @@
     <label for="isActive" class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'menu_history.set_active' | transloco }}</label>
   </div>
 
-  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-line">
     <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
     <button type="submit" tuiButton size="m" [disabled]="form.invalid">{{ 'menu_history.assign_to_patient' | transloco }}</button>
   </div>

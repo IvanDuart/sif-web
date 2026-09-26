@@ -1,8 +1,8 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { TuiButton, TuiInput } from '@taiga-ui/core';
+import { TuiButton, TuiDataList, TuiDropdown, TuiInput } from '@taiga-ui/core';
 import { TuiTable } from '@taiga-ui/addon-table';
 import { TranslocoService, TranslocoDirective } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
@@ -22,7 +22,7 @@ import { InstantiateTemplateDialog, InstantiateTemplateDialogInput } from './ins
 @Component({
   selector: 'app-templates-list',
   standalone: true,
-  imports: [ReactiveFormsModule, IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent, TuiButton, TuiTable, DatePipe, TuiInput],
+  imports: [RouterModule, ReactiveFormsModule, IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent, TuiButton, TuiTable, DatePipe, TuiInput, TuiDropdown, TuiDataList],
   templateUrl: './templates-list.page.html'
 })
 export default class TemplatesListPage implements OnInit {
@@ -122,19 +122,21 @@ export default class TemplatesListPage implements OnInit {
 
   createTemplate() {
     this.modal.open<MenuTemplate>(TemplateFormDialog, {
-      label: 'Crear Nueva Plantilla',
+      label: this.transloco.translate('templates.create'),
       size: 'm'
     }).subscribe(result => {
-      this.notify.success('Plantilla creada');
+      if (!result?.id) return;
+      this.notify.success(this.transloco.translate('templates.created_success'));
       this.router.navigate(['/templates', result.id]);
     });
   }
 
   uploadTemplate() {
     this.modal.open<MenuTemplate>(TemplateUploadDialog, {
-      label: 'Subir Plantilla (Reconocimiento por IA)',
+      label: this.transloco.translate('templates.upload_title'),
       size: 'l'
     }).subscribe(result => {
+      if (!result?.id) return;
       this.router.navigate(['/templates', result.id]);
     });
   }
@@ -145,13 +147,30 @@ export default class TemplatesListPage implements OnInit {
 
   instantiateTemplate(template: MenuTemplate) {
     this.modal.open<Menu, InstantiateTemplateDialogInput>(InstantiateTemplateDialog, {
-      label: 'Asignar Plantilla a Paciente',
+      label: this.transloco.translate('templates.assign'),
       size: 'm',
       data: { template }
     }).subscribe(menu => {
       if (!menu?.id) return;
-      this.notify.success('La plantilla fue instanciada y asignada al paciente.');
+      this.notify.success(this.transloco.translate('notifications.template_assigned'));
       this.router.navigate(['/menus', menu.id]);
+    });
+  }
+
+  /**
+   * Duplica la plantilla (copia con sus comidas). El backend no tiene endpoint
+   * de clonado, así que el servicio compone `getById` + `create`.
+   */
+  duplicateTemplate(template: MenuTemplate) {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+
+    const name = this.transloco.translate('templates.duplicate_name', { name: template.name });
+    this.templateService.duplicate(tenantId, template.id, name).subscribe({
+      next: (copy) => {
+        this.notify.success(this.transloco.translate('templates.duplicate_success'));
+        this.router.navigate(['/templates', copy.id]);
+      },
     });
   }
 
@@ -166,7 +185,7 @@ export default class TemplatesListPage implements OnInit {
       const tenantId = this.tenantCtx.currentTenantId();
       if (tenantId) {
         this.templateService.delete(tenantId, template.id).subscribe(() => {
-          this.notify.success('Plantilla eliminada');
+          this.notify.success(this.transloco.translate('templates.deleted_success'));
           this.loadTemplates(this.lastPage, this.lastSize);
         });
       }

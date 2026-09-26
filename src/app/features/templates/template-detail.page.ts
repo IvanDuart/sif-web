@@ -247,8 +247,23 @@ export default class TemplateDetailPage implements OnInit {
       data: { template: currentTemplate }
     }).subscribe(menu => {
       if (!menu?.id) return;
-      this.notify.success('La plantilla fue instanciada y asignada al paciente.');
+      this.notify.success(this.transloco.translate('notifications.template_assigned'));
       this.router.navigate(['/menus', menu.id]);
+    });
+  }
+
+  /** Duplica la plantilla (copia con sus comidas) y abre la copia. */
+  duplicateTemplate() {
+    const current = this.template();
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!current || !tenantId) return;
+
+    const name = this.transloco.translate('templates.duplicate_name', { name: current.name });
+    this.templateService.duplicate(tenantId, current.id, name).subscribe({
+      next: (copy) => {
+        this.notify.success(this.transloco.translate('templates.duplicate_success'));
+        this.router.navigate(['/templates', copy.id]);
+      },
     });
   }
 }

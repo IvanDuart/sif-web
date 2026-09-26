@@ -1,22 +1,31 @@
 <div *transloco="let t">
-  <div class="flex justify-end mb-4">
+  <!-- ═══════════ Cabecera de sección ═══════════ -->
+  <header class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+    <div class="min-w-0">
+      <h2 class="font-display text-[18px] font-bold tracking-tight text-surface-900 dark:text-surface-0">
+        {{ t('appointment_types.title') }}
+      </h2>
+      <p class="mt-1 text-[13px] text-surface-400">{{ t('appointment_types.subtitle') }}</p>
+    </div>
     <button
       tuiButton
+      appearance="primary"
       size="m"
+      type="button"
+      class="sm:shrink-0"
       (click)="showFormDialog()">
-      <i class="fa-solid fa-plus mr-1"></i>
+      <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
       {{ t('appointment_types.create') }}
     </button>
-  </div>
+  </header>
 
-  <div class="data-card">
+  <!-- Tabla (escritorio) -->
+  <div class="hidden md:block table-wrapper">
     @if (loading()) {
       <div class="table-loading">
         <div class="loading-spinner"></div>
       </div>
-    }
-
-    <div class="hidden md:block table-wrapper">
+    } @else {
       <table tuiTable class="w-full">
         <thead>
           <tr>
@@ -25,108 +34,117 @@
             <th tuiTh scope="col">{{ t('appointment_types.price') }}</th>
             <th tuiTh scope="col">{{ t('appointment_types.is_default') }}</th>
             <th tuiTh scope="col">{{ t('appointment_types.is_active') }}</th>
-            <th tuiTh scope="col" class="text-center" style="width: 8rem;">{{ t('common.actions') }}</th>
+            <th tuiTh scope="col" class="w-14"><span class="sr-only">{{ t('common.actions') }}</span></th>
           </tr>
         </thead>
         <tbody tuiTbody>
           @for (type of types(); track type.id) {
             <tr tuiTr>
-              <td tuiTd class="font-medium">{{ type.name }}</td>
-              <td tuiTd class="font-mono">{{ type.durationMinutes }} min</td>
-              <td tuiTd class="font-mono">{{ formatPrice(type.price) }}</td>
+              <td tuiTd class="font-medium text-surface-900 dark:text-surface-0">{{ type.name }}</td>
+              <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">{{ type.durationMinutes }} min</td>
+              <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">{{ formatPrice(type.price) }}</td>
               <td tuiTd>
                 @if (type.isDefault) {
-                  <i class="fa-solid fa-check text-green-500"></i>
+                  <i class="fa-solid fa-check text-ok" aria-hidden="true"></i>
                 }
               </td>
               <td tuiTd>
                 <span tuiBadge [appearance]="type.isActive ? 'positive' : 'neutral'">
-                  {{ type.isActive ? 'Activo' : 'Inactivo' }}
+                  {{ type.isActive ? t('diets.active') : t('diets.inactive') }}
                 </span>
               </td>
-              <td tuiTd class="text-center">
-                <div class="flex items-center gap-1 justify-center">
-                  <button
-                    tuiIconButton
-                    appearance="flat"
-                    size="s"
-                    [title]="t('common.edit')"
-                    (click)="showFormDialog(type)">
-                    <i class="fa-solid fa-pen"></i>
-                  </button>
-                  <button
-                    tuiIconButton
-                    appearance="flat"
-                    size="s"
-                    class="text-red-500 hover:text-red-700"
-                    [title]="t('common.delete')"
-                    (click)="confirmDelete(type)">
-                    <i class="fa-solid fa-trash"></i>
-                  </button>
-                </div>
+              <td tuiTd class="text-right">
+                <button
+                  tuiButton
+                  appearance="flat"
+                  size="s"
+                  type="button"
+                  [attr.title]="t('common.edit')"
+                  [attr.aria-label]="t('common.edit')"
+                  (click)="showFormDialog(type)">
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  tuiButton
+                  appearance="flat"
+                  size="s"
+                  type="button"
+                  class="text-err"
+                  [attr.title]="t('common.delete')"
+                  [attr.aria-label]="t('common.delete')"
+                  (click)="confirmDelete(type)">
+                  <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                </button>
               </td>
             </tr>
           } @empty {
             <tr tuiTr>
-              <td tuiTd colspan="6" class="text-center text-surface-400 py-8">
+              <td tuiTd colspan="6" class="py-8 text-center text-surface-400">
                 {{ t('appointment_types.empty') }}
               </td>
             </tr>
           }
         </tbody>
       </table>
-    </div>
+    }
+  </div>
 
-    <div class="md:hidden space-y-3 p-2">
-      @for (type of types(); track type.id) {
-        <div class="rounded-lg border border-surface-200 dark:border-surface-700 p-3">
-          <div class="flex items-start justify-between gap-2">
-            <p class="font-medium text-surface-900 dark:text-surface-0">{{ type.name }}</p>
-            <span tuiBadge [appearance]="type.isActive ? 'positive' : 'neutral'">
-              {{ type.isActive ? 'Activo' : 'Inactivo' }}
-            </span>
-          </div>
-          <dl class="mt-2 text-sm space-y-1">
-            <div class="flex justify-between gap-2">
-              <dt class="text-surface-500">{{ t('appointment_types.duration') }}</dt>
-              <dd class="font-mono">{{ type.durationMinutes }} min</dd>
-            </div>
-            <div class="flex justify-between gap-2">
-              <dt class="text-surface-500">{{ t('appointment_types.price') }}</dt>
-              <dd class="font-mono">{{ formatPrice(type.price) }}</dd>
-            </div>
-            <div class="flex justify-between gap-2">
-              <dt class="text-surface-500">{{ t('appointment_types.is_default') }}</dt>
-              <dd>
-                @if (type.isDefault) {
-                  <i class="fa-solid fa-check text-green-500"></i>
-                }
-              </dd>
-            </div>
-          </dl>
-          <div class="flex items-center gap-1 justify-end mt-2 pt-2 border-t border-surface-100 dark:border-surface-800">
-            <button
-              tuiIconButton
-              appearance="flat"
-              size="s"
-              [title]="t('common.edit')"
-              (click)="showFormDialog(type)">
-              <i class="fa-solid fa-pen"></i>
-            </button>
-            <button
-              tuiIconButton
-              appearance="flat"
-              size="s"
-              class="text-red-500 hover:text-red-700"
-              [title]="t('common.delete')"
-              (click)="confirmDelete(type)">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </div>
+  <!-- Tarjetas (móvil) -->
+  <div class="space-y-3 md:hidden">
+    @for (type of types(); track type.id) {
+      <div class="rounded-md border border-line bg-surface-0 p-3 dark:bg-surface-800">
+        <div class="flex items-start justify-between gap-2">
+          <p class="font-medium text-surface-900 dark:text-surface-0">{{ type.name }}</p>
+          <span tuiBadge [appearance]="type.isActive ? 'positive' : 'neutral'">
+            {{ type.isActive ? t('diets.active') : t('diets.inactive') }}
+          </span>
         </div>
-      } @empty {
-        <p class="text-center text-surface-400 py-8">{{ t('appointment_types.empty') }}</p>
-      }
-    </div>
+        <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px]">
+          <div class="flex items-center gap-1.5">
+            <dt class="text-surface-400">{{ t('appointment_types.duration') }}</dt>
+            <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ type.durationMinutes }} min</dd>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <dt class="text-surface-400">{{ t('appointment_types.price') }}</dt>
+            <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ formatPrice(type.price) }}</dd>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <dt class="text-surface-400">{{ t('appointment_types.is_default') }}</dt>
+            <dd>
+              @if (type.isDefault) {
+                <i class="fa-solid fa-check text-ok" aria-hidden="true"></i>
+              }
+            </dd>
+          </div>
+        </dl>
+        <div class="mt-3 flex items-center justify-end gap-1 border-t border-line pt-2">
+          <button
+            tuiButton
+            appearance="flat"
+            size="s"
+            type="button"
+            [attr.title]="t('common.edit')"
+            [attr.aria-label]="t('common.edit')"
+            (click)="showFormDialog(type)">
+            <i class="fa-solid fa-pen" aria-hidden="true"></i>
+          </button>
+          <button
+            tuiButton
+            appearance="flat"
+            size="s"
+            type="button"
+            class="text-err"
+            [attr.title]="t('common.delete')"
+            [attr.aria-label]="t('common.delete')"
+            (click)="confirmDelete(type)">
+            <i class="fa-solid fa-trash" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    } @empty {
+      <div class="table-wrapper">
+        <p class="py-8 text-center text-surface-400">{{ t('appointment_types.empty') }}</p>
+      </div>
+    }
   </div>
 </div>

@@ -1,100 +1,164 @@
-<div class="p-4" *transloco="let t">
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-    <h1 class="text-2xl font-display font-bold tracking-tight text-surface-900 dark:text-surface-0 text-balance">{{ t('templates.title') }}</h1>
-    <div class="flex flex-wrap gap-2">
-      <button *appIfPermission="'MANAGE_TEMPLATE'"
+<div class="space-y-6 pb-4" *transloco="let t">
+  <!-- ═══════════ Cabecera ═══════════ -->
+  <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+    <div class="min-w-0">
+      <h1
+        class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]"
+      >
+        {{ t('templates.title') }}
+      </h1>
+      <p class="mt-1.5 text-[13px] tabular-nums text-surface-400">
+        {{ t('templates.count', { total: totalRecords() }) }}
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2.5 lg:ml-auto">
+      <button
+        *appIfPermission="'MANAGE_TEMPLATE'"
         type="button"
         tuiButton appearance="secondary" size="m"
-        (click)="uploadTemplate()">
-        <i class="fa-solid fa-file-arrow-up"></i>
+        (click)="uploadTemplate()"
+      >
+        <i class="fa-solid fa-file-arrow-up mr-1" aria-hidden="true"></i>
         {{ t('templates.upload_ocr') }}
       </button>
-      <button *appIfPermission="'MANAGE_TEMPLATE'"
+      <button
+        *appIfPermission="'MANAGE_TEMPLATE'"
         type="button"
-        tuiButton size="m"
-        (click)="createTemplate()">
-        <i class="fa-solid fa-plus"></i>
+        tuiButton appearance="primary" size="m"
+        (click)="createTemplate()"
+      >
+        <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
         {{ t('templates.create') }}
       </button>
     </div>
+  </header>
+
+  <!-- ═══════════ Filtros ═══════════ -->
+  <div class="flex flex-wrap items-center gap-3">
+    <tui-textfield class="w-full sm:w-80" iconStart="@tui.search">
+      <input tuiInput type="search" [formControl]="searchControl" [placeholder]="t('templates.search_placeholder')" />
+    </tui-textfield>
   </div>
 
-  <div class="data-card">
-    <div class="flex items-center justify-end gap-4 p-2 sm:p-4 pb-0">
-      <tui-textfield class="w-80 max-w-full" iconStart="@tui.search">
-        <input tuiInput type="search" [formControl]="searchControl" [placeholder]="t('common.search')" />
-      </tui-textfield>
-    </div>
-
-    <boneyard-skeleton name="templates-list" [loading]="loading()">
+  <boneyard-skeleton name="templates-list" [loading]="loading()">
+    <div class="results-region" [class.is-paginating]="paginating()">
       @if (templates().length === 0 && !loading()) {
-        <app-empty-state
-          icon="fa-solid fa-clipboard-list"
-          [title]="t('templates.empty_title')"
-          [description]="t('templates.empty')"
-          [actionLabel]="t('templates.create')"
-          (action)="createTemplate()">
-        </app-empty-state>
+        <div class="table-wrapper">
+          @if (searchControl.value) {
+            <app-empty-state
+              icon="fa-solid fa-magnifying-glass"
+              [title]="t('templates.no_results_title')"
+              [description]="t('templates.no_results')">
+            </app-empty-state>
+          } @else {
+            <app-empty-state
+              icon="fa-solid fa-clipboard-list"
+              [title]="t('templates.empty_title')"
+              [description]="t('templates.empty')"
+              [actionLabel]="t('templates.create')"
+              (action)="createTemplate()">
+            </app-empty-state>
+          }
+        </div>
       } @else {
-        <div class="results-region" [class.is-paginating]="paginating()">
+        <!-- Tabla (escritorio) -->
         <div class="hidden md:block table-wrapper">
           <table tuiTable class="w-full">
             <thead>
               <tr>
+                <th tuiTh scope="col" class="w-14"><span class="sr-only">{{ t('common.actions') }}</span></th>
                 <th tuiTh scope="col" class="cursor-pointer select-none" (click)="onSort('name')">
-                  <span class="inline-flex items-center gap-1">
+                  <span class="inline-flex items-center gap-1.5">
                     {{ t('diets.name') }}
-                    @if (sortKey() === 'name') {
-                      <i class="fa-solid text-xs" [class.fa-arrow-up]="sortDirection() === 'ASC'" [class.fa-arrow-down]="sortDirection() === 'DESC'"></i>
-                    }
+                    <i
+                      class="fa-solid text-[10px]"
+                      [class.fa-arrow-up]="sortKey() === 'name' && sortDirection() === 'ASC'"
+                      [class.fa-arrow-down]="sortKey() === 'name' && sortDirection() === 'DESC'"
+                      [class.opacity-0]="sortKey() !== 'name'"
+                      aria-hidden="true"
+                    ></i>
                   </span>
                 </th>
                 <th tuiTh scope="col" class="cursor-pointer select-none" (click)="onSort('description')">
-                  <span class="inline-flex items-center gap-1">
+                  <span class="inline-flex items-center gap-1.5">
                     {{ t('templates.description') }}
-                    @if (sortKey() === 'description') {
-                      <i class="fa-solid text-xs" [class.fa-arrow-up]="sortDirection() === 'ASC'" [class.fa-arrow-down]="sortDirection() === 'DESC'"></i>
-                    }
+                    <i
+                      class="fa-solid text-[10px]"
+                      [class.fa-arrow-up]="sortKey() === 'description' && sortDirection() === 'ASC'"
+                      [class.fa-arrow-down]="sortKey() === 'description' && sortDirection() === 'DESC'"
+                      [class.opacity-0]="sortKey() !== 'description'"
+                      aria-hidden="true"
+                    ></i>
                   </span>
                 </th>
-                <th tuiTh scope="col" class="cursor-pointer select-none" (click)="onSort('createdAt')">
-                  <span class="inline-flex items-center gap-1">
+                <th tuiTh scope="col" class="w-44 cursor-pointer select-none" (click)="onSort('createdAt')">
+                  <span class="inline-flex items-center gap-1.5">
                     {{ t('templates.created_at') }}
-                    @if (sortKey() === 'createdAt') {
-                      <i class="fa-solid text-xs" [class.fa-arrow-up]="sortDirection() === 'ASC'" [class.fa-arrow-down]="sortDirection() === 'DESC'"></i>
-                    }
+                    <i
+                      class="fa-solid text-[10px]"
+                      [class.fa-arrow-up]="sortKey() === 'createdAt' && sortDirection() === 'ASC'"
+                      [class.fa-arrow-down]="sortKey() === 'createdAt' && sortDirection() === 'DESC'"
+                      [class.opacity-0]="sortKey() !== 'createdAt'"
+                      aria-hidden="true"
+                    ></i>
                   </span>
                 </th>
-                <th tuiTh scope="col" class="text-center" style="width: 8rem;">{{ t('common.actions') }}</th>
               </tr>
             </thead>
             <tbody tuiTbody>
               @for (template of templates(); track template.id) {
-                <tr tuiTr>
-                  <td tuiTd class="font-medium">{{ template.name }}</td>
-                  <td tuiTd class="text-surface-500 text-sm">{{ template.description }}</td>
-                  <td tuiTd class="text-surface-500 text-sm font-mono whitespace-nowrap">{{ template.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-                  <td tuiTd class="text-center">
-                    <div class="flex items-center gap-1 justify-center">
-                      <button type="button" tuiIconButton appearance="flat" size="s"
-                        (click)="viewTemplate(template)"
-                        [title]="t('templates.view_detail')">
-                        <i class="fa-solid fa-eye"></i>
+                <tr tuiTr class="cursor-pointer" (click)="viewTemplate(template)">
+                  <td tuiTd (click)="$event.stopPropagation()">
+                    <div
+                      class="inline-block"
+                      [tuiDropdown]="rowMenu"
+                      tuiDropdownAuto
+                      tuiDropdownAlign="start"
+                      tuiDropdownLimitWidth="min"
+                    >
+                      <button
+                        type="button"
+                        tuiButton appearance="flat" size="s"
+                        [attr.aria-label]="t('templates.template_actions') + ': ' + template.name"
+                      >
+                        <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
                       </button>
-                      <button *appIfPermission="'INSTANTIATE_TEMPLATE'"
-                        type="button" tuiIconButton appearance="flat" size="s"
-                        (click)="instantiateTemplate(template)"
-                        [title]="t('templates.assign')">
-                        <i class="fa-solid fa-user-plus"></i>
-                      </button>
-                      <button *appIfPermission="'MANAGE_TEMPLATE'"
-                        type="button" tuiIconButton appearance="flat" size="s"
-                        class="text-red-500 hover:text-red-700"
-                        (click)="deleteTemplate(template)"
-                        [title]="t('common.delete')">
-                        <i class="fa-solid fa-trash"></i>
-                      </button>
+                      <ng-template #rowMenu>
+                        <tui-data-list>
+                          <button tuiOption type="button" (click)="viewTemplate(template)">
+                            <i class="fa-solid fa-eye mr-2" aria-hidden="true"></i>
+                            {{ t('templates.view_detail') }}
+                          </button>
+                          <button
+                            *appIfPermission="'INSTANTIATE_TEMPLATE'"
+                            tuiOption type="button" (click)="instantiateTemplate(template)"
+                          >
+                            <i class="fa-solid fa-user-plus mr-2" aria-hidden="true"></i>
+                            {{ t('templates.assign') }}
+                          </button>
+                          <button
+                            *appIfPermission="'MANAGE_TEMPLATE'"
+                            tuiOption type="button" (click)="duplicateTemplate(template)"
+                          >
+                            <i class="fa-solid fa-clone mr-2" aria-hidden="true"></i>
+                            {{ t('templates.duplicate') }}
+                          </button>
+                          <button
+                            *appIfPermission="'MANAGE_TEMPLATE'"
+                            tuiOption type="button" class="text-err" (click)="deleteTemplate(template)"
+                          >
+                            <i class="fa-solid fa-trash mr-2" aria-hidden="true"></i>
+                            {{ t('common.delete') }}
+                          </button>
+                        </tui-data-list>
+                      </ng-template>
                     </div>
+                  </td>
+                  <td tuiTd class="font-medium">{{ template.name }}</td>
+                  <td tuiTd class="text-surface-500 dark:text-surface-400">{{ template.description || '—' }}</td>
+                  <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400 whitespace-nowrap">
+                    {{ template.createdAt | date:'mediumDate' }}
                   </td>
                 </tr>
               }
@@ -102,58 +166,79 @@
           </table>
         </div>
 
-        <div class="md:hidden space-y-3 p-2">
+        <!-- Tarjetas (móvil) -->
+        <div class="space-y-3 md:hidden">
           @for (template of templates(); track template.id) {
-            <div class="rounded-lg border border-surface-200 dark:border-surface-700 p-3">
-              <div>
-                <p class="font-medium text-surface-900 dark:text-surface-0">{{ template.name }}</p>
-              </div>
-              <dl class="mt-2 text-sm space-y-1">
-                <div class="flex justify-between gap-2">
-                  <dt class="text-surface-500">{{ t('templates.description') }}</dt>
-                  <dd class="truncate">{{ template.description }}</dd>
-                </div>
-                <div class="flex justify-between gap-2">
-                  <dt class="text-surface-500">{{ t('templates.created_at') }}</dt>
-                  <dd class="font-mono">{{ template.createdAt | date:'dd/MM/yyyy HH:mm' }}</dd>
+            <article
+              class="cursor-pointer rounded-md border border-line bg-surface-0 p-3 transition-colors hover:border-line-strong dark:bg-surface-800"
+              [routerLink]="['/templates', template.id]"
+            >
+              <p class="font-medium text-surface-900 dark:text-surface-0">{{ template.name }}</p>
+              @if (template.description) {
+                <p class="mt-0.5 truncate text-xs text-surface-400">{{ template.description }}</p>
+              }
+              <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px]">
+                <div class="flex items-center gap-1.5">
+                  <dt class="text-surface-400">{{ t('templates.created_at') }}</dt>
+                  <dd class="tabular-nums text-surface-600 dark:text-surface-300">
+                    {{ template.createdAt | date:'mediumDate' }}
+                  </dd>
                 </div>
               </dl>
-              <div class="flex items-center gap-1 justify-end mt-2 pt-2 border-t border-surface-100 dark:border-surface-800">
-                <button type="button" tuiIconButton appearance="flat" size="s"
-                  (click)="viewTemplate(template)"
-                  [title]="t('templates.view_detail')">
-                  <i class="fa-solid fa-eye"></i>
+              <div class="mt-3 flex items-center justify-end gap-1 border-t border-line pt-2">
+                <button
+                  type="button" tuiButton appearance="flat" size="s"
+                  (click)="$event.stopPropagation(); viewTemplate(template)"
+                  [attr.title]="t('templates.view_detail')" [attr.aria-label]="t('templates.view_detail')"
+                >
+                  <i class="fa-solid fa-eye" aria-hidden="true"></i>
                 </button>
-                <button *appIfPermission="'INSTANTIATE_TEMPLATE'"
-                  type="button" tuiIconButton appearance="flat" size="s"
-                  (click)="instantiateTemplate(template)"
-                  [title]="t('templates.assign')">
-                  <i class="fa-solid fa-user-plus"></i>
+                <button
+                  *appIfPermission="'INSTANTIATE_TEMPLATE'"
+                  type="button" tuiButton appearance="flat" size="s"
+                  (click)="$event.stopPropagation(); instantiateTemplate(template)"
+                  [attr.title]="t('templates.assign')" [attr.aria-label]="t('templates.assign')"
+                >
+                  <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
                 </button>
-                <button *appIfPermission="'MANAGE_TEMPLATE'"
-                  type="button" tuiIconButton appearance="flat" size="s"
-                  class="text-red-500 hover:text-red-700"
-                  (click)="deleteTemplate(template)"
-                  [title]="t('common.delete')">
-                  <i class="fa-solid fa-trash"></i>
+                <button
+                  *appIfPermission="'MANAGE_TEMPLATE'"
+                  type="button" tuiButton appearance="flat" size="s"
+                  (click)="$event.stopPropagation(); duplicateTemplate(template)"
+                  [attr.title]="t('templates.duplicate')" [attr.aria-label]="t('templates.duplicate')"
+                >
+                  <i class="fa-solid fa-clone" aria-hidden="true"></i>
+                </button>
+                <button
+                  *appIfPermission="'MANAGE_TEMPLATE'"
+                  type="button" tuiButton appearance="flat" size="s"
+                  class="text-err"
+                  (click)="$event.stopPropagation(); deleteTemplate(template)"
+                  [attr.title]="t('common.delete')" [attr.aria-label]="t('common.delete')"
+                >
+                  <i class="fa-solid fa-trash" aria-hidden="true"></i>
                 </button>
               </div>
-            </div>
+            </article>
           }
         </div>
-        </div>
 
-        <div class="table-footer flex justify-between items-center">
-          <span class="text-sm text-surface-500">
+        <!-- Paginación -->
+        <div class="table-footer mt-3 flex items-center justify-between gap-3 border-t border-line pt-3">
+          <span class="tabular-nums">
             {{ t('common.pagination_report', { first: totalRecords() === 0 ? 0 : lastPage * lastSize + 1, last: lastPage * lastSize + templates().length, totalRecords: totalRecords() }) }}
           </span>
-          <div class="flex gap-1">
-            <button tuiIconButton appearance="flat" size="s" (click)="prevPage()" [disabled]="lastPage === 0 || paginating()"><i class="fa-solid fa-chevron-left"></i></button>
-            <span class="text-sm text-surface-500 px-2">{{ t('common.page', { page: lastPage + 1 }) }}</span>
-            <button tuiIconButton appearance="flat" size="s" (click)="nextPage()" [disabled]="(lastPage + 1) * lastSize >= totalRecords() || paginating()"><i class="fa-solid fa-chevron-right"></i></button>
+          <div class="flex items-center gap-1">
+            <button tuiButton appearance="flat" size="s" type="button" (click)="prevPage()" [disabled]="lastPage === 0 || paginating()" [attr.title]="t('common.previous')" [attr.aria-label]="t('common.previous')">
+              <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+            </button>
+            <span class="px-2 text-surface-500">{{ t('common.page', { page: lastPage + 1 }) }}</span>
+            <button tuiButton appearance="flat" size="s" type="button" (click)="nextPage()" [disabled]="(lastPage + 1) * lastSize >= totalRecords() || paginating()" [attr.title]="t('common.next')" [attr.aria-label]="t('common.next')">
+              <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+            </button>
           </div>
         </div>
       }
-    </boneyard-skeleton>
-  </div>
+    </div>
+  </boneyard-skeleton>
 </div>

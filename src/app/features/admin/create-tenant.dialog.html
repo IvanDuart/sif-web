@@ -8,12 +8,12 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <tui-textfield class="w-full">
         <label tuiLabel for="cif">{{ t('admin.dialog_cif') }}</label>
-        <input tuiInput id="cif" [(ngModel)]="cif" name="cif" placeholder="B12345678" class="font-mono" />
+        <input tuiInput id="cif" [(ngModel)]="cif" name="cif" placeholder="B12345678" class="tabular-nums" />
       </tui-textfield>
 
       <tui-textfield class="w-full">
         <label tuiLabel for="phone">{{ t('admin.dialog_phone') }}</label>
-        <input tuiInput id="phone" [(ngModel)]="phone" name="phone" placeholder="+34 600 000 000" class="font-mono" />
+        <input tuiInput id="phone" [(ngModel)]="phone" name="phone" placeholder="+34 600 000 000" class="tabular-nums" />
       </tui-textfield>
     </div>
 
@@ -42,7 +42,7 @@
       </tui-textfield>
     </div>
 
-    <div class="mt-2 p-4 rounded-lg bg-primary-50 dark:bg-brand-tint-10 border border-primary-100 dark:border-brand-tint-40">
+    <div class="mt-2 p-4 rounded-lg bg-brand-tint-08 border border-brand-tint-20">
       <div class="flex items-start gap-3">
         <i class="fa-solid fa-circle-info mt-1 text-primary-500"></i>
         <div>

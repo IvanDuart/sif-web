@@ -230,6 +230,15 @@
   "staff": {
     "title": "Equipo",
     "invite": "Invitar Miembro",
+    "invite_dialog_title": "Invitar Nuevo Miembro del Equipo",
+    "invite_success": "Miembro invitado correctamente",
+    "count": "{{total}} miembros",
+    "search_placeholder": "Nombre, email o rol",
+    "filter_all": "Todos",
+    "filter_active": "Activos",
+    "filter_inactive": "Inactivos",
+    "no_results_title": "Sin resultados",
+    "no_results": "Ningún miembro coincide con la búsqueda o el filtro.",
     "back_to_list": "Volver a Equipo",
     "empty_title": "Sin miembros aún",
     "empty": "No hay miembros del equipo en la clínica.",
@@ -292,7 +301,19 @@
     "process_and_create": "Procesar y Crear",
     "empty": "Aún no hay menús creados. Comienza creando uno manualmente o subiendo un archivo.",
     "empty_title": "Sin menús aún",
-    "view": "Ver detalle"
+    "view": "Ver detalle",
+    "count": "{{total}} menús",
+    "search_placeholder": "Nombre del menú",
+    "filter_all": "Todos",
+    "filter_active": "Activos",
+    "filter_inactive": "Inactivos",
+    "no_results_title": "Sin resultados",
+    "no_results": "Ningún menú coincide con la búsqueda o el filtro.",
+    "delete_confirm": "¿Estás seguro de que quieres eliminar el menú «{{name}}»? Los planes ya asignados a pacientes no se tocan.",
+    "menu_actions": "Acciones del menú",
+    "created_success": "Menú creado correctamente",
+    "upload_title": "Subir Menú (Reconocimiento por IA)",
+    "create_title": "Crear Menú Manualmente"
   },
   "measurements": {
     "title": "Mediciones Corporales",
@@ -559,6 +580,17 @@
     "created_at": "Creado el",
     "updated": "Actualizada:",
     "not_found": "Plantilla no encontrada...",
+    "count": "{{total}} plantillas",
+    "search_placeholder": "Nombre o descripción",
+    "no_results_title": "Sin resultados",
+    "no_results": "Ninguna plantilla coincide con la búsqueda.",
+    "template_actions": "Acciones de la plantilla",
+    "created_success": "Plantilla creada",
+    "deleted_success": "Plantilla eliminada",
+    "duplicate": "Duplicar",
+    "duplicate_success": "Plantilla duplicada",
+    "duplicate_name": "{{name}} (copia)",
+    "upload_title": "Subir Plantilla (Reconocimiento por IA)",
     "form_name_label": "Nombre de la Plantilla",
     "form_name_optional": "Nombre de la Plantilla (opcional)",
     "form_name_placeholder": "Ej: Plantilla Semana 1",
@@ -714,6 +746,8 @@
     "history_meta": "{{total}} citas registradas · {{attended}} asistidas · {{missed}} no asistidas · asistencia del {{rate}} %"
   },
   "settings": {
+    "subtitle": "Ajustes del centro: marca, tipos de cita, horarios y dirección",
+    "nav_group": "Centro",
     "branding_tab": "Personalización",
     "branding": "Marca y Colores",
     "primary_color": "Color Principal",
@@ -760,7 +794,8 @@
     "band_to": "Hasta",
     "add_band": "Añadir franja",
     "remove_band": "Eliminar franja",
-    "no_bands": "Sin franjas: se usan las de por defecto del centro."
+    "no_bands": "Sin franjas: se usan las de por defecto del centro.",
+    "address_subtitle2": "Domicilio fiscal y localización del centro."
   },
   "appointment_types": {
     "title": "Tipos de Cita",
@@ -775,7 +810,8 @@
     "delete_confirm": "¿Desactivar el tipo de cita '{{name}}'?",
     "delete_success": "Tipo de cita desactivado",
     "price": "Precio",
-    "empty": "No hay tipos de cita configurados"
+    "empty": "No hay tipos de cita configurados",
+    "subtitle": "Duración, precio y disponibilidad de cada tipo de consulta."
   },
   "revenue": {
     "title": "Métricas del centro",
@@ -903,7 +939,8 @@
     "update": "Actualizar",
     "assign": "Asignar",
     "update_assignment": "Actualizar",
-    "edit_assignment": "Editar Asignación"
+    "edit_assignment": "Editar Asignación",
+    "subtitle": "Jornadas laborales, asignaciones al equipo y festivos del centro."
   },
   "primeng": {
     "startsWith": "Comienza con",
@@ -1191,7 +1228,9 @@
   },
   "errors": {
     "not_authorized_title": "403",
-    "not_authorized": "No Autorizado"
+    "not_authorized": "No autorizado",
+    "not_authorized_desc": "No tienes permisos para acceder a esta sección. Si crees que es un error, contacta con el administrador de tu centro.",
+    "go_dashboard": "Volver al inicio"
   },
   "admin": {
     "dashboard_title": "Panel de Administración",
@@ -1222,6 +1261,7 @@
   },
   "shopping_list": {
     "title": "Lista de la Compra",
+    "count": "{{total}} listas",
     "list_name": "Nombre",
     "supermarket": "Supermercado",
     "total_price": "Precio Total",

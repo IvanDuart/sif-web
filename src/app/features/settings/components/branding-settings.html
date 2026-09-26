@@ -1,11 +1,5 @@
-<div *transloco="let t" class="py-4 space-y-6">
-
-  <div>
-    <h2 class="text-xl font-display font-bold text-surface-900 dark:text-surface-0">
-      {{ t('settings.branding_tab') }}
-    </h2>
-    <p class="text-sm text-surface-500 mt-1">{{ t('settings.branding_subtitle') }}</p>
-  </div>
+<div *transloco="let t" class="space-y-6">
+  <p class="text-[13.5px] text-surface-500 dark:text-surface-400">{{ t('settings.branding_subtitle') }}</p>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -29,7 +23,7 @@
                 <span class="block w-full h-full" [style.background]="preferences().primary_color"></span>
               </label>
               <tui-textfield class="flex-1">
-                <input tuiInput [(ngModel)]="preferences().primary_color" class="font-mono text-sm uppercase" aria-label="Código de color hexadecimal" />
+                <input tuiInput [(ngModel)]="preferences().primary_color" class="text-sm uppercase tabular-nums" aria-label="Código de color hexadecimal" />
               </tui-textfield>
             </div>
           </div>
@@ -140,7 +134,7 @@
                 min="0"
                 max="100"
                 step="1"
-                class="font-mono"
+                class="tabular-nums"
                 [ngModel]="targetRatePercent()"
                 (ngModelChange)="setTargetRatePercent($event)" />
             </tui-textfield>
@@ -159,7 +153,7 @@
                 min="0"
                 max="720"
                 step="1"
-                class="font-mono"
+                class="tabular-nums"
                 [(ngModel)]="preferences().cancellation_notice_threshold_hours" />
             </tui-textfield>
             <p class="text-xs text-surface-400">{{ t('settings.cancellation_threshold_hours_hint') }}</p>
@@ -194,7 +188,7 @@
                     <input
                       tuiInput
                       type="time"
-                      class="font-mono"
+                      class="tabular-nums"
                       [attr.aria-label]="t('settings.band_from')"
                       [ngModel]="band.from"
                       (ngModelChange)="updateTimeBand($index, 'from', $event)" />
@@ -203,7 +197,7 @@
                     <input
                       tuiInput
                       type="time"
-                      class="font-mono"
+                      class="tabular-nums"
                       [attr.aria-label]="t('settings.band_to')"
                       [ngModel]="band.to"
                       (ngModelChange)="updateTimeBand($index, 'to', $event)" />
@@ -224,7 +218,7 @@
         </div>
       </div>
 
-      <div class="flex justify-end pt-5 border-t border-surface-200 dark:border-surface-700">
+      <div class="flex justify-end pt-5 border-t border-line">
         <button tuiButton size="m" [disabled]="saving()" (click)="save()">
           @if (saving()) {
             <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
@@ -243,7 +237,7 @@
           <input tuiInputFiles accept="image/*" [ngModel]="null" (ngModelChange)="onFileSelected($event)" />
           <ng-template let-dragged>
             @if (dragged) {
-              <div class="border-2 border-primary-500 border-dashed rounded-lg p-6 text-center bg-primary-50 dark:bg-brand-tint-20">
+              <div class="border-2 border-primary-500 border-dashed rounded-lg p-6 text-center bg-brand-tint-08">
                 <i class="fa-solid fa-cloud-arrow-down text-3xl text-primary-500 mb-2" aria-hidden="true"></i>
                 <p class="text-sm text-primary-600 dark:text-primary-400 font-medium">
                   {{ t('settings.drop_here') }}
@@ -252,7 +246,7 @@
             } @else if (logoUrl(); as url) {
               <div class="relative group cursor-pointer">
                 <img [src]="url" alt="Logo principal" draggable="false"
-                     class="w-full h-32 object-contain rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 p-3" />
+                     class="w-full h-32 object-contain rounded-lg border border-line bg-surface-50 dark:bg-surface-800 p-3" />
                 <div class="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <span class="inline-flex items-center gap-1.5 text-white text-xs font-medium bg-black/70 px-4 py-2 rounded-md pointer-events-none">
                     <i class="fa-solid fa-camera" aria-hidden="true"></i>
@@ -277,7 +271,7 @@
           <input tuiInputFiles accept="image/*" [ngModel]="null" (ngModelChange)="onPdfFileSelected($event)" />
           <ng-template let-dragged>
             @if (dragged) {
-              <div class="border-2 border-primary-500 border-dashed rounded-lg p-6 text-center bg-primary-50 dark:bg-brand-tint-20">
+              <div class="border-2 border-primary-500 border-dashed rounded-lg p-6 text-center bg-brand-tint-08">
                 <i class="fa-solid fa-cloud-arrow-down text-3xl text-primary-500 mb-2" aria-hidden="true"></i>
                 <p class="text-sm text-primary-600 dark:text-primary-400 font-medium">
                   {{ t('settings.drop_here') }}
@@ -286,7 +280,7 @@
             } @else if (logoPdfUrl(); as url) {
               <div class="relative group cursor-pointer">
                 <img [src]="url" alt="Logo para PDF" draggable="false"
-                     class="w-full h-32 object-contain rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 p-3" />
+                     class="w-full h-32 object-contain rounded-lg border border-line bg-surface-50 dark:bg-surface-800 p-3" />
                 <div class="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <span class="inline-flex items-center gap-1.5 text-white text-xs font-medium bg-black/70 px-4 py-2 rounded-md pointer-events-none">
                     <i class="fa-solid fa-camera" aria-hidden="true"></i>

@@ -42,8 +42,10 @@
 .cdk-drag-preview {
   padding: 0.5rem 0.75rem;
   border-radius: 0.5rem;
-  background: var(--p-surface-0);
-  box-shadow: 0 4px 8px rgba(30, 41, 59, 0.18);
+  // `--p-surface-50` es casi blanco en claro y algo más claro que la tarjeta en
+  // oscuro; `--p-surface-0` en oscuro es el canvas y no se distinguía.
+  background: var(--p-surface-50);
+  box-shadow: var(--shadow-float);
 }
 
 .cdk-drag-placeholder {

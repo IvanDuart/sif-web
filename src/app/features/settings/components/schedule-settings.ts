@@ -10,7 +10,7 @@ import { NotificationService, ModalService, ConfirmService } from '../../../core
 import { ScheduleFormDialog, ScheduleFormDialogInput } from './schedule-form.dialog';
 import { HolidayFormDialog } from './holiday-form.dialog';
 import { AssignmentFormDialog, AssignmentFormDialogInput } from './assignment-form.dialog';
-import { TuiTabs } from '@taiga-ui/kit';
+import { TuiTabs, TuiBadge } from '@taiga-ui/kit';
 import { TuiButton } from '@taiga-ui/core';
 import { TuiTable } from '@taiga-ui/addon-table';
 
@@ -19,7 +19,7 @@ const DAY_NAMES = ['', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 @Component({
   selector: 'app-schedule-settings',
   standalone: true,
-  imports: [TranslocoDirective, DatePipe, TuiTabs, TuiButton, TuiTable],
+  imports: [TranslocoDirective, DatePipe, TuiTabs, TuiButton, TuiTable, TuiBadge],
   templateUrl: './schedule-settings.html',
 })
 export class ScheduleSettings implements OnInit {

@@ -17,7 +17,7 @@
     <span class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ 'diets.form_set_active' | transloco }}</span>
   </label>
 
-  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-line">
     <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
     <button type="submit" tuiButton size="m" [disabled]="form.invalid" [class.loading]="saving()">{{ 'diets.form_create' | transloco }}</button>
   </div>

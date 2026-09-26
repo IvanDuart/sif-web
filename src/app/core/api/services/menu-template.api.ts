@@ -1,10 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { MenuTemplate, MealTemplate } from '../models/menu-template.model';
 import { Menu } from '../models/menu.model';
 import { Page } from '../models/page.model';
-import { MealItemRequest } from './meal.api';
+import { MealItemRequest, toMealItemRequests } from './meal.api';
 import {ConfigService} from '../../config/config.service';
 
 export interface CreateMealTemplateRequest {
@@ -69,6 +70,39 @@ export class MenuTemplateService {
 
   getById(tenantId: string, id: string): Observable<MenuTemplate> {
     return this.http.get<MenuTemplate>(`${this.baseUrl}/tenant/${tenantId}/menu-template/${id}`);
+  }
+
+  /**
+   * Duplica una plantilla. El backend no expone un endpoint de clonado, así que
+   * se trae la original (con sus comidas) y se crea una copia nueva. Si se pasa
+   * `name` se usa tal cual; si no, se añade " (copia)".
+   */
+  duplicate(tenantId: string, id: string, name?: string): Observable<MenuTemplate> {
+    return this.getById(tenantId, id).pipe(
+      switchMap((original) =>
+        this.create(tenantId, {
+          name: name ?? `${original.name} (copia)`,
+          description: original.description,
+          meals: (original.mealTemplates ?? []).map((meal) => this.toCreateMealRequest(meal)),
+        })
+      )
+    );
+  }
+
+  /**
+   * Convierte una comida de plantilla en petición de creación. Si tiene `items`
+   * se mandan y se omite `description` (el servidor la regenera); si no, se
+   * conserva el texto libre.
+   */
+  private toCreateMealRequest(meal: MealTemplate): CreateMealTemplateRequest {
+    const items = meal.items ?? [];
+    return {
+      dayOfWeek: meal.dayOfWeek,
+      mealType: meal.mealType,
+      ...(items.length > 0
+        ? { items: toMealItemRequests(items) }
+        : { description: meal.description ?? undefined }),
+    };
   }
 
   delete(tenantId: string, id: string): Observable<void> {

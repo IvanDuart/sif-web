@@ -25,7 +25,7 @@
       </datalist>
     </tui-textfield>
 
-    <div class="border-t border-surface-200 dark:border-surface-700 pt-4">
+    <div class="border-t border-line pt-4">
       <div class="flex items-center justify-between mb-3">
         <span class="text-sm font-semibold text-surface-700 dark:text-surface-300">{{ t('schedule_settings.blocks_count', { count: details.length }) }}</span>
         <button tuiButton appearance="secondary" size="s" type="button" (click)="addBlock()">
@@ -67,7 +67,7 @@
       </div>
     </div>
 
-    <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-line">
       <button tuiButton appearance="secondary" size="m" type="button" (click)="context.$implicit.complete()">
         {{ t('common.cancel') }}
       </button>

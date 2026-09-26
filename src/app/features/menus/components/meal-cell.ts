@@ -1,5 +1,5 @@
-import { Component, computed, input, output } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { Component, computed, effect, ElementRef, input, output, viewChild } from '@angular/core';
+import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { TuiButton, TuiTextfield } from '@taiga-ui/core';
@@ -21,8 +21,9 @@ import { MACROS, NutrientMap } from '../../../core/api/models/food.model';
 @Component({
   selector: 'app-meal-cell',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TranslocoDirective, TuiButton, TuiBadge, TuiTextfield, TuiTextarea],
+  imports: [DecimalPipe, NgTemplateOutlet, FormsModule, TranslocoDirective, TuiButton, TuiBadge, TuiTextfield, TuiTextarea],
   templateUrl: './meal-cell.html',
+  styleUrl: './meal-cell.scss',
 })
 export class MealCell {
   /** `undefined` = hueco libre. `MealTemplate` encaja igual: misma forma. */
@@ -57,6 +58,18 @@ export class MealCell {
   save = output<void>();
   /** No se llama `cancel` a secas: choca con el evento nativo del DOM. */
   cancelEdit = output<void>();
+
+  /** Textarea en edición: se enfoca al abrirla, para escribir sin un clic extra. */
+  private readonly textareaRef = viewChild<ElementRef<HTMLTextAreaElement>>('mealTextarea');
+
+  constructor() {
+    effect(() => {
+      const el = this.textareaRef()?.nativeElement;
+      if (el && this.editing()) {
+        el.focus();
+      }
+    });
+  }
 
   readonly canSave = computed(() => !this.saving() && this.draft().trim().length > 0);
 

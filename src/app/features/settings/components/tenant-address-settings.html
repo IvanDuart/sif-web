@@ -1,46 +1,48 @@
 <div *transloco="let t" class="w-full">
-  <div class="data-card">
-    <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0 mb-1">{{ t('settings.address_tab') }}</h3>
-    <p class="text-sm text-surface-500 mb-5">{{ t('settings.address_subtitle') || 'Configura el país y la dirección del centro. El país y la provincia se usan para importar festivos nacionales.' }}</p>
+  <header class="mb-5">
+    <h2 class="font-display text-[18px] font-bold tracking-tight text-surface-900 dark:text-surface-0">
+      {{ t('settings.address_tab') }}
+    </h2>
+    <p class="mt-1 text-[13px] text-surface-400">{{ t('settings.address_subtitle') }}</p>
+  </header>
 
+  <div class="data-card">
     @if (loading()) {
       <div class="flex items-center justify-center py-8">
-        <i class="fa-solid fa-spinner fa-spin text-primary-500 text-xl"></i>
+        <i class="fa-solid fa-spinner fa-spin text-primary-500 text-xl" aria-hidden="true"></i>
       </div>
     } @else {
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
         <tui-textfield tuiChevron>
           <label tuiLabel for="addressCountry">{{ t('settings.address_country') }}</label>
           <input id="addressCountry" tuiComboBox [(ngModel)]="countryDisplay" (ngModelChange)="onCountryChange()" />
           <tui-data-list-wrapper *tuiDropdown [items]="countryLabels() | tuiFilterByInput" />
         </tui-textfield>
 
-         <tui-textfield tuiChevron>
-           <label tuiLabel for="addressState">{{ t('settings.address_state') }}</label>
-           <input id="addressState" tuiComboBox [(ngModel)]="stateDisplay" (ngModelChange)="onStateChange()" [disabled]="!countryDisplay" />
-           <tui-data-list-wrapper *tuiDropdown [items]="stateLabels() | tuiFilterByInput" />
-         </tui-textfield>
+        <tui-textfield tuiChevron>
+          <label tuiLabel for="addressState">{{ t('settings.address_state') }}</label>
+          <input id="addressState" tuiComboBox [(ngModel)]="stateDisplay" (ngModelChange)="onStateChange()" [disabled]="!countryDisplay" />
+          <tui-data-list-wrapper *tuiDropdown [items]="stateLabels() | tuiFilterByInput" />
+        </tui-textfield>
 
-         <tui-textfield tuiChevron>
-           <label tuiLabel for="addressCity">{{ t('settings.address_city') }}</label>
-           <input id="addressCity" tuiComboBox [(ngModel)]="cityDisplay" [disabled]="!stateDisplay" />
-           <tui-data-list-wrapper *tuiDropdown [items]="cityLabels() | tuiFilterByInput" />
-         </tui-textfield>
+        <tui-textfield tuiChevron>
+          <label tuiLabel for="addressCity">{{ t('settings.address_city') }}</label>
+          <input id="addressCity" tuiComboBox [(ngModel)]="cityDisplay" [disabled]="!stateDisplay" />
+          <tui-data-list-wrapper *tuiDropdown [items]="cityLabels() | tuiFilterByInput" />
+        </tui-textfield>
+      </div>
 
-       </div>
+      <tui-textfield class="mt-5 w-full">
+        <label tuiLabel for="addressStreet">{{ t('settings.address_street') }}</label>
+        <input id="addressStreet" tuiInput [(ngModel)]="address" placeholder="C/ Mayor 1, 07001 Palma" />
+      </tui-textfield>
 
-       <tui-textfield class="w-full mt-5">
-         <label tuiLabel for="addressStreet">{{ t('settings.address_street') || 'Dirección' }}</label>
-         <input id="addressStreet" tuiInput [(ngModel)]="address" placeholder="C/ Mayor 1, 07001 Palma" />
-       </tui-textfield>
-
-      <div class="flex justify-end pt-5 mt-6 border-t border-surface-200 dark:border-surface-700">
-        <button tuiButton size="m" [disabled]="saving()" (click)="save()">
+      <div class="mt-6 flex justify-end border-t border-line pt-5">
+        <button tuiButton appearance="primary" size="m" type="button" [disabled]="saving()" (click)="save()">
           @if (saving()) {
-            <i class="fa-solid fa-spinner fa-spin"></i>
+            <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>
           }
-          <i class="fa-solid fa-floppy-disk mr-1"></i>
+          <i class="fa-solid fa-floppy-disk mr-1" aria-hidden="true"></i>
           {{ t('common.save') }}
         </button>
       </div>

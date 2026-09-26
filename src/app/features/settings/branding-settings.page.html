@@ -1,23 +1,84 @@
-<div class="p-4 lg:p-6" *transloco="let t">
-  <h1 class="text-2xl font-display font-bold text-surface-900 dark:text-surface-0 mb-6">{{ t('menu.settings') }}</h1>
+<div class="space-y-6 pb-4" *transloco="let t">
+  <!-- ═══════════ Cabecera ═══════════ -->
+  <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+    <div class="min-w-0">
+      <h1
+        class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]"
+      >
+        {{ t('menu.settings') }}
+      </h1>
+      <p class="mt-1.5 text-[13px] text-surface-400">{{ t('settings.subtitle') }}</p>
+    </div>
+  </header>
 
-  <tui-tabs [(activeItemIndex)]="activeTab">
-    <button tuiTab type="button">
-      {{ t('settings.branding_tab') }}
-    </button>
-    <button tuiTab type="button">
-      {{ t('appointment_types.title') }}
-    </button>
-    <button tuiTab type="button">
-      {{ t('schedule_settings.title') }}
-    </button>
-    <button tuiTab type="button">
-      {{ t('settings.address_tab') }}
-    </button>
-  </tui-tabs>
+  <!-- ═══════════ Nav + sección (maestro-detalle) ═══════════ -->
+  <div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-[236px_minmax(0,1fr)]">
+    <nav
+      class="flex gap-1 overflow-x-auto pb-1 lg:sticky lg:top-6 lg:flex-col lg:gap-0.5 lg:overflow-visible lg:pb-0"
+      [attr.aria-label]="t('menu.settings')"
+    >
+      <p class="hidden px-3 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-surface-400 lg:block">
+        {{ t('settings.nav_group') }}
+      </p>
 
-  @if (activeTab === 0) { <app-branding-settings /> }
-  @if (activeTab === 1) { <app-appointment-types-settings /> }
-  @if (activeTab === 2) { <app-schedule-settings /> }
-  @if (activeTab === 3) { <app-tenant-address-settings /> }
+      <button
+        type="button"
+        class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 text-[14px] transition-colors lg:w-full"
+        [class]="activeTab === 0
+          ? 'bg-brand-tint-10 font-medium text-primary-700 dark:text-primary-300'
+          : 'text-surface-600 hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-800'"
+        [attr.aria-current]="activeTab === 0 ? 'true' : null"
+        (click)="activeTab = 0"
+      >
+        <i class="fa-solid fa-palette w-4 text-center opacity-80" aria-hidden="true"></i>
+        <span class="whitespace-nowrap">{{ t('settings.branding_tab') }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 text-[14px] transition-colors lg:w-full"
+        [class]="activeTab === 1
+          ? 'bg-brand-tint-10 font-medium text-primary-700 dark:text-primary-300'
+          : 'text-surface-600 hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-800'"
+        [attr.aria-current]="activeTab === 1 ? 'true' : null"
+        (click)="activeTab = 1"
+      >
+        <i class="fa-solid fa-calendar-check w-4 text-center opacity-80" aria-hidden="true"></i>
+        <span class="whitespace-nowrap">{{ t('appointment_types.title') }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 text-[14px] transition-colors lg:w-full"
+        [class]="activeTab === 2
+          ? 'bg-brand-tint-10 font-medium text-primary-700 dark:text-primary-300'
+          : 'text-surface-600 hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-800'"
+        [attr.aria-current]="activeTab === 2 ? 'true' : null"
+        (click)="activeTab = 2"
+      >
+        <i class="fa-solid fa-clock w-4 text-center opacity-80" aria-hidden="true"></i>
+        <span class="whitespace-nowrap">{{ t('schedule_settings.title') }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 text-[14px] transition-colors lg:w-full"
+        [class]="activeTab === 3
+          ? 'bg-brand-tint-10 font-medium text-primary-700 dark:text-primary-300'
+          : 'text-surface-600 hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-800'"
+        [attr.aria-current]="activeTab === 3 ? 'true' : null"
+        (click)="activeTab = 3"
+      >
+        <i class="fa-solid fa-location-dot w-4 text-center opacity-80" aria-hidden="true"></i>
+        <span class="whitespace-nowrap">{{ t('settings.address_tab') }}</span>
+      </button>
+    </nav>
+
+    <div class="min-w-0">
+      @if (activeTab === 0) { <app-branding-settings /> }
+      @if (activeTab === 1) { <app-appointment-types-settings /> }
+      @if (activeTab === 2) { <app-schedule-settings /> }
+      @if (activeTab === 3) { <app-tenant-address-settings /> }
+    </div>
+  </div>
 </div>

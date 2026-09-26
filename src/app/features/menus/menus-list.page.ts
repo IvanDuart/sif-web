@@ -1,13 +1,13 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
-import { TuiButton, TuiInput } from '@taiga-ui/core';
-import { TuiBadge } from '@taiga-ui/kit';
+import { TuiButton, TuiDataList, TuiDropdown, TuiInput } from '@taiga-ui/core';
+import { TuiBadge, TuiSegmented } from '@taiga-ui/kit';
 import { TuiTable } from '@taiga-ui/addon-table';
-import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { debounceTime, distinctUntilChanged, forkJoin } from 'rxjs';
 
 import { MenuService } from '../../core/api/services/menu.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -21,10 +21,13 @@ import { MenuUploadDialog } from './menu-upload.dialog';
 import { MenuRenameDialog, MenuRenameDialogInput } from './menu-rename.dialog';
 import { EmptyState } from '../../shared/ui/empty-state';
 
+/** Chip de estado del listado de menús. `all` no envía el parámetro `isActive`. */
+export type MenuStatusFilter = 'all' | 'active' | 'inactive';
+
 @Component({
   selector: 'app-menus-list',
   standalone: true,
-  imports: [DatePipe, ReactiveFormsModule, IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent, TuiButton, TuiBadge, TuiTable, TuiInput],
+  imports: [RouterModule, DatePipe, ReactiveFormsModule, IfPermissionDirective, TranslocoDirective, EmptyState, SkeletonComponent, TuiButton, TuiBadge, TuiTable, TuiInput, TuiSegmented, TuiDropdown, TuiDataList],
   templateUrl: './menus-list.page.html'
 })
 export default class MenusListPage implements OnInit {
@@ -48,6 +51,20 @@ export default class MenusListPage implements OnInit {
   totalRecords = signal(0);
   searchControl = new FormControl('');
 
+  /** Filtro por estado (base de datos). */
+  readonly statusFilter = signal<MenuStatusFilter>('all');
+  /** Contadores de los chips, calculados sobre la búsqueda activa. */
+  readonly statusCounts = signal<{ active: number; inactive: number } | null>(null);
+
+  /** Índice del chip activo (0 = todos, 1 = activos, 2 = inactivos). */
+  readonly filterIndex = computed(() => {
+    switch (this.statusFilter()) {
+      case 'active': return 1;
+      case 'inactive': return 2;
+      default: return 0;
+    }
+  });
+
   sortKey = signal<string>('name');
   sortDirection = signal<'ASC' | 'DESC'>('ASC');
 
@@ -60,28 +77,42 @@ export default class MenusListPage implements OnInit {
       distinctUntilChanged()
     ).subscribe(() => {
       this.lastPage = 0;
-      this.loadMenus(this.lastPage, this.lastSize);
+      this.reload();
     });
 
-    this.loadMenus(0, 25);
+    this.reload();
+  }
+
+  /** Recarga listado y contadores (búsqueda, filtro o página). */
+  private reload() {
+    this.loadMenus(this.lastPage, this.lastSize);
+    this.loadStatusCounts();
+  }
+
+  setStatusFilterIndex(index: number) {
+    const next: MenuStatusFilter = index === 1 ? 'active' : index === 2 ? 'inactive' : 'all';
+    if (this.statusFilter() === next) return;
+    this.statusFilter.set(next);
+    this.lastPage = 0;
+    this.reload();
   }
 
   onPage(page: number) {
     this.lastPage = page;
-    this.loadMenus(this.lastPage, this.lastSize);
+    this.reload();
   }
 
   prevPage() {
     if (this.lastPage > 0) {
       this.lastPage--;
-      this.loadMenus(this.lastPage, this.lastSize);
+      this.reload();
     }
   }
 
   nextPage() {
     if ((this.lastPage + 1) * this.lastSize < this.totalRecords()) {
       this.lastPage++;
-      this.loadMenus(this.lastPage, this.lastSize);
+      this.reload();
     }
   }
 
@@ -93,13 +124,34 @@ export default class MenusListPage implements OnInit {
       this.sortDirection.set('ASC');
     }
     this.lastPage = 0;
-    this.loadMenus(this.lastPage, this.lastSize);
+    this.reload();
+  }
+
+  /** Cuenta activos e inactivos con la búsqueda actual (dos peticiones ligeras `size=1`). */
+  private loadStatusCounts() {
+    const tenantId = this.tenantCtx.currentTenantId();
+    const userId = this.authService.user()?.id;
+    if (!tenantId || !userId) return;
+    const name = this.searchControl.value?.trim() || undefined;
+
+    forkJoin({
+      active: this.menuService.search(tenantId, 0, 1, ['name,ASC'], userId, name, true),
+      inactive: this.menuService.search(tenantId, 0, 1, ['name,ASC'], userId, name, false)
+    }).subscribe({
+      next: ({ active, inactive }) => this.statusCounts.set({
+        active: active.page?.totalElements ?? 0,
+        inactive: inactive.page?.totalElements ?? 0
+      }),
+      error: () => this.statusCounts.set(null)
+    });
   }
 
   loadMenus(page: number, size: number) {
     const tenantId = this.tenantCtx.currentTenantId();
     const userId = this.authService.user()?.id;
     if (!tenantId || !userId) return;
+
+    const isActive = this.statusFilter() === 'all' ? undefined : this.statusFilter() === 'active';
 
     this.loading.set(true);
     this.menuService.search(
@@ -108,7 +160,8 @@ export default class MenusListPage implements OnInit {
       size,
       [`${this.sortKey()},${this.sortDirection()}`],
       userId,
-      this.searchControl.value?.trim() || undefined
+      this.searchControl.value?.trim() || undefined,
+      isActive
     ).subscribe({
       next: (res) => {
         this.menus.set(res.content || []);
@@ -128,23 +181,23 @@ export default class MenusListPage implements OnInit {
 
   createMenu() {
     this.modal.open<Menu>(MenuFormDialog, {
-      label: 'Crear Menú Manualmente',
+      label: this.transloco.translate('diets.create_title'),
       size: 'm'
     }).subscribe(result => {
       if (result) {
-        this.notify.success('Menú creado correctamente');
-        this.loadMenus(this.lastPage, this.lastSize);
+        this.notify.success(this.transloco.translate('diets.created_success'));
+        this.reload();
       }
     });
   }
 
   uploadMenu() {
     this.modal.open<Menu>(MenuUploadDialog, {
-      label: 'Subir Menú (Reconocimiento por IA)',
+      label: this.transloco.translate('diets.upload_title'),
       size: 'm'
     }).subscribe(result => {
       if (result) {
-        this.loadMenus(this.lastPage, this.lastSize);
+        this.reload();
       }
     });
   }
@@ -152,7 +205,7 @@ export default class MenusListPage implements OnInit {
   deleteMenu(menu: Menu) {
     this.confirm.confirm({
       label: this.transloco.translate('common.attention'),
-      content: '¿Estás seguro de que quieres eliminar el menú "' + menu.name + '"?',
+      content: this.transloco.translate('diets.delete_confirm', { name: menu.name }),
       yes: this.transloco.translate('common.yes'),
       no: this.transloco.translate('common.cancel'),
     }).subscribe(confirmed => {
@@ -160,8 +213,8 @@ export default class MenusListPage implements OnInit {
         const tenantId = this.tenantCtx.currentTenantId();
         if (tenantId) {
           this.menuService.delete(tenantId, menu.id).subscribe(() => {
-            this.notify.success('Menú eliminado');
-            this.loadMenus(this.lastPage, this.lastSize);
+            this.notify.success(this.transloco.translate('notifications.menu_deleted'));
+            this.reload();
           });
         }
       }
@@ -178,7 +231,7 @@ export default class MenusListPage implements OnInit {
           ? this.transloco.translate('menu_history.activated')
           : this.transloco.translate('menu_history.deactivated')
       );
-      this.loadMenus(this.lastPage, this.lastSize);
+      this.reload();
     });
   }
 
@@ -190,7 +243,7 @@ export default class MenusListPage implements OnInit {
     }).subscribe(result => {
       if (result) {
         this.notify.success(this.transloco.translate('diets.renamed'));
-        this.loadMenus(this.lastPage, this.lastSize);
+        this.reload();
       }
     });
   }

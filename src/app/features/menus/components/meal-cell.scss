@@ -1,0 +1,101 @@
+// Estilos propios de la celda de comida.
+//
+// Van aquí, y no en el `_menu-table.scss` de las páginas, porque la
+// encapsulación de Angular los dejaba fuera: los selectores de la página
+// (`[_ngcontent-página]`) no alcanzan a los elementos del template de este
+// componente (`[_ngcontent-meal-cell]`). Sin esto, el texto se veía centrado
+// (el `text-align: center` por defecto de `<button>`) y la fila no repartía
+// texto/acciones.
+//
+// `_menu-table.scss` sigue teniendo lo que vive en las plantillas de página
+// (la `th`, la celda del día, la celda genérica y el editor).
+
+:host {
+  display: block;
+}
+
+.menu-table__meal {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.menu-table__meal-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--p-surface-700);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+// En lectura el texto es un botón (pulsar la pauta la edita). Se resetea el
+// aspecto de botón y se fuerza la alineación a la izquierda: el `<button>`
+// trae `text-align: center` por defecto.
+button.menu-table__meal-text {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  font-family: inherit;
+  text-align: left;
+  cursor: text;
+  border-radius: 0.375rem;
+
+  &:hover {
+    color: var(--p-primary-700);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary-500);
+    outline-offset: 2px;
+  }
+}
+
+// Reparto de macros bajo el texto. Va también en la vista de solo lectura: el
+// paciente ve el reparto, no sólo las calorías.
+.menu-table__meal-macros {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--p-surface-400);
+}
+
+// Tabular para que la cifra no baile de fila en fila.
+.menu-table__meal-kcal {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.menu-table__meal-actions {
+  display: flex;
+  gap: 0.125rem;
+  opacity: 0.55;
+  transition: opacity 0.12s ease;
+}
+
+:host(:hover) .menu-table__meal-actions,
+.menu-table__meal-actions:focus-within {
+  opacity: 1;
+}
+
+.menu-table__empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--p-surface-400);
+  font-size: 0.8125rem;
+  font-style: italic;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-table__meal-actions {
+    transition: none;
+  }
+}

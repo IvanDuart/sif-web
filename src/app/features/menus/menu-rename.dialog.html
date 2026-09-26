@@ -9,7 +9,7 @@
     <input tuiInput id="menuDescription" [ngModel]="description()" (ngModelChange)="description.set($event)" [placeholder]="'diets.menu_description_placeholder' | transloco" />
   </tui-textfield>
 
-  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-line">
     <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
     <button type="button" tuiButton size="m" [disabled]="!name().trim() || saving()" [class.loading]="saving()" (click)="submit()">{{ 'common.save' | transloco }}</button>
   </div>
