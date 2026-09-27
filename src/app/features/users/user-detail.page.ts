@@ -33,7 +33,7 @@ import { EmptyState } from '../../shared/ui/empty-state';
 import { MeasurementFormDialog } from './measurement-form.dialog';
 import { BoneMassDialog, BoneMassDialogInput } from './bone-mass.dialog';
 import { EditUserDialog } from './edit-user.dialog';
-import { QuickScheduleDialog, QuickScheduleDialogData } from '../appointments/quick-schedule.dialog';
+import { AppointmentFormDialog } from '../appointments/appointment-form.dialog';
 import { WaterIntakeWidget } from '../tenant/dashboard/components/water-intake-widget';
 import { PatientEventFormDialog } from './patient-event-form.dialog';
 import { AssignMenuTemplateDialog } from './assign-menu-template.dialog';
@@ -1465,23 +1465,25 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   }
 
   /**
-   * Agendado rápido en diálogo (mismo `QuickScheduleWidget` del panel). El
-   * paciente de la ficha ya viene seleccionado; para un miembro del equipo se
-   * agenda con él como profesional.
+   * Agendado desde la ficha (mismo `AppointmentFormDialog` del resto de la
+   * app). El paciente de la ficha ya viene seleccionado; para un miembro del
+   * equipo se agenda con él como profesional.
    */
   showNewAppointmentDialog() {
     const current = this.user();
     if (!current) return;
 
-    const isPatient = current.userType === 'PATIENT';
     const patientLabel = `${current.firstName ?? ''} ${current.lastName ?? ''}`.trim() || current.email;
+    const adminId = this.authService.user()?.id;
 
-    this.modal.open<boolean, QuickScheduleDialogData>(QuickScheduleDialog, {
+    this.modal.open<boolean, { patientId?: string; patientLabel?: string; nutritionistId?: string }>(AppointmentFormDialog, {
       label: this.transloco.translate('appointments.schedule_new'),
-      size: 'l',
-      data: isPatient
-        ? { patientId: current.id, patientLabel, patientEmail: current.email }
-        : { nutritionistId: current.id }
+      size: 'm',
+      data: {
+        patientId: current.id,
+        patientLabel,
+        nutritionistId: this.assignedNutritionist().id || adminId || undefined
+      }
     }).subscribe((created) => {
       if (created) this.loadAppointments();
     });

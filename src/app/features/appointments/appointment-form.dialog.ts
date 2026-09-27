@@ -111,6 +111,8 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
   isClosedDate = signal(false);
   availabilityLoaded = signal(false);
 
+  isPatientContext = computed(() => !!this.context.data?.patientId);
+
   patientLabels = computed(() => this.patients().map(p => p.label));
   typeLabels = computed(() => this.appointmentTypes().map(t => t.label));
 
@@ -156,6 +158,7 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
         list.some(p => p.value === option.value) ? list : [option, ...list]
       );
       this.form.get('patientId')?.setValue(option.label);
+      this.selectedPatientRef.set(option);
     }
 
     this.searchSubject
@@ -293,6 +296,9 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
             }))
             .sort((a, b) => a.label.localeCompare(b.label));
           this.nutritionists.set(options);
+          
+          const current = this.form.get("nutritionistId")?.value;
+          if (current) this.form.get("nutritionistId")?.setValue(current);
         }
       });
   }
@@ -315,12 +321,18 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
     if (!tenantId) return;
     this.appointmentTypeService.getAll(tenantId).subscribe({
       next: (types) => {
-        this.appointmentTypes.set(
-          (types || []).map((t: AppointmentTypeDto) => ({
+        const rawTypes = types || [];
+          const mapped = rawTypes.map((t) => ({
             label: `${t.name} (${t.durationMinutes} min)`,
             value: t.id
-          }))
-        );
+          }));
+          this.appointmentTypes.set(mapped);
+          
+          if (mapped.length > 0 && !this.form.get("typeId")?.value) {
+            const defaultType = rawTypes.find(t => t.isDefault);
+            const fallbackIndex = defaultType ? rawTypes.indexOf(defaultType) : 0;
+            this.form.get("typeId")?.setValue(mapped[fallbackIndex].label);
+          }
       }
     });
   }

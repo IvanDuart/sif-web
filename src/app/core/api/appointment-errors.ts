@@ -40,6 +40,7 @@ const ERROR_KEYS: readonly (readonly [pattern: string, key: string])[] = [
   ['appointment_in_past', 'appointments.in_past'],
   ['appointment_overlap', 'appointments.conflict'],
   ['already has an appointment in that time slot', 'appointments.conflict'],
+  ['el nutricionista ya tiene una cita en ese tramo horario', 'appointments.conflict'],
 ];
 
 /** Texto crudo del error (código y/o mensaje) tal y como lo devuelve el backend. */
@@ -92,7 +93,8 @@ export function isOverlapConflict(err: ApiErrorLike | null | undefined): boolean
 
   return (
     text.includes('appointment_overlap') ||
-    text.includes('already has an appointment in that time slot')
+    text.includes('already has an appointment in that time slot') ||
+    text.includes('el nutricionista ya tiene una cita en ese tramo horario')
   );
 }
 
