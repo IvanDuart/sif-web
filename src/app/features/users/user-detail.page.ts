@@ -30,6 +30,7 @@ import { AppointmentDto } from '../../core/api/models/appointment.model';
 import { Page } from '../../core/api/models/page.model';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
 import { EmptyState } from '../../shared/ui/empty-state';
+import { PaginationFooter } from '../../shared/ui/pagination-footer';
 import { MeasurementFormDialog } from './measurement-form.dialog';
 import { BoneMassDialog, BoneMassDialogInput } from './bone-mass.dialog';
 import { EditUserDialog } from './edit-user.dialog';
@@ -48,7 +49,7 @@ import { Chart, registerables } from 'chart.js';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
 import { TuiButton, TuiCheckbox, TuiTextfield } from '@taiga-ui/core';
-import { TuiBadge, TuiPagination, TuiProgress, TuiSegmented, TuiSelect, TuiTabs, TuiTextarea } from '@taiga-ui/kit';
+import { TuiBadge, TuiProgress, TuiSegmented, TuiTabs, TuiTextarea } from '@taiga-ui/kit';
 import { TuiTable } from '@taiga-ui/addon-table';
 
 Chart.register(...registerables);
@@ -171,9 +172,8 @@ export interface ProfileFigure {
     TuiTextfield,
     TuiTextarea,
     TuiCheckbox,
-    TuiPagination,
     TuiSegmented,
-    TuiSelect
+    PaginationFooter
   ],
   templateUrl: './user-detail.page.html'
 })
@@ -935,19 +935,17 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     });
   }
 
-  onPageChange(page: number) {
-    this.page.set(page);
-    this.loadMeasurements(page, this.size());
+  prevPage() {
+    if (this.page() > 0) {
+      this.loadMeasurements(this.page() - 1, this.size());
+    }
   }
 
-  onSizeChange(size: number) {
-    this.size.set(size);
-    this.page.set(0);
-    this.loadMeasurements(0, size);
+  nextPage() {
+    if ((this.page() + 1) * this.size() < this.totalRecords()) {
+      this.loadMeasurements(this.page() + 1, this.size());
+    }
   }
-
-  /** Número total de páginas de la tabla de mediciones (tui-pagination). */
-  readonly totalPages = computed(() => Math.ceil(this.totalRecords() / this.size()) || 1);
 
 
   private loadEvolution() {
