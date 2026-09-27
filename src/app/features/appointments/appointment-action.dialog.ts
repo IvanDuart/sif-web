@@ -111,12 +111,18 @@ export class AppointmentActionDialog implements OnInit {
     if (!tenantId) return;
     this.appointmentTypeService.getAll(tenantId).subscribe({
       next: (types) => {
-        this.appointmentTypes.set(
-          (types || []).map(t => ({
-            label: `${t.name} (${t.durationMinutes} min)`,
-            value: t.id
-          }))
-        );
+        const mapped = (types || []).map(t => ({
+          label: `${t.name} (${t.durationMinutes} min)`,
+          value: t.id
+        }));
+        this.appointmentTypes.set(mapped);
+
+        // Pre-seleccionar el label exacto (con duración) para que el combo
+        // reconozca el tipo actualmente asignado a la cita.
+        const matchingType = mapped.find(t => t.value === this.appointment.typeId);
+        if (matchingType) {
+          this.form.patchValue({ typeId: matchingType.label });
+        }
       }
     });
   }
@@ -127,6 +133,7 @@ export class AppointmentActionDialog implements OnInit {
     this.form.patchValue({
       date: day,
       time,
+      // Temporal hasta que carguen los tipos reales (con duración).
       typeId: this.appointment.typeName || '',
       notes: this.appointment.notes || ''
     });
