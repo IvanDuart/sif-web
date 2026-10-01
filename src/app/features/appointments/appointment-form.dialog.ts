@@ -1,4 +1,4 @@
-import {Component, inject, signal, OnInit, computed, ChangeDetectionStrategy, OnDestroy} from '@angular/core';
+import {Component, inject, signal, OnInit, AfterViewInit, OnDestroy, ViewChild, computed, ChangeDetectionStrategy} from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject, Observable, of, debounceTime, distinctUntilChanged, switchMap, map } from 'rxjs';
 import { TuiDropdown, TuiTextfield, TuiLabel, TuiFilterByInputPipe, TuiButton, TuiCheckbox, TuiInput } from '@taiga-ui/core';
@@ -16,14 +16,18 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 import type { TuiDialogContext } from '@taiga-ui/core';
 
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
+import esLocale from '@fullcalendar/core/locales/es';
+import type { CalendarOptions, EventSourceInput } from '@fullcalendar/core';
 
 import { AppointmentService } from '../../core/api/services/appointment.api';
 import { AppointmentTypeService } from '../../core/api/services/appointment-type.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AuthService } from '../../core/auth/auth.service';
-import { AppointmentTypeDto } from '../../core/api/models/appointment-type.model';
-import { CreateAppointmentRequest } from '../../core/api/models/appointment.model';
+import { AppointmentDto, CreateAppointmentRequest } from '../../core/api/models/appointment.model';
 import {
   ApiErrorLike,
   isOverlapConflict,
@@ -33,6 +37,8 @@ import { AppUserDto } from '../../core/api/models/user.model';
 import { NotificationService, ConfirmService } from '../../core/ui';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { ScheduleAvailabilityService } from '../../core/api/services/schedule-availability.service';
+import { ACTIVE_HOURS_COLOR, statusColor } from '../../shared/utils/status-colors';
+import { hexToRgba } from '../../shared/utils/chart-config';
 
 interface PatientOption {
   label: string;
@@ -65,13 +71,14 @@ interface NutritionistOption {
     TuiChevron,
     TuiCheckbox,
     TuiInput,
-    TuiSelect
+    TuiSelect,
+    FullCalendarModule
   ],
   templateUrl: './appointment-form.dialog.html',
   styleUrls: ['./appointment-form.dialog.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AppointmentFormDialog implements OnInit, OnDestroy {
+export class AppointmentFormDialog implements OnInit, AfterViewInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly appointmentService = inject(AppointmentService);
   private readonly appointmentTypeService = inject(AppointmentTypeService);
@@ -139,6 +146,57 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
     notes: ['']
   });
 
+  // ── Agenda del día (panel de la derecha) ─────────────────────────────────
+  private calendarRef?: FullCalendarComponent;
+
+  /**
+   * El calendario se crea de forma diferida (sólo cuando `agendaReady()` pasa a
+   * true). Al recibir la instancia se coloca en el día elegido, que es cuando
+   * `getApi()` ya es seguro.
+   */
+  @ViewChild('agendaCalendar')
+  set agendaCalendarRef(component: FullCalendarComponent | undefined) {
+    this.calendarRef = component;
+    if (component) {
+      queueMicrotask(() => this.syncCalendarDate());
+    }
+  }
+
+  /** Día y nutricionista del formulario, reflejados como señales para la vista. */
+  agendaDate = signal<TuiDay | null>(null);
+  agendaNutritionistId = signal('');
+  agendaEvents = signal<EventSourceInput>([]);
+  loadingAgenda = signal(false);
+
+  /** El calendario sólo se pinta cuando hay día + nutricionista y horario cargado. */
+  readonly agendaReady = computed(() =>
+    this.availabilityLoaded() && !!this.agendaDate() && !!this.agendaNutritionistId()
+  );
+
+  protected readonly activeHoursDot = hexToRgba(ACTIVE_HOURS_COLOR, 0.6);
+
+  /** Vista de un solo día, sin barra propia: manda el campo de fecha del formulario. */
+  calendarOptions: CalendarOptions = {
+    plugins: [timeGridPlugin, interactionPlugin],
+    initialView: 'timeGridDay',
+    headerToolbar: false,
+    locales: [esLocale],
+    locale: 'es',
+    allDaySlot: false,
+    slotEventOverlap: false,
+    slotMinTime: '06:00:00',
+    slotMaxTime: '22:00:00',
+    firstDay: 1,
+    height: 'auto',
+    editable: false,
+    selectable: false,
+    nowIndicator: true,
+    dateClick: (info: DateClickArg) => this.onAgendaSlotClick(info)
+  };
+
+  /** Hasta que la vista no está lista no se pinta/navega el calendario. */
+  private viewReady = false;
+
   ngOnInit() {
     this.loadPatients('');
     this.loadAppointmentTypes();
@@ -175,11 +233,18 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
     this.scheduleAvailability.load().subscribe(() => {
       this.availabilityLoaded.set(true);
       this.updateScheduleInfo();
+      if (this.viewReady) this.reloadDayAgenda();
     });
 
     // Subscribe to date changes to update schedule info
     this.form.get('date')?.valueChanges.subscribe(() => {
       this.updateScheduleInfo();
+      if (this.viewReady) this.reloadDayAgenda();
+    });
+
+    // El panel de agenda sigue al nutricionista elegido.
+    this.form.get('nutritionistId')?.valueChanges.subscribe(() => {
+      if (this.viewReady) this.reloadDayAgenda();
     });
 
     this.form.get('isFirstConsultation')?.valueChanges.subscribe((checked) => {
@@ -232,6 +297,127 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
     }
   }
 
+  ngAfterViewInit() {
+    // La vista ya existe: primer pintado de la agenda del día.
+    this.viewReady = true;
+    this.reloadDayAgenda();
+  }
+
+  // ── Agenda del día ───────────────────────────────────────────────────────
+
+  /** Refresca el panel: navega al día elegido y recarga las citas del nutricionista. */
+  private reloadDayAgenda(): void {
+    const day = (this.form.get('date')?.value as TuiDay | null) ?? null;
+    const nutritionistId = (this.form.get('nutritionistId')?.value as string) || '';
+    this.agendaDate.set(day);
+    this.agendaNutritionistId.set(nutritionistId);
+
+    if (!day) {
+      this.agendaEvents.set([]);
+      return;
+    }
+
+    const nativeDay = day.toLocalNativeDate();
+    this.syncCalendarDate();
+
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId || !nutritionistId) {
+      this.agendaEvents.set(this.buildAgendaBackground(day));
+      return;
+    }
+
+    const start = new Date(nativeDay);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(nativeDay);
+    end.setHours(23, 59, 59, 999);
+
+    this.loadingAgenda.set(true);
+    this.appointmentService
+      .getByNutritionist(tenantId, nutritionistId, start.toISOString(), end.toISOString())
+      .subscribe({
+        next: (res) => {
+          this.agendaEvents.set(this.buildAgendaEvents(res || [], day));
+          this.loadingAgenda.set(false);
+        },
+        error: () => {
+          this.agendaEvents.set(this.buildAgendaBackground(day));
+          this.loadingAgenda.set(false);
+        }
+      });
+  }
+
+  /** Clic en una franja del calendario: fija esa hora en el formulario. */
+  private onAgendaSlotClick(info: DateClickArg): void {
+    const day = this.agendaDate();
+    if (!day) return;
+
+    const dateStr = this.tuiDayToStr(day);
+    if (this.scheduleAvailability.isHolidayCached(dateStr)) {
+      this.notify.info(this.transloco.translate('appointments.holiday_closed_notice'));
+      return;
+    }
+
+    const schedule = this.scheduleAvailability.getScheduleForDate(dateStr);
+    if (!schedule) {
+      this.notify.info(this.transloco.translate('appointments.day_closed_notice'));
+      return;
+    }
+
+    const timeStr = `${String(info.date.getHours()).padStart(2, '0')}:${String(info.date.getMinutes()).padStart(2, '0')}`;
+    const within = schedule.details.some(
+      (d) => timeStr >= d.startTime.substring(0, 5) && timeStr < d.endTime.substring(0, 5)
+    );
+    if (!within) {
+      this.notify.info(this.transloco.translate('appointments.outside_operating_hours'));
+      return;
+    }
+
+    this.form.get('time')?.setValue(TuiTime.fromLocalNativeDate(info.date));
+  }
+
+  /** Coloca la vista del calendario en el día elegido, si ya existe la instancia. */
+  private syncCalendarDate(): void {
+    const day = this.agendaDate();
+    if (!day) return;
+    this.calendarRef?.getApi()?.gotoDate(day.toLocalNativeDate());
+  }
+
+  private buildAgendaEvents(appointments: AppointmentDto[], day: TuiDay): object[] {
+    const events: object[] = this.buildAgendaBackground(day);
+
+    appointments.forEach((a) => {
+      events.push({
+        id: a.id,
+        title: a.patientName ?? this.transloco.translate('appointments.no_patient'),
+        start: a.startTime,
+        end: a.endTime,
+        backgroundColor: statusColor(a.status) + '20',
+        borderColor: statusColor(a.status),
+        extendedProps: { status: a.status, typeName: a.typeName }
+      });
+    });
+
+    return events;
+  }
+
+  /** Franjas de jornada activa (fondo verde tenue) para leer de un vistazo los huecos. */
+  private buildAgendaBackground(day: TuiDay): object[] {
+    const dateStr = this.tuiDayToStr(day);
+    const schedule = this.scheduleAvailability.getScheduleForDate(dateStr);
+    if (!schedule) return [];
+
+    return schedule.details.map((detail) => ({
+      start: `${dateStr}T${detail.startTime}`,
+      end: `${dateStr}T${detail.endTime}`,
+      display: 'background' as const,
+      backgroundColor: hexToRgba(ACTIVE_HOURS_COLOR, 0.15)
+    }));
+  }
+
+  private tuiDayToStr(day: TuiDay): string {
+    return `${String(day.year).padStart(4, '0')}-${String(day.month + 1).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`;
+  }
+
   private updateScheduleInfo() {
     const raw = this.form.get('date')?.value;
     if (!raw || !this.availabilityLoaded()) return;
@@ -270,7 +456,12 @@ export class AppointmentFormDialog implements OnInit, OnDestroy {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return of([]);
     return this.userRoleService
-      .getUsersByTenantAndType(tenantId, 'PATIENT', { search: term || undefined, size: 50 })
+      .getUsersByTenantAndType(tenantId, 'PATIENT', {
+        search: term || undefined,
+        size: 50,
+        // Solo pacientes activos en el desplegable de agendar.
+        enabled: true
+      })
       .pipe(
         map((users) =>
           (users.content || []).map((u: AppUserDto) => ({

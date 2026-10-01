@@ -744,7 +744,11 @@
     "holiday_closed_notice": "Holiday — the centre is closed",
     "day_closed_notice": "The centre is closed that day",
     "next_appointment": "Next appointment",
-    "history_meta": "{{total}} appointments · {{attended}} attended · {{missed}} missed · {{rate}} % attendance"
+    "history_meta": "{{total}} appointments · {{attended}} attended · {{missed}} missed · {{rate}} % attendance",
+    "agenda_title": "Day agenda",
+    "agenda_hint": "Pick a nutritionist and date to see available times.",
+    "agenda_closed": "The centre is closed this day.",
+    "agenda_free_hint": "Tap a free slot to set the time."
   },
   "settings": {
     "subtitle": "Clinic settings: branding, appointment types, schedule and address",
@@ -1077,6 +1081,8 @@
     "next_appointment": "Next Appointment",
     "no_next_appointment": "You have no scheduled appointments",
     "today_meals": "Today's Meals",
+    "next_meal": "Next up",
+    "rest_of_day": "The rest of the day",
     "no_meals_today": "No meals planned for today",
     "weight_evolution": "Weight Evolution",
     "no_weight_history": "No weight history recorded",

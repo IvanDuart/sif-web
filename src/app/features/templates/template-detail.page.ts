@@ -148,8 +148,12 @@ export default class TemplateDetailPage implements OnInit {
     }).subscribe({
       next: (updatedMeal) => {
         this.savingInline.set(false);
-        this.editingMealId.set(null);
-        this.editingDescription.set('');
+        // Solo se cierra el editor si sigue siendo esta comida: al autoguardar
+        // por pérdida de foco, puede que el usuario ya haya abierto otra celda.
+        if (this.editingMealId() === meal.id) {
+          this.editingMealId.set(null);
+          this.editingDescription.set('');
+        }
         this.notify.success(this.transloco.translate('notifications.meal_updated'));
         const newDesc = updatedMeal?.description ?? desc;
         this.meals.update(list => list.map(m => m.id === meal.id ? { ...m, description: newDesc } : m));

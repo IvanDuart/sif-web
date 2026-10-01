@@ -1,115 +1,166 @@
 <div *transloco="let t" xmlns="http://www.w3.org/1999/html">
   <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
 
-    @if (!isPatientContext()) {
-      @if (isFirstConsultation()) {
-        <tui-textfield class="w-full">
-          <label tuiLabel for="formNewPatientName">{{ t('appointments.new_patient_name') }}</label>
+    <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
+
+      <!-- ═══════════ Datos de la cita ═══════════ -->
+      <div class="flex flex-col gap-4">
+
+        @if (!isPatientContext()) {
+          @if (isFirstConsultation()) {
+            <tui-textfield class="w-full">
+              <label tuiLabel for="formNewPatientName">{{ t('appointments.new_patient_name') }}</label>
+              <input
+                id="formNewPatientName"
+                tuiInput
+                formControlName="newPatientName"
+                [placeholder]="t('appointments.new_patient_name_placeholder')"
+                maxlength="100">
+            </tui-textfield>
+          } @else {
+            <tui-textfield tuiChevron [stringify]="patientStringify">
+              <label tuiLabel for="formPatientId">{{ t('appointments.patient') }} <span class="text-red-500">*</span></label>
+              <input
+                id="formPatientId"
+                tuiComboBox
+                formControlName="patientId"
+                (input)="onPatientSearch($any($event).target.value)">
+              <tui-data-list-wrapper
+                *tuiDropdown
+                [items]="patientLabels()" />
+            </tui-textfield>
+          }
+
+          <label class="flex items-center gap-2 cursor-pointer select-none w-fit">
+            <input type="checkbox" tuiCheckbox formControlName="isFirstConsultation" />
+            <span class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('appointments.first_consultation_checkbox') }}</span>
+          </label>
+
+          @if (isFirstConsultation()) {
+            <div class="flex items-center gap-2 p-3 rounded bg-primary-50 dark:bg-primary-500/10 border border-primary-200 dark:border-primary-800">
+              <i class="fa-solid fa-user-plus text-primary-500"></i>
+              <span class="text-sm text-primary-700 dark:text-primary-300">{{ t('appointments.first_consultation_hint') }}</span>
+            </div>
+          }
+        }
+
+        <tui-textfield class="w-full" tuiChevron [stringify]="nutritionistStringify">
+          <label tuiLabel for="formNutritionistId">{{ t('appointments.nutritionist') }} <span class="text-red-500">*</span></label>
           <input
-            id="formNewPatientName"
-            tuiInput
-            formControlName="newPatientName"
-            [placeholder]="t('appointments.new_patient_name_placeholder')"
-            maxlength="100">
-        </tui-textfield>
-      } @else {
-        <tui-textfield tuiChevron [stringify]="patientStringify">
-          <label tuiLabel for="formPatientId">{{ t('appointments.patient') }} <span class="text-red-500">*</span></label>
-          <input
-            id="formPatientId"
-            tuiComboBox
-            formControlName="patientId"
-            (input)="onPatientSearch($any($event).target.value)">
+            id="formNutritionistId"
+            tuiSelect
+            formControlName="nutritionistId">
           <tui-data-list-wrapper
             *tuiDropdown
-            [items]="patientLabels()" />
+            [items]="nutritionistValues()" />
         </tui-textfield>
-      }
 
-      <label class="flex items-center gap-2 cursor-pointer select-none w-fit">
-        <input type="checkbox" tuiCheckbox formControlName="isFirstConsultation" />
-        <span class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('appointments.first_consultation_checkbox') }}</span>
-      </label>
+        <tui-textfield tuiChevron [stringify]="typeStringify">
+          <label tuiLabel for="formTypeId">{{ t('appointments.type') }}</label>
+          <input
+            id="formTypeId"
+            tuiComboBox
+            formControlName="typeId">
+          <tui-data-list-wrapper
+            *tuiDropdown
+            [items]="typeLabels() | tuiFilterByInput" />
+        </tui-textfield>
 
-      @if (isFirstConsultation()) {
-        <div class="flex items-center gap-2 p-3 rounded bg-primary-50 dark:bg-primary-500/10 border border-primary-200 dark:border-primary-800">
-          <i class="fa-solid fa-user-plus text-primary-500"></i>
-          <span class="text-sm text-primary-700 dark:text-primary-300">{{ t('appointments.first_consultation_hint') }}</span>
-        </div>
-      }
-    }
+        <div class="flex gap-4">
+          <tui-textfield class="flex-1">
+             <label tuiLabel for="formDate">{{ t('appointments.date') }}</label>
+             <input
+               tuiInputDate
+               id="formDate"
+               formControlName="date" />
+             <tui-calendar *tuiDropdown />
+           </tui-textfield>
 
-    <tui-textfield class="w-full" tuiChevron [stringify]="nutritionistStringify">
-      <label tuiLabel for="formNutritionistId">{{ t('appointments.nutritionist') }} <span class="text-red-500">*</span></label>
-      <input
-        id="formNutritionistId"
-        tuiSelect
-        formControlName="nutritionistId">
-      <tui-data-list-wrapper
-        *tuiDropdown
-        [items]="nutritionistValues()" />
-    </tui-textfield>
+           <tui-textfield class="flex-1">
+             <label tuiLabel for="formTime">{{ t('appointments.time') }}</label>
+             <input
+               tuiInputTime
+               id="formTime"
+               formControlName="time" />
+           </tui-textfield>
+         </div>
 
-    <tui-textfield tuiChevron [stringify]="typeStringify">
-      <label tuiLabel for="formTypeId">{{ t('appointments.type') }}</label>
-      <input
-        id="formTypeId"
-        tuiComboBox
-        formControlName="typeId">
-      <tui-data-list-wrapper
-        *tuiDropdown
-        [items]="typeLabels() | tuiFilterByInput" />
-    </tui-textfield>
+        @if (isHolidayDate()) {
+          <div class="flex items-center gap-2 p-3 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+            <i class="fa-solid fa-calendar-xmark text-red-500"></i>
+            <span class="text-sm text-red-700 dark:text-red-300">Festivo - el centro está cerrado</span>
+          </div>
+        } @else if (isClosedDate()) {
+          <div class="flex items-center gap-2 p-3 rounded bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+            <i class="fa-solid fa-clock text-amber-500"></i>
+            <span class="text-sm text-amber-700 dark:text-amber-300">El centro está cerrado este día</span>
+          </div>
+        } @else if (scheduleInfo()) {
+          <div class="flex items-center gap-2 p-3 rounded bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+            <i class="fa-solid fa-clock text-blue-500"></i>
+            <span class="text-sm text-blue-700 dark:text-blue-300">{{ scheduleInfo() }}</span>
+          </div>
+        }
 
-    <div class="flex gap-4">
-      <tui-textfield class="flex-1">
-         <label tuiLabel for="formDate">{{ t('appointments.date') }}</label>
-         <input
-           tuiInputDate
-           id="formDate"
-           formControlName="date" />
-         <tui-calendar *tuiDropdown />
-       </tui-textfield>
+        <tui-textfield>
+          <label tuiLabel for="formNotes">
+            {{ t('appointments.notes') }}
+          </label>
+          <textarea
+                    id="formNotes"
+                    tuiTextarea
+                    formControlName="notes"
+                    ></textarea>
 
-       <tui-textfield class="flex-1">
-         <label tuiLabel for="formTime">{{ t('appointments.time') }}</label>
-         <input
-           tuiInputTime
-           id="formTime"
-           formControlName="time" />
-       </tui-textfield>
-     </div>
-
-    @if (isHolidayDate()) {
-      <div class="flex items-center gap-2 p-3 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-        <i class="fa-solid fa-calendar-xmark text-red-500"></i>
-        <span class="text-sm text-red-700 dark:text-red-300">Festivo - el centro está cerrado</span>
+        </tui-textfield>
       </div>
-    } @else if (isClosedDate()) {
-      <div class="flex items-center gap-2 p-3 rounded bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-        <i class="fa-solid fa-clock text-amber-500"></i>
-        <span class="text-sm text-amber-700 dark:text-amber-300">El centro está cerrado este día</span>
-      </div>
-    } @else if (scheduleInfo()) {
-      <div class="flex items-center gap-2 p-3 rounded bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-        <i class="fa-solid fa-clock text-blue-500"></i>
-        <span class="text-sm text-blue-700 dark:text-blue-300">{{ scheduleInfo() }}</span>
-      </div>
-    }
 
+      <!-- ═══════════ Agenda del día ═══════════ -->
+      <aside
+        class="flex min-h-[320px] flex-col gap-3 rounded-md border border-line bg-surface-50 p-3.5 dark:bg-surface-800/40"
+        aria-labelledby="agendaDayHeading">
+        <h3
+          id="agendaDayHeading"
+          class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-surface-400">
+          <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+          {{ t('appointments.agenda_title') }}
+        </h3>
 
-    <tui-textfield>
-      <label tuiLabel for="formNotes">
-        {{ t('appointments.notes') }}
-      </label>
-      <textarea
-                id="formNotes"
-                tuiTextarea
-                formControlName="notes"
-                ></textarea>
-
-    </tui-textfield>
-
+        @if (!agendaReady()) {
+          <div class="flex flex-1 flex-col items-center justify-center gap-2 py-10 text-center text-[13px] text-surface-400">
+            <i class="fa-regular fa-clock text-xl" aria-hidden="true"></i>
+            <span>{{ t('appointments.agenda_hint') }}</span>
+          </div>
+        } @else if (isHolidayDate() || isClosedDate()) {
+          <div class="flex flex-1 flex-col items-center justify-center gap-2 py-10 text-center text-[13px] text-warn">
+            <i class="fa-solid fa-calendar-xmark text-xl" aria-hidden="true"></i>
+            <span>{{ t('appointments.agenda_closed') }}</span>
+          </div>
+        } @else {
+          <div
+            class="overflow-hidden rounded-sm border border-line bg-surface-0"
+            [class.opacity-60]="loadingAgenda()">
+            <div class="max-h-[60vh] overflow-y-auto">
+              <full-calendar
+                #agendaCalendar
+                translate="no"
+                class="notranslate"
+                [options]="calendarOptions"
+                [events]="agendaEvents()">
+              </full-calendar>
+            </div>
+          </div>
+          <p class="flex flex-wrap items-center gap-1.5 text-xs text-surface-400">
+            <span
+              class="inline-block size-2.5 shrink-0 rounded-[3px]"
+              [style.background]="activeHoursDot"
+              aria-hidden="true"></span>
+            {{ t('appointments.legend_active_hours') }}
+            <span class="ml-auto italic">{{ t('appointments.agenda_free_hint') }}</span>
+          </p>
+        }
+      </aside>
+    </div>
 
     <button
       tuiButton

@@ -282,17 +282,21 @@
       </div>
     </div>
   } @else {
-    <!-- ═══════════ Panel del paciente ═══════════ -->
+    <!-- ═══════════ Panel del paciente ═══════════
+         En móvil las tarjetas se apilan en el mismo orden que la app nativa
+         (comidas → agua → próxima cita → compra → evolución). Las columnas
+         de escritorio se reconstruyen con `md:flex` sobre envoltorios que en
+         móvil son `contents`, de modo que el `order` actúa sobre la rejilla. -->
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-      <div class="flex flex-col gap-6">
-        <app-water-intake-widget [patientId]="currentUserId()" />
-        <app-patient-shopping-list />
+      <div class="contents md:flex md:flex-col md:gap-6">
+        <app-water-intake-widget [patientId]="currentUserId()" class="order-2 md:order-none" />
+        <app-patient-shopping-list class="order-4 md:order-none" />
       </div>
-      <div class="flex flex-col gap-6">
-        <app-patient-next-appointment />
-        <app-patient-today-meals />
+      <div class="contents md:flex md:flex-col md:gap-6">
+        <app-patient-today-meals class="order-1 md:order-none" />
+        <app-patient-next-appointment class="order-3 md:order-none" />
       </div>
-      <app-patient-weight-chart class="md:col-span-2" />
+      <app-patient-weight-chart class="order-5 md:col-span-2 md:order-none" />
     </div>
   }
 </div>

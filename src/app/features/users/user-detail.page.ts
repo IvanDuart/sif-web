@@ -1476,7 +1476,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
 
     this.modal.open<boolean, { patientId?: string; patientLabel?: string; nutritionistId?: string }>(AppointmentFormDialog, {
       label: this.transloco.translate('appointments.schedule_new'),
-      size: 'm',
+      size: 'l',
       data: {
         patientId: current.id,
         patientLabel,

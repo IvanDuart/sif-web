@@ -2,7 +2,9 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, inject, signal } f
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { TuiInput, TuiTextfield } from '@taiga-ui/core';
+import { TuiInput, TuiTextfield, TuiDropdown } from '@taiga-ui/core';
+import { TuiInputDate } from '@taiga-ui/kit';
+import { TuiDay } from '@taiga-ui/cdk';
 import { BodyMeasurementService } from '../../../../core/api/services/body-measurement.api';
 import { TenantContextService } from '../../../../core/tenant/tenant-context.service';
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -18,7 +20,7 @@ const PCT_FIELDS = new Set<string>(['bodyFatPct', 'bodyWaterPct']);
 @Component({
   selector: 'app-patient-weight-chart',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslocoDirective, TuiInput, TuiTextfield],
+  imports: [CommonModule, FormsModule, TranslocoDirective, TuiInput, TuiTextfield, TuiInputDate, TuiDropdown],
   templateUrl: './patient-weight-chart.html'
 })
 export class PatientWeightChart implements OnInit, OnDestroy {
@@ -31,8 +33,8 @@ export class PatientWeightChart implements OnInit, OnDestroy {
 
   loading = signal(false);
   hasData = signal(false);
-  startDate = '';
-  endDate = '';
+  startDate: TuiDay | null = null;
+  endDate: TuiDay | null = null;
 
   private readonly selectedFields = new Set<string>(['weightKg', 'bmi', 'bodyFatPct', 'bodyWaterPct']);
 
@@ -67,9 +69,8 @@ export class PatientWeightChart implements OnInit, OnDestroy {
           const firstDate = new Date(sortedDates[0]);
           const lastDate = new Date(sortedDates[sortedDates.length - 1]);
 
-          const format = (d: Date) => d.toISOString().split('T')[0];
-          this.startDate = format(firstDate);
-          this.endDate = format(lastDate);
+          this.startDate = TuiDay.fromLocalNativeDate(firstDate);
+          this.endDate = TuiDay.fromLocalNativeDate(lastDate);
 
           setTimeout(() => this.filterAndRenderChart(), 50);
         } else {
@@ -86,8 +87,10 @@ export class PatientWeightChart implements OnInit, OnDestroy {
   filterAndRenderChart() {
     if (!this.chartCanvasEl || this.rawPoints.length === 0) return;
 
-    const start = this.startDate ? new Date(this.startDate + 'T00:00:00') : null;
-    const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
+    const start = this.startDate ? this.startDate.toLocalNativeDate() : null;
+    if (start) start.setHours(0, 0, 0, 0);
+    const end = this.endDate ? this.endDate.toLocalNativeDate() : null;
+    if (end) end.setHours(23, 59, 59, 999);
 
     let filtered = this.rawPoints.filter(p => {
       const d = new Date(p.measuredAt);

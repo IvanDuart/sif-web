@@ -10,6 +10,7 @@
             (ngModelChange)="draftChange.emit($event)"
             (keydown.enter)="onEnter($event)"
             (keydown.escape)="cancelEdit.emit()"
+            (blur)="onBlur()"
             [min]="2"
             [max]="6"
             class="w-full text-xs"
@@ -22,6 +23,7 @@
             size="xs"
             type="button"
             [disabled]="saving()"
+            (mousedown)="$event.preventDefault()"
             (click)="cancelEdit.emit()"
             [title]="t('common.cancel')">
             <i class="fa-solid fa-xmark"></i>
@@ -32,6 +34,7 @@
             size="xs"
             type="button"
             [disabled]="!canSave()"
+            (mousedown)="$event.preventDefault()"
             (click)="save.emit()"
             [title]="t('common.save')">
             @if (saving()) {
@@ -60,7 +63,6 @@
             type="button"
             class="menu-table__meal-text"
             (click)="edit.emit()"
-            [attr.title]="t('common.edit')"
             [attr.aria-label]="t('common.edit')">
             <ng-container *ngTemplateOutlet="mealText" />
           </button>

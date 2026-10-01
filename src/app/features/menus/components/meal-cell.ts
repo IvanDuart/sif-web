@@ -73,6 +73,24 @@ export class MealCell {
 
   readonly canSave = computed(() => !this.saving() && this.draft().trim().length > 0);
 
+  /** ¿El borrador difiere del texto original? Evita un PATCH al salir sin cambios. */
+  private readonly hasChanges = computed(() =>
+    this.draft().trim() !== (this.meal()?.description ?? '').trim()
+  );
+
+  /**
+   * Al perder el foco (hacer clic fuera del cuadro): guarda si hay cambios
+   * válidos; si no hay nada que guardar, cierra el editor sin tocar el servidor.
+   */
+  onBlur(): void {
+    if (this.saving()) return;
+    if (this.canSave() && this.hasChanges()) {
+      this.save.emit();
+    } else {
+      this.cancelEdit.emit();
+    }
+  }
+
   /**
    * Enter guarda; Shift+Enter deja escribir un salto de línea, que es lo que se
    * espera en un textarea.

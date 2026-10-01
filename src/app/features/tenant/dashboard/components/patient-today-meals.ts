@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { MenuService } from '../../../../core/api/services/menu.api';
@@ -10,6 +10,20 @@ import { Meal } from '../../../../core/api/models/meal.model';
 import { UserTenantProfileFixedMealsDto } from '../../../../core/api/models/user.model';
 
 const DAY_MAP = ['DOMINGO', 'LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO'];
+
+/**
+ * Hora orientativa de cada comida (las comidas no traen hora propia en la API).
+ * Se usa solo para destacar la siguiente comida y para ordenar la cronología
+ * del día, igual que hace la app móvil nativa.
+ */
+const MEAL_HOURS: Record<string, number> = {
+  DESAYUNO: 8,
+  MEDIA_MANANA: 11,
+  ALMUERZO: 11,
+  COMIDA: 13,
+  MERIENDA: 17,
+  CENA: 21,
+};
 
 @Component({
   selector: 'app-patient-today-meals',
@@ -28,6 +42,32 @@ export class PatientTodayMeals implements OnInit {
   loading = signal(false);
   todayMeals = signal<Meal[]>([]);
   fixedMeals = signal<UserTenantProfileFixedMealsDto | null>(null);
+
+  /** Índice de la próxima comida dentro de `todayMeals`, o -1 si ya pasaron todas. */
+  readonly nextMealIndex = computed(() => {
+    const hour = new Date().getHours();
+    return this.todayMeals().findIndex((meal) => this.mealHour(meal.mealType) >= hour);
+  });
+
+  readonly nextMeal = computed<Meal | null>(() => {
+    const index = this.nextMealIndex();
+    return index < 0 ? null : this.todayMeals()[index];
+  });
+
+  /** Comida ya pasada (hora orientativa anterior a la actual). */
+  isPastMeal(meal: Meal): boolean {
+    return this.mealHour(meal.mealType) < new Date().getHours();
+  }
+
+  /** Hora orientativa de la comida, formateada `HH:00`, o cadena vacía. */
+  mealTime(mealType: string): string {
+    const hour = MEAL_HOURS[mealType.toUpperCase()];
+    return hour == null ? '' : `${hour.toString().padStart(2, '0')}:00`;
+  }
+
+  private mealHour(mealType: string): number {
+    return MEAL_HOURS[mealType.toUpperCase()] ?? 99;
+  }
 
   ngOnInit() {
     this.loadTodayMeals();

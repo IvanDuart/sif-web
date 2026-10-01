@@ -508,7 +508,7 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
       AppointmentFormDialog,
       {
         label: this.transloco.translate('appointments.schedule_new'),
-        size: 'm',
+        size: 'l',
         data: { nutritionistId: this.currentUserId(), startTime: prefilledDate }
       }
     ).subscribe((result) => {

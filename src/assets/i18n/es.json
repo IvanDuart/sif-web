@@ -744,7 +744,11 @@
     "holiday_closed_notice": "Festivo — el centro está cerrado",
     "day_closed_notice": "El centro está cerrado este día",
     "next_appointment": "Próxima cita",
-    "history_meta": "{{total}} citas registradas · {{attended}} asistidas · {{missed}} no asistidas · asistencia del {{rate}} %"
+    "history_meta": "{{total}} citas registradas · {{attended}} asistidas · {{missed}} no asistidas · asistencia del {{rate}} %",
+    "agenda_title": "Agenda del día",
+    "agenda_hint": "Elegí nutricionista y fecha para ver las horas disponibles.",
+    "agenda_closed": "El centro no atiende este día.",
+    "agenda_free_hint": "Tocá una franja libre para fijar la hora."
   },
   "settings": {
     "subtitle": "Ajustes del centro: marca, tipos de cita, horarios y dirección",
@@ -1137,6 +1141,8 @@
     "next_appointment": "Próxima Cita",
     "no_next_appointment": "No tienes citas programadas",
     "today_meals": "Comidas de Hoy",
+    "next_meal": "Siguiente",
+    "rest_of_day": "El resto del día",
     "no_meals_today": "No hay comidas planificadas para hoy",
     "weight_evolution": "Evolución de Peso",
     "no_weight_history": "No hay datos de evolución de peso registrados",
