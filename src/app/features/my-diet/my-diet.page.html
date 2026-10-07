@@ -1,0 +1,136 @@
+<div class="space-y-6 pb-24 lg:pb-4" *transloco="let t">
+  <!-- ═══════════ Cabecera ═══════════ -->
+  <header class="min-w-0">
+    <h1
+      class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]"
+    >
+      {{ t('my_diet.title') }}
+    </h1>
+    @if (menu(); as activeMenu) {
+      <p class="mt-1.5 text-[13px] text-surface-400">{{ activeMenu.name }}</p>
+    }
+  </header>
+
+  <boneyard-skeleton name="my-diet" [loading]="loading()">
+    @if (!loading() && !hasDiet()) {
+      <div class="data-card">
+        <app-empty-state
+          icon="fa-solid fa-utensils"
+          [title]="t('my_diet.empty_title')"
+          [description]="t('my_diet.empty')"
+        />
+      </div>
+    } @else if (!loading()) {
+      <div class="space-y-6">
+        <!-- Selector de día -->
+        <div class="day-tabs" role="group" [attr.aria-label]="t('my_diet.select_day')">
+          @for (day of weekDays; track day) {
+            <button
+              type="button"
+              class="day-tab"
+              [class.is-today]="isToday(day)"
+              [attr.aria-pressed]="selectedDay() === day"
+              (click)="selectDay(day)"
+            >
+              {{ dayShort(day) }}
+            </button>
+          }
+        </div>
+
+        <!-- Agenda del día -->
+        @if (entries().length > 0) {
+          <ul
+            class="divide-y divide-line overflow-hidden rounded-md border border-line bg-surface-0 dark:bg-surface-800"
+          >
+            @for (entry of entries(); track entry.key) {
+              <li
+                class="meal-row flex items-start gap-3 px-4 py-3.5"
+                [attr.data-next]="entry.key === nextEntryKey() ? '' : null"
+              >
+                <span
+                  class="grid size-11 shrink-0 place-items-center rounded-md bg-surface-100 text-surface-500 dark:bg-surface-900 dark:text-surface-400"
+                >
+                  <i [class]="entry.icon" aria-hidden="true"></i>
+                </span>
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-baseline gap-x-2">
+                    <h2
+                      class="font-display text-base font-bold tracking-tight text-surface-900 dark:text-surface-0"
+                    >
+                      {{ mealLabel(entry.mealType) }}
+                    </h2>
+                    @if (entry.everyDay) {
+                      <span class="text-xs text-surface-400">· {{ t('my_diet.every_day') }}</span>
+                    }
+                  </div>
+                  <p class="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-surface-500 dark:text-surface-400">
+                    {{ entry.description }}
+                  </p>
+                </div>
+                @if (entry.time) {
+                  <span class="shrink-0 pt-0.5 text-sm tabular-nums text-surface-400">
+                    {{ entry.time }}
+                  </span>
+                }
+              </li>
+            }
+          </ul>
+        } @else {
+          <div class="data-card">
+            <app-empty-state
+              icon="fa-solid fa-utensils"
+              [title]="t('my_diet.empty_day_title')"
+              [description]="t('my_diet.empty_day')"
+            />
+          </div>
+        }
+
+        <!-- Observaciones de las pautas fijas -->
+        @if (observations(); as obs) {
+          <section class="data-card">
+            <h2 class="flex items-center gap-2 text-sm font-bold text-surface-900 dark:text-surface-0">
+              <i class="fa-solid fa-note-sticky text-surface-400" aria-hidden="true"></i>
+              {{ t('patient_profile.observations') }}
+            </h2>
+            <p class="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-surface-600 dark:text-surface-300">
+              {{ obs }}
+            </p>
+          </section>
+        }
+      </div>
+    }
+  </boneyard-skeleton>
+
+  <!-- Generar la lista de la compra con IA (solo si la clínica la tiene activa). -->
+  @if (isAiEnabled()) {
+    <button
+      type="button"
+      class="shopping-fab"
+      [tuiDropdown]="supermarketDropdown"
+      tuiDropdownAlign="end"
+      tuiDropdownLimitWidth="min"
+      [tuiDropdownOpen]="supermarketMenuOpen()"
+      (tuiDropdownOpenChange)="supermarketMenuOpen.set($event)"
+      [disabled]="generatingList()"
+      [attr.aria-label]="t('my_diet.generate_list')"
+    >
+      @if (generatingList()) {
+        <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+      } @else {
+        <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+      }
+      <span>{{ t('my_diet.generate_list') }}</span>
+    </button>
+
+    <ng-template #supermarketDropdown>
+      <tui-data-list>
+        @for (sup of supermarkets; track sup.value) {
+          <button tuiOption type="button" (click)="generateShoppingList(sup.value)">
+            {{ sup.label }}
+          </button>
+        }
+      </tui-data-list>
+    </ng-template>
+  }
+
+</div>

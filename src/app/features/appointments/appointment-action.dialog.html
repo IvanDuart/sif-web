@@ -115,7 +115,7 @@
           </button>
         }
 
-        @if (appointment.status === 'SCHEDULED' && canManage() && isPastAppointment) {
+        @if (appointment.status === 'SCHEDULED' && canManage()) {
           <button type="button" tuiButton appearance="secondary" size="m" [disabled]="saving()" (click)="markCompleted()">
             @if (saving()) {
               <i class="fa-solid fa-spinner fa-spin mr-1"></i>

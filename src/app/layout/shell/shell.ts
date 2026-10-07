@@ -32,8 +32,9 @@ const NAV_ITEMS: NavItem[] = [
   { labelKey: 'staff', icon: 'fa-solid fa-user-doctor', route: '/staff', permission: 'VIEW_USER' },
   { labelKey: 'appointments', icon: 'fa-solid fa-calendar-days', route: '/appointments', permission: 'VIEW_APPOINTMENTS' },
   { labelKey: 'revenue', icon: 'fa-solid fa-chart-line', route: '/revenue', permission: 'VIEW_REVENUE' },
-  { labelKey: 'diets', icon: 'fa-solid fa-utensils', route: '/menus', permission: 'VIEW_MENU' },
+  { labelKey: 'my_diet', icon: 'fa-solid fa-utensils', route: '/my-diet', permission: 'VIEW_MENU' },
   { labelKey: 'shopping_list', icon: 'fa-solid fa-cart-shopping', route: '/shopping-lists', permission: 'VIEW_MENU' },
+  { labelKey: 'evolution', icon: 'fa-solid fa-chart-line', route: '/evolution', permission: 'VIEW_EVOLUTION' },
   { labelKey: 'templates', icon: 'fa-solid fa-clipboard-list', route: '/templates', permission: 'MANAGE_TEMPLATE' },
   { labelKey: 'settings', icon: 'fa-solid fa-gear', route: '/settings', permission: 'MANAGE_TENANT_BRANDING' },
   { labelKey: 'admin', icon: 'fa-solid fa-shield-halved', route: '/admin', permission: 'MANAGE_TENANT' },
@@ -185,6 +186,10 @@ export class Shell implements OnInit {
       if (item.permission === 'VIEW_MENU') {
         return this.activeTenant()?.userType === 'PATIENT';
       }
+      // La evolución de medidas es una pantalla del propio paciente.
+      if (item.permission === 'VIEW_EVOLUTION') {
+        return this.activeTenant()?.userType === 'PATIENT';
+      }
       if (item.permission === 'MANAGE_TENANT') {
         return this.permissionsService.has('MANAGE_TENANT') && this.tenantCtx.isAdminTenant();
       }
@@ -206,8 +211,8 @@ export class Shell implements OnInit {
    * "Citas" o "Ingresos", que son los destinos realmente frecuentes.
    */
   private static readonly MOBILE_PRIORITY = [
-    '/dashboard', '/appointments', '/patients', '/revenue',
-    '/menus', '/shopping-lists', '/staff', '/templates', '/settings', '/admin',
+    '/dashboard', '/my-diet', '/shopping-lists', '/evolution', '/appointments',
+    '/patients', '/revenue', '/staff', '/templates', '/settings', '/admin',
   ];
 
   readonly bottomNavItems = computed<NavItem[]>(() => {

@@ -1,0 +1,154 @@
+<div *transloco="let t" class="space-y-6 pb-4">
+  <!-- Encabezado + filtro de rango -->
+  <header class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div class="min-w-0">
+      <h1
+        class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]"
+      >
+        {{ t('evolution.title') }}
+      </h1>
+      <p class="mt-1 text-[13px] text-surface-400">{{ t('evolution.subtitle') }}</p>
+    </div>
+
+    <div
+      class="flex w-full items-stretch divide-x divide-line overflow-hidden rounded-md border border-line bg-surface-0 dark:bg-surface-800 lg:w-auto"
+    >
+      <label class="flex min-w-0 flex-1 flex-col gap-0.5 px-4 py-2.5 lg:w-[170px] lg:flex-none">
+        <span class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+          {{ t('common.from') }}
+        </span>
+        <tui-textfield class="w-full" tuiTextfieldSize="m">
+          <input
+            tuiInputDate
+            [min]="null"
+            [max]="endDate()"
+            [ngModel]="startDate()"
+            (ngModelChange)="startDate.set($event)"
+          />
+          <tui-calendar *tuiDropdown />
+        </tui-textfield>
+      </label>
+      <label class="flex min-w-0 flex-1 flex-col gap-0.5 px-4 py-2.5 lg:w-[170px] lg:flex-none">
+        <span class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+          {{ t('common.to') }}
+        </span>
+        <tui-textfield class="w-full" tuiTextfieldSize="m">
+          <input
+            tuiInputDate
+            [min]="startDate()"
+            [max]="null"
+            [ngModel]="endDate()"
+            (ngModelChange)="endDate.set($event)"
+          />
+          <tui-calendar *tuiDropdown />
+        </tui-textfield>
+      </label>
+    </div>
+  </header>
+
+  <!-- Gráfica (misma tarjeta que la ficha de usuario) -->
+  <boneyard-skeleton name="evolution-chart" [loading]="loading()">
+    <div class="data-card">
+      <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+            {{ t('measurements.chart_title') }}
+          </h2>
+          <p class="mt-1 text-[13px] text-surface-400">{{ t('measurements.chart_hint') }}</p>
+        </div>
+        <tui-segmented
+          [activeItemIndex]="chartType() === 'composition' ? 0 : 1"
+          (activeItemIndexChange)="setChartType($event === 0 ? 'composition' : 'anthropometry')"
+        >
+          <button type="button">{{ t('measurements.chart_composition') }}</button>
+          <button type="button">{{ t('measurements.chart_anthropometry') }}</button>
+        </tui-segmented>
+      </div>
+
+      @if (chartLoaded() && chartData) {
+        <div class="relative" style="height: 320px">
+          <canvas #chartCanvas></canvas>
+        </div>
+        <p class="mt-2 text-xs italic text-surface-400">
+          {{ t('measurements.bmi_disclaimer') }}
+        </p>
+      } @else if (!loading()) {
+        <div class="flex flex-col items-center justify-center py-12 text-center text-surface-400">
+          <i class="fa-solid fa-chart-area mb-2 text-3xl text-surface-300" aria-hidden="true"></i>
+          <p class="text-sm">{{ t('evolution.empty') }}</p>
+        </div>
+      }
+    </div>
+  </boneyard-skeleton>
+
+  <!-- Historial de medidas -->
+  <section class="space-y-4" aria-labelledby="evolutionHistory">
+    <h2
+      id="evolutionHistory"
+      class="text-xs font-semibold uppercase tracking-wide text-surface-500"
+    >
+      {{ t('evolution.history_title') }}
+    </h2>
+
+    @if (loading()) {
+      <div class="data-card">
+        <div class="flex items-center justify-center py-12">
+          <i class="fa-solid fa-spinner fa-spin text-2xl text-primary-500" aria-hidden="true"></i>
+        </div>
+      </div>
+    } @else if (rows().length === 0) {
+      <div class="data-card">
+        <app-empty-state
+          icon="fa-solid fa-ruler"
+          [title]="t('evolution.empty_title')"
+          [description]="t('evolution.empty')"
+        />
+      </div>
+    } @else {
+      <div class="divide-y divide-line overflow-hidden rounded-md border border-line">
+        @for (row of rows(); track row.id) {
+          <div class="bg-surface-0 px-4 py-4 dark:bg-surface-800">
+            <div class="flex items-start justify-between gap-4">
+              <span class="font-display text-base font-bold text-surface-900 dark:text-surface-0">
+                {{ row.dateLabel }}
+              </span>
+              <div class="text-right">
+                <div
+                  class="font-display text-xl font-bold leading-none tracking-tight tabular-nums text-surface-900 dark:text-surface-0"
+                >
+                  {{ row.primary.valueText }}@if (row.primary.unit) {
+                    <span class="ml-0.5 font-sans text-[13px] font-normal text-surface-400">{{ row.primary.unit }}</span>
+                  }
+                </div>
+                @if (row.primary.deltaText) {
+                  <div [class]="'mt-1 text-xs tabular-nums ' + row.primary.deltaClass">
+                    {{ row.primary.arrow }} {{ row.primary.deltaText }}
+                  </div>
+                }
+              </div>
+            </div>
+
+            @if (row.metrics.length > 0) {
+              <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+                @for (metric of row.metrics; track metric.field) {
+                  <span class="inline-flex items-center gap-1.5 text-[13px]">
+                    <span class="inline-block size-2 shrink-0 rounded-pill" [style.background]="metric.color"></span>
+                    <span class="text-surface-500 dark:text-surface-400">{{ t(metric.labelKey) }}</span>
+                    <span class="font-medium tabular-nums text-surface-900 dark:text-surface-0">
+                      {{ metric.valueText }}@if (metric.unit) { {{ metric.unit }}}
+                    </span>
+                    @if (metric.deltaText) {
+                      <span [class]="'tabular-nums ' + metric.deltaClass">
+                        {{ metric.arrow }} {{ metric.deltaText }}
+                      </span>
+                    }
+                  </span>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </section>
+</div>

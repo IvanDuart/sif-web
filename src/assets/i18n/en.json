@@ -51,6 +51,7 @@
     "staff": "Staff",
     "appointments": "Appointments",
     "diets": "Diets & Menus",
+    "my_diet": "My Diet",
     "templates": "Templates",
     "shopping_list": "Shopping List",
     "settings": "Settings",
@@ -643,9 +644,20 @@
       "comida": "Lunch",
       "cena": "Dinner",
       "desayuno": "Breakfast",
+      "almuerzo": "Mid-morning",
       "merienda": "Afternoon Snack",
       "media_manana": "Mid-morning Snack"
     }
+  },
+  "my_diet": {
+    "title": "My Diet",
+    "select_day": "Choose the day",
+    "every_day": "Every day",
+    "generate_list": "Generate list",
+    "empty_title": "No diet assigned",
+    "empty": "You don't have an active diet yet. Your professional will assign one soon.",
+    "empty_day_title": "Free day",
+    "empty_day": "There are no meals defined for this day."
   },
   "template_detail": {
     "title": "Weekly Meals",
@@ -1226,6 +1238,12 @@
     "total": "Total",
     "products": "products",
     "total_items": "Total",
+    "product_count": "{{count}} products",
+    "other_category": "Other",
+    "empty_items_title": "Empty list",
+    "empty_items": "The current list has no products.",
+    "progress": "{{checked}} of {{total}} bought",
+    "update_error": "Could not update the product. Please try again.",
     "generation_error": "Error generating the shopping list. Please try again."
   },
   "notifications": {

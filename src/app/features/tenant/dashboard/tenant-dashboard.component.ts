@@ -30,8 +30,6 @@ import { EmptyState } from '../../../shared/ui/empty-state';
 import { WaterIntakeWidget } from './components/water-intake-widget';
 import { PatientNextAppointment } from './components/patient-next-appointment';
 import { PatientTodayMeals } from './components/patient-today-meals';
-import { PatientWeightChart } from './components/patient-weight-chart';
-import { PatientShoppingList } from './components/patient-shopping-list';
 
 // Staff Dashboard Widgets
 import { QuickScheduleWidget } from './components/quick-schedule-widget';
@@ -67,8 +65,6 @@ interface TimelineRow {
     WaterIntakeWidget,
     PatientNextAppointment,
     PatientTodayMeals,
-    PatientWeightChart,
-    PatientShoppingList,
     QuickScheduleWidget,
     PatientQuickSearch,
     SkeletonComponent,
@@ -184,8 +180,9 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
       statusLabelKey: `tenant_dashboard.flag_${appointment.status.toLowerCase()}`,
       dotClass: statusDotClass(appointment.status),
       past: isPastInstant(appointment.startTime),
-      resolvable:
-        appointment.status === 'SCHEDULED' && isPastInstant(appointment.startTime),
+      // Las citas del día son resolubles aunque aún no haya llegado su hora:
+      // permite registrar la asistencia cuando el paciente llega adelantado.
+      resolvable: appointment.status === 'SCHEDULED',
     });
 
     for (const appointment of list) {

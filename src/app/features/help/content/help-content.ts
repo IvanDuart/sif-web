@@ -700,12 +700,6 @@ export const HELP_CONTENT: HelpSection[] = [
         descKey: 'help.topics.dashboard_patient.weight_graph.desc',
         tags: ['weight', 'graph', 'chart', 'measurement', 'progress'],
       },
-      {
-        id: 'shopping_list_widget',
-        titleKey: 'help.topics.dashboard_patient.shopping_list_widget.title',
-        descKey: 'help.topics.dashboard_patient.shopping_list_widget.desc',
-        tags: ['shopping', 'list', 'widget', 'ingredients'],
-      },
     ],
   },
 
@@ -721,7 +715,7 @@ export const HELP_CONTENT: HelpSection[] = [
         titleKey: 'help.topics.my_diets.view_menus.title',
         descKey: 'help.topics.my_diets.view_menus.desc',
         tags: ['menu', 'diet', 'view', 'list'],
-        relatedRoutes: ['/menus'],
+        relatedRoutes: ['/my-diet'],
       },
       {
         id: 'weekly_detail',

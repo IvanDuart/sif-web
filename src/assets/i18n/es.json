@@ -51,6 +51,7 @@
     "staff": "Equipo",
     "appointments": "Citas",
     "diets": "Dietas y Menús",
+    "my_diet": "Mi Dieta",
     "templates": "Plantillas",
     "shopping_list": "Lista de la Compra",
     "settings": "Configuración",
@@ -643,9 +644,20 @@
       "comida": "Comida",
       "cena": "Cena",
       "desayuno": "Desayuno",
+      "almuerzo": "Almuerzo",
       "merienda": "Merienda",
       "media_manana": "Media Mañana"
     }
+  },
+  "my_diet": {
+    "title": "Mi Dieta",
+    "select_day": "Elige el día",
+    "every_day": "Todos los días",
+    "generate_list": "Generar lista",
+    "empty_title": "Sin dieta asignada",
+    "empty": "Todavía no tienes una dieta activa. Tu profesional la asignará en breve.",
+    "empty_day_title": "Día libre",
+    "empty_day": "No hay comidas definidas para este día."
   },
   "template_detail": {
     "title": "Platos de la Semana",
@@ -1286,6 +1298,12 @@
     "total": "Total",
     "products": "productos",
     "total_items": "Total",
+    "product_count": "{{count}} productos",
+    "other_category": "Otros",
+    "empty_items_title": "Lista vacía",
+    "empty_items": "La lista actual no tiene productos.",
+    "progress": "{{checked}} de {{total}} comprados",
+    "update_error": "No se pudo actualizar el producto. Intenta de nuevo.",
     "generation_error": "Error al generar la lista de la compra. Intenta de nuevo."
   },
   "notifications": {

@@ -7,79 +7,119 @@
       >
         {{ t('shopping_list.title') }}
       </h1>
-      <p class="mt-1.5 text-[13px] tabular-nums text-surface-400">
-        {{ t('shopping_list.count', { total: lists().length }) }}
-      </p>
+      @if (shoppingList(); as list) {
+        <p class="mt-1.5 text-[13px] tabular-nums text-surface-400">
+          {{ supermarketLabel(list.supermarket) }} ·
+          {{ t('shopping_list.product_count', { count: totalCount() }) }}
+        </p>
+      }
     </div>
   </header>
 
-  <boneyard-skeleton name="shopping-lists" [loading]="loading()">
-    <!-- Tabla (escritorio) -->
-    <div class="hidden md:block table-wrapper">
-      @if (lists().length === 0 && !loading()) {
-        <app-empty-state
-          icon="fa-solid fa-cart-shopping"
-          [title]="t('shopping_list.empty_title', {defaultValue: 'Sin listas de compra'})"
-          [description]="t('shopping_list.empty', {defaultValue: 'Aún no se ha generado ninguna lista de la compra'})">
-        </app-empty-state>
+  <boneyard-skeleton name="shopping-list-current" [loading]="loading()">
+    @if (shoppingList(); as list) {
+      @if (groupedItems().length === 0) {
+        <div class="data-card">
+          <app-empty-state
+            icon="fa-solid fa-basket-shopping"
+            [title]="t('shopping_list.empty_items_title')"
+            [description]="t('shopping_list.empty_items')"
+          />
+        </div>
       } @else {
-        <table [attr.aria-label]="t('shopping_list.title')" tuiTable class="w-full">
-          <thead>
-            <tr>
-              <th tuiTh scope="col">{{ t('shopping_list.list_name') }}</th>
-              <th tuiTh scope="col">{{ t('shopping_list.supermarket') }}</th>
-              <th tuiTh scope="col">{{ t('shopping_list.total_price') }}</th>
-              <th tuiTh scope="col" class="w-44">{{ t('shopping_list.created_at') }}</th>
-            </tr>
-          </thead>
-          <tbody tuiTbody>
-            @for (list of lists(); track list.id) {
-              <tr tuiTr class="cursor-pointer" (click)="viewList(list)">
-                <td tuiTd class="font-medium text-surface-900 dark:text-surface-0">{{ list.name }}</td>
-                <td tuiTd class="text-surface-500 dark:text-surface-400">{{ supermarketLabel(list.supermarket) }}</td>
-                <td tuiTd class="font-semibold tabular-nums text-primary-600 dark:text-primary-300">{{ totalLabel(list) }}</td>
-                <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">{{ list.createdAt | date:'mediumDate' }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      }
-    </div>
+        <div class="space-y-6">
+          @for (group of groupedItems(); track group.category) {
+            <section [attr.aria-label]="group.category">
+              <h2
+                class="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-surface-500"
+              >
+                <i
+                  [class]="group.icon"
+                  class="text-primary-600 dark:text-primary-300"
+                  aria-hidden="true"
+                ></i>
+                <span>{{ group.category }}</span>
+                <span class="ml-auto font-normal tabular-nums text-surface-400">
+                  {{ group.items.length }}
+                </span>
+              </h2>
 
-    <!-- Tarjetas (móvil) -->
-    <div class="space-y-3 md:hidden">
-      @if (lists().length === 0 && !loading()) {
+              <ul
+                class="divide-y divide-line overflow-hidden rounded-md border border-line bg-surface-0 dark:bg-surface-800"
+              >
+                @for (item of group.items; track item.id) {
+                  <li>
+                    <label
+                      class="flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-50 dark:hover:bg-surface-900"
+                    >
+                      <input
+                        tuiCheckbox
+                        type="checkbox"
+                        class="shrink-0"
+                        [ngModel]="item.checked"
+                        (ngModelChange)="toggleItem(item, $event)"
+                        [attr.aria-label]="item.name"
+                      />
+                      <span class="min-w-0 flex-1">
+                        <span
+                          class="block text-sm font-medium text-surface-900 dark:text-surface-0"
+                          [class.line-through]="item.checked"
+                          [class.text-surface-400]="item.checked"
+                        >
+                          {{ item.name }}
+                        </span>
+                        @if (item.notes) {
+                          <span class="mt-0.5 block truncate text-xs text-surface-400">
+                            {{ item.notes }}
+                          </span>
+                        }
+                      </span>
+                      @if (item.quantity) {
+                        <span
+                          class="shrink-0 whitespace-nowrap text-sm tabular-nums text-surface-500 dark:text-surface-400"
+                        >
+                          {{ item.quantity }} {{ unitLabel(item.unit) }}
+                        </span>
+                      }
+                    </label>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+        </div>
+
+        <!-- Resumen (pegajoso) -->
+        <div
+          class="shopping-summary mt-6 rounded-md bg-surface-0 px-4 py-3 shadow-float dark:bg-surface-800"
+        >
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-sm font-medium text-surface-900 dark:text-surface-0">
+              {{ t('shopping_list.progress', { checked: purchasedCount(), total: totalCount() }) }}
+            </span>
+            @if (list.totalEstimatedPrice !== null) {
+              <span class="text-sm font-semibold tabular-nums text-primary-600 dark:text-primary-300">
+                {{ t('shopping_list.total') }}: {{ totalPrice() }}
+              </span>
+            }
+          </div>
+          <progress
+            tuiProgressBar
+            class="mt-2 block w-full"
+            [max]="100"
+            [value]="progressPct()"
+            [attr.aria-label]="t('shopping_list.progress', { checked: purchasedCount(), total: totalCount() })"
+          ></progress>
+        </div>
+      }
+    } @else if (!loading()) {
+      <div class="data-card">
         <app-empty-state
           icon="fa-solid fa-cart-shopping"
-          [title]="t('shopping_list.empty_title', {defaultValue: 'Sin listas de compra'})"
-          [description]="t('shopping_list.empty', {defaultValue: 'Aún no se ha generado ninguna lista de la compra'})">
-        </app-empty-state>
-      } @else {
-        @for (list of lists(); track list.id) {
-          <article
-            class="cursor-pointer rounded-md border border-line bg-surface-0 p-3 transition-colors hover:border-line-strong dark:bg-surface-800"
-            role="button"
-            tabindex="0"
-            (click)="viewList(list)"
-            (keydown.enter)="viewList(list)"
-          >
-            <div class="flex items-start justify-between gap-2">
-              <p class="font-medium text-surface-900 dark:text-surface-0">{{ list.name }}</p>
-              <span class="font-semibold tabular-nums text-primary-600 dark:text-primary-300">{{ totalLabel(list) }}</span>
-            </div>
-            <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px]">
-              <div class="flex items-center gap-1.5">
-                <dt class="text-surface-400">{{ t('shopping_list.supermarket') }}</dt>
-                <dd class="text-surface-600 dark:text-surface-300">{{ supermarketLabel(list.supermarket) }}</dd>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <dt class="text-surface-400">{{ t('shopping_list.created_at') }}</dt>
-                <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ list.createdAt | date:'mediumDate' }}</dd>
-              </div>
-            </dl>
-          </article>
-        }
-      }
-    </div>
+          [title]="t('shopping_list.empty_title')"
+          [description]="t('shopping_list.empty')"
+        />
+      </div>
+    }
   </boneyard-skeleton>
 </div>
