@@ -30,6 +30,7 @@
     "@maskito/core": "^5.3.1",
     "@maskito/kit": "^5.3.1",
     "@maskito/phone": "^5.3.1",
+    "@microsoft/fetch-event-source": "^2.0.1",
     "@ng-web-apis/common": "^5.3.0",
     "@ng-web-apis/experimental": "^5.3.0",
     "@ng-web-apis/intersection-observer": "^5.3.0",

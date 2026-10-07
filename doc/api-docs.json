@@ -80,6 +80,10 @@
       "description": "Controller for body measurements (weight, fat, muscle)"
     },
     {
+      "name": "MenuStreamController",
+      "description": "Real-time menu updates over Server-Sent Events (SSE)"
+    },
+    {
       "name": "TenantBrandingController",
       "description": "Controller for Tenant Branding"
     },
@@ -2979,7 +2983,7 @@
         "tags": [
           "AppointmentController"
         ],
-        "description": "Create a new appointment",
+        "description": "Create a new appointment. nutritionistId is optional for patients (their assigned nutritionist is used); staff must provide it",
         "operationId": "create_7",
         "parameters": [
           {
@@ -3166,6 +3170,48 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/AppUser_Full"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/users/bulk/status": {
+      "patch": {
+        "tags": [
+          "UserTenantRoleController"
+        ],
+        "description": "Enable or disable several users in the tenant at once (partial failures are reported)",
+        "operationId": "bulkSetUserStatus",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkUserStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkOperationResult"
                 }
               }
             }
@@ -3504,6 +3550,14 @@
             }
           },
           {
+            "name": "enabled",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "name": "page",
             "in": "query",
             "description": "Zero-based page index (0..N)",
@@ -3752,6 +3806,104 @@
         }
       }
     },
+    "/tenant/{tenantId}/users/export": {
+      "get": {
+        "tags": [
+          "UserTenantRoleController"
+        ],
+        "description": "Export the tenant users (respecting the same filters as the list) as a CSV file",
+        "operationId": "exportUsers",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "STAFF",
+                "PATIENT"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "enabled",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Zero-based page index (0..N)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "The size of the page to be returned",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sorting criteria in the format: property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "default": [
+                "appUser.firstName,ASC"
+              ],
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/users/by-type/{userType}": {
       "get": {
         "tags": [
@@ -3787,6 +3939,14 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "enabled",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
             }
           },
           {
@@ -3940,6 +4100,47 @@
                   "items": {
                     "$ref": "#/components/schemas/ShoppingListDto"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/menu/{id}/stream": {
+      "get": {
+        "tags": [
+          "MenuStreamController"
+        ],
+        "description": "Subscribe to real-time updates of a menu (SSE). Emits a 'menu-update' event whenever the menu or its meals change",
+        "operationId": "stream",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/SseEmitter"
                 }
               }
             }
@@ -4708,7 +4909,7 @@
         "tags": [
           "AppointmentController"
         ],
-        "description": "List distinct patients of a nutritionist",
+        "description": "List the patients assigned to a nutritionist (their portfolio), not only those with appointments",
         "operationId": "findPatientsByNutritionist",
         "parameters": [
           {
@@ -4740,6 +4941,90 @@
                   "items": {
                     "$ref": "#/components/schemas/NutritionistPatientDto"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/appointments/metrics": {
+      "get": {
+        "tags": [
+          "AppointmentController"
+        ],
+        "description": "Aggregated metrics for the dashboard (revenue, attendance, breakdowns and time series) in a single call. A user without MANAGE_TENANT only sees their own data, ignoring nutritionistId.",
+        "operationId": "getMetrics",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "nutritionistId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "granularity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "MONTH",
+              "enum": [
+                "DAY",
+                "WEEK",
+                "MONTH",
+                "QUARTER"
+              ]
+            }
+          },
+          {
+            "name": "bucketCount",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 12
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentMetricsDto"
                 }
               }
             }
@@ -4884,6 +5169,33 @@
               "MANUAL",
               "BEDCA"
             ]
+          },
+          "appointment_time_bands": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeBand_Full"
+            }
+          },
+          "attendance_target_rate": {
+            "type": "number"
+          },
+          "cancellation_notice_threshold_hours": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "TimeBand_Full": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
           }
         }
       },
@@ -5957,6 +6269,14 @@
           },
           "assignedNutritionistName": {
             "type": "string"
+          },
+          "lastAppointmentDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nextAppointmentDate": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -6009,10 +6329,12 @@
             "format": "int32"
           },
           "startTime": {
-            "type": "string"
+            "type": "string",
+            "format": "time-local"
           },
           "endTime": {
-            "type": "string"
+            "type": "string",
+            "format": "time-local"
           }
         }
       },
@@ -6048,10 +6370,12 @@
             "format": "int32"
           },
           "startTime": {
-            "type": "string"
+            "type": "string",
+            "format": "time-local"
           },
           "endTime": {
-            "type": "string"
+            "type": "string",
+            "format": "time-local"
           }
         }
       },
@@ -6184,6 +6508,33 @@
               "MANUAL",
               "BEDCA"
             ]
+          },
+          "appointment_time_bands": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeBand_Public"
+            }
+          },
+          "attendance_target_rate": {
+            "type": "number"
+          },
+          "cancellation_notice_threshold_hours": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "TimeBand_Public": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
           }
         }
       },
@@ -6298,6 +6649,33 @@
               "MANUAL",
               "BEDCA"
             ]
+          },
+          "appointment_time_bands": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeBand"
+            }
+          },
+          "attendance_target_rate": {
+            "type": "number"
+          },
+          "cancellation_notice_threshold_hours": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "TimeBand": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
           }
         }
       },
@@ -6548,7 +6926,8 @@
           },
           "durationMinutes": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "exclusiveMinimum": 0
           },
           "price": {
             "type": "number",
@@ -6666,71 +7045,93 @@
         "type": "object",
         "properties": {
           "weightKg": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "bodyFatPct": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "muscleMassPct": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "waistCm": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "chestCm": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "hipsCm": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "contourCm": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "armCm": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "bodyWaterPct": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "visceralFatLevel": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "minimum": 0
           },
           "wristCircumferenceCm": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "boneMassKg": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "trunkFatPct": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "trunkMassKg": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "rightArmFatPct": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "rightArmMassKg": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "leftArmFatPct": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "leftArmMassKg": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "rightLegFatPct": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "rightLegMassKg": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "leftLegFatPct": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "leftLegMassKg": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "measuredAt": {
             "type": "string",
@@ -7304,6 +7705,9 @@
           },
           "notes": {
             "type": "string"
+          },
+          "allowOverlap": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -7360,6 +7764,14 @@
               "PROPOSED"
             ]
           },
+          "cancelledAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cancellationNoticeHours": {
+            "type": "number",
+            "format": "double"
+          },
           "notes": {
             "type": "string"
           },
@@ -7378,7 +7790,8 @@
           },
           "durationMinutes": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "exclusiveMinimum": 0
           },
           "price": {
             "type": "number",
@@ -7409,6 +7822,45 @@
           "language",
           "timezone"
         ]
+      },
+      "BulkUserStatusRequest": {
+        "type": "object",
+        "properties": {
+          "userIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "minItems": 1
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "userIds"
+        ]
+      },
+      "BulkOperationResult": {
+        "type": "object",
+        "properties": {
+          "requested": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failedIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
       },
       "UpdateShoppingListItemRequest": {
         "type": "object",
@@ -7452,6 +7904,9 @@
           },
           "notes": {
             "type": "string"
+          },
+          "allowOverlap": {
+            "type": "boolean"
           }
         }
       },
@@ -7541,15 +7996,15 @@
               "type": "string"
             }
           },
+          "roleCode": {
+            "type": "string"
+          },
           "userType": {
             "type": "string",
             "enum": [
               "STAFF",
               "PATIENT"
             ]
-          },
-          "roleCode": {
-            "type": "string"
           },
           "tenantName": {
             "type": "string"
@@ -7921,6 +8376,15 @@
           }
         }
       },
+      "SseEmitter": {
+        "type": "object",
+        "properties": {
+          "timeout": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "MealNutritionDto": {
         "type": "object",
         "properties": {
@@ -8246,6 +8710,252 @@
           "nextAppointment": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "AppointmentMetricsDto": {
+        "type": "object",
+        "properties": {
+          "range": {
+            "$ref": "#/components/schemas/Range"
+          },
+          "revenue": {
+            "$ref": "#/components/schemas/Revenue"
+          },
+          "attendance": {
+            "$ref": "#/components/schemas/Attendance"
+          },
+          "byNutritionist": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NutritionistMetrics"
+            }
+          },
+          "byServiceType": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceTypeMetrics"
+            }
+          },
+          "byTimeBand": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeBandMetrics"
+            }
+          },
+          "series": {
+            "$ref": "#/components/schemas/Series"
+          }
+        }
+      },
+      "Attendance": {
+        "type": "object",
+        "properties": {
+          "scheduled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attended": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attendanceRate": {
+            "type": "number"
+          },
+          "noShow": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancelledInTime": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancelledLate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recoveredSlots": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "targetRate": {
+            "type": "number"
+          }
+        }
+      },
+      "AttendancePoint": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "value": {
+            "type": "number"
+          },
+          "scheduled": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "NutritionistMetrics": {
+        "type": "object",
+        "properties": {
+          "nutritionistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nutritionistName": {
+            "type": "string"
+          },
+          "revenue": {
+            "type": "number"
+          },
+          "scheduled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attended": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attendanceRate": {
+            "type": "number"
+          },
+          "noShow": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "Point": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "value": {
+            "type": "number"
+          }
+        }
+      },
+      "Range": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Revenue": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "completedAppointments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "averageTicket": {
+            "type": "number"
+          },
+          "patientsSeen": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "Series": {
+        "type": "object",
+        "properties": {
+          "granularity": {
+            "type": "string"
+          },
+          "revenue": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Point"
+            }
+          },
+          "attendanceRate": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttendancePoint"
+            }
+          }
+        }
+      },
+      "ServiceTypeMetrics": {
+        "type": "object",
+        "properties": {
+          "typeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "typeName": {
+            "type": "string"
+          },
+          "revenue": {
+            "type": "number"
+          },
+          "scheduled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attended": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attendanceRate": {
+            "type": "number"
+          },
+          "noShow": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "TimeBandMetrics": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "scheduled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attended": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attendanceRate": {
+            "type": "number"
           }
         }
       }

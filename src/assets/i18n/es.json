@@ -56,6 +56,7 @@
     "shopping_list": "Lista de la Compra",
     "settings": "Configuración",
     "revenue": "Métricas",
+    "evolution": "Evolución",
     "admin": "Administración",
     "help": "Ayuda"
   },
@@ -121,7 +122,7 @@
     "measurements_delete_confirm": "¿Eliminar esta medición del {{date}}?",
     "measurement_at_least_one": "Debe ingresar al menos una métrica (peso, % grasa o masa muscular).",
     "measurement_future_date": "La fecha de medición no puede ser futura.",
-    "height_tooltip": "El IMC se calcula con la altura actual del usuario.",
+    "height_tooltip": "El IMC se calcula con la altura.",
     "edit": "Editar",
     "edit_user_title": "Editar Perfil de Usuario",
     "update": "Actualizar",
@@ -457,6 +458,22 @@
     "note_visceral": "Grasa visceral en {{value}}, dentro del rango normal (1–9).",
     "note_frame": "Complexión {{frame}} según el índice de Grant ({{index}}). Los rangos de peso y masa magra están ajustados a esta complexión."
   },
+  "evolution": {
+    "title": "Evolución",
+    "subtitle": "Sigue la progresión de tus medidas a lo largo del tiempo.",
+    "history_title": "Historial de medidas",
+    "empty_title": "Sin mediciones aún",
+    "empty": "No hay datos suficientes para mostrar la evolución.",
+    "weight": "Peso",
+    "fat_pct": "% Grasa",
+    "muscle": "Masa Muscular",
+    "water_pct": "% Agua",
+    "perimeter_waist": "Cintura",
+    "perimeter_chest": "Pecho",
+    "perimeter_hips": "Cadera",
+    "perimeter_contour": "Contorno",
+    "perimeter_arm": "Brazo"
+  },
   "menu_history": {
     "active_menu": "Menú Activo",
     "no_active_menu": "Sin menú activo",
@@ -627,6 +644,8 @@
     "delete_confirm": "¿Estás seguro de que deseas eliminar este plato: {{description}}?",
     "print_pdf": "Imprimir",
     "download_pdf": "Descargar PDF",
+    "deleted_remote": "Este menú se ha eliminado desde otra pantalla.",
+    "live": "En directo",
     "empty_title": "Sin comidas asignadas",
     "empty_description": "Esta dieta aún no tiene comidas. Agrega la primera usando el botón superior.",
     "days": {
@@ -657,7 +676,8 @@
     "empty_title": "Sin dieta asignada",
     "empty": "Todavía no tienes una dieta activa. Tu profesional la asignará en breve.",
     "empty_day_title": "Día libre",
-    "empty_day": "No hay comidas definidas para este día."
+    "empty_day": "No hay comidas definidas para este día.",
+    "live": "En directo"
   },
   "template_detail": {
     "title": "Platos de la Semana",

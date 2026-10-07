@@ -1,12 +1,13 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
 import { TuiDataList, TuiDropdown } from '@taiga-ui/core';
-import { catchError, forkJoin, of } from 'rxjs';
+import { Subscription, catchError, forkJoin, of } from 'rxjs';
 
 import { MenuService } from '../../core/api/services/menu.api';
 import { MealService } from '../../core/api/services/meal.api';
+import { MenuStreamService, MenuUpdateEvent } from '../../core/api/services/menu-stream.service';
 import { ShoppingListService } from '../../core/api/services/shopping-list.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -18,6 +19,7 @@ import { Menu } from '../../core/api/models/menu.model';
 import { Meal } from '../../core/api/models/meal.model';
 import { UserTenantProfileFixedMealsDto } from '../../core/api/models/user.model';
 import { EmptyState } from '../../shared/ui/empty-state';
+import { LiveIndicator } from '../../shared/ui/live-indicator';
 
 /** Semana de lunes a domingo, como la app nativa. */
 const DAY_KEYS = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'] as const;
@@ -90,7 +92,7 @@ interface MealEntryVm {
 @Component({
   selector: 'app-my-diet',
   standalone: true,
-  imports: [RouterModule, TranslocoDirective, SkeletonComponent, EmptyState, TuiDropdown, TuiDataList],
+  imports: [RouterModule, TranslocoDirective, SkeletonComponent, EmptyState, LiveIndicator, TuiDropdown, TuiDataList],
   templateUrl: './my-diet.page.html',
   styles: [`
     /* ── Selector de día ─────────────────────────────────────────────── */
@@ -158,10 +160,11 @@ interface MealEntryVm {
     }
   `],
 })
-export default class MyDietPage implements OnInit {
+export default class MyDietPage implements OnInit, OnDestroy {
   private readonly menuService = inject(MenuService);
   private readonly mealService = inject(MealService);
   private readonly userTenantRoleService = inject(UserTenantRoleService);
+  private readonly menuStream = inject(MenuStreamService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly authService = inject(AuthService);
   private readonly transloco = inject(TranslocoService);
@@ -184,6 +187,12 @@ export default class MyDietPage implements OnInit {
   meals = signal<Meal[]>([]);
   fixedMeals = signal<UserTenantProfileFixedMealsDto | null>(null);
   selectedDay = signal<string>(this.todayKey);
+
+  /** Canal SSE conectado: se muestra la pastilla "en directo". */
+  readonly live = signal(false);
+  private streamSub?: Subscription;
+  private streamedMenuId: string | null = null;
+  private reloadTimer?: ReturnType<typeof setTimeout>;
 
   readonly hasFixedMeals = computed(() => {
     const fixed = this.fixedMeals();
@@ -234,6 +243,57 @@ export default class MyDietPage implements OnInit {
 
   ngOnInit() {
     this.load();
+  }
+
+  ngOnDestroy(): void {
+    clearTimeout(this.reloadTimer);
+    this.disconnectStream();
+  }
+
+  /**
+   * (Re)suscribe al stream del menú activo. No hace nada si ya se está
+   * escuchando ese mismo menú, así que es seguro llamarlo tras cada recarga.
+   */
+  private syncStream(): void {
+    const tenantId = this.tenantCtx.currentTenantId();
+    const menuId = this.menu()?.id ?? null;
+
+    if (!tenantId || !menuId) {
+      this.disconnectStream();
+      return;
+    }
+    if (this.streamedMenuId === menuId) return;
+
+    this.disconnectStream();
+    this.streamedMenuId = menuId;
+    this.streamSub = this.menuStream
+      .streamMenu(menuId, tenantId, {
+        onConnectionChange: (connected) => this.live.set(connected),
+      })
+      .subscribe({
+        next: (event) => this.onMenuUpdate(event),
+        error: () => this.live.set(false),
+      });
+  }
+
+  private disconnectStream(): void {
+    this.streamSub?.unsubscribe();
+    this.streamSub = undefined;
+    this.streamedMenuId = null;
+    this.live.set(false);
+  }
+
+  /**
+   * Al recibir un cambio se recarga la dieta. Si el menú se ha borrado, o el
+   * nutricionista activa otro, `load()` recalcula el menú activo y `syncStream()`
+   * se resuscribe al nuevo (o a ninguno).
+   */
+  private onMenuUpdate(event: MenuUpdateEvent): void {
+    if (event.reason === 'CONNECTED') return;
+    // Pequeño debounce: una sola acción puede emitir varios eventos seguidos
+    // (p. ej. un intercambio de comidas emite dos `MEAL_UPDATED`).
+    clearTimeout(this.reloadTimer);
+    this.reloadTimer = setTimeout(() => this.load(true), 250);
   }
 
   /** Genera la lista del menú activo y salta a la pantalla de la lista. */
@@ -292,7 +352,11 @@ export default class MyDietPage implements OnInit {
     };
   }
 
-  private load() {
+  /**
+   * Carga la dieta. `silent` se usa en los refrescos por SSE: evita volver a
+   * mostrar el skeleton cuando ya hay contenido en pantalla.
+   */
+  private load(silent = false) {
     const tenantId = this.tenantCtx.currentTenantId();
     const userId = this.authService.user()?.id;
     if (!tenantId || !userId) {
@@ -300,7 +364,7 @@ export default class MyDietPage implements OnInit {
       return;
     }
 
-    this.loading.set(true);
+    if (!silent) this.loading.set(true);
     forkJoin({
       menus: this.menuService
         .history(tenantId, userId)
@@ -313,6 +377,7 @@ export default class MyDietPage implements OnInit {
         this.fixedMeals.set(fixed);
         const active = (menus || []).find((m) => m.isActive || m.active) ?? null;
         this.menu.set(active);
+        this.syncStream();
 
         if (!active) {
           this.meals.set([]);

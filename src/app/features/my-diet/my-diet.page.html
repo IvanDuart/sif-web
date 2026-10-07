@@ -7,7 +7,12 @@
       {{ t('my_diet.title') }}
     </h1>
     @if (menu(); as activeMenu) {
-      <p class="mt-1.5 text-[13px] text-surface-400">{{ activeMenu.name }}</p>
+      <p class="mt-1.5 flex items-center gap-2 text-[13px] text-surface-400">
+        <span>{{ activeMenu.name }}</span>
+        @if (live()) {
+          <app-live-indicator [label]="t('my_diet.live')" />
+        }
+      </p>
     }
   </header>
 

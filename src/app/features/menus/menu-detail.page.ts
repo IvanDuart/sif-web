@@ -1,8 +1,8 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { EMPTY, Observable, forkJoin } from 'rxjs';
+import { Component, OnDestroy, computed, inject, OnInit, signal } from '@angular/core';
+import { EMPTY, Observable, Subscription, forkJoin } from 'rxjs';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { DatePipe, DecimalPipe, Location } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
@@ -12,6 +12,7 @@ import { TuiTable } from '@taiga-ui/addon-table';
 
 import { MenuService } from '../../core/api/services/menu.api';
 import { MealItemRequest, MealService, UpdateMealRequest, toMealItemRequests } from '../../core/api/services/meal.api';
+import { MenuStreamService, MenuUpdateEvent } from '../../core/api/services/menu-stream.service';
 import { MenuTemplateService, CreateMealTemplateRequest } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { Menu } from '../../core/api/models/menu.model';
@@ -29,6 +30,7 @@ import { ALL_DAYS, MEAL_ORDER, MEAL_TYPES } from './menu.constants';
 import { KCAL, MenuNutritionDto, NutrientMap } from '../../core/api/models/food.model';
 import { MealCell } from './components/meal-cell';
 import { MealItemsEditor } from './components/meal-items-editor';
+import { LiveIndicator } from '../../shared/ui/live-indicator';
 
 const SUPERMARKETS = [
   { value: 'MERCADONA', label: 'Mercadona' },
@@ -47,14 +49,16 @@ const SUPERMARKETS = [
 @Component({
   selector: 'app-menu-detail',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, RouterModule, FormsModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, MealCell, MealItemsEditor, CdkDrag, CdkDropList, TuiButton, TuiBadge, TuiDropdown, TuiDataList, TuiTable],
+  imports: [DatePipe, DecimalPipe, RouterModule, FormsModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, MealCell, MealItemsEditor, LiveIndicator, CdkDrag, CdkDropList, TuiButton, TuiBadge, TuiDropdown, TuiDataList, TuiTable],
   templateUrl: './menu-detail.page.html',
   styleUrls: ['./menu-detail.page.scss'],
 })
-export default class MenuDetailPage implements OnInit {
+export default class MenuDetailPage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly menuService = inject(MenuService);
   private readonly mealService = inject(MealService);
+  private readonly menuStream = inject(MenuStreamService);
   private readonly menuTemplateService = inject(MenuTemplateService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly modal = inject(ModalService);
@@ -70,6 +74,13 @@ export default class MenuDetailPage implements OnInit {
   meals = signal<Meal[]>([]);
   loading = signal(true);
   menuId = '';
+
+  /** Canal SSE conectado: se muestra la pastilla "en directo". */
+  readonly live = signal(false);
+  private streamSub?: Subscription;
+  private reloadTimer?: ReturnType<typeof setTimeout>;
+  /** Epoch hasta el que se ignoran ecos de escrituras propias (ver `markLocalMutation`). */
+  private suppressRemoteUntil = 0;
 
   editingMealId = signal<string | null>(null);
   editingDescription = signal<string>('');
@@ -123,7 +134,68 @@ export default class MenuDetailPage implements OnInit {
     this.menuId = this.route.snapshot.paramMap.get('id') || '';
     if (this.menuId) {
       this.loadData();
+      this.connectStream();
     }
+  }
+
+  ngOnDestroy(): void {
+    clearTimeout(this.reloadTimer);
+    this.disconnectStream();
+  }
+
+  /** Abre el canal SSE del menú para reflejar cambios hechos desde otra pantalla. */
+  private connectStream(): void {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId || !this.menuId) return;
+
+    this.disconnectStream();
+    this.streamSub = this.menuStream
+      .streamMenu(this.menuId, tenantId, {
+        onConnectionChange: (connected) => this.live.set(connected),
+      })
+      .subscribe({
+        next: (event) => this.onRemoteUpdate(event),
+        error: () => this.live.set(false),
+      });
+  }
+
+  private disconnectStream(): void {
+    this.streamSub?.unsubscribe();
+    this.streamSub = undefined;
+    this.live.set(false);
+  }
+
+  /**
+   * Cambio hecho desde otra pantalla. Se recarga para reflejarlo, salvo que sea
+   * el eco de una escritura propia o que el usuario esté editando aquí.
+   */
+  private onRemoteUpdate(event: MenuUpdateEvent): void {
+    if (event.reason === 'CONNECTED') return;
+
+    if (event.reason === 'MENU_DELETED') {
+      clearTimeout(this.reloadTimer);
+      this.disconnectStream();
+      this.notify.error(this.transloco.translate('diet_detail.deleted_remote'));
+      this.router.navigate(['/menus']);
+      return;
+    }
+
+    // Pequeño debounce: una sola acción puede emitir varios eventos seguidos
+    // (p. ej. un intercambio de comidas emite dos `MEAL_UPDATED`).
+    clearTimeout(this.reloadTimer);
+    this.reloadTimer = setTimeout(() => this.applyRemoteReload(), 250);
+  }
+
+  /** Recarga diferida; se comprueba el estado de edición en el momento de aplicar. */
+  private applyRemoteReload(): void {
+    if (Date.now() < this.suppressRemoteUntil) return;
+    if (this.editingMealId() || this.expandedMealId() || this.savingInline()) return;
+    this.loadData();
+  }
+
+  /** Marca el inicio de una escritura propia para no recargar por su eco SSE. */
+  private markLocalMutation(): void {
+    this.suppressRemoteUntil = Date.now() + 2500;
   }
 
   loadData() {
@@ -199,6 +271,7 @@ export default class MenuDetailPage implements OnInit {
     const menu = this.menu();
     if (!tenantId || !menu) return;
 
+    this.markLocalMutation();
     this.menuService.update(tenantId, this.menuId, { isActive: !menu.isActive }).subscribe(() => {
       this.notify.success(
         !menu.isActive
@@ -219,6 +292,7 @@ export default class MenuDetailPage implements OnInit {
       data: { menu }
     }).subscribe(result => {
       if (result) {
+        this.markLocalMutation();
         this.notify.success(this.transloco.translate('diets.renamed'));
         this.loadData();
       }
@@ -231,7 +305,10 @@ export default class MenuDetailPage implements OnInit {
       size: 'm',
       data: { menuId: this.menuId, prefillDay: day, prefillMealType: mealType }
     }).subscribe(result => {
-      if (result) this.loadData();
+      if (result) {
+        this.markLocalMutation();
+        this.loadData();
+      }
     });
   }
 
@@ -295,6 +372,7 @@ export default class MenuDetailPage implements OnInit {
 
   /** Tras guardar ingredientes, la nutrición del servidor es la fuente de verdad. */
   onItemsSaved(): void {
+    this.markLocalMutation();
     this.reloadMeals();
     this.loadNutrition();
   }
@@ -438,6 +516,7 @@ export default class MenuDetailPage implements OnInit {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
 
+    this.markLocalMutation();
     this.savingInline.set(true);
     this.mealService.update(tenantId, meal.id, { description: desc }).subscribe({
       next: (updatedMeal) => {
@@ -473,6 +552,7 @@ export default class MenuDetailPage implements OnInit {
       if (confirmed) {
         const tenantId = this.tenantCtx.currentTenantId();
         if (!tenantId) return;
+        this.markLocalMutation();
         // Colapsar antes de borrar: al destruirse, el editor vuelca su guardado
         // pendiente, y hacerlo contra una comida ya borrada daría un 404.
         if (this.expandedMealId() === meal.id) this.expandedMealId.set(null);

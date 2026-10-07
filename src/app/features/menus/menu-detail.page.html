@@ -23,6 +23,9 @@
             <span tuiBadge [appearance]="menu()?.isActive ? 'positive' : 'neutral'">
               {{ menu()?.isActive ? t('diets.active_badge') : t('diets.inactive_badge') }}
             </span>
+            @if (live()) {
+              <app-live-indicator [label]="t('diet_detail.live')" />
+            }
             @if (canActivateMenu()) {
               <button
                 type="button"
