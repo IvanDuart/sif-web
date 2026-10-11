@@ -13,7 +13,7 @@
 
       <div class="flex flex-wrap items-center gap-2.5 lg:ml-auto">
         @if (canViewPatients()) {
-          <app-patient-quick-search />
+          <app-patient-quick-search class="min-w-0 flex-1 lg:flex-none" />
         }
         <button tuiButton appearance="primary" size="m" type="button" (click)="showNewAppointmentDialog()">
           <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>

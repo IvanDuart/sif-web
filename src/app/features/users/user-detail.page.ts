@@ -48,7 +48,7 @@ import type { ChartConfiguration } from 'chart.js/auto';
 import { Chart, registerables } from 'chart.js';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
-import { TuiButton, TuiCheckbox, TuiTextfield } from '@taiga-ui/core';
+import { TuiButton, TuiCheckbox, TuiDataList, TuiDropdown, TuiTextfield } from '@taiga-ui/core';
 import { TuiBadge, TuiProgress, TuiSegmented, TuiTabs, TuiTextarea } from '@taiga-ui/kit';
 import { TuiTable } from '@taiga-ui/addon-table';
 
@@ -173,6 +173,8 @@ export interface ProfileFigure {
     TuiTextarea,
     TuiCheckbox,
     TuiSegmented,
+    TuiDropdown,
+    TuiDataList,
     PaginationFooter
   ],
   templateUrl: './user-detail.page.html'
@@ -1041,6 +1043,11 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       },
       error: () => this.loadingMenus.set(false)
     });
+  }
+
+  /** Abre la ficha de detalle del menú desde el histórico. */
+  viewMenuDetail(menu: Menu): void {
+    this.router.navigate(['/menus', menu.id]);
   }
 
   toggleActiveMenu(menu: Menu) {

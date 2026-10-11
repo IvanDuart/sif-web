@@ -11,9 +11,9 @@
     </div>
 
     <div
-      class="flex w-full items-stretch divide-x divide-line overflow-hidden rounded-md border border-line bg-surface-0 dark:bg-surface-800 lg:w-auto"
+      class="flex w-full flex-col divide-y divide-line overflow-hidden rounded-md border border-line bg-surface-0 dark:bg-surface-800 sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0 lg:w-auto"
     >
-      <label class="flex min-w-0 flex-1 flex-col gap-0.5 px-4 py-2.5 lg:w-[170px] lg:flex-none">
+      <label class="flex min-w-0 flex-1 flex-col gap-0.5 px-3 py-2.5 sm:px-4 lg:w-[170px] lg:flex-none">
         <span class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
           {{ t('common.from') }}
         </span>
@@ -28,7 +28,7 @@
           <tui-calendar *tuiDropdown />
         </tui-textfield>
       </label>
-      <label class="flex min-w-0 flex-1 flex-col gap-0.5 px-4 py-2.5 lg:w-[170px] lg:flex-none">
+      <label class="flex min-w-0 flex-1 flex-col gap-0.5 px-3 py-2.5 sm:px-4 lg:w-[170px] lg:flex-none">
         <span class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
           {{ t('common.to') }}
         </span>
