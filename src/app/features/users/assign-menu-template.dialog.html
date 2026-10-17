@@ -1,9 +1,17 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2">
-  <tui-textfield class="w-full" tuiChevron [stringify]="templateStringify">
-    <label tuiLabel for="templateId">{{ 'menu_history.template_label' | transloco }}</label>
-    <input id="templateId" formControlName="templateId" tuiComboBox />
-    <tui-data-list-wrapper *tuiDropdown [items]="templateLabels() | tuiFilterByInput"></tui-data-list-wrapper>
-  </tui-textfield>
+  <div class="flex flex-col gap-1.5">
+    <tui-textfield class="w-full" tuiChevron [stringify]="templateStringify">
+      <label tuiLabel for="templateId">{{ 'menu_history.template_label' | transloco }}</label>
+      <input id="templateId" formControlName="templateId" tuiComboBox />
+      <tui-data-list-wrapper *tuiDropdown [items]="templateLabels() | tuiFilterByInput"></tui-data-list-wrapper>
+    </tui-textfield>
+    @if (selectedTemplate()) {
+      <button type="button" tuiButton appearance="flat" size="s" class="self-start" (click)="previewTemplate()">
+        <i class="fa-solid fa-eye mr-1" aria-hidden="true"></i>
+        {{ 'menu_history.preview_template' | transloco }}
+      </button>
+    }
+  </div>
 
   <tui-textfield class="w-full">
     <label tuiLabel for="name">{{ 'menu_history.new_menu_name' | transloco }}</label>

@@ -34,7 +34,8 @@
     "search": "Search",
     "help": "Help",
     "undo": "Undo",
-    "item_removed": "Item removed"
+    "item_removed": "Item removed",
+    "close": "Close"
   },
   "validation": {
     "required": "This field is required",
@@ -437,9 +438,9 @@
     "fig_weight_height": "Weight · height",
     "wrist": "Wrist",
     "composition_analysis_title": "Body composition analysis",
-    "segmental_hint": "Percentage of lean and fat mass in each segment, as measured by the scale. Body fat is compared between sides in percentage points; lean mass only when the scale measures the mass of both.",
-    "segmental_lean": "Lean mass",
-    "segmental_fat": "Fat mass",
+    "segmental_hint": "Body fat percentages come from the scale reading; the kg for zones marked “Estimated” come from the anatomical split. Body fat is compared between sides in percentage points; lean mass only when the scale measures the mass of both.",
+    "segmental_lean": "Lean mass (kg)",
+    "segmental_fat": "Body fat (%)",
     "side_right": "R",
     "side_left": "L",
     "asymmetry_pct": "Asymmetry {{pct}} %",
@@ -477,7 +478,9 @@
     "seg_lean_not_comparable_legs": "Legs: lean mass cannot be compared. It requires measured mass on both sides; with the anatomical split both weigh the same by construction.",
     "seg_pair_unavailable_arms": "Arms not compared: requires the body fat percentage of both sides.",
     "seg_pair_unavailable_legs": "Legs not compared: requires the body fat percentage of both sides.",
-    "legend_not_compared": "Not compared"
+    "legend_not_compared": "Not compared",
+    "fat_asymmetry_points": "Body fat asymmetry {{pct}} pts",
+    "lean_not_comparable_fat_alert": "Lean not comparable · body fat asymmetry {{pct}} pts"
   },
   "evolution": {
     "title": "Evolution",
@@ -525,7 +528,9 @@
     "select_patient": "Select Patient",
     "delete": "Delete menu",
     "delete_confirm": "Are you sure you want to delete the menu \"{{name}}\"? This action cannot be undone.",
-    "active_hint": "The one the patient currently sees in their app."
+    "active_hint": "The one the patient currently sees in their app.",
+    "preview_template": "Preview template",
+    "preview_dialog": "Template preview"
   },
   "patient_profile": {
     "title": "Medical Profile",
@@ -1274,7 +1279,9 @@
     "scheduled_title": "Appointment scheduled",
     "scheduled_hint": "We have emailed the confirmation. They will get reminders 48 and 2 hours before.",
     "schedule_again": "Schedule another",
-    "see_in_agenda": "See in agenda"
+    "see_in_agenda": "See in agenda",
+    "reschedule_hint": "Your nutritionist will have to confirm the change.",
+    "reschedule_summary_ready": "New time: {{date}} at {{time}} ({{minutes}} min)"
   },
   "shell": {
     "loading": "Loading...",
@@ -1359,6 +1366,7 @@
     "guidelines_error": "Could not save the guidelines",
     "measurement_registered": "Measurement registered successfully",
     "measurement_deleted": "Measurement deleted",
+    "measurement_updated": "Measurement updated successfully",
     "menu_created": "Menu assigned to patient successfully",
     "template_assigned": "Template assigned to patient successfully",
     "meal_deleted": "Meal deleted",
@@ -1977,5 +1985,9 @@
     "copy_day_done": "Day cloned.",
     "move_meal_done": "Meal moved.",
     "swap_meal_done": "Meals swapped."
+  },
+  "template_preview": {
+    "title": "Template meals",
+    "empty_description": "This template has no meals yet, so the patient's menu will be created empty."
   }
 }

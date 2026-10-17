@@ -3,6 +3,7 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 import type { TuiDialogContext } from '@taiga-ui/core';
 
 import { QuickScheduleWidget } from '../tenant/dashboard/components/quick-schedule-widget';
+import { AppointmentDto } from '../../core/api/models/appointment.model';
 
 /** Datos con los que se abre el agendado rápido desde una ficha. */
 export interface QuickScheduleDialogData {
@@ -11,6 +12,11 @@ export interface QuickScheduleDialogData {
   patientEmail?: string;
   /** Profesional de la cita; si se omite, el usuario conectado. */
   nutritionistId?: string;
+  /**
+   * Cita a mover. Al pasarla, el widget reagenda esa cita en lugar de crear
+   * una nueva: el paciente elige hueco entre las horas realmente libres.
+   */
+  appointment?: AppointmentDto;
 }
 
 /**
@@ -27,6 +33,7 @@ export interface QuickScheduleDialogData {
     <app-quick-schedule
       [prefilledPatient]="prefilledPatient()"
       [nutritionistId]="nutritionistId()"
+      [rescheduleAppointment]="appointment()"
       [bordered]="false"
       [showTitle]="false"
       (scheduled)="onScheduled()" />
@@ -42,6 +49,8 @@ export class QuickScheduleDialog {
   });
 
   readonly nutritionistId = computed(() => this.context.data?.nutritionistId ?? null);
+
+  readonly appointment = computed(() => this.context.data?.appointment ?? null);
 
   /** El widget ya avisa del éxito; aquí solo cerramos devolviendo `true`. */
   onScheduled(): void {

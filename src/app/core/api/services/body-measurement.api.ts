@@ -5,7 +5,8 @@ import {
   BodyCompositionReport,
   BodyMeasurementDto,
   CreateBodyMeasurementRequest,
-  MeasurementHistoryDto
+  MeasurementHistoryDto,
+  UpdateBodyMeasurementRequest
 } from '../models/body-measurement.model';
 import { Page } from '../models/page.model';
 import {ConfigService} from '../../config/config.service';
@@ -56,6 +57,18 @@ export class BodyMeasurementService {
 
   create(tenantId: string, userId: string, request: CreateBodyMeasurementRequest): Observable<BodyMeasurementDto> {
     return this.http.post<BodyMeasurementDto>(this.endpoint(tenantId, userId), request);
+  }
+
+  update(
+    tenantId: string,
+    userId: string,
+    measurementId: string,
+    request: UpdateBodyMeasurementRequest
+  ): Observable<BodyMeasurementDto> {
+    return this.http.put<BodyMeasurementDto>(
+      `${this.endpoint(tenantId, userId)}/${measurementId}`,
+      request
+    );
   }
 
   calculateComposition(tenantId: string, userId: string): Observable<BodyCompositionReport> {

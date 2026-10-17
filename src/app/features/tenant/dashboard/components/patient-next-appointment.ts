@@ -6,7 +6,10 @@ import { TenantContextService } from '../../../../core/tenant/tenant-context.ser
 import { AuthService } from '../../../../core/auth/auth.service';
 import { AppointmentDto } from '../../../../core/api/models/appointment.model';
 import { ModalService } from '../../../../core/ui';
-import { AppointmentActionDialog } from '../../../appointments/appointment-action.dialog';
+import {
+  QuickScheduleDialog,
+  QuickScheduleDialogData,
+} from '../../../appointments/quick-schedule.dialog';
 import { TuiButton } from '@taiga-ui/core';
 
 @Component({
@@ -49,11 +52,18 @@ export class PatientNextAppointment implements OnInit {
     });
   }
 
+  /**
+   * Reagenda con el mismo agendado rápido del panel del profesional: así el
+   * paciente elige entre las horas que de verdad quedan libres en la agenda de
+   * su nutricionista en vez de escribir una hora a ciegas. El `PATCH` que se
+   * manda es el de siempre, así que su cambio vuelve a quedar como propuesta.
+   */
   reschedule(appt: AppointmentDto) {
-    this.modal.open<boolean, { appointment: AppointmentDto }>(
-      AppointmentActionDialog,
-      {       label: this.transloco.translate('appointments.reschedule_title'), size: 'l', data: { appointment: appt } }
-    ).subscribe((result) => {
+    this.modal.open<boolean, QuickScheduleDialogData>(QuickScheduleDialog, {
+      label: this.transloco.translate('appointments.reschedule_title'),
+      size: 'l',
+      data: { appointment: appt },
+    }).subscribe((result) => {
       if (result) {
         this.loadNextAppointment();
       }

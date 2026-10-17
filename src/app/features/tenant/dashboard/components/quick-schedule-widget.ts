@@ -30,6 +30,7 @@ import { AppointmentTypeDto } from '../../../../core/api/models/appointment-type
 import {
   AppointmentDto,
   CreateAppointmentRequest,
+  RescheduleAppointmentRequest,
 } from '../../../../core/api/models/appointment.model';
 import { AppUserDto } from '../../../../core/api/models/user.model';
 import {
@@ -72,6 +73,12 @@ interface ScheduledSummary {
  * la duración de cada tipo de cita. La creación reutiliza el mismo contrato que
  * el diálogo de citas, incluido el 409 por solape (confirmar y reintentar con
  * `allowOverlap`).
+ *
+ * Con `rescheduleAppointment` el widget cambia a **modo reagendar**: el paciente
+ * y el tipo ya los fija la cita, solo se elige día y hora, y al confirmar se
+ * manda el mismo `PATCH` de siempre en vez de crear una cita nueva. Así el
+ * paciente elige entre horas reales libres en lugar de escribir una hora a
+ * ciegas.
  */
 @Component({
   selector: 'app-quick-schedule',
@@ -105,6 +112,11 @@ export class QuickScheduleWidget implements OnInit, OnDestroy {
   readonly bordered = input(true);
   /** Título propio del widget. Se oculta cuando el diálogo ya lo titula. */
   readonly showTitle = input(true);
+  /**
+   * Cita que se está reagendando. Al recibirla el widget deja de crear citas y
+   * pasa a mover esta: paciente y tipo quedan fijos y solo se elige el hueco.
+   */
+  readonly rescheduleAppointment = input<AppointmentDto | null>(null);
 
   private readonly tenantCtx = inject(TenantContextService);
   private readonly auth = inject(AuthService);
@@ -155,11 +167,43 @@ export class QuickScheduleWidget implements OnInit, OnDestroy {
     this.types().find((type) => type.id === this.selectedTypeId()) ?? null
   );
 
-  readonly duration = computed(() => this.selectedType()?.durationMinutes ?? 30);
+  /** Modo reagendar: hay una cita que mover en vez de una que crear. */
+  readonly isReschedule = computed(() => !!this.rescheduleAppointment());
 
-  readonly canSubmit = computed(
-    () => !!this.selectedPatient() && !!this.selectedType() && this.selectedSlot() !== null
+  /**
+   * Al reagendar, el paciente no decide el cambio: su propuesta vuelve a
+   * `PROPOSED` y la confirma el centro. Solo quien gestiona citas la mueve en
+   * firme.
+   */
+  readonly needsApproval = computed(
+    () => this.isReschedule() && !this.permissions.has('MANAGE_APPOINTMENTS')
   );
+
+  /**
+   * Duración del hueco a buscar. Si el tipo de la cita ya no está activo (o aún
+   * no han cargado los tipos) se respeta la duración que la cita tiene ahora.
+   */
+  readonly duration = computed(() => {
+    const type = this.selectedType();
+    if (type) return type.durationMinutes;
+
+    const current = this.rescheduleAppointment();
+    if (current?.startTime && current?.endTime) {
+      const minutes = Math.round(
+        (new Date(current.endTime).getTime() - new Date(current.startTime).getTime()) / 60_000
+      );
+      if (minutes > 0) return minutes;
+    }
+
+    return 30;
+  });
+
+  readonly canSubmit = computed(() => {
+    if (this.selectedSlot() === null) return false;
+    // Reagendando, paciente y tipo vienen dados por la propia cita.
+    if (this.isReschedule()) return true;
+    return !!this.selectedPatient() && !!this.selectedType();
+  });
 
   /** Fecha seleccionada en formato largo para el resumen y la confirmación. */
   readonly selectedDateLong = computed(() =>
@@ -170,17 +214,43 @@ export class QuickScheduleWidget implements OnInit, OnDestroy {
     })
   );
 
+  /** Día y hora que la cita tiene ahora, para enmarcar el reagendado. */
+  readonly currentAppointmentWhen = computed(() => {
+    const current = this.rescheduleAppointment();
+    if (!current?.startTime) return '';
+
+    const date = new Date(current.startTime);
+    if (Number.isNaN(date.getTime())) return '';
+
+    const day = date.toLocaleDateString('es-AR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
+    const time = date.toLocaleTimeString('es-AR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    return `${day} · ${time}`;
+  });
+
   readonly formattedSlot = computed(() => {
     const slot = this.selectedSlot();
     return slot === null ? '' : minutesToHHMM(slot);
   });
 
   /**
-   * Profesional para el que se agendan los huecos: el indicado por la ficha, o
-   * el usuario conectado (comportamiento del panel principal).
+   * Profesional para el que se agendan los huecos: el de la cita que se
+   * reagenda (no se transfiere a otro), el indicado por la ficha, o el usuario
+   * conectado (comportamiento del panel principal).
    */
   private readonly effectiveNutritionistId = computed(
-    () => this.nutritionistId() || this.auth.user()?.id || ''
+    () =>
+      this.rescheduleAppointment()?.nutritionistId ||
+      this.nutritionistId() ||
+      this.auth.user()?.id ||
+      ''
   );
 
   ngOnInit(): void {
@@ -197,9 +267,11 @@ export class QuickScheduleWidget implements OnInit, OnDestroy {
 
     this.loadTypes();
     this.applyPrefilledPatient();
+    this.applyRescheduleDefaults();
 
     this.availability.load().subscribe(() => {
       this.buildDays();
+      this.applyRescheduleDay();
       this.loading.set(false);
       this.refreshSlots();
     });
@@ -263,8 +335,18 @@ export class QuickScheduleWidget implements OnInit, OnDestroy {
       next: (types) => {
         const active = (types || []).filter((type) => type.isActive !== false);
         this.types.set(active);
-        const preferred = active.find((type) => type.isDefault) ?? active[0];
+
+        // Reagendando no se cambia el tipo: manda el que ya tiene la cita.
+        const current = this.rescheduleAppointment();
+        const preferred = current
+          ? active.find((type) => type.id === current.typeId)
+          : active.find((type) => type.isDefault) ?? active[0];
+
         if (preferred) this.selectedTypeId.set(preferred.id);
+
+        // Los tipos llegan por su cuenta: si los huecos ya se calcularon con
+        // la duración por defecto, hay que rehacerlos con la real.
+        if (!this.loading()) this.refreshSlots();
       },
     });
   }
@@ -373,10 +455,14 @@ export class QuickScheduleWidget implements OnInit, OnDestroy {
     }).subscribe({
       next: ({ appointments, timeBlocks }) => {
         this.loadingSlots.set(false);
+        // Una cita no choca consigo misma: el backend la excluye al reagendar,
+        // así que su hueco actual se sigue ofreciendo.
+        const rescheduleId = this.rescheduleAppointment()?.id;
+        const busy = (appointments || []).filter((appointment) => appointment.id !== rescheduleId);
         const slots = this.computeSlots(
           iso,
           schedule.details,
-          appointments || [],
+          busy,
           this.duration(),
           timeBlocks || []
         );
@@ -451,6 +537,11 @@ export class QuickScheduleWidget implements OnInit, OnDestroy {
   // ── Creación ───────────────────────────────────────────────────────────
 
   submit(): void {
+    if (this.isReschedule()) {
+      this.submitReschedule();
+      return;
+    }
+
     const patient = this.selectedPatient();
     const type = this.selectedType();
     const slot = this.selectedSlot();
@@ -459,9 +550,7 @@ export class QuickScheduleWidget implements OnInit, OnDestroy {
 
     if (!patient || !type || slot === null || !tenantId || !nutritionistId) return;
 
-    const [hours, minutes] = [Math.floor(slot / 60), slot % 60];
-    const start = new Date(`${this.selectedDate()}T00:00:00`);
-    start.setHours(hours, minutes, 0, 0);
+    const start = this.slotStart(slot);
 
     const request: CreateAppointmentRequest = {
       nutritionistId,
@@ -478,6 +567,91 @@ export class QuickScheduleWidget implements OnInit, OnDestroy {
     };
 
     this.create(tenantId, request, false, summary);
+  }
+
+  /** Hora elegida (minutos desde medianoche) sobre el día seleccionado. */
+  private slotStart(slot: number): Date {
+    const start = new Date(`${this.selectedDate()}T00:00:00`);
+    start.setHours(Math.floor(slot / 60), slot % 60, 0, 0);
+    return start;
+  }
+
+  // ── Reagendado ─────────────────────────────────────────────────────────
+
+  /**
+   * Mueve la cita al hueco elegido con el mismo `PATCH` que el diálogo de
+   * reagendar: solo cambia el inicio, el tipo se manda tal cual para que el
+   * backend recalcule el fin con su duración.
+   */
+  private submitReschedule(): void {
+    const current = this.rescheduleAppointment();
+    const slot = this.selectedSlot();
+    const tenantId = this.tenantCtx.currentTenantId();
+
+    if (!current || slot === null || !tenantId) return;
+
+    const request: RescheduleAppointmentRequest = {
+      startTime: this.slotStart(slot).toISOString(),
+    };
+    if (current.typeId) request.typeId = current.typeId;
+
+    this.reschedule(tenantId, current.id, request, false);
+  }
+
+  private reschedule(
+    tenantId: string,
+    appointmentId: string,
+    request: RescheduleAppointmentRequest,
+    allowOverlap: boolean
+  ): void {
+    this.saving.set(true);
+    this.error.set('');
+
+    const payload: RescheduleAppointmentRequest = allowOverlap
+      ? { ...request, allowOverlap: true }
+      : request;
+
+    this.appointmentService.reschedule(tenantId, appointmentId, payload).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.notify.success(
+          this.transloco.translate('appointments.reschedule_success'),
+          this.transloco.translate('common.success')
+        );
+        // Sin pantalla de "agendar otra": aquí solo había una cita que mover,
+        // y quien abre el widget (el diálogo) se cierra con este aviso.
+        this.scheduled.emit();
+      },
+      error: (err) => {
+        this.saving.set(false);
+
+        // El solape solo lo puede forzar quien gestiona citas; al paciente el
+        // backend le devuelve `409` aunque mande `allowOverlap`.
+        if (
+          allowOverlap ||
+          !isOverlapConflict(err) ||
+          !this.permissions.has('MANAGE_APPOINTMENTS')
+        ) {
+          this.error.set(this.resolveError(err, 'appointments.reschedule_error'));
+          return;
+        }
+
+        this.confirm
+          .confirm({
+            label: this.transloco.translate('appointments.overlap_confirm_title'),
+            content: this.transloco.translate('appointments.overlap_confirm'),
+            yes: this.transloco.translate('appointments.overlap_confirm_yes'),
+            no: this.transloco.translate('common.cancel'),
+          })
+          .subscribe((confirmed) => {
+            if (confirmed) {
+              this.reschedule(tenantId, appointmentId, request, true);
+            } else {
+              this.error.set(this.resolveError(err, 'appointments.reschedule_error'));
+            }
+          });
+      },
+    });
   }
 
   private create(
@@ -537,10 +711,53 @@ export class QuickScheduleWidget implements OnInit, OnDestroy {
     this.refreshSlots();
   }
 
-  private resolveError(err: ApiErrorLike | null | undefined): string {
-    return resolveAppointmentError(err, 'appointments.create_error', (key) =>
-      this.transloco.translate(key)
-    );
+  private resolveError(
+    err: ApiErrorLike | null | undefined,
+    fallbackKey = 'appointments.create_error'
+  ): string {
+    return resolveAppointmentError(err, fallbackKey, (key) => this.transloco.translate(key));
+  }
+
+  /**
+   * Modo reagendar: el paciente es el de la cita y el día de partida es el que
+   * tiene ahora, para que se vea de un vistazo qué más hay libre ese mismo día.
+   */
+  private applyRescheduleDefaults(): void {
+    const current = this.rescheduleAppointment();
+    if (!current) return;
+
+    const label = (current.patientName || '').trim();
+    const [first = '', last = ''] = label.split(/\s+/);
+    if (current.patientId) {
+      this.selectedPatient.set({
+        id: current.patientId,
+        label: label || current.patientId,
+        email: '',
+        initials: initialsOf(first, last),
+      });
+    }
+  }
+
+  /**
+   * Coloca el calendario en el día que la cita tiene ahora. Va después de
+   * `buildDays()` porque necesita saber si ese día ya está entre los chips.
+   */
+  private applyRescheduleDay(): void {
+    const current = this.rescheduleAppointment();
+    if (!current) return;
+
+    const start = new Date(current.startTime);
+    if (Number.isNaN(start.getTime())) return;
+
+    const iso = toIsoDate(start);
+    // Una cita ya pasada no sirve de punto de partida: se queda en hoy.
+    if (iso < toIsoDate(new Date())) return;
+
+    this.selectedDate.set(iso);
+    // Fuera de la semana de chips, el día solo se ve en "otra fecha".
+    if (!this.days().some((day) => day.iso === iso)) {
+      this.customDay.set(TuiDay.fromLocalNativeDate(start));
+    }
   }
 
   /** Preselecciona el paciente recibido por input (ficha del paciente). */

@@ -34,7 +34,8 @@
     "search": "Buscar",
     "help": "Ayuda",
     "undo": "Deshacer",
-    "item_removed": "Elemento eliminado"
+    "item_removed": "Elemento eliminado",
+    "close": "Cerrar"
   },
   "validation": {
     "required": "Este campo es obligatorio",
@@ -437,9 +438,9 @@
     "fig_weight_height": "Peso · altura",
     "wrist": "Muñeca",
     "composition_analysis_title": "Análisis de composición corporal",
-    "segmental_hint": "Porcentaje de masa magra y grasa en cada segmento, según lo medido por la báscula. La grasa se compara entre lados en puntos porcentuales; la masa magra solo si la báscula mide la masa de ambos.",
-    "segmental_lean": "Masa magra",
-    "segmental_fat": "Masa grasa",
+    "segmental_hint": "Los porcentajes de grasa proceden de la medición de la báscula; los kg de las zonas marcadas como «Estimada» salen del reparto anatómico. La grasa se compara entre lados en puntos porcentuales; la masa magra solo si la báscula mide la masa de ambos.",
+    "segmental_lean": "Masa magra (kg)",
+    "segmental_fat": "Grasa (%)",
     "side_right": "Der.",
     "side_left": "Izq.",
     "asymmetry_pct": "Asimetría {{pct}} %",
@@ -477,7 +478,9 @@
     "seg_lean_not_comparable_legs": "Piernas: la masa magra no se puede comparar. Requiere la masa medida de ambos lados; con el reparto anatómico los dos pesan lo mismo por construcción.",
     "seg_pair_unavailable_arms": "Brazos sin comparar: requiere el porcentaje de grasa de ambos lados.",
     "seg_pair_unavailable_legs": "Piernas sin comparar: requiere el porcentaje de grasa de ambos lados.",
-    "legend_not_compared": "Sin comparación"
+    "legend_not_compared": "Sin comparación",
+    "fat_asymmetry_points": "Asimetría de grasa {{pct}} p.",
+    "lean_not_comparable_fat_alert": "Magra no comparable · asimetría de grasa {{pct}} p."
   },
   "evolution": {
     "title": "Evolución",
@@ -525,7 +528,9 @@
     "select_patient": "Seleccionar Paciente",
     "delete": "Eliminar menú",
     "delete_confirm": "¿Estás seguro de que quieres eliminar el menú \"{{name}}\"? Esta acción no se puede deshacer.",
-    "active_hint": "El que el paciente ve ahora mismo en su aplicación."
+    "active_hint": "El que el paciente ve ahora mismo en su aplicación.",
+    "preview_template": "Previsualizar plantilla",
+    "preview_dialog": "Previsualización de la plantilla"
   },
   "patient_profile": {
     "title": "Perfil Médico",
@@ -1334,7 +1339,9 @@
     "scheduled_title": "Cita agendada",
     "scheduled_hint": "Le hemos enviado la confirmación por email. Recibirá recordatorios 48 y 2 horas antes.",
     "schedule_again": "Agendar otra",
-    "see_in_agenda": "Ver en la agenda"
+    "see_in_agenda": "Ver en la agenda",
+    "reschedule_hint": "Tu nutricionista tendrá que confirmar el cambio.",
+    "reschedule_summary_ready": "Nueva hora: {{date}} a las {{time}} ({{minutes}} min)"
   },
   "shell": {
     "loading": "Cargando...",
@@ -1419,6 +1426,7 @@
     "guidelines_error": "No se pudieron guardar las pautas",
     "measurement_registered": "Medición registrada correctamente",
     "measurement_deleted": "Medición eliminada",
+    "measurement_updated": "Medición actualizada correctamente",
     "menu_created": "Menú asignado al paciente correctamente",
     "template_assigned": "Plantilla asignada al paciente correctamente",
     "meal_deleted": "Plato eliminado",
@@ -1977,5 +1985,9 @@
     "copy_day_done": "Día clonado.",
     "move_meal_done": "Comida movida.",
     "swap_meal_done": "Comidas intercambiadas."
+  },
+  "template_preview": {
+    "title": "Comidas de la plantilla",
+    "empty_description": "Esta plantilla todavía no tiene platos, así que el menú del paciente se creará vacío."
   }
 }

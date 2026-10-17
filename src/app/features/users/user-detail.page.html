@@ -372,6 +372,7 @@
                   <table [attr.aria-label]="t('measurements.title')" tuiTable class="w-full">
                     <thead>
                       <tr>
+                        <th tuiTh scope="col" class="w-14"><span class="sr-only">{{ t('common.actions') }}</span></th>
                         <th tuiTh scope="col">{{ t('measurements.measured_at') }}</th>
                         <th tuiTh scope="col">{{ t('measurements.weight') }}</th>
                         <th tuiTh scope="col">{{ t('measurements.bmi') }}</th>
@@ -381,12 +382,44 @@
                         <th tuiTh scope="col">{{ t('measurements.visceral_fat') }}</th>
                         <th tuiTh scope="col">{{ t('measurements.waist') }}</th>
                         <th tuiTh scope="col" class="min-w-40">{{ t('measurements.notes') }}</th>
-                        <th tuiTh scope="col" class="text-center" style="width: 5rem;">{{ t('common.actions') }}</th>
                       </tr>
                     </thead>
                     <tbody tuiTbody>
                       @for (m of measurements(); track m.id) {
                         <tr tuiTr>
+                          <td tuiTd (click)="$event.stopPropagation()">
+                            @if (canManageUsers()) {
+                              <div
+                                class="inline-block"
+                                [tuiDropdown]="measurementMenu"
+                                tuiDropdownAuto
+                                tuiDropdownAlign="start"
+                                tuiDropdownLimitWidth="min"
+                              >
+                                <button
+                                  tuiButton
+                                  appearance="flat"
+                                  size="s"
+                                  type="button"
+                                  [attr.aria-label]="t('common.actions') + ': ' + formatInstantWithTime(m.measuredAt)"
+                                >
+                                  <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                                </button>
+                                <ng-template #measurementMenu>
+                                  <tui-data-list>
+                                    <button tuiOption type="button" (click)="editMeasurement(m)">
+                                      <i class="fa-solid fa-pen mr-2" aria-hidden="true"></i>
+                                      {{ t('common.edit') }}
+                                    </button>
+                                    <button tuiOption type="button" class="text-err" (click)="deleteMeasurement(m)">
+                                      <i class="fa-solid fa-trash mr-2" aria-hidden="true"></i>
+                                      {{ t('common.delete') }}
+                                    </button>
+                                  </tui-data-list>
+                                </ng-template>
+                              </div>
+                            }
+                          </td>
                           <td tuiTd class="text-sm text-surface-900 dark:text-surface-0">{{ formatInstantWithTime(m.measuredAt) }}</td>
                           <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">{{ m.weightKg ?? '—' }}</td>
                           <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">{{ m.bmi ?? '—' }}</td>
@@ -396,19 +429,6 @@
                           <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">{{ m.visceralFatLevel ?? '—' }}</td>
                           <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">{{ m.waistCm ?? '—' }}</td>
                           <td tuiTd class="text-sm text-surface-400 whitespace-pre-wrap min-w-40">{{ m.notes ?? '—' }}</td>
-                          <td tuiTd class="text-center">
-                            <button
-                              *appIfPermission="'MANAGE_USER'"
-                              type="button"
-                              tuiIconButton
-                              appearance="flat"
-                              size="s"
-                              class="text-red-500 hover:text-red-700"
-                              (click)="deleteMeasurement(m)"
-                              [title]="t('common.delete')">
-                              <i class="fa-solid fa-trash"></i>
-                            </button>
-                          </td>
                         </tr>
                       }
                     </tbody>
@@ -456,6 +476,16 @@
                         </div>
                       </dl>
                       <div class="flex items-center gap-1 justify-end mt-2 pt-2 border-t border-line">
+                        <button
+                          *appIfPermission="'MANAGE_USER'"
+                          type="button"
+                          tuiIconButton
+                          appearance="flat"
+                          size="s"
+                          (click)="editMeasurement(m)"
+                          [title]="t('common.edit')">
+                          <i class="fa-solid fa-pen"></i>
+                        </button>
                         <button
                           *appIfPermission="'MANAGE_USER'"
                           type="button"
@@ -749,14 +779,23 @@
                                 [title]="t('measurements.segmental_estimated_notice')">{{ t('measurements.source_estimated') }}</em>
                             }
                           </span>
-                          <span class="block h-1.5 overflow-hidden rounded-pill bg-surface-100 dark:bg-surface-700">
-                            <i class="block h-full rounded-pill" [ngClass]="seg.markerClass" [style.width.%]="seg.barPct"></i>
-                          </span>
+                          @if (seg.barPct !== null) {
+                            <span class="block h-1.5 overflow-hidden rounded-pill bg-surface-100 dark:bg-surface-700">
+                              <i class="block h-full rounded-pill" [ngClass]="seg.markerClass" [style.width.%]="seg.barPct"></i>
+                            </span>
+                          } @else {
+                            <span></span>
+                          }
                           <span class="whitespace-nowrap text-right text-[13.5px] tabular-nums text-surface-800 dark:text-surface-200">
-                            {{ seg.pctText }}
-                            <em class="ml-1.5 text-xs not-italic text-surface-400">{{ seg.valueText }}</em>
+                            {{ seg.primaryText }}
+                            @if (seg.secondaryText) {
+                              <em class="ml-1.5 text-xs not-italic text-surface-400">{{ seg.secondaryText }}</em>
+                            }
                             @if (seg.symmetryApplicable) {
-                              <em class="ml-1.5 text-xs not-italic text-surface-400">{{ t(seg.diffLabelKey, { pct: seg.diffPct }) }}</em>
+                              <em
+                                class="ml-1.5 text-xs not-italic"
+                                [class.text-surface-400]="!seg.asymmetric"
+                                [class.text-err]="seg.asymmetric">{{ t(seg.diffLabelKey, { pct: seg.diffValue }) }}</em>
                             }
                           </span>
                         </div>

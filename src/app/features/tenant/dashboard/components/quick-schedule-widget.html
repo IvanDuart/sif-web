@@ -29,12 +29,33 @@
   } @else {
     @if (showTitle()) {
       <h3 class="font-display text-base font-bold text-surface-900 dark:text-surface-0">
-        {{ t('tenant_dashboard.schedule_title') }}
+        {{ isReschedule() ? t('appointments.reschedule_title') : t('tenant_dashboard.schedule_title') }}
       </h3>
     }
 
+    <!-- ── Cita actual (solo al reagendar) ──────────────────────────── -->
+    @if (rescheduleAppointment(); as current) {
+      <div
+        class="rounded-sm border border-surface-200 bg-surface-50 px-3 py-2.5 dark:border-surface-700 dark:bg-surface-800"
+        [class.mt-4]="showTitle()"
+      >
+        <p class="mb-1 text-xs uppercase tracking-wider text-surface-500">
+          {{ t('appointments.current_info') }}
+        </p>
+        <p class="m-0 text-sm font-medium text-surface-900 dark:text-surface-0">
+          {{ currentAppointmentWhen() }}
+        </p>
+        @if (current.typeName) {
+          <p class="m-0 text-xs text-surface-500">{{ current.typeName }}</p>
+        }
+        @if (needsApproval()) {
+          <p class="mt-1.5 m-0 text-xs text-surface-400">{{ t('tenant_dashboard.reschedule_hint') }}</p>
+        }
+      </div>
+    }
+
     <!-- ── Día ──────────────────────────────────────────────────────── -->
-    <div [class.mt-4]="showTitle()">
+    <div [class.mt-4]="showTitle() || isReschedule()">
       <p class="mb-2 text-xs text-surface-500">{{ t('appointments.date') }}</p>
 
       @if (loading()) {
@@ -77,53 +98,55 @@
     </div>
 
     <!-- ── Paciente ─────────────────────────────────────────────────── -->
-    <div class="mt-5">
-      <p class="mb-2 text-xs text-surface-500">{{ t('appointments.patient') }}</p>
+    <!-- Al reagendar no se elige: la cita ya tiene paciente y tipo. -->
+    @if (!isReschedule()) {
+      <div class="mt-5">
+        <p class="mb-2 text-xs text-surface-500">{{ t('appointments.patient') }}</p>
 
-      @if (selectedPatient(); as patient) {
-        <div
-          class="flex items-center gap-2.5 rounded-sm border border-primary-500 bg-surface-50 px-2.5 py-1.5 dark:border-primary-300 dark:bg-surface-800"
-        >
-          <span tuiAvatar size="s" [round]="true">
-            {{ patient.initials }}
-          </span>
-          <span class="min-w-0 truncate text-sm font-medium text-surface-900 dark:text-surface-0">{{ patient.label }}</span>
-          <button
-            tuiButton
-            appearance="flat"
-            size="xs"
-            type="button"
-            class="ml-auto"
-            [attr.aria-label]="t('tenant_dashboard.remove_patient')"
-            (click)="clearPatient()"
+        @if (selectedPatient(); as patient) {
+          <div
+            class="flex items-center gap-2.5 rounded-sm border border-primary-500 bg-surface-50 px-2.5 py-1.5 dark:border-primary-300 dark:bg-surface-800"
           >
-            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-          </button>
-        </div>
-      } @else {
-        <tui-textfield class="w-full" iconStart="@tui.search">
-          <input
-            id="quickSchedulePatient"
-            tuiInput
-            type="search"
-            [ngModel]="patientQuery()"
-            (ngModelChange)="onPatientQuery($event)"
-            [placeholder]="t('tenant_dashboard.patient_search_placeholder')"
-          />
-        </tui-textfield>
+            <span tuiAvatar size="s" [round]="true">
+              {{ patient.initials }}
+            </span>
+            <span class="min-w-0 truncate text-sm font-medium text-surface-900 dark:text-surface-0">{{ patient.label }}</span>
+            <button
+              tuiButton
+              appearance="flat"
+              size="xs"
+              type="button"
+              class="ml-auto"
+              [attr.aria-label]="t('tenant_dashboard.remove_patient')"
+              (click)="clearPatient()"
+            >
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+          </div>
+        } @else {
+          <tui-textfield class="w-full" iconStart="@tui.search">
+            <input
+              id="quickSchedulePatient"
+              tuiInput
+              type="search"
+              [ngModel]="patientQuery()"
+              (ngModelChange)="onPatientQuery($event)"
+              [placeholder]="t('tenant_dashboard.patient_search_placeholder')"
+            />
+          </tui-textfield>
 
-        @if (patientResults().length) {
-          <div class="mt-1.5 divide-y divide-surface-100 overflow-hidden rounded-sm border border-surface-200 dark:divide-surface-800 dark:border-surface-700">
-            @for (patient of patientResults(); track patient.id) {
-              <button
-                type="button"
-                class="flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-sm transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
-                (click)="pickPatient(patient)"
-              >
-                <span tuiAvatar size="xs" [round]="true">{{ patient.initials }}</span>
-                <span class="min-w-0 truncate">{{ patient.label }}</span>
-                @if (patient.email) {
-                  <span class="ml-auto min-w-0 truncate text-xs text-surface-400">{{ patient.email }}</span>
+          @if (patientResults().length) {
+            <div class="mt-1.5 divide-y divide-surface-100 overflow-hidden rounded-sm border border-surface-200 dark:divide-surface-800 dark:border-surface-700">
+              @for (patient of patientResults(); track patient.id) {
+                <button
+                  type="button"
+                  class="flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-sm transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
+                  (click)="pickPatient(patient)"
+                >
+                  <span tuiAvatar size="xs" [round]="true">{{ patient.initials }}</span>
+                  <span class="min-w-0 truncate">{{ patient.label }}</span>
+                  @if (patient.email) {
+                    <span class="ml-auto min-w-0 truncate text-xs text-surface-400">{{ patient.email }}</span>
                 }
               </button>
             }
@@ -133,9 +156,10 @@
         }
       }
     </div>
+    }
 
     <!-- ── Tipo de cita ─────────────────────────────────────────────── -->
-    @if (types().length) {
+    @if (types().length && !isReschedule()) {
       <div class="mt-5">
         <p class="mb-2 text-xs text-surface-500">{{ t('appointments.type') }}</p>
         <div class="flex flex-wrap gap-1.5">
@@ -203,18 +227,28 @@
         [disabled]="!canSubmit() || saving()"
         (click)="submit()"
       >
-        {{ saving() ? t('common.loading') : t('tenant_dashboard.schedule') }}
+        @if (saving()) {
+          {{ t('common.loading') }}
+        } @else {
+          {{ isReschedule() ? t('appointments.reschedule') : t('tenant_dashboard.schedule') }}
+        }
       </button>
 
       <span class="text-xs leading-snug text-surface-400">
-        @if (canSubmit()) {
+        @if (canSubmit() && isReschedule()) {
+          {{ t('tenant_dashboard.reschedule_summary_ready', {
+            date: selectedDateLong(),
+            time: formattedSlot(),
+            minutes: duration()
+          }) }}
+        } @else if (canSubmit()) {
           {{ t('tenant_dashboard.summary_ready', {
             patient: selectedPatient()!.label,
             date: selectedDateLong(),
             time: formattedSlot(),
             minutes: duration()
           }) }}
-        } @else if (!selectedPatient()) {
+        } @else if (!isReschedule() && !selectedPatient()) {
           {{ t('tenant_dashboard.summary_no_patient') }}
         } @else {
           {{ t('tenant_dashboard.summary_no_slot') }}

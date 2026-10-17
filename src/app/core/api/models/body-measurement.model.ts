@@ -183,6 +183,13 @@ export interface CreateBodyMeasurementRequest {
   notes?: string | null;
 }
 
+/**
+ * Cuerpo de `PUT /measurements/{id}`: mismos campos que el alta, pero con semántica de reemplazo
+ * completo — un campo ausente deja la columna a null en el servidor, que es lo que permite corregir
+ * una toma borrando un valor mal introducido. Enviar siempre la medición entera.
+ */
+export type UpdateBodyMeasurementRequest = CreateBodyMeasurementRequest;
+
 export interface MeasurementPoint {
   measuredAt: string;
   weightKg: number | null;

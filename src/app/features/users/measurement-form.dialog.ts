@@ -6,9 +6,35 @@ import { TuiDialogContext, TuiButton, TuiInput, TuiTextfield, TuiLabel, TuiCalen
 import { TuiTextarea, TuiInputDate, TuiInputTime } from '@taiga-ui/kit';
 import { TuiDay, TuiTime } from '@taiga-ui/cdk';
 import { BodyMeasurementService } from '../../core/api/services/body-measurement.api';
-import { CreateBodyMeasurementRequest } from '../../core/api/models/body-measurement.model';
+import {
+  BodyMeasurementDto,
+  CreateBodyMeasurementRequest,
+  UpdateBodyMeasurementRequest
+} from '../../core/api/models/body-measurement.model';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+
+/**
+ * Campos numéricos de una medición, en el mismo orden que el formulario. Se recorren en lugar de
+ * enumerarlos uno a uno al construir el payload: el `PUT` es un reemplazo completo, así que cada
+ * campo tiene que viajar aunque esté vacío, y una lista única evita que alguno se quede atrás al
+ * añadir métricas nuevas.
+ */
+const MEASUREMENT_METRIC_FIELDS = [
+  'weightKg', 'bodyFatPct', 'muscleMassPct', 'bodyWaterPct', 'visceralFatLevel', 'boneMassKg',
+  'waistCm', 'chestCm', 'hipsCm', 'contourCm', 'armCm', 'wristCircumferenceCm',
+  'trunkFatPct', 'trunkMassKg',
+  'rightArmFatPct', 'rightArmMassKg', 'leftArmFatPct', 'leftArmMassKg',
+  'rightLegFatPct', 'rightLegMassKg', 'leftLegFatPct', 'leftLegMassKg'
+] as const;
+
+type MeasurementMetricField = typeof MEASUREMENT_METRIC_FIELDS[number];
+
+export interface MeasurementFormDialogData {
+  userId: string;
+  /** Medición a editar. Sin ella el diálogo da de alta una nueva. */
+  measurement?: BodyMeasurementDto | null;
+}
 
 @Component({
   selector: 'app-measurement-form',
@@ -35,12 +61,15 @@ export class MeasurementFormDialog {
   private readonly measurementService = inject(BodyMeasurementService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly transloco = inject(TranslocoService);
-  readonly context = injectContext<TuiDialogContext<boolean, { userId: string }>>();
+  readonly context = injectContext<TuiDialogContext<boolean, MeasurementFormDialogData>>();
   ref = { close: () => this.context.$implicit.complete() };
 
   saving = signal(false);
   userId = this.context.data.userId;
   activeStep = signal(1);
+
+  private readonly measurement = this.context.data.measurement ?? null;
+  readonly isEdit = this.measurement !== null;
 
   form = this.fb.group({
     weightKg: [null as number | null],
@@ -70,6 +99,30 @@ export class MeasurementFormDialog {
     notes: ['']
   });
 
+  constructor() {
+    if (this.measurement) {
+      this.patchFromMeasurement(this.measurement);
+    }
+  }
+
+  private patchFromMeasurement(m: BodyMeasurementDto) {
+    for (const field of MEASUREMENT_METRIC_FIELDS) {
+      this.form.controls[field].setValue(m[field] ?? null);
+    }
+
+    if (m.measuredAt) {
+      const measuredAt = new Date(m.measuredAt);
+      if (!Number.isNaN(measuredAt.getTime())) {
+        this.form.controls.measuredDate.setValue(TuiDay.fromLocalNativeDate(measuredAt));
+        this.form.controls.measuredTime.setValue(
+          new TuiTime(measuredAt.getHours(), measuredAt.getMinutes())
+        );
+      }
+    }
+
+    this.form.controls.notes.setValue(m.notes ?? '');
+  }
+
   nextStep() {
     this.activeStep.set(this.activeStep() + 1);
   }
@@ -82,44 +135,18 @@ export class MeasurementFormDialog {
     if (this.form.invalid) return;
 
     const raw = this.form.value;
-    const hasMetric =
-      raw.weightKg != null || raw.bodyFatPct != null || raw.muscleMassPct != null ||
-      raw.bodyWaterPct != null || raw.visceralFatLevel != null || raw.boneMassKg != null ||
-      raw.waistCm != null || raw.chestCm != null || raw.hipsCm != null ||
-      raw.contourCm != null || raw.armCm != null || raw.wristCircumferenceCm != null ||
-      raw.trunkFatPct != null || raw.trunkMassKg != null ||
-      raw.rightArmFatPct != null || raw.rightArmMassKg != null ||
-      raw.leftArmFatPct != null || raw.leftArmMassKg != null ||
-      raw.rightLegFatPct != null || raw.rightLegMassKg != null ||
-      raw.leftLegFatPct != null || raw.leftLegMassKg != null;
+    const hasMetric = MEASUREMENT_METRIC_FIELDS.some(field => raw[field] != null);
     if (!hasMetric) return;
 
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
 
+    // En edición el backend reemplaza la fila entera, así que todos los campos viajan: los que el
+    // usuario ha vaciado llegan como null y así se borran, que es como se corrige una toma errónea.
     const request: CreateBodyMeasurementRequest = {};
-    if (raw.weightKg != null) request.weightKg = raw.weightKg;
-    if (raw.bodyFatPct != null) request.bodyFatPct = raw.bodyFatPct;
-    if (raw.muscleMassPct != null) request.muscleMassPct = raw.muscleMassPct;
-    if (raw.bodyWaterPct != null) request.bodyWaterPct = raw.bodyWaterPct;
-    if (raw.visceralFatLevel != null) request.visceralFatLevel = raw.visceralFatLevel;
-    if (raw.boneMassKg != null) request.boneMassKg = raw.boneMassKg;
-    if (raw.waistCm != null) request.waistCm = raw.waistCm;
-    if (raw.chestCm != null) request.chestCm = raw.chestCm;
-    if (raw.hipsCm != null) request.hipsCm = raw.hipsCm;
-    if (raw.contourCm != null) request.contourCm = raw.contourCm;
-    if (raw.armCm != null) request.armCm = raw.armCm;
-    if (raw.wristCircumferenceCm != null) request.wristCircumferenceCm = raw.wristCircumferenceCm;
-    if (raw.trunkFatPct != null) request.trunkFatPct = raw.trunkFatPct;
-    if (raw.trunkMassKg != null) request.trunkMassKg = raw.trunkMassKg;
-    if (raw.rightArmFatPct != null) request.rightArmFatPct = raw.rightArmFatPct;
-    if (raw.rightArmMassKg != null) request.rightArmMassKg = raw.rightArmMassKg;
-    if (raw.leftArmFatPct != null) request.leftArmFatPct = raw.leftArmFatPct;
-    if (raw.leftArmMassKg != null) request.leftArmMassKg = raw.leftArmMassKg;
-    if (raw.rightLegFatPct != null) request.rightLegFatPct = raw.rightLegFatPct;
-    if (raw.rightLegMassKg != null) request.rightLegMassKg = raw.rightLegMassKg;
-    if (raw.leftLegFatPct != null) request.leftLegFatPct = raw.leftLegFatPct;
-    if (raw.leftLegMassKg != null) request.leftLegMassKg = raw.leftLegMassKg;
+    for (const field of MEASUREMENT_METRIC_FIELDS) {
+      request[field as MeasurementMetricField] = raw[field] ?? null;
+    }
 
     if (raw.measuredDate && raw.measuredTime) {
       const d = raw.measuredDate as TuiDay;
@@ -127,10 +154,15 @@ export class MeasurementFormDialog {
       const localDate = new Date(d.year, d.month, d.day, t.hours, t.minutes);
       request.measuredAt = localDate.toISOString();
     }
-    if (raw.notes) request.notes = raw.notes;
+    request.notes = raw.notes || null;
 
     this.saving.set(true);
-    this.measurementService.create(tenantId, this.userId, request).subscribe({
+
+    const save$ = this.measurement
+      ? this.measurementService.update(tenantId, this.userId, this.measurement.id, request as UpdateBodyMeasurementRequest)
+      : this.measurementService.create(tenantId, this.userId, request);
+
+    save$.subscribe({
       next: () => {
         this.saving.set(false);
         this.context.$implicit.next(true);

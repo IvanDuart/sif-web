@@ -4,11 +4,13 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angu
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext, TuiButton, TuiInput, TuiTextfield, TuiLabel, TuiDropdown, TuiFilterByInputPipe } from '@taiga-ui/core';
 import { TuiComboBox, TuiDataListWrapper, TuiChevron, TuiSwitch } from '@taiga-ui/kit';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
+import { ModalService } from '../../core/ui';
 import { MenuTemplate } from '../../core/api/models/menu-template.model';
 import { Menu } from '../../core/api/models/menu.model';
+import { TemplatePreviewDialog, TemplatePreviewDialogInput } from '../templates/template-preview.dialog';
 
 @Component({
   selector: 'app-assign-menu-template',
@@ -20,6 +22,8 @@ export class AssignMenuTemplateDialog implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly templateService = inject(MenuTemplateService);
   private readonly tenantCtx = inject(TenantContextService);
+  private readonly modal = inject(ModalService);
+  private readonly transloco = inject(TranslocoService);
 
   readonly context = injectContext<TuiDialogContext<Menu, { userId: string }>>();
   ref = { close: () => this.context.$implicit.complete() };
@@ -31,6 +35,13 @@ export class AssignMenuTemplateDialog implements OnInit {
   templateLabels = computed(() => this.templates().map(t => t.name));
   templateStringify = (value: string): string => value;
 
+  /** Nombre elegido en el combo: el control sólo guarda el nombre, no el id. */
+  private selectedName = signal<string | null>(null);
+  selectedTemplate = computed(() => {
+    const name = this.selectedName();
+    return name ? this.templates().find(t => t.name === name) ?? null : null;
+  });
+
   form = this.fb.group({
     templateId: ['', Validators.required],
     name: ['', Validators.required],
@@ -40,6 +51,7 @@ export class AssignMenuTemplateDialog implements OnInit {
   ngOnInit() {
     this.loadTemplates();
     this.form.get('templateId')?.valueChanges.subscribe((value) => {
+      this.selectedName.set(value || null);
       const template = this.templates().find(t => t.name === value);
       if (template) {
         this.form.patchValue({ name: template.name + ' - Copia' });
@@ -59,6 +71,22 @@ export class AssignMenuTemplateDialog implements OnInit {
       },
       error: () => this.loadingTemplates.set(false),
     });
+  }
+
+  /**
+   * Abre la previsualización de la plantilla elegida sin cerrar este diálogo,
+   * para no asignar a ciegas: el diálogo se apila encima y al cerrarlo se
+   * vuelve al formulario con lo ya escrito.
+   */
+  previewTemplate() {
+    const template = this.selectedTemplate();
+    if (!template) return;
+
+    this.modal.open<void, TemplatePreviewDialogInput>(TemplatePreviewDialog, {
+      label: this.transloco.translate('menu_history.preview_dialog'),
+      size: 'l',
+      data: { templateId: template.id, templateName: template.name },
+    }).subscribe();
   }
 
   submit() {

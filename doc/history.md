@@ -67,6 +67,7 @@ Base: `/tenant/{tenantId}/users/{userId}/measurements`
 | Método | Ruta | Permiso | Request | Response | Códigos |
 |---|---|---|---|---|---|
 | `POST` | `/` | `MANAGE_USER` | `CreateBodyMeasurementRequest` | `BodyMeasurementDto` | 200, 400, 403, 404 |
+| `PUT` | `/{measurementId}` | `MANAGE_USER` | `UpdateBodyMeasurementRequest` | `BodyMeasurementDto` | 200, 400, 403, 404 |
 | `GET` | `/` | `VIEW_USER` | — | `Page<BodyMeasurementDto>` | 200, 403, 404 |
 | `GET` | `/latest` | `VIEW_USER` | — | `BodyMeasurementDto` | 200, **204** (sin datos), 403, 404 |
 | `GET` | `/evolution` | `VIEW_USER` | — | `MeasurementHistoryDto` | 200, 403, 404 |
@@ -204,6 +205,7 @@ Si el usuario ya existía en el sistema (mismo email en otro tenant), `birthDate
 | Endpoint | Permiso |
 |---|---|
 | `POST /measurements` | `MANAGE_USER` |
+| `PUT /measurements/{id}` | `MANAGE_USER` |
 | `GET /measurements` | `VIEW_USER` |
 | `GET /measurements/latest` | `VIEW_USER` |
 | `GET /measurements/evolution` | `VIEW_USER` |

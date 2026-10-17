@@ -1,0 +1,56 @@
+<div class="flex flex-col gap-4 mt-2" *transloco="let t">
+  @if (template()?.description) {
+    <p class="text-[14px] text-surface-500 dark:text-surface-400">{{ template()?.description }}</p>
+  }
+
+  @if (loading()) {
+    <div class="flex items-center justify-center gap-2 py-12 text-surface-500 dark:text-surface-400">
+      <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+      <span>{{ t('common.loading') }}</span>
+    </div>
+  } @else if (failed()) {
+    <div class="py-12 text-center text-surface-500 dark:text-surface-400">
+      {{ t('templates.not_found') }}
+    </div>
+  } @else if (!hasMeals()) {
+    <div class="py-12 text-center">
+      <p class="font-display text-[16px] font-semibold text-surface-700 dark:text-surface-200">{{ t('template_detail.empty_title') }}</p>
+      <p class="mt-1 text-[13px] text-surface-500 dark:text-surface-400">{{ t('template_preview.empty_description') }}</p>
+    </div>
+  } @else {
+    <div class="overflow-x-auto">
+      <table [attr.aria-label]="t('template_preview.title')" tuiTable class="w-full min-w-[560px] menu-table">
+        <thead>
+          <tr>
+            <th tuiTh class="menu-table__day-head">{{ t('template_detail.day_column') }}</th>
+            <th tuiTh>{{ t('template_detail.meal_types.lunch') }}</th>
+            <th tuiTh>{{ t('template_detail.meal_types.dinner') }}</th>
+          </tr>
+        </thead>
+        <tbody tuiTbody>
+          @for (day of allDays; track day) {
+            <tr tuiTr>
+              <td tuiTd class="menu-table__day-cell">
+                <div class="menu-table__day">
+                  <span>{{ dayLabel(day) }}</span>
+                </div>
+              </td>
+              @for (mealType of mealTypes; track mealType) {
+                <td tuiTd class="menu-table__cell">
+                  <app-meal-cell
+                    [meal]="getMeal(day, mealType)"
+                    [canManage]="false"
+                    i18nPrefix="template_detail" />
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <div class="flex justify-end gap-2 mt-2 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <button type="button" tuiButton appearance="secondary" size="m" (click)="close()">{{ t('common.close') }}</button>
+  </div>
+</div>
