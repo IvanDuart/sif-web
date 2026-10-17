@@ -67,6 +67,61 @@ Las notificaciones push enviadas por el backend incluyen el texto tanto en espa�
 
 ---
 
+## 3bis. Datos estructurados del push (`data` / `additionalData`)
+
+Además del título y el cuerpo, **todos** los push del backend viajan con un mapa `data` (el campo `data` de la REST API de OneSignal, que el SDK de Flutter expone como `event.notification.additionalData`). Sirve para que, al tocar la notificación, la app sepa qué pantalla abrir y con qué fecha, en vez de aplicar una heurística.
+
+> **El mismo contrato sirve para la web.** Cada uno de estos avisos se entrega también por SSE a las pestañas web abiertas, con este mismo mapa `data` sin transformar: lo que la app lee en `additionalData`, la web lo lee en el campo `data` del evento. Detalles del canal web en **`doc/sse-notificaciones-frontend.md`**.
+
+### Campos
+
+| Campo | Siempre | Valor |
+|---|---|---|
+| `type` | Sí | Discriminador en `SCREAMING_SNAKE`. Tabla abajo. |
+| `tenantId` | Sí | UUID del tenant de la entidad. La app es multitenant: sin él no se sabe en qué centro abrirla. |
+| `entityId` | Sí | UUID de la entidad: `appointmentId` o `noteId` según el tipo. |
+| `startTime` | Sí | Inicio de la entidad, ISO 8601 UTC terminado en `Z`. |
+| `noteType` | Solo notas | `REMINDER` o `TIME_BLOCK`. |
+
+**Todos los valores son cadenas**, incluidos los que parecen fecha o enumerado. OneSignal y el SDK de Flutter no coinciden entre iOS y Android al tipar valores que no lo son, así que el parseo queda del lado del cliente.
+
+### Los ocho tipos
+
+| `type` | Evento | Destinatario |
+|---|---|---|
+| `APPOINTMENT_REQUESTED` | Paciente solicita cita (nace `PROPOSED`) | Nutricionista |
+| `APPOINTMENT_CREATED` | Cita creada ya agendada (`SCHEDULED`) | Paciente |
+| `APPOINTMENT_RESCHEDULED` | Reprogramación solicitada o confirmada | Nutricionista o paciente |
+| `APPOINTMENT_COMPLETED` | Cita completada | Paciente |
+| `APPOINTMENT_CANCELLED` | Cita cancelada | Ambos |
+| `APPOINTMENT_NO_SHOW` | Ausencia registrada | Paciente |
+| `APPOINTMENT_REMINDER` | Recordatorio diario de cita (job 08:00) | Paciente |
+| `CALENDAR_NOTE_REMINDER` | Recordatorio de nota de calendario (job cada 5 min) | Nutricionista |
+
+`APPOINTMENT_REQUESTED` y `APPOINTMENT_CREATED` se separan a propósito: una cita que nace `PROPOSED` hay que confirmarla desde la bandeja de solicitudes, y una que nace `SCHEDULED` solo hay que verla en la agenda. Son dos pantallas distintas.
+
+### Ejemplo
+
+Recordatorio de una nota de calendario:
+
+```json
+{
+  "type":      "CALENDAR_NOTE_REMINDER",
+  "tenantId":  "9c2b1f4e-...",
+  "entityId":  "3f1a7d20-...",
+  "startTime": "2026-11-02T10:00:00Z",
+  "noteType":  "REMINDER"
+}
+```
+
+> **Ojo con la fecha.** `startTime` puede ser de dentro de varios días — un recordatorio de agenda no es necesariamente de hoy. Abrid la pantalla en la fecha de `startTime`, no en la de hoy.
+
+### Compatibilidad
+
+El cambio es aditivo en las dos direcciones: las versiones de la app que no leen `additionalData` siguen funcionando igual, y una app que tolere `data` ausente o incompleto degrada al comportamiento anterior. No hace falta coordinar el despliegue de backend con el de la app.
+
+---
+
 ## 4. Ejemplos de Petición cURL (Paciente solicitando cita)
 
 ```bash

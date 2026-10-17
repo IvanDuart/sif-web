@@ -12,6 +12,11 @@ edita. La pantalla de solo lectura se refresca sola en cuanto guarda un cambio.
 > SSE es una conexión HTTP de larga duración **unidireccional** (servidor → cliente). No
 > necesita WebSockets ni un broker STOMP: el navegador recibe eventos por un stream de texto.
 
+> **Hay un segundo canal SSE en el proyecto**, el de notificaciones del usuario
+> (`GET /notifications/stream`), documentado en `doc/sse-notificaciones-frontend.md`. Comparte
+> infraestructura y modo de autenticación con este, pero su evento trae el texto ya listo para
+> mostrar en vez de una señal para recargar.
+
 El backend **no envía la dieta completa** en el evento, sólo una **señal** con el `menuId` y
 el **motivo**. Al recibirla, el frontend vuelve a pedir el menú por REST y repinta. Así el
 contrato es simple y no depende de las vistas JSON de las entidades.

@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   HostListener,
   OnDestroy,
   OnInit,
@@ -9,6 +10,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
@@ -37,6 +39,7 @@ import { AppointmentActionDialog } from './appointment-action.dialog';
 import { CreateEntryDialog, CreateEntryDialogData, CreateEntryResult } from './create-entry.dialog';
 import { CalendarNoteDetailDialog, CalendarNoteDetailData } from './calendar-note-detail.dialog';
 import { CalendarNoteService } from '../../core/api/services/calendar-note.api';
+import { NotificationStreamService } from '../../core/api/services/notification-stream.service';
 import { CalendarNoteDto } from '../../core/api/models/calendar-note.model';
 import { clipToRange, isPointInTime, noteColor } from '../../shared/utils/calendar-notes';
 import { PermissionsService } from '../../core/permissions/permissions.service';
@@ -160,6 +163,8 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
   private readonly scheduleAvailability = inject(ScheduleAvailabilityService);
   private readonly calendarNoteService = inject(CalendarNoteService);
   private readonly permissions = inject(PermissionsService);
+  private readonly notificationStream = inject(NotificationStreamService);
+  private readonly destroyRef = inject(DestroyRef);
 
   @ViewChild('calendar') calendarComponent?: FullCalendarComponent;
 
@@ -321,6 +326,8 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
       });
     });
 
+    this.listenToRemoteChanges();
+
     this.route.queryParams.subscribe(params => {
       const dateParam = params['date'];
       if (dateParam) {
@@ -337,6 +344,40 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     clearTimeout(this.resizeTimeout);
+  }
+
+  /**
+   * La agenda se queda abierta durante horas, así que refleja lo que pasa
+   * fuera: un paciente que pide cita o pide moverla, o un cambio hecho desde
+   * otra pestaña. Tras reconectar se recarga igual, porque en ese hueco los
+   * avisos se pierden.
+   *
+   * Repintar es idempotente (se vuelve a pedir el rango visible), así que un
+   * aviso duplicado tras una reconexión no molesta.
+   */
+  private listenToRemoteChanges() {
+    this.notificationStream.notifications$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((notification) => {
+        const type = notification.data?.type ?? '';
+        if (type.startsWith('APPOINTMENT_')) {
+          this.reloadVisibleRange();
+        } else if (type === 'CALENDAR_NOTE_REMINDER') {
+          this.loadWeekNotes();
+        }
+      });
+
+    this.notificationStream.reconnected$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.reloadVisibleRange());
+  }
+
+  /** Vuelve a pedir lo que hay en pantalla: hoy, el rango del calendario y las notas. */
+  private reloadVisibleRange() {
+    if (!this.canViewAppointments() || !this.currentUserId()) return;
+    this.loadTodayAppointments();
+    this.loadWeekAppointments();
+    this.loadWeekNotes();
   }
 
   // ── Navegación ─────────────────────────────────────────────────────────

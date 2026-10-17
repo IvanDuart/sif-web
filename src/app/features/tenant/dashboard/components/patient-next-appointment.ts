@@ -1,11 +1,13 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AppointmentService } from '../../../../core/api/services/appointment.api';
 import { TenantContextService } from '../../../../core/tenant/tenant-context.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { AppointmentDto } from '../../../../core/api/models/appointment.model';
 import { ModalService } from '../../../../core/ui';
+import { NotificationStreamService } from '../../../../core/api/services/notification-stream.service';
 import {
   QuickScheduleDialog,
   QuickScheduleDialogData,
@@ -24,12 +26,34 @@ export class PatientNextAppointment implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly modal = inject(ModalService);
   private readonly transloco = inject(TranslocoService);
+  private readonly notificationStream = inject(NotificationStreamService);
+  private readonly destroyRef = inject(DestroyRef);
 
   loading = signal(false);
   nextAppointment = signal<AppointmentDto | null>(null);
 
   ngOnInit() {
     this.loadNextAppointment();
+    this.listenToAppointmentChanges();
+  }
+
+  /**
+   * El nutricionista confirma, mueve o cancela desde su panel y la tarjeta se
+   * entera por el canal de avisos, sin recargar. Tras una reconexión se recarga
+   * igualmente: en ese hueco pueden haberse perdido avisos.
+   */
+  private listenToAppointmentChanges() {
+    this.notificationStream.notifications$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((notification) => {
+        if (notification.data?.type?.startsWith('APPOINTMENT_')) {
+          this.loadNextAppointment();
+        }
+      });
+
+    this.notificationStream.reconnected$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadNextAppointment());
   }
 
   loadNextAppointment() {

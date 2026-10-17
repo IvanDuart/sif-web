@@ -1,7 +1,7 @@
-import { Component, computed, DestroyRef, inject, NgZone, signal, viewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, computed, DestroyRef, inject, NgZone, signal, viewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet, RouterModule, Router } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { animate } from 'motion';
 
 import { TuiAvatar, TuiProgressBar } from '@taiga-ui/kit';
@@ -15,6 +15,11 @@ import { TenantMembershipDto } from '../../core/api/models/user.model';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppointmentService } from '../../core/api/services/appointment.api';
 import { AppointmentDto } from '../../core/api/models/appointment.model';
+import {
+  AppNotification,
+  NotificationStreamService,
+} from '../../core/api/services/notification-stream.service';
+import { NotificationService } from '../../core/ui';
 import { globalLoadingSignal } from '../../core/http/loading.interceptor';
 
 interface NavItem {
@@ -55,7 +60,7 @@ const NAV_ITEMS: NavItem[] = [
   templateUrl: './shell.html',
   styleUrls: ['./shell.scss']
 })
-export class Shell implements OnInit {
+export class Shell implements OnInit, OnDestroy {
   loading = globalLoadingSignal;
 
   private readonly transloco = inject(TranslocoService);
@@ -63,6 +68,9 @@ export class Shell implements OnInit {
   readonly permissionsService = inject(PermissionsService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly appointmentService = inject(AppointmentService);
+  private readonly notificationStream = inject(NotificationStreamService);
+  private readonly notify = inject(NotificationService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   readonly themeService = inject(ThemeService);
   private readonly configService = inject(ConfigService);
@@ -113,6 +121,43 @@ export class Shell implements OnInit {
 
   ngOnInit() {
     this.loadProposals();
+    this.listenToNotifications();
+  }
+
+  ngOnDestroy() {
+    this.notificationStream.disconnect();
+  }
+
+  /**
+   * Avisos en vivo del backend. El canal es del usuario (uno por sesión), así
+   * que se abre aquí, que envuelve todas las rutas autenticadas.
+   *
+   * Lo emitido mientras la conexión estaba caída se pierde —no hay historial—,
+   * por eso al reconectar se recarga la bandeja en vez de darla por buena.
+   */
+  private listenToNotifications() {
+    this.notificationStream.notifications$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((notification) => this.onNotification(notification));
+
+    this.notificationStream.reconnected$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadProposals());
+
+    this.notificationStream.connect();
+  }
+
+  private onNotification(notification: AppNotification) {
+    // El texto ya viene traducido al idioma del usuario: no se reconstruye.
+    if (notification.body) {
+      this.notify.info(notification.body, notification.title ?? undefined);
+    }
+
+    // Cualquier movimiento de citas puede añadir o quitar una propuesta de la
+    // campanita (un reagendado del paciente la devuelve a `PROPOSED`).
+    if (notification.data?.type?.startsWith('APPOINTMENT_')) {
+      this.loadProposals();
+    }
   }
 
   loadProposals() {

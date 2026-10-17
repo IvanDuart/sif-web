@@ -44,6 +44,10 @@
       "description": "Controller for appointments management"
     },
     {
+      "name": "NotificationStreamController",
+      "description": "Real-time user notifications over Server-Sent Events (SSE)"
+    },
+    {
       "name": "CalendarNoteController",
       "description": "Controller for nutritionist calendar notes and time blocks"
     },
@@ -448,6 +452,107 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/tenant/{tenantId}/users/{userId}/measurements/{measurementId}": {
+      "put": {
+        "tags": [
+          "BodyMeasurementController"
+        ],
+        "description": "Update an existing body measurement (full replacement)",
+        "operationId": "update_1",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "measurementId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBodyMeasurementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BodyMeasurementDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "BodyMeasurementController"
+        ],
+        "description": "Delete a measurement entry",
+        "operationId": "delete_1",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "measurementId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -888,7 +993,7 @@
           "PatientEventController"
         ],
         "description": "Update a patient event",
-        "operationId": "update_1",
+        "operationId": "update_2",
         "parameters": [
           {
             "name": "tenantId",
@@ -937,7 +1042,7 @@
           "PatientEventController"
         ],
         "description": "Delete a patient event",
-        "operationId": "delete_1",
+        "operationId": "delete_2",
         "parameters": [
           {
             "name": "tenantId",
@@ -1111,7 +1216,7 @@
           "MealController"
         ],
         "description": "Update meal description",
-        "operationId": "update_2",
+        "operationId": "update_3",
         "parameters": [
           {
             "name": "tenantId",
@@ -1160,7 +1265,7 @@
           "MealController"
         ],
         "description": "Delete meal",
-        "operationId": "delete_2",
+        "operationId": "delete_3",
         "parameters": [
           {
             "name": "tenantId",
@@ -1233,7 +1338,7 @@
           "CalendarNoteController"
         ],
         "description": "Update a calendar note",
-        "operationId": "update_3",
+        "operationId": "update_4",
         "parameters": [
           {
             "name": "tenantId",
@@ -1282,7 +1387,7 @@
           "CalendarNoteController"
         ],
         "description": "Delete a calendar note",
-        "operationId": "delete_3",
+        "operationId": "delete_4",
         "parameters": [
           {
             "name": "tenantId",
@@ -1506,7 +1611,7 @@
           "AppointmentTypeController"
         ],
         "description": "Update an appointment type",
-        "operationId": "update_4",
+        "operationId": "update_5",
         "parameters": [
           {
             "name": "tenantId",
@@ -1555,7 +1660,7 @@
           "AppointmentTypeController"
         ],
         "description": "Soft-delete an appointment type (sets is_active = false)",
-        "operationId": "delete_4",
+        "operationId": "delete_5",
         "parameters": [
           {
             "name": "tenantId",
@@ -3555,7 +3660,7 @@
           "MenuController"
         ],
         "description": "Delete menu",
-        "operationId": "delete_5",
+        "operationId": "delete_6",
         "parameters": [
           {
             "name": "tenantId",
@@ -3587,7 +3692,7 @@
           "MenuController"
         ],
         "description": "Update an existing menu (name and/or active status)",
-        "operationId": "update_5",
+        "operationId": "update_6",
         "parameters": [
           {
             "name": "tenantId",
@@ -4670,7 +4775,7 @@
           "MenuTemplateController"
         ],
         "description": "Delete a menu template",
-        "operationId": "delete_6",
+        "operationId": "delete_7",
         "parameters": [
           {
             "name": "tenantId",
@@ -5263,45 +5368,23 @@
         }
       }
     },
-    "/tenant/{tenantId}/users/{userId}/measurements/{measurementId}": {
-      "delete": {
+    "/notifications/stream": {
+      "get": {
         "tags": [
-          "BodyMeasurementController"
+          "NotificationStreamController"
         ],
-        "description": "Delete a measurement entry",
-        "operationId": "delete_7",
-        "parameters": [
-          {
-            "name": "tenantId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "measurementId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
+        "description": "Subscribe to the authenticated user's notifications (SSE). Emits a 'notification' event for every push the backend sends to that user",
+        "operationId": "stream_1",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/SseEmitter"
+                }
+              }
+            }
           }
         }
       }
@@ -6063,17 +6146,35 @@
           "extremityType": {
             "type": "string"
           },
+          "rightFatPct": {
+            "type": "number"
+          },
+          "leftFatPct": {
+            "type": "number"
+          },
+          "fatPctDiffPoints": {
+            "type": "number"
+          },
+          "fatPctAlert": {
+            "type": "boolean"
+          },
+          "leanMassComparable": {
+            "type": "boolean"
+          },
           "rightLeanMassKg": {
             "type": "number"
           },
           "leftLeanMassKg": {
             "type": "number"
           },
-          "diffKg": {
+          "leanMassDiffKg": {
             "type": "number"
           },
-          "diffPct": {
+          "leanMassDiffPct": {
             "type": "number"
+          },
+          "leanMassAlert": {
+            "type": "boolean"
           },
           "asymmetricAlert": {
             "type": "boolean"
@@ -6174,7 +6275,7 @@
           "leanMassKg": {
             "type": "number"
           },
-          "massSource": {
+          "totalMassSource": {
             "type": "string",
             "enum": [
               "MEASURED",
@@ -6195,6 +6296,9 @@
             "$ref": "#/components/schemas/LateralSymmetryResult"
           },
           "thresholdPct": {
+            "type": "number"
+          },
+          "fatPctThresholdPoints": {
             "type": "number"
           },
           "hasAnyAsymmetryAlert": {
@@ -6369,12 +6473,104 @@
           }
         }
       },
-      "AssignNutritionistRequest": {
+      "UpdateBodyMeasurementRequest": {
         "type": "object",
         "properties": {
-          "nutritionistId": {
+          "weightKg": {
+            "type": "number",
+            "minimum": 0
+          },
+          "bodyFatPct": {
+            "type": "number",
+            "minimum": 0
+          },
+          "muscleMassPct": {
+            "type": "number",
+            "minimum": 0
+          },
+          "waistCm": {
+            "type": "number",
+            "minimum": 0
+          },
+          "chestCm": {
+            "type": "number",
+            "minimum": 0
+          },
+          "hipsCm": {
+            "type": "number",
+            "minimum": 0
+          },
+          "contourCm": {
+            "type": "number",
+            "minimum": 0
+          },
+          "armCm": {
+            "type": "number",
+            "minimum": 0
+          },
+          "bodyWaterPct": {
+            "type": "number",
+            "minimum": 0
+          },
+          "visceralFatLevel": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "wristCircumferenceCm": {
+            "type": "number",
+            "minimum": 0
+          },
+          "boneMassKg": {
+            "type": "number",
+            "minimum": 0
+          },
+          "trunkFatPct": {
+            "type": "number",
+            "minimum": 0
+          },
+          "trunkMassKg": {
+            "type": "number",
+            "minimum": 0
+          },
+          "rightArmFatPct": {
+            "type": "number",
+            "minimum": 0
+          },
+          "rightArmMassKg": {
+            "type": "number",
+            "minimum": 0
+          },
+          "leftArmFatPct": {
+            "type": "number",
+            "minimum": 0
+          },
+          "leftArmMassKg": {
+            "type": "number",
+            "minimum": 0
+          },
+          "rightLegFatPct": {
+            "type": "number",
+            "minimum": 0
+          },
+          "rightLegMassKg": {
+            "type": "number",
+            "minimum": 0
+          },
+          "leftLegFatPct": {
+            "type": "number",
+            "minimum": 0
+          },
+          "leftLegMassKg": {
+            "type": "number",
+            "minimum": 0
+          },
+          "measuredAt": {
             "type": "string",
-            "format": "uuid"
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string"
           }
         }
       },
@@ -6471,6 +6667,15 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "AssignNutritionistRequest": {
+        "type": "object",
+        "properties": {
+          "nutritionistId": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
