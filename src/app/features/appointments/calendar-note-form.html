@@ -1,0 +1,142 @@
+<div *transloco="let t" class="flex flex-col gap-4">
+
+  <!-- Título -->
+  <tui-textfield class="w-full">
+    <label tuiLabel for="noteTitle">{{ t('calendar_notes.field_title') }}</label>
+    <input
+      id="noteTitle"
+      tuiInput
+      [ngModel]="title()"
+      (ngModelChange)="title.set($event)"
+      [placeholder]="t('calendar_notes.field_title_placeholder')"
+      [maxlength]="maxTitle" />
+  </tui-textfield>
+
+  <!-- Todo el día -->
+  <label class="flex items-center gap-3 text-sm text-surface-700 dark:text-surface-200">
+    <input
+      type="checkbox"
+      tuiSwitch
+      [ngModel]="allDay()"
+      (ngModelChange)="allDay.set($event)" />
+    {{ t('calendar_notes.field_all_day') }}
+  </label>
+
+  <!-- Fecha y horas -->
+  <div class="flex flex-wrap gap-4">
+    <tui-textfield class="flex-1 min-w-[160px]">
+      <label tuiLabel for="noteDate">{{ t('calendar_notes.field_date') }}</label>
+      <input
+        id="noteDate"
+        tuiInputDate
+        [ngModel]="day()"
+        (ngModelChange)="day.set($event)" />
+      <tui-calendar *tuiDropdown />
+    </tui-textfield>
+
+    @if (!allDay()) {
+      <tui-textfield class="flex-1 min-w-[120px]">
+        <label tuiLabel for="noteStart">{{ t('calendar_notes.field_start') }}</label>
+        <input
+          id="noteStart"
+          tuiInputTime
+          [ngModel]="startTime()"
+          (ngModelChange)="startTime.set($event)" />
+      </tui-textfield>
+
+      <tui-textfield class="flex-1 min-w-[120px]">
+        <label tuiLabel for="noteEnd">{{ t('calendar_notes.field_end') }}</label>
+        <input
+          id="noteEnd"
+          tuiInputTime
+          [ngModel]="endTime()"
+          (ngModelChange)="endTime.set($event)" />
+      </tui-textfield>
+    }
+  </div>
+
+  <!-- Consecuencia del tipo elegido, en palabras -->
+  <p class="text-[12.5px] leading-snug text-surface-500 dark:text-surface-400">
+    @if (isTimeBlock()) {
+      <i class="fa-regular fa-calendar-xmark mr-1.5" aria-hidden="true"></i>
+      {{ t('calendar_notes.time_block_notice') }}
+    } @else {
+      <i class="fa-regular fa-note-sticky mr-1.5" aria-hidden="true"></i>
+      {{ t('calendar_notes.reminder_no_block_notice') }}
+    }
+  </p>
+
+  <!-- Aviso -->
+  <fieldset class="flex flex-col gap-2">
+    <legend class="mb-1 text-[12.5px] text-surface-500 dark:text-surface-400">
+      {{ t('calendar_notes.field_reminder') }}
+    </legend>
+    <div class="flex flex-wrap gap-2">
+      @for (option of reminderOptions; track option.labelKey) {
+        <button
+          tuiChip
+          type="button"
+          size="m"
+          [appearance]="reminderMinutes() === option.minutes ? 'primary' : 'neutral'"
+          [attr.aria-pressed]="reminderMinutes() === option.minutes"
+          (click)="selectReminder(option.minutes)">
+          {{ t(option.labelKey) }}
+        </button>
+      }
+    </div>
+    @if (reminderMinutes() !== null) {
+      <p class="text-[12.5px] text-surface-400">{{ t('calendar_notes.reminder_hint') }}</p>
+    }
+  </fieldset>
+
+  <!-- Color -->
+  <fieldset class="flex flex-col gap-2">
+    <legend class="mb-1 text-[12.5px] text-surface-500 dark:text-surface-400">
+      {{ t('calendar_notes.field_color') }}
+    </legend>
+    <div class="flex flex-wrap gap-2">
+      @for (swatch of palette; track swatch.hex) {
+        <button
+          type="button"
+          class="size-7 rounded-pill border-2 transition-[border-color,transform]"
+          [class.scale-110]="color() === swatch.hex"
+          [style.background]="swatch.hex"
+          [style.border-color]="color() === swatch.hex ? 'var(--ink)' : 'transparent'"
+          [attr.aria-pressed]="color() === swatch.hex"
+          [attr.aria-label]="t(swatch.labelKey)"
+          [attr.title]="t(swatch.labelKey)"
+          (click)="selectColor(swatch.hex)"></button>
+      }
+    </div>
+  </fieldset>
+
+  <!-- Descripción -->
+  <tui-textfield class="w-full">
+    <label tuiLabel for="noteDescription">{{ t('calendar_notes.field_description') }}</label>
+    <textarea
+      id="noteDescription"
+      tuiTextarea
+      [ngModel]="description()"
+      (ngModelChange)="description.set($event)"></textarea>
+  </tui-textfield>
+
+  @if (error()) {
+    <p class="text-sm text-[color:var(--err)]" role="alert">{{ error() }}</p>
+  }
+
+  <!-- Pie: un solo primario, y el motivo si está deshabilitado -->
+  <div class="flex flex-wrap items-center gap-3 border-t border-line pt-4">
+    <button
+      tuiButton
+      type="button"
+      appearance="primary"
+      size="m"
+      [disabled]="!canSave()"
+      (click)="submit()">
+      {{ saving() ? t('common.loading') : (isEdit() ? t('common.save') : t('common.create')) }}
+    </button>
+    @if (blockingReason()) {
+      <span class="text-[12.5px] leading-snug text-surface-400">{{ blockingReason() }}</span>
+    }
+  </div>
+</div>

@@ -1,5 +1,10 @@
 # Composición Corporal, Complexión Física, Análisis Segmental y Rangos de Referencia
 
+> **Actualizado con la revisión de cálculos v2.** Los cambios con impacto en los clientes de la API
+> (grasa visceral sin estimar, `symmetry` anulable, `segmentalAnalysis` incompleto, procedencia de
+> los valores y nuevo tramo `OVERWEIGHT`) están resumidos para frontend en
+> [`cambios-composicion-corporal-v2-frontend.md`](cambios-composicion-corporal-v2-frontend.md).
+
 ## Resumen
 
 Se ha integrado en el backend de *Tus Dietas* un motor clínico de evaluación de bioimpedancia segmental (tipo Tanita / InBody), complexión física (índice de Grant), evaluación de masa ósea, análisis de asimetría lateral bilateral y **cálculo de rangos y valores de referencia clínicos personalizados** (peso normal, masa libre de grasa, % grasa corporal saludable, agua corporal y masa ósea esperada), con persistencia en el perfil clínico del usuario e internacionalización (i18n) completa en español e inglés.
@@ -136,7 +141,9 @@ Calcula el informe clínico utilizando los datos más recientes del paciente (ú
 
 ## 4. Estructura JSON del Reporte Clínico (`BodyCompositionReport`)
 
-A continuación se muestra el esquema exacto devuelto por `POST .../calculate-composition`, en `user_tenant_profile.bodyCompositionReport` y en `body_measurement.bodyCompositionReport`:
+A continuación se muestra el esquema exacto devuelto por `POST .../calculate-composition`, en `user_tenant_profile.bodyCompositionReport` y en `body_measurement.bodyCompositionReport`.
+
+> El ejemplo refleja el **caso completo**: báscula que reporta % de grasa *y* masa por segmento. Con ese dato los cinco segmentos salen `MEASURED` y el bloque `symmetry` es evaluable. Si la báscula no da la masa por segmento —lo habitual hoy—, `totalMassSource` será `ESTIMATED` y **`symmetry` será `null`**; y los segmentos sin % de grasa propio no aparecen, de modo que `segmentalAnalysis` puede llegar vacío (§5.9).
 
 ```json
 {
@@ -153,16 +160,20 @@ A continuación se muestra el esquema exacto devuelto por `POST .../calculate-co
     "bmiClassification": "OVERWEIGHT",
     "localizedBmiClassification": "Sobrepeso",
     "bodyFatClassification": "NORMAL",
-    "localizedBodyFatClassification": "Normo",
+    "localizedBodyFatClassification": "Normal",
     "fatMassKg": 13.59,
     "fatFreeMassKg": 61.91,
     "waterMassKg": 41.53,
     "visceralFatLevel": 12,
+    "visceralFatSource": "MEASURED",
+    "visceralFatCarriedFrom": null,
     "boneComposition": {
       "boneMassKg": 3.20,
       "boneMassPctOfWeight": 4.24,
       "evaluation": "NORMAL",
-      "localizedDescription": "Masa ósea adecuada para el rango de peso y sexo"
+      "localizedDescription": "Masa ósea adecuada para el rango de peso y sexo",
+      "source": "CARRIED_FORWARD",
+      "carriedFrom": "2026-08-15T16:37:00Z"
     }
   },
   "bodyFrame": {
@@ -177,7 +188,8 @@ A continuación se muestra el esquema exacto devuelto por `POST .../calculate-co
       "fatPct": 19.0,
       "totalMassKg": 37.75,
       "fatMassKg": 7.17,
-      "leanMassKg": 30.58
+      "leanMassKg": 30.58,
+      "totalMassSource": "MEASURED"
     },
     "RIGHT_ARM": {
       "segment": "RIGHT_ARM",
@@ -185,7 +197,8 @@ A continuación se muestra el esquema exacto devuelto por `POST .../calculate-co
       "fatPct": 15.0,
       "totalMassKg": 4.15,
       "fatMassKg": 0.62,
-      "leanMassKg": 3.53
+      "leanMassKg": 3.53,
+      "totalMassSource": "MEASURED"
     },
     "LEFT_ARM": {
       "segment": "LEFT_ARM",
@@ -193,7 +206,8 @@ A continuación se muestra el esquema exacto devuelto por `POST .../calculate-co
       "fatPct": 15.5,
       "totalMassKg": 4.15,
       "fatMassKg": 0.64,
-      "leanMassKg": 3.51
+      "leanMassKg": 3.51,
+      "totalMassSource": "MEASURED"
     },
     "RIGHT_LEG": {
       "segment": "RIGHT_LEG",
@@ -201,7 +215,8 @@ A continuación se muestra el esquema exacto devuelto por `POST .../calculate-co
       "fatPct": 17.0,
       "totalMassKg": 14.72,
       "fatMassKg": 2.50,
-      "leanMassKg": 12.22
+      "leanMassKg": 12.22,
+      "totalMassSource": "MEASURED"
     },
     "LEFT_LEG": {
       "segment": "LEFT_LEG",
@@ -209,29 +224,43 @@ A continuación se muestra el esquema exacto devuelto por `POST .../calculate-co
       "fatPct": 17.2,
       "totalMassKg": 14.72,
       "fatMassKg": 2.53,
-      "leanMassKg": 12.19
+      "leanMassKg": 12.19,
+      "totalMassSource": "MEASURED"
     }
   },
   "symmetry": {
     "upperLimbs": {
-      "extremityType": "Brazos (Extremidades Superiores)",
+      "extremityType": "Extremidades Superiores (Brazos)",
+      "rightFatPct": 15.0,
+      "leftFatPct": 15.5,
+      "fatPctDiffPoints": 0.5,
+      "fatPctAlert": false,
+      "leanMassComparable": true,
       "rightLeanMassKg": 3.53,
       "leftLeanMassKg": 3.51,
-      "diffKg": 0.02,
-      "diffPct": 0.57,
+      "leanMassDiffKg": 0.02,
+      "leanMassDiffPct": 0.6,
+      "leanMassAlert": false,
       "asymmetricAlert": false,
-      "localizedObservation": "Brazos: Asimetría normal (0.6% de diferencia)"
+      "localizedObservation": "Simetría normal dentro del margen clínico"
     },
     "lowerLimbs": {
-      "extremityType": "Piernas (Extremidades Inferiores)",
+      "extremityType": "Extremidades Inferiores (Piernas)",
+      "rightFatPct": 17.0,
+      "leftFatPct": 17.2,
+      "fatPctDiffPoints": 0.2,
+      "fatPctAlert": false,
+      "leanMassComparable": true,
       "rightLeanMassKg": 12.22,
       "leftLeanMassKg": 12.19,
-      "diffKg": 0.03,
-      "diffPct": 0.25,
+      "leanMassDiffKg": 0.03,
+      "leanMassDiffPct": 0.2,
+      "leanMassAlert": false,
       "asymmetricAlert": false,
-      "localizedObservation": "Piernas: Asimetría normal (0.2% de diferencia)"
+      "localizedObservation": "Simetría normal dentro del margen clínico"
     },
     "thresholdPct": 5.0,
+    "fatPctThresholdPoints": 5.0,
     "hasAnyAsymmetryAlert": false
   },
   "referenceRanges": {
@@ -280,17 +309,27 @@ Se evalúa en función del sexo biológico y rangos de peso corporal:
 Valores posibles de `evaluation`: `NORMAL`, `LOW`, `HIGH`, `NOT_EVALUATED`.
 
 ### 5.3. Fallback de Masa Total por Segmento Anatómico
-Si la báscula segmental solo reporta porcentajes de grasa pero no las masas individuales por segmento (`trunkMassKg = null`, etc.), el motor aplica la distribución anatómica estándar respecto al peso total:
-- **Tronco**: $50.0\%$ del peso total.
-- **Brazo Derecho**: $5.5\%$ del peso total.
-- **Brazo Izquierdo**: $5.5\%$ del peso total.
-- **Pierna Derecha**: $19.5\%$ del peso total.
-- **Pierna Izquierda**: $19.5\%$ del peso total.
+Si la báscula segmental solo reporta porcentajes de grasa pero no las masas individuales por segmento (`trunkMassKg = null`, etc.), el motor aplica la distribución anatómica estándar respecto al peso total y marca ese segmento con `totalMassSource: ESTIMATED`:
+- **Tronco**: $50\%$ del peso total.
+- **Brazo Derecho**: $5\%$ del peso total.
+- **Brazo Izquierdo**: $5\%$ del peso total.
+- **Pierna Derecha**: $16\%$ del peso total.
+- **Pierna Izquierda**: $16\%$ del peso total.
+
+> Los factores suman el $92\%$: el $8\%$ restante es cabeza y cuello, que no se reparte. Por eso la suma de los segmentos **no iguala** ni el peso total ni `global.fatMassKg`. Los valores están en `BodySegment.defaultWeightRatio`.
 
 ### 5.4. Análisis de Simetría Lateral Bilateral
-Calcula la diferencia de masa magra entre extremidades contralaterales:
-$$\text{diffPct} = \frac{|\text{Masa Magra D} - \text{Masa Magra I}|}{\max(\text{Masa Magra D}, \text{Masa Magra I})} \times 100$$
-- Si $\text{diffPct} > 5.0\%$, se activa `asymmetricAlert: true` y `hasAnyAsymmetryAlert: true` para alertar al nutricionista sobre posible atrofia, sobreuso unilateral o desbalance muscular.
+Compara **dos magnitudes distintas** entre extremidades contralaterales (ver §5.9 para los requisitos de cada una).
+
+**1. Diferencia de % de grasa**, en puntos porcentuales. Disponible siempre que ambos lados tengan lectura:
+$$\text{fatPctDiffPoints} = |\text{Grasa}\%_D - \text{Grasa}\%_I|$$
+- Si supera `fatPctThresholdPoints` ($5.0$ puntos por defecto), se activa `fatPctAlert: true`.
+
+**2. Diferencia de masa magra**, solo si la masa de ambos segmentos está medida (`leanMassComparable: true`):
+$$\text{leanMassDiffPct} = \frac{|\text{Masa Magra}_D - \text{Masa Magra}_I|}{\max(\text{Masa Magra}_D, \text{Masa Magra}_I)} \times 100$$
+- Si supera `thresholdPct` ($5.0\%$ por defecto), se activa `leanMassAlert: true`.
+
+`asymmetricAlert` es el OR de ambas, y `hasAnyAsymmetryAlert` el OR de los dos pares. Alertan al nutricionista sobre posible atrofia, sobreuso unilateral, desbalance muscular — o un error de lectura de la báscula que conviene repetir.
 
 ### 5.5. Rangos de Referencia Clínicos Personalizados (`ReferenceRangesResult`)
 
@@ -320,20 +359,19 @@ Establecido según sexo biológico y grupo etario (estándares Gallagher / OMS /
 | **Mujeres** | $\ge 60$ años | $24.0\% - 36.0\%$ |
 
 #### 3. Rango de Masa Libre de Grasa (`fatFreeMassMinKg` - `fatFreeMassMaxKg`)
-- **Con masa ósea conocida**: Correlación fisiológica entre el contenido mineral óseo y la masa libre de grasa:
-  - En varones adultos, el mineral óseo representa entre el $4.4\%$ y el $5.0\%$ de la FFM:
-    $$\text{FFM Min} = \frac{\text{Masa Ósea}}{0.050}, \quad \text{FFM Max} = \frac{\text{Masa Ósea}}{0.044}$$
-    *Ejemplo*: Con $4.0\text{ kg}$ de masa ósea $\rightarrow [4.0 / 0.050, 4.0 / 0.044] = [80.0\text{ kg}, 90.9\text{ kg}]$ (aprox. 79 a 90 kg).
-  - En mujeres adultas, el mineral óseo representa entre el $4.5\%$ y el $5.5\%$ de la FFM:
-    $$\text{FFM Min} = \frac{\text{Masa Ósea}}{0.055}, \quad \text{FFM Max} = \frac{\text{Masa Ósea}}{0.045}$$
-- **Fallback (sin masa ósea)**: Se deriva a partir del rango de peso normal y los porcentajes límites de grasa:
-  $$\text{FFM Min} = \text{Peso Normal Min} \times (1 - \text{Grasa Max} / 100), \quad \text{FFM Max} = \text{Peso Normal Max} \times (1 - \text{Grasa Min} / 100)$$
+**Método único**, derivado del rango de peso normal y de los porcentajes límite de grasa:
+
+$$\text{FFM Min} = \text{Peso Normal Min} \times (1 - \text{Grasa Max} / 100), \quad \text{FFM Max} = \text{Peso Normal Max} \times (1 - \text{Grasa Min} / 100)$$
+
+*Ejemplo*: Varón de 187 cm (peso normal 64.7 - 87.1 kg, grasa 8.0 - 20.0%) $\rightarrow [64.7 \times 0.80, 87.1 \times 0.92] = [51.8\text{ kg}, 80.1\text{ kg}]$.
+
+> La derivación alternativa desde la masa ósea del propio paciente ($\text{FFM} = \text{Masa Ósea} / 0.050$ a $/ 0.044$ en varones, $/ 0.055$ a $/ 0.045$ en mujeres) **se eliminó**. Era circular —deducía la masa magra *deseable* del mineral óseo *actual*, de modo que un paciente con poco hueso recibía un objetivo bajo—, incompatible con el rango de peso —daba un máximo de 90.9 kg frente a un peso máximo saludable de 87.1 kg— y hacía que el rango saltase casi 30 kg según el nutricionista hubiera tecleado o no la masa ósea ese día. La masa ósea se evalúa aparte, en `boneMassMinKg` / `boneMassMaxKg` y en `global.boneComposition`.
 
 #### 4. Rango de Agua Corporal (`waterMassMinKg` - `waterMassMaxKg`)
 Calculado a partir de la fracción de hidratación fisiológica estándar del tejido magro ($62\%$ a $70\%$ de la masa libre de grasa de referencia):
 - $\text{Agua Min} = \text{fatFreeMassMinKg} \times 0.62$
 - $\text{Agua Max} = \text{fatFreeMassMaxKg} \times 0.70$
-*Ejemplo*: Para FFM de 80.0 - 90.9 kg $\rightarrow [80.0 \times 0.62, 90.9 \times 0.70] = [49.6\text{ kg}, 63.6\text{ kg}]$ (aprox. 49 a 63 kg).
+*Ejemplo*: Para FFM de 51.8 - 80.1 kg $\rightarrow [51.8 \times 0.62, 80.1 \times 0.70] = [32.1\text{ kg}, 56.1\text{ kg}]$.
 
 #### 5. Rango de Masa Ósea Esperada (`boneMassMinKg` - `boneMassMaxKg`)
 Reutiliza los rangos normativos de bioimpedancia según el peso actual y sexo biológico:
@@ -349,13 +387,15 @@ Clasifica el `bodyFatPct` de la báscula frente al rango saludable personalizado
 | Condición | `bodyFatClassification` | Descripción (es) |
 |---|---|---|
 | `bodyFatPct < min` | `LOW` | Bajo |
-| `min ≤ bodyFatPct ≤ max` | `NORMAL` | Normo |
-| `max < bodyFatPct ≤ max + 5` | `OBESE` | Obesidad |
-| `max + 5 < bodyFatPct ≤ max + 10` | `OBESE_CLASS_I` | Obesidad 1 |
-| `max + 10 < bodyFatPct ≤ max + 15` | `OBESE_CLASS_II` | Obesidad 2 |
-| `bodyFatPct > max + 15` | `OBESE_CLASS_III` | Obesidad 3 |
+| `min ≤ bodyFatPct ≤ max` | `NORMAL` | Normal |
+| `max < bodyFatPct ≤ max + 5` | `OVERWEIGHT` | Sobrepeso |
+| `max + 5 < bodyFatPct ≤ max + 10` | `OBESE_CLASS_I` | Obesidad grado I |
+| `max + 10 < bodyFatPct ≤ max + 15` | `OBESE_CLASS_II` | Obesidad grado II |
+| `bodyFatPct > max + 15` | `OBESE_CLASS_III` | Obesidad grado III |
 
-*Ejemplo*: Varón < 40 años (rango 8.0 - 20.0%): `18.2%` → `NORMAL`; `22.0%` → `OBESE`; `27.0%` → `OBESE_CLASS_I`; `32.0%` → `OBESE_CLASS_II`; `40.0%` → `OBESE_CLASS_III`.
+*Ejemplo*: Varón < 40 años (rango 8.0 - 20.0%): `18.2%` → `NORMAL`; `22.0%` → `OVERWEIGHT`; `27.0%` → `OBESE_CLASS_I`; `32.0%` → `OBESE_CLASS_II`; `40.0%` → `OBESE_CLASS_III`.
+
+El primer tramo por exceso es **sobrepeso**, no obesidad: un exceso de hasta 5 puntos sobre el máximo saludable no es obesidad y etiquetarlo así contradecía el `bmiClassification` del mismo informe. El valor heredado `OBESE`, que ocupaba ese tramo, se sigue aceptando **al deserializar** informes cacheados y se mapea a `OVERWEIGHT`; la API nunca lo emite.
 
 El resultado se expone en `global.bodyFatClassification` (código) y `global.localizedBodyFatClassification` (texto traducido). Si falta cualquier dato (grasa, mínimo o máximo), ambos son `null`.
 
@@ -363,17 +403,51 @@ El resultado se expone en `global.bodyFatClassification` (código) y `global.loc
 
 Valor entero (1-59) reportado directamente por la báscula (VFL, *Visceral Fat Level*). Se persiste en `body_measurement.visceral_fat_level` y se propaga al reporte en `global.visceralFatLevel`. Es opcional. No dispone de clasificación clínica propia en esta versión.
 
-**Estimación por ratio cintura/altura (fallback):** si la medición no trae `visceralFatLevel`, el motor lo estima a partir del *waist-to-height ratio* usando el `waistCm` de la medición y la altura del paciente (`PatientData.waistCm` + `PatientData.heightCm`):
+**No se estima.** La estimación por ratio cintura/altura (`VFL = clamp(round((WHtR − 0.40) × 100), 1, 59)`) se eliminó: no corresponde a ningún estándar reconocido, ignora peso, sexo y edad, y al no distinguirse del valor medido producía saltos imposibles en la evolución del paciente.
 
-$$\text{WHtR} = \frac{\text{waistCm}}{\text{heightCm}}, \qquad \text{VFL} = \text{clamp}\left(\text{round}\left((\text{WHtR} - 0.40) \times 100\right),\ 1,\ 59\right)$$
+Cuando la medición no trae el valor se hereda el último conocido del paciente (§5.8). Si tampoco lo hay, queda `null`.
 
-| Condición | `global.visceralFatLevel` |
+### 5.8. Procedencia de los valores (`MeasurementSource`)
+
+Masa ósea y grasa visceral no se recogen en todas las visitas. Cuando faltan se hereda el último valor conocido del paciente en lugar de dejar el informe sin evaluar, y el informe **declara de dónde sale cada valor** para que el arrastre no se confunda con una lectura del día.
+
+| Valor | Significado |
 |---|---|
-| `visceralFatLevel` presente | Valor medido por la báscula |
-| Ausente + `waistCm` presente | VFL estimado por WHtR |
-| Ausente + sin `waistCm` | `null` |
+| `MEASURED` | Medido en esta toma. |
+| `CARRIED_FORWARD` | Heredado de una medición anterior del paciente (o de su perfil). |
+| `ESTIMATED` | Derivado por reparto anatómico (solo en `totalMassSource` de los segmentos). |
+| `NOT_AVAILABLE` | Sin dato; el valor asociado es `null`. |
 
-*Ejemplo*: altura 180 cm, cintura 90 cm → WHtR 0.50 → **VFL 10**. El valor estimado se calcula **en el reporte** (no se persiste en `body_measurement.visceral_fat_level`) y no se distingue del medido en la respuesta.
+Orden de resolución, para masa ósea y grasa visceral:
+
+1. Valor de la propia medición → `MEASURED`.
+2. Medición anterior más reciente que lo tenga, buscando hacia atrás por `measuredAt` → `CARRIED_FORWARD` + fecha de origen.
+3. Solo masa ósea: `UserTenantProfile.boneMassKg` → `CARRIED_FORWARD` sin fecha (el perfil no la guarda).
+4. Nada → `NOT_AVAILABLE`.
+
+El arrastre va **hacia delante en el tiempo**: una medición no hereda valores de otra posterior.
+
+Campos expuestos:
+
+| Campo | Dónde |
+|---|---|
+| `visceralFatSource` / `visceralFatCarriedFrom` | `global` |
+| `source` / `carriedFrom` | `global.boneComposition` |
+| `totalMassSource` | cada entrada de `segmentalAnalysis` |
+
+El histórico necesario se resuelve con **una sola consulta por petición** (`BodyMeasurementRepository.findCarryForwardHistory`), no una por medición, para que el listado paginado no degenere en N+1.
+
+### 5.9. Segmentos y simetría: solo con datos reales
+
+- Un segmento **sin `fatPct` propio se omite** de `segmentalAnalysis`, que puede llegar vacío o incompleto. Antes heredaba el `bodyFatPct` global, produciendo cinco zonas con el mismo número que aparentaban una medición segmental real.
+- `totalMassSource` distingue la masa medida por la báscula (`MEASURED`) de la repartida por factor anatómico (`ESTIMATED`).
+- **La simetría compara dos cosas distintas**, con requisitos distintos:
+  - **% de grasa** (`rightFatPct`, `leftFatPct`, `fatPctDiffPoints`, `fatPctAlert`): basta con que ambos lados tengan lectura de porcentaje. Se expresa en *puntos porcentuales*. Una diferencia marcada entre lados es una señal clínica legítima, o un error de medición que conviene revisar.
+  - **Masa magra** (`leanMassComparable`, `rightLeanMassKg`, `leftLeanMassKg`, `leanMassDiffKg`, `leanMassDiffPct`, `leanMassAlert`): solo si la masa de *ambos* segmentos está medida. Con masa repartida los dos lados pesan lo mismo por construcción, así que la diferencia sería solo la del % de grasa reescalada. Cuando no es comparable, esos campos son `null`.
+  - `asymmetricAlert` es el OR de ambas alertas y `localizedObservation` nombra la magnitud que la disparó (`symmetry.alert_fat_pct`, `symmetry.alert`, `symmetry.alert_both` o `symmetry.normal`).
+  - Umbrales: `fatPctThresholdPoints` (5.0 puntos por defecto, cribado pragmático, no estándar publicado) y `thresholdPct` (5.0 % para la masa magra).
+- **`symmetry` es `null`** si ningún par tiene % de grasa en ambos lados. `upperLimbs` y `lowerLimbs` son anulables por separado.
+- Los factores de reparto cubren el **92 %** del peso (tronco 50 %, brazos 5 % cada uno, piernas 16 % cada una); el 8 % restante es cabeza y cuello. Por eso la suma de los segmentos no iguala ni el peso total ni `global.fatMassKg`.
 
 ---
 

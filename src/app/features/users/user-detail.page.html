@@ -548,12 +548,31 @@
                 @if (report.global.boneComposition; as bone) {
                   <div class="bg-surface-0 dark:bg-surface-800 px-4 py-3.5">
                     <div class="text-xs text-surface-400">{{ t('measurements.bone_evaluation_title') }}</div>
-                    <div class="mt-1.5 font-display text-2xl font-bold leading-none tracking-tight tabular-nums text-surface-900 dark:text-surface-0">
-                      {{ bone.boneMassKg }}<span class="ml-0.5 font-sans text-[13px] font-normal text-surface-400">kg</span>
+                    <div class="mt-1.5 flex flex-wrap items-baseline gap-2">
+                      <span
+                        class="font-display text-2xl font-bold leading-none tracking-tight tabular-nums"
+                        [class.text-surface-900]="!isCarriedForward(bone.source)"
+                        [class.dark:text-surface-0]="!isCarriedForward(bone.source)"
+                        [class.text-surface-500]="isCarriedForward(bone.source)"
+                        [class.dark:text-surface-400]="isCarriedForward(bone.source)">
+                        {{ bone.boneMassKg ?? '—' }}<span class="ml-0.5 font-sans text-[13px] font-normal text-surface-400">kg</span>
+                      </span>
+                      @if (sourceLabelKey(bone.source); as sourceKey) {
+                        <span
+                          tuiBadge
+                          size="s"
+                          appearance="neutral"
+                          [title]="carriedFromTooltip(bone.source, bone.carriedFrom)">
+                          <i class="fa-solid fa-clock-rotate-left mr-1 text-[10px]" aria-hidden="true"></i>{{ t(sourceKey) }}
+                        </span>
+                      }
                     </div>
                     <p class="mt-1.5 text-xs leading-snug text-surface-400">
-                      {{ bone.boneMassPctOfWeight }}% · {{ t('measurements.bone_' + (bone.evaluation ? bone.evaluation.toLowerCase() : 'not_evaluated')) }}
+                      {{ bone.boneMassPctOfWeight ?? '—' }}% · {{ t('measurements.bone_' + (bone.evaluation ? bone.evaluation.toLowerCase() : 'not_evaluated')) }}
                     </p>
+                    @if (isCarriedForward(bone.source)) {
+                      <p class="mt-1 text-xs leading-snug text-surface-400">{{ carriedFromTooltip(bone.source, bone.carriedFrom) }}</p>
+                    }
                   </div>
                 }
                 <div class="bg-surface-0 dark:bg-surface-800 px-4 py-3.5">
@@ -585,6 +604,15 @@
                         <span tuiBadge size="s" [appearance]="cell.badgeAppearance">
                           {{ cell.classification || t('measurements.range_status_' + cell.status) }}
                         </span>
+                        @if (isCarriedForward(cell.source)) {
+                          <span
+                            tuiBadge
+                            size="s"
+                            appearance="neutral"
+                            [title]="carriedFromTooltip(cell.source, cell.carriedFrom)">
+                            <i class="fa-solid fa-clock-rotate-left mr-1 text-[10px]" aria-hidden="true"></i>{{ t('measurements.source_carried_forward') }}
+                          </span>
+                        }
                       </div>
                       <div class="relative mt-2.5 h-[5px] rounded-pill bg-surface-100 dark:bg-surface-700">
                         <span
@@ -613,12 +641,19 @@
                       <div>{{ t('measurements.note_bmi', { bmi: report.global.bmi, classification: report.global.localizedBmiClassification }) }}</div>
                     </div>
                   }
-                  @if (report.global.visceralFatLevel !== null && report.global.visceralFatLevel !== undefined) {
-                    <div class="flex items-start gap-2.5 rounded-sm bg-surface-100 px-3.5 py-3 text-[13px] leading-relaxed text-surface-600 dark:bg-surface-800 dark:text-surface-300">
-                      <i class="fa-solid fa-circle-info mt-0.5 shrink-0" aria-hidden="true"></i>
-                      <div>{{ t('measurements.note_visceral', { value: report.global.visceralFatLevel }) }}</div>
-                    </div>
-                  }
+                  <div class="flex items-start gap-2.5 rounded-sm bg-surface-100 px-3.5 py-3 text-[13px] leading-relaxed text-surface-600 dark:bg-surface-800 dark:text-surface-300">
+                    <i class="fa-solid fa-circle-info mt-0.5 shrink-0" aria-hidden="true"></i>
+                    @if (report.global.visceralFatLevel !== null && report.global.visceralFatLevel !== undefined) {
+                      <div>
+                        {{ t('measurements.note_visceral', { value: report.global.visceralFatLevel }) }}
+                        @if (isCarriedForward(report.global.visceralFatSource)) {
+                          <span class="text-surface-400">· {{ carriedFromTooltip(report.global.visceralFatSource, report.global.visceralFatCarriedFrom) }}</span>
+                        }
+                      </div>
+                    } @else {
+                      <div>{{ t('measurements.note_visceral_unavailable') }}</div>
+                    }
+                  </div>
                   @if (report.bodyFrame) {
                     <div class="flex items-start gap-2.5 rounded-sm bg-surface-100 px-3.5 py-3 text-[13px] leading-relaxed text-surface-600 dark:bg-surface-800 dark:text-surface-300">
                       <i class="fa-solid fa-circle-info mt-0.5 shrink-0" aria-hidden="true"></i>
@@ -630,22 +665,37 @@
             </div>
 
             <!-- Análisis segmental -->
-            @if (segmentalRows().length > 0) {
-              <div class="data-card">
-                <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
-                      {{ t('measurements.segmental_analysis_title') }}
-                    </h2>
-                    <p class="mt-1 text-[13px] text-surface-400">{{ t('measurements.segmental_hint') }}</p>
-                  </div>
+            <div class="data-card">
+              <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                    {{ t('measurements.segmental_analysis_title') }}
+                  </h2>
+                  <p class="mt-1 text-[13px] text-surface-400">{{ t('measurements.segmental_hint') }}</p>
+                </div>
+                @if (hasSegmentalData()) {
                   <tui-segmented
                     [activeItemIndex]="segmentalMode() === 'lean' ? 0 : 1"
                     (activeItemIndexChange)="setSegmentalMode($event === 0 ? 'lean' : 'fat')">
                     <button type="button">{{ t('measurements.segmental_lean') }}</button>
                     <button type="button">{{ t('measurements.segmental_fat') }}</button>
                   </tui-segmented>
-                </div>
+                }
+              </div>
+
+              @if (!hasSegmentalData()) {
+                <app-empty-state
+                  icon="fa-solid fa-child-reaching"
+                  [title]="t('measurements.segmental_empty_title')"
+                  [description]="t('measurements.segmental_empty_desc')">
+                </app-empty-state>
+              } @else {
+                @if (hasEstimatedSegmentalMass()) {
+                  <div class="mb-4 flex items-start gap-2.5 rounded-sm bg-surface-100 px-3.5 py-3 text-[13px] leading-relaxed text-surface-600 dark:bg-surface-800 dark:text-surface-300">
+                    <i class="fa-solid fa-circle-info mt-0.5 shrink-0" aria-hidden="true"></i>
+                    <div>{{ t('measurements.segmental_estimated_notice') }}</div>
+                  </div>
+                }
 
                 <div class="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr]">
                   <div>
@@ -661,7 +711,7 @@
                           [attr.fill]="seg.color"
                           stroke="var(--surface)"
                           stroke-width="2">
-                          <title>{{ seg.title }}</title>
+                          <title>{{ seg.title }}@if (seg.estimatedMass) { · {{ t('measurements.source_estimated') }}}</title>
                         </rect>
                         <text
                           [attr.x]="seg.labelX"
@@ -681,6 +731,9 @@
                       <span class="inline-flex items-center gap-1.5">
                         <i class="block size-2.5 rounded-[3px] bg-err"></i>{{ t('measurements.asymmetry_alert_short') }}
                       </span>
+                      <span class="inline-flex items-center gap-1.5">
+                        <i class="block size-2.5 rounded-[3px]" style="background: var(--ink-3);"></i>{{ t('measurements.legend_not_compared') }}
+                      </span>
                     </div>
                   </div>
 
@@ -688,15 +741,23 @@
                     <div class="divide-y divide-line overflow-hidden rounded-md border border-line">
                       @for (seg of segmentalRows(); track seg.id) {
                         <div class="grid grid-cols-[110px_1fr_auto] items-center gap-3.5 bg-surface-0 dark:bg-surface-800 px-3.5 py-3">
-                          <span class="truncate text-[13.5px] text-surface-800 dark:text-surface-200">{{ seg.label }}</span>
+                          <span class="truncate text-[13.5px] text-surface-800 dark:text-surface-200">
+                            {{ seg.label }}
+                            @if (seg.estimatedMass) {
+                              <em
+                                class="block text-xs not-italic text-surface-400"
+                                [title]="t('measurements.segmental_estimated_notice')">{{ t('measurements.source_estimated') }}</em>
+                            }
+                          </span>
                           <span class="block h-1.5 overflow-hidden rounded-pill bg-surface-100 dark:bg-surface-700">
                             <i class="block h-full rounded-pill" [ngClass]="seg.markerClass" [style.width.%]="seg.barPct"></i>
                           </span>
                           <span class="whitespace-nowrap text-right text-[13.5px] tabular-nums text-surface-800 dark:text-surface-200">
-                            {{ seg.valueText }}
-                            <em class="ml-1.5 text-xs not-italic text-surface-400">
-                              {{ seg.asymmetric ? t('measurements.asymmetry_pct', { pct: seg.diffPct }) : t('measurements.range_status_within') }}
-                            </em>
+                            {{ seg.pctText }}
+                            <em class="ml-1.5 text-xs not-italic text-surface-400">{{ seg.valueText }}</em>
+                            @if (seg.symmetryApplicable) {
+                              <em class="ml-1.5 text-xs not-italic text-surface-400">{{ t(seg.diffLabelKey, { pct: seg.diffPct }) }}</em>
+                            }
                           </span>
                         </div>
                       }
@@ -710,10 +771,14 @@
                             [class.bg-ok-soft]="note.tone === 'ok'"
                             [class.text-ok]="note.tone === 'ok'"
                             [class.bg-err-soft]="note.tone === 'err'"
-                            [class.text-err]="note.tone === 'err'">
+                            [class.text-err]="note.tone === 'err'"
+                            [class.bg-surface-100]="note.tone === 'info'"
+                            [class.dark:bg-surface-800]="note.tone === 'info'"
+                            [class.text-surface-600]="note.tone === 'info'"
+                            [class.dark:text-surface-300]="note.tone === 'info'">
                             <i
                               class="mt-0.5 shrink-0"
-                              [ngClass]="note.tone === 'ok' ? 'fa-solid fa-circle-check' : 'fa-solid fa-triangle-exclamation'"
+                              [ngClass]="note.tone === 'ok' ? 'fa-solid fa-circle-check' : note.tone === 'err' ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-circle-info'"
                               aria-hidden="true"></i>
                             <div>{{ t(note.key, note.params) }}</div>
                           </div>
@@ -722,8 +787,8 @@
                     }
                   </div>
                 </div>
-              </div>
-            }
+              }
+            </div>
           } @else {
             <div class="data-card p-6">
               <app-empty-state

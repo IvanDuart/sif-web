@@ -24,7 +24,7 @@ import { MenuTemplateService } from '../../core/api/services/menu-template.api';
 import { AppUserDto, UserTenantProfileDto } from '../../core/api/models/user.model';
 import { PatientEventDto } from '../../core/api/models/patient-event.model';
 import { PermissionsService } from '../../core/permissions/permissions.service';
-import { BodyMeasurementDto, MeasurementHistoryDto, MeasurementPoint, BodyCompositionReport, SegmentalResult, BodySegment } from '../../core/api/models/body-measurement.model';
+import { BodyMeasurementDto, MeasurementHistoryDto, MeasurementPoint, BodyCompositionReport, SegmentalResult, BodySegment, LateralSymmetryResult, MeasurementSource } from '../../core/api/models/body-measurement.model';
 import { Menu } from '../../core/api/models/menu.model';
 import { AppointmentDto } from '../../core/api/models/appointment.model';
 import { Page } from '../../core/api/models/page.model';
@@ -74,16 +74,32 @@ export interface CompositionCellItem {
   markerClass: string;
   refKey: string;
   refParams: Record<string, string | number>;
+  /** Procedencia del valor (solo informada para los que el backend puede arrastrar). */
+  source: MeasurementSource | null;
+  /** Fecha de origen cuando `source === 'CARRIED_FORWARD'`. */
+  carriedFrom: string | null;
 }
 
 /** Fila del listado segmental (barra proporcional + asimetría). */
 export interface SegmentalRowItem {
   id: BodySegment;
   label: string;
+  /** Porcentaje del segmento en el modo activo, tal y como lo reporta la API. */
+  pctText: string;
+  /** Masa absoluta del segmento en el modo activo (kg). */
   valueText: string;
   barPct: number;
+  /** `true` si el backend evaluó el par y detectó asimetría. */
   asymmetric: boolean;
-  diffPct: number;
+  /** Diferencia en el modo activo: puntos porcentuales (grasa) o % (masa magra).
+   *  `null` cuando la magnitud del modo no es comparable en ese par. */
+  diffPct: number | null;
+  /** Clave i18n del estado de simetría ya resuelta (asimetría, en rango, o el motivo). */
+  diffLabelKey: string;
+  /** `false` en el tronco: no tiene contralateral, no es que falte el dato. */
+  symmetryApplicable: boolean;
+  /** `true` si `totalMassKg` procede del reparto anatómico, no de la báscula. */
+  estimatedMass: boolean;
   markerClass: string;
 }
 
@@ -103,21 +119,26 @@ export interface SegmentalFigureItem {
   onTrunk: boolean;
   color: string;
   title: string;
+  /** `true` si la masa del segmento procede del reparto anatómico. */
+  estimatedMass: boolean;
 }
 
 /** Nota clínica bajo el análisis segmental. */
 export interface SegmentalNoteItem {
-  tone: 'ok' | 'err';
+  tone: 'ok' | 'err' | 'info';
   key: string;
   params: Record<string, string | number>;
 }
 
-/** Pareja contralateral de cada segmento (para el cálculo de asimetría). */
-const SEGMENT_PARTNER: Partial<Record<BodySegment, BodySegment>> = {
-  RIGHT_ARM: 'LEFT_ARM',
-  LEFT_ARM: 'RIGHT_ARM',
-  RIGHT_LEG: 'LEFT_LEG',
-  LEFT_LEG: 'RIGHT_LEG'
+/** Orden de presentación de los segmentos: cada extremidad junto a su contralateral. */
+const SEGMENT_ORDER: BodySegment[] = ['TRUNK', 'RIGHT_ARM', 'LEFT_ARM', 'RIGHT_LEG', 'LEFT_LEG'];
+
+/** Par bilateral de cada segmento. El tronco no tiene contralateral. */
+const SEGMENT_PAIR: Partial<Record<BodySegment, 'upper' | 'lower'>> = {
+  RIGHT_ARM: 'upper',
+  LEFT_ARM: 'upper',
+  RIGHT_LEG: 'lower',
+  LEFT_LEG: 'lower'
 };
 
 /** Geometría del esquema corporal (viewBox 0 0 140 230). El lado derecho del
@@ -372,10 +393,21 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   downloadingCompositionPdf = signal(false);
   isSendingResetPassword = signal(false);
 
+  /** Informe vigente. El backend **recalcula** el informe en cada lectura de la medición,
+   *  mientras que `userTenantProfile.bodyCompositionReport` es una instantánea que solo se
+   *  reescribe al pulsar «Calcular»: puede ser anterior a la revisión v2 y traer simetría
+   *  fabricada o segmentos sin `massSource`. Por eso el perfil va el último. */
   activeCompositionReport = computed<BodyCompositionReport | null>(() => {
-    return this.patientProfile()?.bodyCompositionReport
-      || this.user()?.lastMeasurement?.bodyCompositionReport
-      || this.measurements()[0]?.bodyCompositionReport
+    // `measurements()` se repagina, así que `[0]` no siempre es la última toma: se elige
+    // por `measuredAt` entre todo lo cargado, incluida la medición que acompaña al usuario.
+    const candidates: BodyMeasurementDto[] = [
+      ...(this.user()?.lastMeasurement ? [this.user()!.lastMeasurement!] : []),
+      ...this.measurements()
+    ].filter(m => m.bodyCompositionReport);
+    const latest = candidates.reduce<BodyMeasurementDto | null>((best, m) =>
+      !best || new Date(m.measuredAt).getTime() > new Date(best.measuredAt).getTime() ? m : best, null);
+    return latest?.bodyCompositionReport
+      || this.patientProfile()?.bodyCompositionReport
       || null;
   });
 
@@ -396,44 +428,95 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     this.segmentalMode.set(mode);
   }
 
+  /** Segmentos presentes en el informe. Desde la v2 `segmentalAnalysis` solo trae
+   *  las zonas con `fatPct` propio: puede llegar vacío o con menos de 5 claves. */
   private readonly segmentalMap = computed(() => {
     const report = this.activeCompositionReport();
+    const present = new Map<BodySegment, SegmentalResult>();
+    Object.values(report?.segmentalAnalysis ?? {}).forEach(seg => {
+      if (seg) present.set(seg.segment, seg);
+    });
+    // Orden canónico: el de `segmentalAnalysis` depende del JSON y separaba los pares.
     const out = new Map<BodySegment, SegmentalResult>();
-    if (report?.segmentalAnalysis) {
-      Object.values(report.segmentalAnalysis).forEach(seg => out.set(seg.segment, seg));
-    }
+    SEGMENT_ORDER.forEach(id => {
+      const seg = present.get(id);
+      if (seg) out.set(id, seg);
+    });
     return out;
   });
 
-  private readonly asymmetryThreshold = computed(() =>
-    this.activeCompositionReport()?.symmetry?.thresholdPct ?? 5
+  /** `true` si el informe trae alguna zona segmental medida. */
+  readonly hasSegmentalData = computed(() => this.segmentalMap().size > 0);
+
+  /** `true` si alguna zona lleva la masa repartida por factor anatómico. */
+  readonly hasEstimatedSegmentalMass = computed(() =>
+    [...this.segmentalMap().values()].some(seg => seg.totalMassSource === 'ESTIMATED')
   );
+
+  /** Umbral del modo activo: puntos porcentuales para la grasa, % de variación para la magra. */
+  private readonly asymmetryThreshold = computed(() => {
+    const symmetry = this.activeCompositionReport()?.symmetry;
+    return this.segmentalMode() === 'fat'
+      ? symmetry?.fatPctThresholdPoints ?? 5
+      : symmetry?.thresholdPct ?? 5;
+  });
 
   private segmentValue(seg: SegmentalResult): number {
     return this.segmentalMode() === 'lean' ? seg.leanMassKg : seg.fatMassKg;
   }
 
-  /** Diferencia porcentual frente al segmento contralateral (o null si no tiene pareja). */
-  private segmentPairDiff(seg: SegmentalResult): number | null {
-    const partnerId = SEGMENT_PARTNER[seg.segment];
-    if (!partnerId) return null;
-    const partner = this.segmentalMap().get(partnerId);
-    if (!partner) return null;
-    const a = this.segmentValue(seg);
-    const b = this.segmentValue(partner);
-    const max = Math.max(a, b);
-    return max > 0 ? Math.abs(a - b) / max * 100 : 0;
+  /** Porcentaje del segmento en el modo activo, a partir del `fatPct` que reporta la API
+   *  (el magro es su complemento). A diferencia de la masa, este dato **siempre está medido**:
+   *  un segmento sin `fatPct` propio ni siquiera aparece en `segmentalAnalysis`. */
+  private segmentPctOfSegment(seg: SegmentalResult): number | null {
+    const fatPct = seg.fatPct ?? (seg.totalMassKg > 0 ? seg.fatMassKg / seg.totalMassKg * 100 : null);
+    if (fatPct == null) return null;
+    return this.segmentalMode() === 'lean' ? 100 - fatPct : fatPct;
   }
 
-  /** Suma de la masa (magra o grasa, según el modo) de todos los segmentos. */
-  private readonly segmentalTotal = computed(() =>
-    [...this.segmentalMap().values()].reduce((acc, seg) => acc + this.segmentValue(seg), 0)
-  );
+  /** Simetría del par al que pertenece el segmento, **tal y como la calcula el backend**.
+   *  Es `null` cuando no se midió la masa de ambos lados: en ese caso la diferencia sería
+   *  solo el % de grasa reescalado y declarar simetría sería una conclusión infundada. */
+  private symmetryFor(segment: BodySegment): LateralSymmetryResult | null {
+    const pair = SEGMENT_PAIR[segment];
+    if (!pair) return null;
+    const symmetry = this.activeCompositionReport()?.symmetry;
+    return (pair === 'upper' ? symmetry?.upperLimbs : symmetry?.lowerLimbs) ?? null;
+  }
 
-  /** Reparto del segmento sobre el total del modo activo, en porcentaje. */
-  private segmentPct(seg: SegmentalResult): number {
-    const total = this.segmentalTotal();
-    return total > 0 ? this.segmentValue(seg) / total * 100 : 0;
+  /** Comparación del par en el modo activo. El informe mide **dos magnitudes distintas**:
+   *  el % de grasa en puntos porcentuales (disponible siempre que ambos lados tengan lectura)
+   *  y la masa magra en % (solo si `leanMassComparable`, es decir, con la masa medida en los
+   *  dos lados). Mezclarlas atribuiría a la masa magra una diferencia que es solo de grasa. */
+  private segmentComparison(segment: BodySegment): { diff: number; alert: boolean } | null {
+    const result = this.symmetryFor(segment);
+    if (!result) return null;
+    if (this.segmentalMode() === 'fat') {
+      return result.fatPctDiffPoints != null
+        ? { diff: result.fatPctDiffPoints, alert: result.fatPctAlert }
+        : null;
+    }
+    return result.leanMassComparable && result.leanMassDiffPct != null
+      ? { diff: result.leanMassDiffPct, alert: result.leanMassAlert }
+      : null;
+  }
+
+  /** `true` si el segmento tiene contralateral: el tronco no es evaluable por simetría. */
+  private hasContralateral(segment: BodySegment): boolean {
+    return SEGMENT_PAIR[segment] !== undefined;
+  }
+
+  /** Estado de simetría del segmento en el modo activo, distinguiendo *por qué* no hay dato:
+   *  la masa magra puede no ser comparable aunque el par sí tenga comparación de grasa. */
+  private comparisonLabelKey(segment: BodySegment, comparison: { alert: boolean } | null): string {
+    if (comparison) {
+      if (!comparison.alert) return 'measurements.range_status_within';
+      return this.segmentalMode() === 'fat' ? 'measurements.asymmetry_points' : 'measurements.asymmetry_pct';
+    }
+    const result = this.symmetryFor(segment);
+    return result && this.segmentalMode() === 'lean'
+      ? 'measurements.lean_not_comparable_short'
+      : 'measurements.symmetry_not_evaluated_short';
   }
 
   /** Cuadrícula de composición: 6 métricas con su banda de referencia y marcador. */
@@ -465,6 +548,8 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       badgeAppearance: BadgeAppearance;
       refKey: string;
       refParams: Record<string, string | number>;
+      source?: MeasurementSource | null;
+      carriedFrom?: string | null;
     }[] = [
       {
         id: 'fat_mass',
@@ -529,6 +614,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       {
         id: 'visceral_fat',
         labelKey: 'measurements.visceral_fat',
+        // Desde la v2 el backend ya no estima el VFL: llega medido, arrastrado o `null`.
         value: report.global.visceralFatLevel ?? null,
         unit: '',
         bandLo: 1,
@@ -536,7 +622,9 @@ export default class UserDetailPage implements OnInit, OnDestroy {
         classification: null,
         badgeAppearance: 'neutral',
         refKey: 'measurements.ref_visceral',
-        refParams: {}
+        refParams: {},
+        source: report.global.visceralFatSource ?? null,
+        carriedFrom: report.global.visceralFatCarriedFrom ?? null
       }
     ];
 
@@ -566,7 +654,9 @@ export default class UserDetailPage implements OnInit, OnDestroy {
         markerPct: def.value != null ? toPct(def.value) : 50,
         markerClass,
         refKey: def.refKey,
-        refParams: def.refParams
+        refParams: def.refParams,
+        source: def.source ?? null,
+        carriedFrom: def.carriedFrom ?? null
       };
     });
   });
@@ -576,32 +666,37 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     const segs = [...this.segmentalMap().values()];
     if (segs.length === 0) return [];
     const maxValue = Math.max(...segs.map(s => this.segmentValue(s)), 0) || 1;
-    const threshold = this.asymmetryThreshold();
     return segs.map(seg => {
-      const diff = this.segmentPairDiff(seg);
-      const asymmetric = diff !== null && diff > threshold;
+      const comparison = this.segmentComparison(seg.segment);
+      const asymmetric = comparison?.alert === true;
       const value = this.segmentValue(seg);
+      const pct = this.segmentPctOfSegment(seg);
       return {
         id: seg.segment,
         label: seg.localizedSegmentName,
-        valueText: `${this.segmentPct(seg).toFixed(1)} %`,
+        pctText: pct != null ? `${pct.toFixed(1)} %` : '—',
+        valueText: `${value.toFixed(2)} kg`,
         barPct: Math.max(4, Math.min(100, value / maxValue * 100)),
         asymmetric,
-        diffPct: Math.round((diff ?? 0) * 10) / 10,
-        markerClass: asymmetric ? 'bg-err' : 'bg-ok'
+        diffPct: comparison ? Math.round(comparison.diff * 10) / 10 : null,
+        diffLabelKey: this.comparisonLabelKey(seg.segment, comparison),
+        symmetryApplicable: this.hasContralateral(seg.segment),
+        estimatedMass: seg.totalMassSource === 'ESTIMATED',
+        markerClass: asymmetric ? 'bg-err' : comparison ? 'bg-ok' : 'bg-surface-400'
       };
     });
   });
 
   /** Piezas del esquema corporal SVG. */
   segmentalFigure = computed<SegmentalFigureItem[]>(() => {
-    const threshold = this.asymmetryThreshold();
     return [...this.segmentalMap().values()].map(seg => {
-      const diff = this.segmentPairDiff(seg);
-      const asymmetric = diff !== null && diff > threshold;
+      const comparison = this.segmentComparison(seg.segment);
+      const asymmetric = comparison?.alert === true;
       const geo = SEGMENT_GEOMETRY[seg.segment];
       const lbl = SEGMENT_LABEL[seg.segment];
-      const pct = this.segmentPct(seg);
+      const value = this.segmentValue(seg);
+      const pct = this.segmentPctOfSegment(seg);
+      const pctText = pct != null ? `${pct.toFixed(1)} %` : '—';
       return {
         id: seg.segment,
         x: geo.x,
@@ -612,36 +707,57 @@ export default class UserDetailPage implements OnInit, OnDestroy {
         labelX: lbl.x,
         labelY: lbl.y,
         labelAnchor: lbl.anchor,
-        valueText: `${pct.toFixed(1)}%`,
+        valueText: pct != null ? `${pct.toFixed(1)}%` : '—',
         onTrunk: seg.segment === 'TRUNK',
-        color: asymmetric ? 'var(--err)' : 'var(--ok)',
-        title: `${seg.localizedSegmentName}: ${pct.toFixed(1)} % · ${this.segmentValue(seg).toFixed(2)} kg`
+        // Sin comparación en el modo activo no se puede afirmar ni normalidad ni alerta.
+        color: asymmetric ? 'var(--err)' : comparison ? 'var(--ok)' : 'var(--ink-3)',
+        title: `${seg.localizedSegmentName}: ${pctText} · ${value.toFixed(2)} kg`,
+        estimatedMass: seg.totalMassSource === 'ESTIMATED'
       };
     });
   });
 
   /** Notas clínicas de simetría bajo el listado segmental. */
   segmentalNotes = computed<SegmentalNoteItem[]>(() => {
-    const map = this.segmentalMap();
+    const report = this.activeCompositionReport();
+    if (!report) return [];
+    const fatMode = this.segmentalMode() === 'fat';
     const threshold = this.asymmetryThreshold();
-    const pairs: { part: 'arms' | 'legs'; ids: [BodySegment, BodySegment] }[] = [
-      { part: 'arms', ids: ['LEFT_ARM', 'RIGHT_ARM'] },
-      { part: 'legs', ids: ['LEFT_LEG', 'RIGHT_LEG'] }
+    const pairs: { part: 'arms' | 'legs'; result: LateralSymmetryResult | null | undefined }[] = [
+      { part: 'arms', result: report.symmetry?.upperLimbs },
+      { part: 'legs', result: report.symmetry?.lowerLimbs }
     ];
     const notes: SegmentalNoteItem[] = [];
-    pairs.forEach(({ part, ids }) => {
-      const a = map.get(ids[0]);
-      const b = map.get(ids[1]);
-      if (!a || !b) return;
-      const va = this.segmentValue(a);
-      const vb = this.segmentValue(b);
-      const max = Math.max(va, vb);
-      const diff = max > 0 ? Math.abs(va - vb) / max * 100 : 0;
-      const asymmetric = diff > threshold;
+    pairs.forEach(({ part, result }) => {
+      const unavailable = { tone: 'info' as const, key: `measurements.seg_pair_unavailable_${part}`, params: {} };
+      if (!result) {
+        // Sin % de grasa en los dos lados el backend no evalúa el par en absoluto.
+        notes.push(unavailable);
+        return;
+      }
+      // Cada modo informa de su propia magnitud: mezclarlas atribuiría a la masa magra
+      // una diferencia que es solo de grasa (y viceversa).
+      if (fatMode) {
+        const points = result.fatPctDiffPoints;
+        if (points == null) {
+          notes.push(unavailable);
+          return;
+        }
+        notes.push({
+          tone: result.fatPctAlert ? 'err' : 'ok',
+          key: `measurements.seg_fat_${result.fatPctAlert ? 'alert' : 'ok'}_${part}`,
+          params: { points: Math.round(points * 10) / 10, threshold }
+        });
+        return;
+      }
+      if (!result.leanMassComparable || result.leanMassDiffPct == null) {
+        notes.push({ tone: 'info', key: `measurements.seg_lean_not_comparable_${part}`, params: {} });
+        return;
+      }
       notes.push({
-        tone: asymmetric ? 'err' : 'ok',
-        key: `measurements.seg_${asymmetric ? 'asymmetry' : 'symmetry'}_${part}`,
-        params: { pct: Math.round(diff * 10) / 10, threshold }
+        tone: result.leanMassAlert ? 'err' : 'ok',
+        key: `measurements.seg_lean_${result.leanMassAlert ? 'alert' : 'ok'}_${part}`,
+        params: { pct: Math.round(result.leanMassDiffPct * 10) / 10, threshold }
       });
     });
     return notes;
@@ -1371,11 +1487,35 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     }
   }
 
+  /** `true` si el valor no se midió en esta toma sino que se heredó de una anterior. */
+  isCarriedForward(source?: MeasurementSource | null): boolean {
+    return source === 'CARRIED_FORWARD';
+  }
+
+  /** Clave i18n del texto de procedencia; `null` cuando el valor es de la propia toma. */
+  sourceLabelKey(source?: MeasurementSource | null): string | null {
+    switch (source) {
+      case 'CARRIED_FORWARD': return 'measurements.source_carried_forward';
+      case 'ESTIMATED': return 'measurements.source_estimated';
+      case 'NOT_AVAILABLE': return 'measurements.source_not_available';
+      default: return null;
+    }
+  }
+
+  /** Detalle para el tooltip de un valor heredado: fecha de origen, o el perfil del paciente. */
+  carriedFromTooltip(source?: MeasurementSource | null, carriedFrom?: string | null): string {
+    if (source !== 'CARRIED_FORWARD') return '';
+    return carriedFrom
+      ? this.transloco.translate('measurements.source_carried_from', { date: this.formatInstantWithTime(carriedFrom) })
+      : this.transloco.translate('measurements.source_carried_from_profile');
+  }
+
   getBodyFatBadgeAppearance(classification?: string | null): 'positive' | 'warning' | 'negative' | 'info' | 'neutral' {
     switch (classification) {
       case 'NORMAL': return 'positive';
       case 'LOW': return 'info';
-      case 'OBESE': return 'warning';
+      // `OVERWEIGHT` sustituye al antiguo `OBESE` como primer tramo por exceso (informe v2).
+      case 'OVERWEIGHT': return 'warning';
       case 'OBESE_CLASS_I': return 'warning';
       case 'OBESE_CLASS_II': return 'negative';
       case 'OBESE_CLASS_III': return 'negative';

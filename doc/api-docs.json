@@ -44,6 +44,10 @@
       "description": "Controller for appointments management"
     },
     {
+      "name": "CalendarNoteController",
+      "description": "Controller for nutritionist calendar notes and time blocks"
+    },
+    {
       "name": "WaterIntakeController",
       "description": "Controller for patient daily water consumption tracking"
     },
@@ -1184,6 +1188,128 @@
         }
       }
     },
+    "/tenant/{tenantId}/calendar-notes/{noteId}": {
+      "get": {
+        "tags": [
+          "CalendarNoteController"
+        ],
+        "description": "Get one of the authenticated nutritionist's calendar notes",
+        "operationId": "findById",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarNoteDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "CalendarNoteController"
+        ],
+        "description": "Update a calendar note",
+        "operationId": "update_3",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCalendarNoteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarNoteDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "CalendarNoteController"
+        ],
+        "description": "Delete a calendar note",
+        "operationId": "delete_3",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/branding/preferences": {
       "put": {
         "tags": [
@@ -1380,7 +1506,7 @@
           "AppointmentTypeController"
         ],
         "description": "Update an appointment type",
-        "operationId": "update_3",
+        "operationId": "update_4",
         "parameters": [
           {
             "name": "tenantId",
@@ -1429,7 +1555,7 @@
           "AppointmentTypeController"
         ],
         "description": "Soft-delete an appointment type (sets is_active = false)",
-        "operationId": "delete_3",
+        "operationId": "delete_4",
         "parameters": [
           {
             "name": "tenantId",
@@ -2978,13 +3104,118 @@
         }
       }
     },
+    "/tenant/{tenantId}/calendar-notes": {
+      "get": {
+        "tags": [
+          "CalendarNoteController"
+        ],
+        "description": "List the authenticated nutritionist's own calendar notes",
+        "operationId": "findOwn",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "REMINDER",
+                "TIME_BLOCK"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CalendarNoteDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "CalendarNoteController"
+        ],
+        "description": "Create a calendar note (reminder or time block) for the authenticated nutritionist",
+        "operationId": "create_7",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCalendarNoteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarNoteDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tenant/{tenantId}/appointments": {
       "post": {
         "tags": [
           "AppointmentController"
         ],
         "description": "Create a new appointment. nutritionistId is optional for patients (their assigned nutritionist is used); staff must provide it",
-        "operationId": "create_7",
+        "operationId": "create_8",
         "parameters": [
           {
             "name": "tenantId",
@@ -3068,7 +3299,7 @@
           "AppointmentTypeController"
         ],
         "description": "Create a new appointment type",
-        "operationId": "create_8",
+        "operationId": "create_9",
         "parameters": [
           {
             "name": "tenantId",
@@ -3324,7 +3555,7 @@
           "MenuController"
         ],
         "description": "Delete menu",
-        "operationId": "delete_4",
+        "operationId": "delete_5",
         "parameters": [
           {
             "name": "tenantId",
@@ -3356,7 +3587,7 @@
           "MenuController"
         ],
         "description": "Update an existing menu (name and/or active status)",
-        "operationId": "update_4",
+        "operationId": "update_5",
         "parameters": [
           {
             "name": "tenantId",
@@ -4439,7 +4670,7 @@
           "MenuTemplateController"
         ],
         "description": "Delete a menu template",
-        "operationId": "delete_5",
+        "operationId": "delete_6",
         "parameters": [
           {
             "name": "tenantId",
@@ -5038,7 +5269,7 @@
           "BodyMeasurementController"
         ],
         "description": "Delete a measurement entry",
-        "operationId": "delete_6",
+        "operationId": "delete_7",
         "parameters": [
           {
             "name": "tenantId",
@@ -5745,6 +5976,19 @@
           },
           "localizedDescription": {
             "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "MEASURED",
+              "ESTIMATED",
+              "CARRIED_FORWARD",
+              "NOT_AVAILABLE"
+            ]
+          },
+          "carriedFrom": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -5773,7 +6017,7 @@
             "enum": [
               "LOW",
               "NORMAL",
-              "OBESE",
+              "OVERWEIGHT",
               "OBESE_CLASS_I",
               "OBESE_CLASS_II",
               "OBESE_CLASS_III"
@@ -5794,6 +6038,19 @@
           "visceralFatLevel": {
             "type": "integer",
             "format": "int32"
+          },
+          "visceralFatSource": {
+            "type": "string",
+            "enum": [
+              "MEASURED",
+              "ESTIMATED",
+              "CARRIED_FORWARD",
+              "NOT_AVAILABLE"
+            ]
+          },
+          "visceralFatCarriedFrom": {
+            "type": "string",
+            "format": "date-time"
           },
           "boneComposition": {
             "$ref": "#/components/schemas/BoneCompositionResult"
@@ -5916,6 +6173,15 @@
           },
           "leanMassKg": {
             "type": "number"
+          },
+          "massSource": {
+            "type": "string",
+            "enum": [
+              "MEASURED",
+              "ESTIMATED",
+              "CARRIED_FORWARD",
+              "NOT_AVAILABLE"
+            ]
           }
         }
       },
@@ -6918,6 +7184,117 @@
           }
         }
       },
+      "UpdateCalendarNoteRequest": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "REMINDER",
+              "TIME_BLOCK"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "description": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "allDay": {
+            "type": "boolean"
+          },
+          "color": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "reminderMinutesBefore": {
+            "type": "integer",
+            "format": "int32",
+            "exclusiveMinimum": 0
+          },
+          "clearReminder": {
+            "type": "boolean"
+          },
+          "allowOverlap": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CalendarNoteDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nutritionistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "REMINDER",
+              "TIME_BLOCK"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "allDay": {
+            "type": "boolean"
+          },
+          "color": {
+            "type": "string"
+          },
+          "reminderMinutesBefore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remindAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reminderSentAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "UpdateAppointmentTypeRequest": {
         "type": "object",
         "properties": {
@@ -7674,6 +8051,55 @@
             }
           }
         }
+      },
+      "CreateCalendarNoteRequest": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "REMINDER",
+              "TIME_BLOCK"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "description": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "allDay": {
+            "type": "boolean"
+          },
+          "color": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "reminderMinutesBefore": {
+            "type": "integer",
+            "format": "int32",
+            "exclusiveMinimum": 0
+          },
+          "allowOverlap": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "startTime",
+          "title",
+          "type"
+        ]
       },
       "CreateAppointmentRequest": {
         "type": "object",

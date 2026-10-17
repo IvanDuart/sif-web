@@ -15,11 +15,14 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TuiButton, TuiCalendar, TuiDropdown, TuiInput, TuiLabel, TuiTextfield } from '@taiga-ui/core';
 import { TuiAvatar, TuiChip, TuiInputDate } from '@taiga-ui/kit';
 import { TuiDay } from '@taiga-ui/cdk';
-import { Subject, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
+import { Subject, catchError, debounceTime, distinctUntilChanged, forkJoin, of, switchMap } from 'rxjs';
 
 import { AppointmentService } from '../../../../core/api/services/appointment.api';
 import { AppointmentTypeService } from '../../../../core/api/services/appointment-type.api';
 import { ScheduleAvailabilityService } from '../../../../core/api/services/schedule-availability.service';
+import { CalendarNoteService } from '../../../../core/api/services/calendar-note.api';
+import { CalendarNoteDto } from '../../../../core/api/models/calendar-note.model';
+import { PermissionsService } from '../../../../core/permissions/permissions.service';
 import { UserTenantRoleService } from '../../../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../../../core/tenant/tenant-context.service';
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -109,6 +112,8 @@ export class QuickScheduleWidget implements OnInit, OnDestroy {
   private readonly typeService = inject(AppointmentTypeService);
   private readonly userRoleService = inject(UserTenantRoleService);
   private readonly availability = inject(ScheduleAvailabilityService);
+  private readonly calendarNoteService = inject(CalendarNoteService);
+  private readonly permissions = inject(PermissionsService);
   private readonly notify = inject(NotificationService);
   private readonly confirm = inject(ConfirmService);
   private readonly transloco = inject(TranslocoService);
@@ -348,14 +353,32 @@ export class QuickScheduleWidget implements OnInit, OnDestroy {
     const from = new Date(`${iso}T00:00:00`).toISOString();
     const to = new Date(`${iso}T23:59:59`).toISOString();
 
-    this.appointmentService.getByNutritionist(tenantId, nutritionistId, from, to).subscribe({
-      next: (appointments) => {
+    /*
+     * Los bloqueos son privados de su autor: solo se pueden descontar cuando se
+     * agenda para uno mismo. Al agendar para otro profesional sus bloqueos son
+     * invisibles y el choque solo puede salir como `409` del backend — no hay
+     * endpoint que permita consultarlos, ni siquiera siendo administrador.
+     */
+    const ownCalendar = nutritionistId === this.auth.user()?.id;
+    const timeBlocks$ =
+      ownCalendar && this.permissions.has('VIEW_CALENDAR_NOTES')
+        ? this.calendarNoteService.list(tenantId, from, to, 'TIME_BLOCK')
+        : of<CalendarNoteDto[]>([]);
+
+    forkJoin({
+      appointments: this.appointmentService.getByNutritionist(tenantId, nutritionistId, from, to),
+      // Un fallo al traer los bloqueos no puede dejar sin huecos la pantalla:
+      // se degrada a la lista de antes y el backend sigue siendo la red final.
+      timeBlocks: timeBlocks$.pipe(catchError(() => of<CalendarNoteDto[]>([]))),
+    }).subscribe({
+      next: ({ appointments, timeBlocks }) => {
         this.loadingSlots.set(false);
         const slots = this.computeSlots(
           iso,
           schedule.details,
           appointments || [],
-          this.duration()
+          this.duration(),
+          timeBlocks || []
         );
         this.slots.set(slots);
         this.emptyReason.set(slots.length ? null : 'none-left');
@@ -369,14 +392,20 @@ export class QuickScheduleWidget implements OnInit, OnDestroy {
   }
 
   /**
-   * Cruza la jornada del centro con las citas ya ocupadas y devuelve las horas
-   * de inicio posibles (en minutos desde medianoche), en pasos de 15 min.
+   * Cruza la jornada del centro con lo que ya ocupa la agenda —citas y
+   * bloqueos propios— y devuelve las horas de inicio posibles (en minutos
+   * desde medianoche), en pasos de 15 min.
+   *
+   * Descontar los bloqueos es imprescindible: el backend los comprueba al
+   * crear la cita, así que ofrecer un hueco bloqueado sería ofrecer algo que
+   * va a fallar con un `409` justo después.
    */
   private computeSlots(
     iso: string,
     details: { startTime: string; endTime: string }[],
     appointments: AppointmentDto[],
-    duration: number
+    duration: number,
+    timeBlocks: CalendarNoteDto[] = []
   ): number[] {
     const busy: [number, number][] = appointments
       .filter((appointment) => appointment.status !== 'CANCELLED')
@@ -386,6 +415,8 @@ export class QuickScheduleWidget implements OnInit, OnDestroy {
           ? instantToMinutes(appointment.endTime)
           : instantToMinutes(appointment.startTime) + 30,
       ]);
+
+    busy.push(...blocksToDayRanges(timeBlocks, iso));
 
     const now = new Date();
     const isToday = iso === toIsoDate(now);
@@ -549,6 +580,38 @@ function hhmmToMinutes(value: string): number {
 function instantToMinutes(iso: string): number {
   const date = new Date(iso);
   return date.getHours() * 60 + date.getMinutes();
+}
+
+const MINUTES_PER_DAY = 24 * 60;
+
+/**
+ * Proyecta los bloqueos sobre el día `iso` como rangos en minutos desde la
+ * medianoche local, recortados al propio día.
+ *
+ * Hace falta recortar porque un bloqueo puede abarcar varios días —unas
+ * vacaciones, una ausencia de "todo el día"— y entonces sus minutos desde
+ * medianoche no significan nada por sí solos.
+ */
+function blocksToDayRanges(blocks: CalendarNoteDto[], iso: string): [number, number][] {
+  const dayStart = new Date(`${iso}T00:00:00`).getTime();
+  if (Number.isNaN(dayStart)) return [];
+  const dayEnd = dayStart + MINUTES_PER_DAY * 60_000;
+
+  const ranges: [number, number][] = [];
+  for (const block of blocks) {
+    if (block.type !== 'TIME_BLOCK') continue;
+    const start = new Date(block.startTime).getTime();
+    const end = new Date(block.endTime).getTime();
+    if (Number.isNaN(start) || Number.isNaN(end)) continue;
+    // Intervalo semiabierto, igual que el backend: un bloqueo que acaba a las
+    // 00:00 de este día no ocupa nada de este día.
+    if (end <= dayStart || start >= dayEnd) continue;
+    ranges.push([
+      Math.max(0, Math.round((start - dayStart) / 60_000)),
+      Math.min(MINUTES_PER_DAY, Math.round((end - dayStart) / 60_000)),
+    ]);
+  }
+  return ranges;
 }
 
 function minutesToHHMM(minutes: number): string {

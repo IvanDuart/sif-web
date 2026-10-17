@@ -5,6 +5,8 @@ import { HolidayService } from './holiday.api';
 import { TenantContextService } from '../../tenant/tenant-context.service';
 import { ScheduleDto, ScheduleDetailDto, TenantScheduleAssignmentDto } from '../models/schedule.model';
 import { HolidayDto } from '../models/holiday.model';
+import { CalendarNoteDto } from '../models/calendar-note.model';
+import { overlapsTimeBlock } from '../../../shared/utils/calendar-notes';
 
 @Injectable({ providedIn: 'root' })
 export class ScheduleAvailabilityService {
@@ -53,6 +55,24 @@ export class ScheduleAvailabilityService {
     return this.assignmentsCache();
   }
 
+  /**
+   * Bloqueos propios ya conocidos, indexados por quien los haya cargado.
+   *
+   * No se piden aquí: las notas son privadas de su autor y este servicio es
+   * compartido, así que quien tenga el calendario a la vista (la agenda, el
+   * agendado rápido) los inyecta tras cargarlos. Sin ellos el servicio se
+   * comporta exactamente igual que antes.
+   */
+  private timeBlocksCache = signal<CalendarNoteDto[]>([]);
+
+  setTimeBlocks(notes: CalendarNoteDto[]): void {
+    this.timeBlocksCache.set(notes.filter((n) => n.type === 'TIME_BLOCK'));
+  }
+
+  getCachedTimeBlocks(): CalendarNoteDto[] {
+    return this.timeBlocksCache();
+  }
+
   getScheduleForDate(date: string): { schedule: ScheduleDto; details: ScheduleDetailDto[] } | null {
     const dateObj = new Date(date + 'T00:00:00');
     const dayOfWeek = dateObj.getDay() === 0 ? 7 : dateObj.getDay();
@@ -92,6 +112,16 @@ export class ScheduleAvailabilityService {
     );
     if (!isWithin) {
       return 'La hora de la cita está fuera del horario de apertura del centro';
+    }
+
+    // El backend rechaza con un `409` agendar sobre un bloqueo propio. Avisar
+    // antes de enviar ahorra el viaje y explica el motivo real.
+    const start = new Date(startTime);
+    if (!Number.isNaN(start.getTime())) {
+      const startMs = start.getTime();
+      if (overlapsTimeBlock(this.timeBlocksCache(), startMs, startMs + 1)) {
+        return 'Tienes esa franja bloqueada en tu calendario';
+      }
     }
 
     return null;

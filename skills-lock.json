@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "angular-component": {
+      "source": "analogjs/angular-skills",
+      "sourceType": "github",
+      "skillPath": "skills/angular-component/SKILL.md",
+      "computedHash": "fa1049900beb037dd5afddd0dc6059aed588bfa1e11cc3a96f76bd90a0a6b0d8"
+    },
     "apple-design": {
       "source": "emilkowalski/skills",
       "sourceType": "github",
@@ -30,6 +36,12 @@
       "sourceType": "github",
       "skillPath": "skills/stitch-skill/SKILL.md",
       "computedHash": "acf2921a7e50c06e637f072ba52e36a994cbb44ecbe6e31435bc113b894f5499"
+    },
+    "taiga-ui": {
+      "source": "taiga-family/skills",
+      "sourceType": "github",
+      "skillPath": "taiga-ui/SKILL.md",
+      "computedHash": "771fc9febd399cb36248837c11e3375f62c5051011439f564d0d4805a44e095c"
     }
   }
 }
