@@ -125,7 +125,7 @@ export default class MyPatientsPage implements OnInit {
 
     this.modal.open<boolean, { nutritionistId: string; patientId: string; patientLabel: string }>(AppointmentFormDialog, {
       label: this.transloco.translate('appointments.schedule_new'),
-      size: 'l',
+      size: null,
       data: {
         nutritionistId: userId,
         patientId: p.patientId,

@@ -63,14 +63,25 @@
             <i class="fa-solid fa-pen-to-square mr-1" aria-hidden="true"></i>
             {{ t('users.edit') }}
           </button>
-          <button
-            *appIfPermission="'MANAGE_APPOINTMENTS'"
-            type="button"
-            tuiButton appearance="secondary" size="m"
-            (click)="showNewAppointmentDialog()">
-            <i class="fa-solid fa-calendar-plus mr-1" aria-hidden="true"></i>
-            {{ t('appointments.new_appointment') }}
-          </button>
+          @if (nextAppointment()) {
+            <button
+              *appIfPermission="'MANAGE_APPOINTMENTS'"
+              type="button"
+              tuiButton appearance="secondary" size="m"
+              (click)="showRescheduleDialog()">
+              <i class="fa-solid fa-calendar-check mr-1" aria-hidden="true"></i>
+              {{ t('appointments.reschedule') }}
+            </button>
+          } @else {
+            <button
+              *appIfPermission="'MANAGE_APPOINTMENTS'"
+              type="button"
+              tuiButton appearance="secondary" size="m"
+              (click)="showNewAppointmentDialog()">
+              <i class="fa-solid fa-calendar-plus mr-1" aria-hidden="true"></i>
+              {{ t('appointments.new_appointment') }}
+            </button>
+          }
           @if (u.userType === 'PATIENT') {
             <button
               *appIfPermission="'MANAGE_USER'"

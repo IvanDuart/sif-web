@@ -49,7 +49,8 @@
           <input
             id="formNutritionistId"
             tuiSelect
-            formControlName="nutritionistId">
+            formControlName="nutritionistId"
+            [disabled]="isRescheduleMode()">
           <tui-data-list-wrapper
             *tuiDropdown
             [items]="nutritionistValues()" />
@@ -66,8 +67,8 @@
             [items]="typeLabels() | tuiFilterByInput" />
         </tui-textfield>
 
-        <div class="flex gap-4">
-          <tui-textfield class="flex-1">
+        <div class="flex flex-wrap gap-4">
+          <tui-textfield class="min-w-[11rem] flex-1">
              <label tuiLabel for="formDate">{{ t('appointments.date') }}</label>
              <input
                tuiInputDate
@@ -76,7 +77,7 @@
              <tui-calendar *tuiDropdown />
            </tui-textfield>
 
-           <tui-textfield class="flex-1">
+           <tui-textfield class="min-w-[8rem] flex-1">
              <label tuiLabel for="formTime">{{ t('appointments.time') }}</label>
              <input
                tuiInputTime
@@ -170,7 +171,7 @@
       @if (saving()) {
         {{ t('common.loading') }}
       } @else {
-        {{ t('common.save') }}
+        {{ isRescheduleMode() ? t('appointments.reschedule_title') : t('common.save') }}
       }
     </button>
 

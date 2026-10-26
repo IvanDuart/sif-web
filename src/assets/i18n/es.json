@@ -873,7 +873,11 @@
     "agenda_title": "Agenda del día",
     "agenda_hint": "Elegí nutricionista y fecha para ver las horas disponibles.",
     "agenda_closed": "El centro no atiende este día.",
-    "agenda_free_hint": "Tocá una franja libre para fijar la hora."
+    "agenda_free_hint": "Tocá una franja libre para fijar la hora.",
+    "search_patient": "Buscar paciente…",
+    "searching_patients": "Buscando pacientes…",
+    "no_upcoming_appointment": "El paciente no tiene citas futuras.",
+    "search_appointments_error": "No se pudieron consultar las citas del paciente."
   },
   "settings": {
     "subtitle": "Ajustes del centro: marca, tipos de cita, horarios y dirección",

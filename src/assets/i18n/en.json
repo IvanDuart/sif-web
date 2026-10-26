@@ -873,7 +873,11 @@
     "agenda_title": "Day agenda",
     "agenda_hint": "Pick a nutritionist and date to see available times.",
     "agenda_closed": "The centre is closed this day.",
-    "agenda_free_hint": "Tap a free slot to set the time."
+    "agenda_free_hint": "Tap a free slot to set the time.",
+    "search_patient": "Search patient…",
+    "searching_patients": "Searching patients…",
+    "no_upcoming_appointment": "The patient has no upcoming appointments.",
+    "search_appointments_error": "The patient's appointments could not be loaded."
   },
   "settings": {
     "subtitle": "Clinic settings: branding, appointment types, schedule and address",

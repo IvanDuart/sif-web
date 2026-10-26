@@ -27,7 +27,7 @@ import { AppointmentTypeService } from '../../core/api/services/appointment-type
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AuthService } from '../../core/auth/auth.service';
-import { AppointmentDto, CreateAppointmentRequest } from '../../core/api/models/appointment.model';
+import { AppointmentDto, CreateAppointmentRequest, RescheduleAppointmentRequest } from '../../core/api/models/appointment.model';
 import {
   ApiErrorLike,
   isOverlapConflict,
@@ -93,7 +93,12 @@ export class AppointmentFormDialog implements OnInit, AfterViewInit, OnDestroy {
 
   private readonly searchSubject = new Subject<string>();
 
-  readonly context = injectContext<TuiDialogContext<boolean, { nutritionistId?: string; startTime?: Date; patientId?: string; patientLabel?: string }>>();
+  readonly context = injectContext<TuiDialogContext<boolean, { nutritionistId?: string; startTime?: Date; patientId?: string; patientLabel?: string; appointment?: AppointmentDto }>>();
+
+  /** Cita existente cuando el diálogo se usa para reagendar. */
+  readonly appointment = this.context.data?.appointment ?? null;
+
+  readonly isRescheduleMode = computed(() => !!this.appointment);
 
   /**
    * Only staff may decide to schedule appointments in parallel. The backend
@@ -118,7 +123,7 @@ export class AppointmentFormDialog implements OnInit, AfterViewInit, OnDestroy {
   isClosedDate = signal(false);
   availabilityLoaded = signal(false);
 
-  isPatientContext = computed(() => !!this.context.data?.patientId);
+  isPatientContext = computed(() => !!this.context.data?.patientId || !!this.context.data?.appointment);
 
   patientLabels = computed(() => this.patients().map(p => p.label));
   typeLabels = computed(() => this.appointmentTypes().map(t => t.label));
@@ -294,6 +299,32 @@ export class AppointmentFormDialog implements OnInit, AfterViewInit, OnDestroy {
       const day = TuiDay.fromLocalNativeDate(d);
       const time = TuiTime.fromLocalNativeDate(d);
       this.form.patchValue({ date: day, time });
+    }
+
+    // Reagendar: la cita existente manda. El paciente queda fijo como
+    // contexto, el nutricionista no se puede cambiar y el resto se precarga.
+    if (this.appointment) {
+      const appointment = this.appointment;
+
+      if (!this.context.data?.patientId && appointment.patientId) {
+        const option: PatientOption = {
+          label: appointment.patientName ?? '',
+          value: appointment.patientId
+        };
+        this.patients.update(list =>
+          list.some(p => p.value === option.value) ? list : [option, ...list]
+        );
+        this.form.get('patientId')?.setValue(option.label);
+        this.selectedPatientRef.set(option);
+      }
+
+      const start = new Date(appointment.startTime);
+      this.form.patchValue({
+        nutritionistId: appointment.nutritionistId,
+        date: TuiDay.fromLocalNativeDate(start),
+        time: TuiTime.fromLocalNativeDate(start),
+        notes: appointment.notes ?? ''
+      });
     }
   }
 
@@ -513,17 +544,31 @@ export class AppointmentFormDialog implements OnInit, AfterViewInit, OnDestroy {
     this.appointmentTypeService.getAll(tenantId).subscribe({
       next: (types) => {
         const rawTypes = types || [];
-          const mapped = rawTypes.map((t) => ({
-            label: `${t.name} (${t.durationMinutes} min)`,
-            value: t.id
-          }));
-          this.appointmentTypes.set(mapped);
-          
-          if (mapped.length > 0 && !this.form.get("typeId")?.value) {
-            const defaultType = rawTypes.find(t => t.isDefault);
-            const fallbackIndex = defaultType ? rawTypes.indexOf(defaultType) : 0;
-            this.form.get("typeId")?.setValue(mapped[fallbackIndex].label);
+        const mapped = rawTypes.map((t) => ({
+          label: `${t.name} (${t.durationMinutes} min)`,
+          value: t.id
+        }));
+        this.appointmentTypes.set(mapped);
+
+        if (this.appointment) {
+          // En reagendar manda el tipo de la cita existente; si ya no existe,
+          // se cae al tipo por defecto para dejar el formulario utilizable.
+          const matchingType = mapped.find(t => t.value === this.appointment?.typeId);
+          if (matchingType) {
+            this.form.get('typeId')?.setValue(matchingType.label);
+          } else if (mapped.length > 0) {
+            const defaultType = rawTypes.find(t => t.isDefault) ?? rawTypes[0];
+            const fallback = mapped[rawTypes.indexOf(defaultType)];
+            this.form.get('typeId')?.setValue(fallback?.label ?? '');
           }
+          return;
+        }
+
+        if (mapped.length > 0 && !this.form.get("typeId")?.value) {
+          const defaultType = rawTypes.find(t => t.isDefault);
+          const fallbackIndex = defaultType ? rawTypes.indexOf(defaultType) : 0;
+          this.form.get("typeId")?.setValue(mapped[fallbackIndex].label);
+        }
       }
     });
   }
@@ -535,7 +580,7 @@ export class AppointmentFormDialog implements OnInit, AfterViewInit, OnDestroy {
     const user = this.authService.user();
     if (!tenantId || !user) return;
 
-    const raw = this.form.value;
+    const raw = this.form.getRawValue();
     const day = raw.date as TuiDay | null;
     const time = raw.time as TuiTime | null;
     
@@ -560,6 +605,26 @@ export class AppointmentFormDialog implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    const nutritionistId = raw.nutritionistId || undefined;
+    if (!nutritionistId) {
+      this.error.set(this.transloco.translate('appointments.nutritionist_required'));
+      return;
+    }
+
+    // Convert date and time to ISO string for API
+    const startDate = day.toLocalNativeDate();
+    startDate.setHours(time.hours, time.minutes, 0, 0);
+
+    // Reagendar: la cita ya existe; solo cambian fecha/hora, tipo y notas.
+    if (this.isRescheduleMode() && this.appointment) {
+      this.executeReschedule(tenantId, {
+        startTime: startDate.toISOString(),
+        typeId: selectedType.value,
+        notes: raw.notes || undefined
+      });
+      return;
+    }
+
     const isFirstConsultation = !!raw.isFirstConsultation;
     const newPatientName = (raw.newPatientName || '').trim();
 
@@ -573,16 +638,6 @@ export class AppointmentFormDialog implements OnInit, AfterViewInit, OnDestroy {
       this.error.set(this.transloco.translate('appointments.patient_required'));
       return;
     }
-
-    const nutritionistId = raw.nutritionistId || undefined;
-    if (!nutritionistId) {
-      this.error.set(this.transloco.translate('appointments.nutritionist_required'));
-      return;
-    }
-
-    // Convert date and time to ISO string for API
-    const startDate = day.toLocalNativeDate();
-    startDate.setHours(time.hours, time.minutes, 0, 0);
 
     const request: CreateAppointmentRequest = {
       nutritionistId,
@@ -650,6 +705,59 @@ export class AppointmentFormDialog implements OnInit, AfterViewInit, OnDestroy {
    */
   private resolveCreateError(err: ApiErrorLike | null | undefined): string {
     return resolveAppointmentError(err, 'appointments.create_error', (key) =>
+      this.transloco.translate(key)
+    );
+  }
+
+  /**
+   * Reagenda la cita existente. Cuando el nuevo horario solapa con otra cita
+   * del mismo nutricionista, el staff puede confirmar y reintentar una vez con
+   * `allowOverlap: true`, igual que al crear.
+   */
+  private executeReschedule(tenantId: string, request: RescheduleAppointmentRequest, allowOverlap = false): void {
+    const appointment = this.appointment;
+    if (!appointment) return;
+
+    this.saving.set(true);
+    this.error.set('');
+
+    const payload: RescheduleAppointmentRequest = allowOverlap ? { ...request, allowOverlap: true } : request;
+
+    this.appointmentService.reschedule(tenantId, appointment.id, payload).subscribe({
+      next: () => {
+        this.notify.success(
+          this.transloco.translate('appointments.reschedule_success'),
+          this.transloco.translate('common.success')
+        );
+        this.context.$implicit.next(true);
+        this.context.$implicit.complete();
+      },
+      error: (err) => {
+        this.saving.set(false);
+
+        if (allowOverlap || !isOverlapConflict(err) || !this.canManageAppointments()) {
+          this.error.set(this.resolveRescheduleError(err));
+          return;
+        }
+
+        this.confirm.confirm({
+          label: this.transloco.translate('appointments.overlap_confirm_title'),
+          content: this.transloco.translate('appointments.overlap_confirm'),
+          yes: this.transloco.translate('appointments.overlap_confirm_yes'),
+          no: this.transloco.translate('common.cancel'),
+        }).subscribe((confirmed) => {
+          if (confirmed) {
+            this.executeReschedule(tenantId, request, true);
+          } else {
+            this.error.set(this.resolveRescheduleError(err));
+          }
+        });
+      }
+    });
+  }
+
+  private resolveRescheduleError(err: ApiErrorLike | null | undefined): string {
+    return resolveAppointmentError(err, 'appointments.reschedule_error', (key) =>
       this.transloco.translate(key)
     );
   }

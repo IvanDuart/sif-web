@@ -1641,7 +1641,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
 
     this.modal.open<boolean, { patientId?: string; patientLabel?: string; nutritionistId?: string }>(AppointmentFormDialog, {
       label: this.transloco.translate('appointments.schedule_new'),
-      size: 'l',
+      size: null,
       data: {
         patientId: current.id,
         patientLabel,
@@ -1649,6 +1649,32 @@ export default class UserDetailPage implements OnInit, OnDestroy {
       }
     }).subscribe((created) => {
       if (created) this.loadAppointments();
+    });
+  }
+
+  /**
+   * Reagenda la próxima cita con el mismo formulario que se usa para crear,
+   * aprovechando la agenda del día que se muestra a la derecha.
+   */
+  showRescheduleDialog() {
+    const appointment = this.nextAppointment();
+    const current = this.user();
+    if (!appointment) return;
+
+    const patientLabel =
+      appointment.patientName
+      ?? (`${current?.firstName ?? ''} ${current?.lastName ?? ''}`.trim() || current?.email || '');
+
+    this.modal.open<boolean, { appointment: AppointmentDto; patientId?: string; patientLabel?: string }>(AppointmentFormDialog, {
+      label: this.transloco.translate('appointments.reschedule_title'),
+      size: null,
+      data: {
+        appointment,
+        patientId: appointment.patientId ?? current?.id,
+        patientLabel
+      }
+    }).subscribe((changed) => {
+      if (changed) this.loadAppointments();
     });
   }
 

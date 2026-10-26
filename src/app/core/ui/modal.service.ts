@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 
 export interface ModalOptions<I = undefined> {
   label?: string;
-  size?: 's' | 'm' | 'l';
+  size?: 's' | 'm' | 'l' | null;
   data?: I;
   closable?: boolean;
   dismissible?: boolean;
@@ -28,7 +28,9 @@ export class ModalService {
   ): Observable<O> {
     return this.dialogs.open<O>(new PolymorpheusComponent(component), {
       label: options.label ?? '',
-      size: options.size ?? 'm',
+      // `null` es un tamaño válido en Taiga (ancho por contenido); solo
+      // `undefined` debe caer al tamaño por defecto.
+      size: options.size === undefined ? 'm' : options.size,
       data: options.data as I extends void ? undefined : I,
       closable: options.closable ?? true,
       dismissible: options.dismissible ?? true,

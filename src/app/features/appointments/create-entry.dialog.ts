@@ -35,6 +35,14 @@ type EntryKind = 'APPOINTMENT' | CalendarNoteType;
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TranslocoDirective, TuiChip, CalendarNoteForm],
+  styles: [`
+    :host {
+      display: block;
+      /* Mismo ancho que el formulario de cita: recordatorio y bloqueo tienen
+         varios campos y la fecha no debe quedar apretada. */
+      inline-size: min(70rem, calc(100vw - 8.5rem));
+    }
+  `],
   template: `
     <div *transloco="let t" class="flex flex-col gap-5">
       <fieldset class="flex flex-col gap-2">

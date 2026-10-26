@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   HostListener,
   OnDestroy,
   OnInit,
@@ -10,6 +11,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
@@ -24,16 +26,19 @@ import type {
   EventClickArg,
   EventSourceInput,
 } from '@fullcalendar/core';
+import { Subject, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 import { SkeletonComponent } from 'boneyard-js/angular';
 
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { AppointmentService } from '../../core/api/services/appointment.api';
+import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
 import {
   AppointmentDto,
   AppointmentStatus,
   UpdateAppointmentStatusRequest,
 } from '../../core/api/models/appointment.model';
+import { AppUserDto } from '../../core/api/models/user.model';
 import { AppointmentFormDialog } from './appointment-form.dialog';
 import { AppointmentActionDialog } from './appointment-action.dialog';
 import { CreateEntryDialog, CreateEntryDialogData, CreateEntryResult } from './create-entry.dialog';
@@ -52,8 +57,8 @@ import {
 } from '../../shared/utils/status-colors';
 import { hexToRgba } from '../../shared/utils/chart-config';
 import { ModalService, NotificationService } from '../../core/ui';
-import { TuiButton } from '@taiga-ui/core';
-import { TuiChip, TuiSegmented } from '@taiga-ui/kit';
+import { TuiButton, TuiInput, TuiTextfield } from '@taiga-ui/core';
+import { TuiAvatar, TuiChip, TuiSegmented } from '@taiga-ui/kit';
 import { ScheduleAvailabilityService } from '../../core/api/services/schedule-availability.service';
 
 /** Vistas soportadas, en el orden del conmutador Día/Semana/Mes. */
@@ -138,17 +143,29 @@ function persistLayers(layers: AgendaLayers): void {
   }
 }
 
+/** Fila del buscador de pacientes de la cabecera. */
+interface PatientOption {
+  id: string;
+  label: string;
+  email: string;
+  initials: string;
+}
+
 @Component({
   selector: 'app-appointments-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
     FullCalendarModule,
+    FormsModule,
     TranslocoDirective,
     SkeletonComponent,
+    TuiAvatar,
     TuiButton,
     TuiChip,
+    TuiInput,
     TuiSegmented,
+    TuiTextfield,
   ],
   templateUrl: './appointments.page.html',
 })
@@ -164,9 +181,11 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
   private readonly calendarNoteService = inject(CalendarNoteService);
   private readonly permissions = inject(PermissionsService);
   private readonly notificationStream = inject(NotificationStreamService);
+  private readonly userRoleService = inject(UserTenantRoleService);
   private readonly destroyRef = inject(DestroyRef);
 
   @ViewChild('calendar') calendarComponent?: FullCalendarComponent;
+  @ViewChild('patientSearchBox') patientSearchBox?: ElementRef<HTMLElement>;
 
   canViewAppointments = computed(() => this.tenantCtx.hasPermission('VIEW_APPOINTMENTS'));
   currentUserId = computed(() => this.authService.user()?.id || '');
@@ -182,6 +201,15 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
   todayAppointments = signal<AppointmentDto[]>([]);
   weekAppointments = signal<AppointmentDto[]>([]);
   weekNotes = signal<CalendarNoteDto[]>([]);
+
+  // ── Buscador de pacientes ──────────────────────────────────────────────
+
+  readonly patientQuery = signal('');
+  readonly patientResults = signal<PatientOption[]>([]);
+  readonly searchingPatients = signal(false);
+  readonly patientSearchOpen = signal(false);
+
+  private readonly patientSearch$ = new Subject<string>();
 
   // ── Capas visibles ─────────────────────────────────────────────────────
 
@@ -328,6 +356,18 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
 
     this.listenToRemoteChanges();
 
+    this.patientSearch$
+      .pipe(
+        debounceTime(250),
+        distinctUntilChanged(),
+        switchMap(term => this.fetchPatients(term)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(rows => {
+        this.patientResults.set(rows);
+        this.searchingPatients.set(false);
+      });
+
     this.route.queryParams.subscribe(params => {
       const dateParam = params['date'];
       if (dateParam) {
@@ -405,6 +445,106 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
       this.currentView.set(view);
       persistView(view);
     }
+  }
+
+  // ── Buscador de pacientes ──────────────────────────────────────────────
+
+  onPatientSearchChange(value: string) {
+    this.patientQuery.set(value);
+    const term = value.trim();
+
+    if (!term) {
+      this.patientResults.set([]);
+      this.patientSearchOpen.set(false);
+      this.searchingPatients.set(false);
+      return;
+    }
+
+    this.searchingPatients.set(true);
+    this.patientSearchOpen.set(true);
+    this.patientSearch$.next(term);
+  }
+
+  private fetchPatients(term: string) {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return of<PatientOption[]>([]);
+
+    return this.userRoleService
+      .getUsersByTenantAndType(tenantId, 'PATIENT', { search: term, size: 6, enabled: true })
+      .pipe(
+        map((res) =>
+          (res.content || []).map((user: AppUserDto) => ({
+            id: user.id,
+            label: `${user.firstName} ${user.lastName}`.trim(),
+            email: user.email ?? '',
+            initials: `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase(),
+          }))
+        )
+      );
+  }
+
+  selectPatient(patient: PatientOption) {
+    this.patientQuery.set(patient.label);
+    this.patientSearchOpen.set(false);
+    this.goToNextAppointment(patient);
+  }
+
+  closePatientSearch() {
+    this.patientSearchOpen.set(false);
+  }
+
+  onPatientSearchFocus() {
+    if (this.patientQuery().trim()) this.patientSearchOpen.set(true);
+  }
+
+  /** Cierra el desplegable al pulsar fuera del buscador. */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!this.patientSearchOpen()) return;
+    const box = this.patientSearchBox?.nativeElement;
+    if (box && !box.contains(event.target as Node)) {
+      this.patientSearchOpen.set(false);
+    }
+  }
+
+  /**
+   * Salta al día de la próxima cita del paciente. Si no tiene ninguna cita
+   * `SCHEDULED`/`PROPOSED` en el próximo año, avisa en lugar de mover la
+   * agenda a un día sin nada que mostrar.
+   */
+  private goToNextAppointment(patient: PatientOption) {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+
+    const from = new Date();
+    const to = new Date(from);
+    to.setFullYear(to.getFullYear() + 1);
+
+    this.appointmentService
+      .getByPatient(tenantId, patient.id, from.toISOString(), to.toISOString())
+      .subscribe({
+        next: (appointments) => {
+          const next = (appointments || [])
+            .filter((a) => a.status === 'SCHEDULED' || a.status === 'PROPOSED')
+            .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())[0];
+
+          if (!next) {
+            this.notify.info(this.transloco.translate('appointments.no_upcoming_appointment'));
+            return;
+          }
+
+          const api = this.calendarComponent?.getApi();
+          if (!api) return;
+          api.gotoDate(new Date(next.startTime));
+          api.changeView('timeGridDay');
+        },
+        error: () => {
+          this.notify.error(
+            this.transloco.translate('appointments.search_appointments_error'),
+            this.transloco.translate('common.error')
+          );
+        }
+      });
   }
 
   // ── Datos ──────────────────────────────────────────────────────────────
@@ -747,7 +887,7 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
 
     this.modal.open<CreateEntryResult, CreateEntryDialogData>(CreateEntryDialog, {
       label: this.transloco.translate('calendar_notes.create_entry_title'),
-      size: 'm',
+      size: null,
       data: { startTime: prefilledDate }
     }).subscribe((result) => {
       if (result === 'APPOINTMENT') {
@@ -763,7 +903,7 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
       AppointmentFormDialog,
       {
         label: this.transloco.translate('appointments.schedule_new'),
-        size: 'l',
+        size: null,
         data: { nutritionistId: this.currentUserId(), startTime: prefilledDate }
       }
     ).subscribe((result) => {

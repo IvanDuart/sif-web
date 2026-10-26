@@ -286,7 +286,7 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
     this.modal
       .open<boolean, { nutritionistId: string; startTime?: Date }>(AppointmentFormDialog, {
         label: this.transloco.translate('appointments.schedule_new'),
-        size: 'l',
+        size: null,
         data: { nutritionistId: this.currentUserId(), startTime: prefilledDate },
       })
       .subscribe((result) => {

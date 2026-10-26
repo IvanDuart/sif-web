@@ -2,4 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  /* Diálogo ancho: la agenda del día convive con el formulario sin apretar
+     los campos de fecha y hora. Se descuenta el margen y el padding de Taiga. */
+  inline-size: min(70rem, calc(100vw - 8.5rem));
 }
