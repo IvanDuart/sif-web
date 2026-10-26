@@ -23,8 +23,8 @@
   </label>
 
   <!-- Fecha y horas -->
-  <div class="flex flex-wrap gap-4">
-    <tui-textfield class="flex-1 min-w-[160px]">
+  <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
+    <tui-textfield class="w-full sm:flex-1 sm:min-w-[160px]">
       <label tuiLabel for="noteDate">{{ t('calendar_notes.field_date') }}</label>
       <input
         id="noteDate"
@@ -35,7 +35,7 @@
     </tui-textfield>
 
     @if (!allDay()) {
-      <tui-textfield class="flex-1 min-w-[120px]">
+      <tui-textfield class="w-full sm:flex-1 sm:min-w-[120px]">
         <label tuiLabel for="noteStart">{{ t('calendar_notes.field_start') }}</label>
         <input
           id="noteStart"
@@ -44,7 +44,7 @@
           (ngModelChange)="startTime.set($event)" />
       </tui-textfield>
 
-      <tui-textfield class="flex-1 min-w-[120px]">
+      <tui-textfield class="w-full sm:flex-1 sm:min-w-[120px]">
         <label tuiLabel for="noteEnd">{{ t('calendar_notes.field_end') }}</label>
         <input
           id="noteEnd"
