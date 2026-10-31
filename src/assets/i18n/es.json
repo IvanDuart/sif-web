@@ -1452,6 +1452,7 @@
     "confirm": "Guardar",
     "action_applied": "Listo, he guardado los cambios.",
     "action_cancelled": "He cancelado la acción. No se ha guardado nada.",
+    "fill_opening": "Voy a abrirte el formulario…",
     "fill_writing": "Escribiendo {{field}}…",
     "fill_done": "Te he rellenado {{count}} campos.",
     "fill_review": "Te lo he rellenado. Revísalo y guarda tú cuando lo veas bien.",

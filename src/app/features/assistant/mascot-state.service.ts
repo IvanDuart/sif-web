@@ -9,7 +9,7 @@ import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { problemDetailCode, problemDetailMessage } from '../../core/http/error.interceptor';
 import { MascotLookService } from './mascot/mascot-look.service';
 import { MascotMoodService } from './mascot/mascot-mood.service';
-import { DEFAULT_FILL_TIMING, STILL_TIMING, playFill } from './mascot/fill/animated-fill';
+import { DEFAULT_FILL_TIMING, STILL_TIMING, playFill, playOpen } from './mascot/fill/animated-fill';
 import { matchPreview } from './mascot/fill/descriptor';
 import { MascotFillService } from './mascot/fill/mascot-fill.service';
 import type { MascotMode } from './mascot/mascot-life.service';
@@ -34,6 +34,8 @@ export interface MascotMessage {
 
 /** Lo que se le da al formulario para montar tras un `uiAction` que navega. */
 const SURFACE_WAIT_MS = 1500;
+/** Lo que se le da a un diálogo recién abierto para montar y apuntarse. */
+const OPENED_SURFACE_WAIT_MS = 2500;
 
 /**
  * Estado global de la mascota: configuración del tenant, sesión y conversación.
@@ -349,7 +351,29 @@ export class MascotStateService {
       return;
     }
 
-    const mounted = await this.fill.waitForTool(action.toolName, SURFACE_WAIT_MS);
+    const timing = matchMedia('(prefers-reduced-motion: reduce)').matches ? STILL_TIMING : DEFAULT_FILL_TIMING;
+    let mounted = await this.fill.waitForTool(action.toolName, SURFACE_WAIT_MS);
+
+    // No está en pantalla, pero esta pantalla sabe abrirlo: la mascota va hasta
+    // el botón y lo pulsa ella. Sin esto, pedir una medición con el diálogo
+    // cerrado se quedaba siempre en la tarjeta de confirmar.
+    if (!mounted) {
+      const opener = this.fill.openerForTool(action.toolName);
+      if (opener) {
+        this.closePanel();
+        this.fill.begin();
+        try {
+          if (await playOpen(opener, timing, this.fill)) {
+            mounted = await this.fill.waitForTool(action.toolName, OPENED_SURFACE_WAIT_MS);
+          }
+        } finally {
+          // Si no llegó a abrirse, la mascota vuelve a su sitio; si sí, el
+          // relleno retoma el viaje justo después, sin soltarla.
+          if (!mounted) this.fill.end();
+        }
+      }
+    }
+
     const values = mounted ? matchPreview(mounted.surface, action.preview) : [];
     if (!mounted || values.length === 0) {
       this.pendingAction.set(action);
@@ -360,7 +384,6 @@ export class MascotStateService {
     // formulario, y una acción viva en el backend podría escribir lo mismo otra vez.
     this.rejectQuietly(action);
     this.closePanel();
-    const timing = matchMedia('(prefers-reduced-motion: reduce)').matches ? STILL_TIMING : DEFAULT_FILL_TIMING;
     const report = await playFill(mounted.surface, mounted.access, values, this.fill, timing);
 
     if (report.written.length === 0) {

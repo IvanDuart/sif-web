@@ -1,10 +1,11 @@
 <span class="mascot-bob" [style.--mascot-scale]="scale()">
-  <span #orb class="mascot-orb" [attr.data-mode]="mode()" [attr.data-skin]="skin()" [style]="skinStyle()">
+  <span #orb class="mascot-orb" [attr.data-mode]="mode()" [attr.data-skin]="skin()">
     <span class="mascot-turner" data-turner>
       @if (skin() === 'manzana') {
         <svg class="mascot-detail mascot-detail--behind" viewBox="0 0 160 160" aria-hidden="true">
-          <path d="M80 70 Q78 46 82 30" stroke="#6b4a2b" stroke-width="7" fill="none" stroke-linecap="round" />
-          <path d="M84 48 Q98 34 112 40 Q104 54 88 52 Z" fill="#4f8f45" />
+          <path d="M80 56 Q73 36 80 16" stroke="#6b4a2b" stroke-width="6" fill="none" stroke-linecap="round" />
+          <path d="M79 32 Q92 18 108 22 Q101 38 83 38 Z" fill="#4f8f45" />
+          <path d="M83 34 Q94 28 104 25" stroke="#3d7336" stroke-width="2" fill="none" stroke-linecap="round" />
         </svg>
       }
       @if (skin() === 'naranja') {
@@ -34,13 +35,6 @@
         </svg>
       }
 
-      @if (hasEars()) {
-        <span class="mascot-ears" data-ears aria-hidden="true">
-          <i class="mascot-ear mascot-ear--left"></i>
-          <i class="mascot-ear mascot-ear--right"></i>
-        </span>
-      }
-
       <svg class="mascot-agent" viewBox="0 0 160 160" aria-hidden="true">
         <defs>
           <clipPath [attr.id]="clipId">
@@ -57,6 +51,14 @@
             stroke-width="3"
             [attr.opacity]="halo()"
           />
+        }
+        @if (hasEars()) {
+          <g data-ears stroke-linejoin="round">
+            @for (ear of ears(); track $index) {
+              <path [attr.d]="ear.outer" [attr.fill]="dark()" [attr.stroke]="dark()" stroke-width="4" />
+              <path [attr.d]="ear.inner" fill="#ffb3c7" stroke="#ffb3c7" stroke-width="3" />
+            }
+          </g>
         }
         <path [attr.d]="bodyD()" [attr.fill]="dark()" />
         <path [attr.d]="litD()" [attr.fill]="light()" [attr.clip-path]="clipUrl()" />

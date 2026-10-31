@@ -78,3 +78,29 @@ export function matchPreview(
     return raw === undefined || raw === '' ? [] : [{ field, raw }];
   });
 }
+
+/**
+ * Cómo se ABRE un formulario que no está en pantalla (el `CopilotOpener` de
+ * alkimia, `core/copilot/copilotStore.ts`).
+ *
+ * Sin esto, un `pendingAction` que llega con el diálogo cerrado no tiene nada
+ * que rellenar y se queda en la tarjeta de confirmar. Con esto, la mascota va
+ * hasta el botón que lo abre y lo pulsa como haría una persona: el formulario
+ * monta, se apunta solo en `MascotFillService` y el relleno sigue como si
+ * hubiera estado abierto desde el principio.
+ *
+ * Lo registra la PÁGINA que tiene el botón, y sólo mientras está viva: así
+ * abrir un formulario sólo se ofrece donde la persona también podría abrirlo
+ * (si no tiene el permiso, el botón no está y el `trigger` no se encuentra).
+ */
+export interface FillOpener {
+  /** La superficie que abre: el mismo `id` que ella. */
+  id: string;
+  /** Las tools cuyo `pendingAction` se atiende abriendo este formulario. */
+  tools: readonly string[];
+  /**
+   * El botón que lo abre. Se pulsa el primero VISIBLE que encaje: la misma
+   * acción suele estar repetida en la página (cabecera, tarjeta, estado vacío).
+   */
+  trigger: string;
+}

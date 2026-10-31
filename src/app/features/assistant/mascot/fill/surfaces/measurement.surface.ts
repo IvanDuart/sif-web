@@ -1,4 +1,4 @@
-import type { FillField, FillSurface } from '../descriptor';
+import type { FillField, FillOpener, FillSurface } from '../descriptor';
 
 /**
  * El formulario de medidas (`users/measurement-form.dialog`). Es el caso
@@ -60,4 +60,15 @@ export const MEASUREMENT_SURFACE: FillSurface = {
       reveal: '[data-mascot-reveal="measurement-step-4"]',
     },
   ],
+};
+
+/**
+ * Cómo abre la mascota el diálogo de medidas desde la ficha del paciente:
+ * pulsando el mismo botón de "Registrar Medición" que pulsaría una persona.
+ * Lo registra `user-detail.page`, que es quien lo tiene.
+ */
+export const MEASUREMENT_OPENER: FillOpener = {
+  id: MEASUREMENT_SURFACE.id,
+  tools: MEASUREMENT_SURFACE.tools,
+  trigger: '[data-mascot-open="measurement"]',
 };

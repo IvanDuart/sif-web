@@ -13,8 +13,8 @@ export interface Face {
 export const FACES: Record<SkinId, Face> = {
   manzana: {
     eyes: [
-      [53, 74],
-      [90, 74],
+      [53, 72],
+      [90, 72],
     ],
     colour: '#ffffff',
   },

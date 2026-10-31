@@ -1,6 +1,6 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 
-import type { FieldAccess, FillSurface } from './descriptor';
+import type { FieldAccess, FillOpener, FillSurface } from './descriptor';
 
 /** Un formulario montado, con cómo se escribe en él. */
 export interface MountedSurface {
@@ -20,6 +20,7 @@ export interface MountedSurface {
 @Injectable({ providedIn: 'root' })
 export class MascotFillService {
   private readonly mounted = new Map<string, MountedSurface>();
+  private readonly openers = new Map<string, FillOpener>();
 
   // ── El viaje ────────────────────────────────────────────────────────
 
@@ -56,6 +57,25 @@ export class MascotFillService {
   forTool(toolName: string): MountedSurface | null {
     for (const entry of this.mounted.values()) {
       if (entry.surface.tools.includes(toolName)) return entry;
+    }
+    return null;
+  }
+
+  /**
+   * Apunta cómo se abre un formulario mientras la página que tiene el botón
+   * esté viva. Se llama desde un contexto de inyección, como `register`.
+   */
+  registerOpener(opener: FillOpener): void {
+    this.openers.set(opener.id, opener);
+    inject(DestroyRef).onDestroy(() => {
+      if (this.openers.get(opener.id) === opener) this.openers.delete(opener.id);
+    });
+  }
+
+  /** Cómo abrir un formulario para esa tool desde esta pantalla, si se puede. */
+  openerForTool(toolName: string): FillOpener | null {
+    for (const opener of this.openers.values()) {
+      if (opener.tools.includes(toolName)) return opener;
     }
     return null;
   }

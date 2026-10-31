@@ -1,7 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { STILL_TIMING, WRITTEN_ATTR, findAnchor, playFill, typeChange } from './animated-fill';
-import { matchPreview, type FieldAccess, type FillField, type FillSurface } from './descriptor';
+import { STILL_TIMING, WRITTEN_ATTR, findAnchor, playFill, playOpen, typeChange } from './animated-fill';
+import {
+  matchPreview,
+  type FieldAccess,
+  type FillField,
+  type FillOpener,
+  type FillSurface,
+} from './descriptor';
 import { MascotFillService } from './mascot-fill.service';
 
 /** Un formulario de mentira en el DOM, con los mismos ganchos que los de verdad. */
@@ -201,6 +207,74 @@ describe('relleno animado de la mascota', () => {
       ]);
 
       expect(matched.map((item) => item.field.key)).toEqual(['weightKg', 'notes']);
+    });
+  });
+
+  describe('abrir el formulario que no está en pantalla', () => {
+    const opener: FillOpener = {
+      id: 'measurement',
+      tools: ['create_measurement'],
+      trigger: '[data-mascot-open="measurement"]',
+    };
+
+    it('va hasta el botón y lo pulsa, como haría una persona', async () => {
+      host.innerHTML = '<button data-mascot-open="measurement">Registrar Medición</button>';
+      const button = host.querySelector('button')!;
+      let pressed = 0;
+      button.addEventListener('click', () => (pressed += 1));
+
+      expect(await playOpen(opener, STILL_TIMING, fill)).toBeTrue();
+      expect(pressed).toBe(1);
+      expect(fill.target()).toBe(button);
+    });
+
+    it('no pulsa un botón que no se ve: ahí la acción se queda en la tarjeta', async () => {
+      host.innerHTML =
+        '<button data-mascot-open="measurement" style="display:none">Registrar</button>';
+      let pressed = 0;
+      host.querySelector('button')!.addEventListener('click', () => (pressed += 1));
+
+      expect(await playOpen(opener, STILL_TIMING, fill)).toBeFalse();
+      expect(pressed).toBe(0);
+    });
+
+    it('pulsa el primero que se vea cuando la acción está repetida en la página', async () => {
+      host.innerHTML =
+        '<button data-mascot-open="measurement" style="display:none">cabecera</button>' +
+        '<button data-mascot-open="measurement">tarjeta</button>';
+      const pressed: string[] = [];
+      for (const b of Array.from(host.querySelectorAll('button'))) {
+        b.addEventListener('click', () => pressed.push(b.textContent!));
+      }
+
+      await playOpen(opener, STILL_TIMING, fill);
+      expect(pressed).toEqual(['tarjeta']);
+    });
+
+    it('no abre nada si la persona ya ha pedido parar', async () => {
+      host.innerHTML = '<button data-mascot-open="measurement">Registrar</button>';
+      let pressed = 0;
+      host.querySelector('button')!.addEventListener('click', () => (pressed += 1));
+      fill.requestSkip();
+
+      expect(await playOpen(opener, STILL_TIMING, fill)).toBeFalse();
+      expect(pressed).toBe(0);
+    });
+  });
+
+  describe('saber abrir el formulario', () => {
+    it('sólo ofrece abrirlo para sus tools', () => {
+      TestBed.runInInjectionContext(() =>
+        fill.registerOpener({
+          id: 'measurement',
+          tools: ['create_measurement', 'update_measurement'],
+          trigger: '[data-mascot-open="measurement"]',
+        }),
+      );
+
+      expect(fill.openerForTool('create_measurement')?.id).toBe('measurement');
+      expect(fill.openerForTool('update_measurement')?.id).toBe('measurement');
+      expect(fill.openerForTool('create_appointment')).toBeNull();
     });
   });
 });

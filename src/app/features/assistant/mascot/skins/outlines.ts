@@ -51,26 +51,38 @@ const ellipse =
   (x, y) =>
     ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1;
 
-function roundRect(left: number, top: number, width: number, height: number, r: number): Inside {
-  return (x, y) => {
-    const dx = Math.max(left + r - x, 0, x - (left + width - r));
-    const dy = Math.max(top + r - y, 0, y - (top + height - r));
-    return dx * dx + dy * dy <= r * r;
-  };
-}
-
-const union =
-  (...parts: Inside[]): Inside =>
-  (x, y) =>
-    parts.some((part) => part(x, y));
-
 const moved =
   (shape: Inside, dx: number, dy: number): Inside =>
   (x, y) =>
     shape(x - dx, y - dy);
 
-/** Manzana: dos lóbulos y un cuerpo redondeado (el tallo y la hoja son detalle). */
-const APPLE = union(circle(64, 90, 44), circle(96, 90, 44), roundRect(52, 62, 56, 80, 36));
+/**
+ * Una unión blanda: en vez de cruzarse, los círculos se funden, así que el
+ * contorno no tiene los pliegues que deja `union` donde dos bordes se cortan.
+ */
+const blob =
+  (...parts: readonly (readonly [number, number, number])[]): Inside =>
+  (x, y) =>
+    parts.reduce((field, [cx, cy, r]) => {
+      const distance = (x - cx) ** 2 + (y - cy) ** 2;
+      return field + (distance === 0 ? Infinity : (r * r) / distance);
+    }, 0) >= 1;
+
+const without =
+  (shape: Inside, ...holes: Inside[]): Inside =>
+  (x, y) =>
+    shape(x, y) && !holes.some((hole) => hole(x, y));
+
+/**
+ * Manzana: dos hombros anchos sobre un cuerpo que se estrecha al bajar, con
+ * el hoyo de arriba del que sale el tallo y la muesca de abajo que le deja
+ * dos pies. Sin ese hoyo y esa muesca el contorno es el de un tomate.
+ */
+const APPLE = without(
+  blob([58, 86, 30], [102, 86, 30], [80, 108, 32]),
+  circle(80, 26, 22),
+  circle(80, 158, 17),
+);
 
 /** Naranja: una esfera (el rabillo y la hoja son detalle). */
 const ORANGE = circle(80, 86, 58);
@@ -83,12 +95,12 @@ const MELON = ellipse(80, 90, 58, 50);
 
 const DRAWINGS: Record<SkinId, Drawing> = {
   manzana: {
-    centre: [80, 90],
+    centre: [80, 92],
     inside: APPLE,
-    lit: moved(APPLE, -6, -9),
-    dark: '#b23b32',
-    light: '#d84a3f',
-    spot: [56, 62, -30, 44, 72, 1],
+    lit: moved(APPLE, -7, -10),
+    dark: '#a82f36',
+    light: '#d04048',
+    spot: [56, 66, -30, 44, 76, 1],
     halo: false,
   },
   naranja: {
@@ -195,4 +207,66 @@ export function outlinePath(cx: number, cy: number, radii: readonly number[]): s
     return `${(cx + r * Math.cos(angle)).toFixed(2)} ${(cy + r * Math.sin(angle)).toFixed(2)}`;
   });
   return `M${points.join('L')}Z`;
+}
+
+/**
+ * Las orejas de gato, clavadas en el contorno en vez de colocadas a ojo.
+ *
+ * El problema de ponerlas con px desde el borde de la caja era que el cuerpo
+ * no llega al borde de la caja, y lo que llega cambia con la skin: la oreja
+ * flotaba sobre la manzana y se metía en el penacho de la piña. Aquí se mide
+ * el contorno en el ángulo de cada oreja y se apoya la oreja ahí, con la base
+ * hundida en el cuerpo y la punta hacia fuera por la normal. Como sale de la
+ * geometría, también acompaña a la transformación de una skin en otra.
+ */
+
+/** El ángulo de cada oreja desde arriba: fuera del tallo y del penacho. */
+const EAR_SPREAD = 0.66;
+/** Lo que la punta se abre más que la base. */
+const EAR_LEAN = 0.1;
+/** Base, alto y hundimiento, como fracción del radio del cuerpo ahí. */
+const EAR_HALF = 0.26;
+const EAR_RISE = 0.5;
+const EAR_SINK = 0.13;
+
+/** El radio del contorno en un ángulo cualquiera, entre muestra y muestra. */
+function radiusAt(radii: readonly number[], angle: number): number {
+  const turn = (((angle / (2 * Math.PI)) % 1) + 1) % 1;
+  const at = turn * radii.length;
+  const low = Math.floor(at);
+  return mix(radii[low % radii.length], radii[(low + 1) % radii.length], at - low);
+}
+
+export interface Ear {
+  /** El triángulo de fuera, del color del cuerpo. */
+  outer: string;
+  /** El triángulo de dentro, rosa. */
+  inner: string;
+}
+
+export function earsOf(geometry: Geometry): readonly Ear[] {
+  return [-1, 1].map((side) => {
+    const angle = -Math.PI / 2 + side * EAR_SPREAD;
+    const radius = radiusAt(geometry.body, angle);
+    const [nx, ny] = [Math.cos(angle), Math.sin(angle)];
+    // La base se apoya en el contorno y se hunde un poco bajo él.
+    const bx = geometry.cx + radius * (1 - EAR_SINK) * nx;
+    const by = geometry.cy + radius * (1 - EAR_SINK) * ny;
+    // La punta se inclina hacia fuera, no recta hacia arriba.
+    const lean = angle + side * EAR_LEAN;
+    const [ux, uy] = [Math.cos(lean), Math.sin(lean)];
+    const [tx, ty] = [-uy, ux];
+    const rise = radius * EAR_RISE;
+    const half = radius * EAR_HALF;
+
+    const point = (along: number, across: number) =>
+      `${(bx + ux * rise * along + tx * across).toFixed(2)} ${(by + uy * rise * along + ty * across).toFixed(2)}`;
+    const triangle = (from: number, to: number, width: number) =>
+      `M${point(from, -width)}L${point(to, 0)}L${point(from, width)}Z`;
+
+    return {
+      outer: triangle(0, 1, half),
+      inner: triangle(0.28, 0.72, half * 0.48),
+    };
+  });
 }

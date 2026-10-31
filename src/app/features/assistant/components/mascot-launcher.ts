@@ -136,13 +136,14 @@ export function beside(target: HTMLElement): { x: number; y: number } {
       width: 62px;
       height: 62px;
       padding: 3px;
-      border: 1px solid var(--line);
+      /* Sin plato: sólo la mascota. El botón es el área de toque, y la sombra
+         es la de la propia mascota, lo que la despega de lo que haya debajo. */
+      border: 0;
       border-radius: 50%;
-      background: var(--surface, #fff);
-      box-shadow: var(--shadow-float);
+      background: none;
+      filter: drop-shadow(0 4px 8px rgb(31 29 26 / 0.22)) drop-shadow(0 1px 2px rgb(31 29 26 / 0.14));
       cursor: pointer;
-      transition: transform var(--motion-duration-fast, 150ms) var(--motion-ease-out, ease-out),
-        box-shadow var(--motion-duration-fast, 150ms) var(--motion-ease-out, ease-out);
+      transition: transform var(--motion-duration-fast, 150ms) var(--motion-ease-out, ease-out);
 
       &:hover {
         transform: translateY(-2px);

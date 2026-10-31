@@ -22,19 +22,6 @@ export const isSkinId = (value: unknown): value is SkinId =>
 export const isAccessoryId = (value: unknown): value is AccessoryId =>
   ACCESSORY_IDS.includes(value as AccessoryId);
 
-/** Las medidas de una skin, escritas como propiedades CSS en el orb. */
-export interface SkinVars {
-  /** Las orejas: desde dónde empiezan, cuánto se meten y sus colores. */
-  '--m-ear-top': string;
-  '--m-ear-side': string;
-  '--m-ear-a': string;
-  '--m-ear-b': string;
-  '--m-ear-in': string;
-  /** Cuánto sobresale la cabeza por encima del centro del orb. */
-  '--m-crown': string;
-}
-
 export interface Skin {
   id: SkinId;
-  vars: SkinVars;
 }

@@ -1,4 +1,4 @@
-import type { FieldAccess, FillField, FillSurface } from './descriptor';
+import type { FieldAccess, FillField, FillOpener, FillSurface } from './descriptor';
 import type { MascotFillService } from './mascot-fill.service';
 
 /**
@@ -201,6 +201,34 @@ async function reveal(
   fill.presses.update((count) => count + 1);
   trigger.click();
   await fill.wait(timing.settleMs);
+}
+
+/**
+ * Abre un formulario que no está en pantalla: la mascota va hasta el botón y
+ * lo pulsa, como haría una persona (el `open()` del `CopilotOpener` de
+ * alkimia, aquí siempre conduciendo los controles de la propia página).
+ *
+ * Devuelve si llegó a pulsar. No espera a que el formulario monte: de eso se
+ * encarga quien llama, con `waitForTool`.
+ */
+export async function playOpen(
+  opener: FillOpener,
+  timing: FillTiming,
+  fill: MascotFillService,
+): Promise<boolean> {
+  if (fill.skipRequested) return false;
+  // La misma acción suele estar repetida en la página (cabecera, tarjeta,
+  // estado vacío): vale la primera que se vea de verdad.
+  const triggers = Array.from(document.querySelectorAll<HTMLElement>(opener.trigger));
+  const trigger = triggers.find(isVisible);
+  if (!trigger) return false;
+
+  fill.saying.set({ key: 'assistant.fill_opening' });
+  if (!(await goToElement(trigger, timing, fill))) return false;
+  fill.presses.update((count) => count + 1);
+  trigger.click();
+  await fill.wait(timing.settleMs);
+  return !fill.skipRequested;
 }
 
 /** Escribe un campo: va hasta él, lo pulsa y pone el valor. */

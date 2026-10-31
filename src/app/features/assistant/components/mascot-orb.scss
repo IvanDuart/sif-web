@@ -119,40 +119,6 @@
 }
 
 /* Las orejas: dos triángulos con la parte de atrás del cuerpo. */
-.mascot-ears {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.mascot-ear {
-  position: absolute;
-  top: var(--m-ear-top, -8px);
-  width: 15px;
-  height: 15px;
-  background: var(--m-ear-a, #3f8a4d);
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
-}
-
-.mascot-ear::after {
-  content: '';
-  position: absolute;
-  inset: 4px 4px 0;
-  background: var(--m-ear-in, #ffb3c7);
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
-}
-
-.mascot-ear--left {
-  left: var(--m-ear-side, 3px);
-  transform: rotate(-16deg);
-}
-
-.mascot-ear--right {
-  right: var(--m-ear-side, 3px);
-  transform: rotate(16deg);
-}
-
 /* Lo que flota alrededor. Posiciones en px del orb de 48. */
 .mascot-heart,
 .mascot-star,

@@ -1392,6 +1392,7 @@
     "confirm": "Save",
     "action_applied": "Done, the changes have been saved.",
     "action_cancelled": "Action cancelled. Nothing has been saved.",
+    "fill_opening": "Let me open the form for you…",
     "fill_writing": "Writing {{field}}…",
     "fill_done": "I've filled in {{count}} fields for you.",
     "fill_review": "I've filled it in. Check it over and save it yourself when it looks right.",

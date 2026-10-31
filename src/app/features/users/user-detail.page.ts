@@ -56,6 +56,8 @@ import { TuiBadge, TuiProgress, TuiSegmented, TuiTabs, TuiTextarea } from '@taig
 import { TuiTable } from '@taiga-ui/addon-table';
 import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
 import { PATIENT_PROFILE_SURFACE } from '../assistant/mascot/fill/surfaces/patient-profile.surface';
+import { MEASUREMENT_OPENER } from '../assistant/mascot/fill/surfaces/measurement.surface';
+import { APPOINTMENT_OPENER } from '../assistant/mascot/fill/surfaces/appointment.surface';
 
 Chart.register(...registerables);
 
@@ -228,10 +230,19 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   private readonly themeService = inject(ThemeService);
 
   constructor() {
+    // Ni el diálogo de medidas ni el de cita están en pantalla hasta que
+    // alguien los abre: se apunta cómo se abren para que los abra la mascota
+    // si hace falta. Los botones ya están detrás de su permiso
+    // (`MANAGE_USER`, `MANAGE_APPOINTMENTS`), así que esto no da acceso a nada
+    // nuevo: si el botón no está, la mascota no encuentra qué pulsar.
+    const fillService = inject(MascotFillService);
+    fillService.registerOpener(MEASUREMENT_OPENER);
+    fillService.registerOpener(APPOINTMENT_OPENER);
+
     // La anamnesis la puede rellenar la mascota. Esta pantalla no tiene botón
     // de guardar —se guarda sola—, así que una escritura definitiva dispara su
     // propio guardado; las intermedias del tecleo no.
-    inject(MascotFillService).register(PATIENT_PROFILE_SURFACE, {
+    fillService.register(PATIENT_PROFILE_SURFACE, {
       get: (key) => (this.editProfileData() as Record<string, unknown>)[key],
       set: (key, value, options) => {
         this.editProfileData.update((data) => ({ ...data, [key]: value ?? null }));

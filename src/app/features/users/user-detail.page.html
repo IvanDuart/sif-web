@@ -90,6 +90,7 @@
               type="button"
               tuiButton appearance="secondary" size="m"
               [disabled]="isClinicalReadOnly()"
+              data-mascot-open="appointment"
               (click)="showRescheduleDialog()">
               <i class="fa-solid fa-calendar-check mr-1" aria-hidden="true"></i>
               {{ t('appointments.reschedule') }}
@@ -100,6 +101,7 @@
               type="button"
               tuiButton appearance="secondary" size="m"
               [disabled]="isClinicalReadOnly()"
+              data-mascot-open="appointment"
               (click)="showNewAppointmentDialog()">
               <i class="fa-solid fa-calendar-plus mr-1" aria-hidden="true"></i>
               {{ t('appointments.new_appointment') }}
@@ -111,7 +113,8 @@
               type="button"
               tuiButton appearance="primary" size="m"
               [disabled]="isClinicalReadOnly()"
-              (click)="showRegisterDialog()">
+              data-mascot-open="measurement"
+                  (click)="showRegisterDialog()">
               <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
               {{ t('measurements.register') }}
             </button>
@@ -420,6 +423,7 @@
                   type="button"
                   tuiButton
                   size="m"
+                  data-mascot-open="measurement"
                   (click)="showRegisterDialog()">
                   <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
                   {{ t('measurements.register') }}

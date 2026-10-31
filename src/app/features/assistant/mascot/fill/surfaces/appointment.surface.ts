@@ -1,6 +1,6 @@
 import { TuiDay, TuiTime } from '@taiga-ui/cdk';
 
-import type { FillSurface } from '../descriptor';
+import type { FillOpener, FillSurface } from '../descriptor';
 
 /** Una opción de un desplegable del diálogo de cita. */
 export interface PickOption {
@@ -93,3 +93,15 @@ export function appointmentSurface(options: AppointmentOptions): FillSurface {
     ],
   };
 }
+
+/**
+ * Cómo abre la mascota el formulario de cita desde la ficha del paciente. La
+ * ficha enseña "Reagendar" o "Nueva cita" según tenga cita próxima o no, y
+ * las dos llevan al mismo diálogo: el selector vale para ambas y se pulsa la
+ * que esté puesta.
+ */
+export const APPOINTMENT_OPENER: FillOpener = {
+  id: 'appointment',
+  tools: ['create_appointment', 'reschedule_appointment'],
+  trigger: '[data-mascot-open="appointment"]',
+};

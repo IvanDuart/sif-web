@@ -16,8 +16,7 @@ import { startBlink, startMotion, type Condition, type MoodKind, type Scene } fr
 import { MascotLifeService, type MascotLife, type MascotMode } from '../mascot/mascot-life.service';
 import { MascotMoodService } from '../mascot/mascot-mood.service';
 import { ARCH, EYE_CX, EYE_CY, EYE_H, EYE_W, FACES, K, OPEN, SHUT, type EyeState } from '../mascot/skins/faces';
-import { geometryOf, mixGeometry, outlinePath, type Geometry } from '../mascot/skins/outlines';
-import { getSkin } from '../mascot/skins/registry';
+import { earsOf, geometryOf, mixGeometry, outlinePath, type Ear, type Geometry } from '../mascot/skins/outlines';
 import { DEFAULT_SKIN, type AccessoryId, type SkinId } from '../mascot/skins/types';
 
 type Eyes = readonly [EyeState, EyeState];
@@ -92,6 +91,8 @@ export class MascotOrb {
   readonly light = signal('#3f8a4d');
   readonly spot = signal<readonly number[]>([56, 38, -30, 50, 62, 0.9]);
   readonly halo = signal(0);
+  /** Las orejas, medidas sobre el contorno de la skin que se esté dibujando. */
+  readonly ears = signal<readonly Ear[]>([]);
 
   private readonly orb = viewChild<ElementRef<HTMLElement>>('orb');
   private current: Geometry | null = null;
@@ -101,8 +102,6 @@ export class MascotOrb {
 
   /** El orb se dibuja siempre en una caja de 48px y se escala al tamaño pedido. */
   readonly scale = computed(() => this.sizePx() / 48);
-
-  readonly skinStyle = computed(() => getSkin(this.skin()).vars as unknown as Record<string, string>);
 
   // Constantes de la cara expuestas al template.
   readonly eyeCx = EYE_CX;
@@ -239,6 +238,7 @@ export class MascotOrb {
     this.light.set(geometry.light);
     this.spot.set(geometry.spot);
     this.halo.set(geometry.halo);
+    this.ears.set(earsOf(geometry));
   }
 
   // ── Ojos ─────────────────────────────────────────────────────────────
