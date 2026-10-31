@@ -49,10 +49,8 @@ const GLANCE_MS = 1100;
 /** En reposo y sin que nadie le haga caso en todo este rato (más lo que salga del rango), se aburre. */
 export const BORED_AFTER_MS = 40_000;
 const BORED_RANGE_MS = 20_000;
-/** Lo que aguanta con el teléfono antes de que se le cierren los ojos. */
-export const BORED_PHONE_MS = 25_000;
-/** Cada cuánto el aburrimiento empieza por el teléfono en vez de por dormirse directamente. */
-const PHONE_FIRST = 0.6;
+/** Lo que se entretiene con el teléfono antes de que se le cierren los ojos. */
+export const BORED_PHONE_MS = 45_000;
 
 export const DIZZY_MS = 2400;
 export const BLUSH_MS = 2600;
@@ -162,7 +160,7 @@ export class MascotLifeService {
     });
 
     // Nadie le hace caso: esperando una respuesta saca el teléfono, y en reposo
-    // acaba aburriéndose (teléfono o siesta). Cualquier atención la despierta.
+    // se aburre, saca el teléfono y acaba durmiéndose. Cualquier atención la despierta.
     effect((onCleanup) => {
       const mode = this.mode();
       const awake = this.awake();
@@ -206,7 +204,7 @@ export class MascotLifeService {
         later(PHONE_AFTER_MS, takePhone);
       } else {
         later(BORED_AFTER_MS + Math.random() * BORED_RANGE_MS, () => {
-          if (Math.random() >= PHONE_FIRST) return dozeOff();
+          // Siempre el teléfono primero: la siesta es el final, no una alternativa.
           takePhone();
           later(BORED_PHONE_MS, dozeOff);
         });
