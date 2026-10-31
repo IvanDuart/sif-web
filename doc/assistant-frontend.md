@@ -92,8 +92,16 @@ El backend puede devolver estas pantallas en `uiActions[].screen`:
 | `PATIENT_MEASUREMENTS` | Mediciones del paciente (`params.patientId`) |
 | `PATIENT_APPOINTMENTS` | Citas del paciente (`params.patientId`) |
 | `PROFILE`, `ANAMNESIS`, `MEASUREMENTS`, `MENU`, `APPOINTMENTS`, `DIARY` | Pantallas heredadas |
+| `SETTINGS` | Ajustes del centro |
+| `SETTINGS_SCHEDULES` | Ajustes → Horarios → Jornadas |
+| `SETTINGS_ASSIGNMENTS` | Ajustes → Horarios → Asignaciones |
+| `SETTINGS_HOLIDAYS` | Ajustes → Horarios → Festivos |
 
 Todas las acciones de paciente incluyen `params.patientId`.
+
+`PATIENTS` acepta además `params.query`: el listado se abre ya filtrado por ese
+texto, que es como se espera que `find_patient` enseñe lo que ha encontrado
+cuando hay más de un candidato.
 
 ---
 
@@ -120,7 +128,42 @@ Herramientas de escritura disponibles:
 - `create_menu_from_description`
 - `set_active_patient` (inmediata, no requiere confirmación)
 
+Configuración del centro (todas con `MANAGE_TENANT`):
+
+- `create_schedule`, `update_schedule`
+- `assign_schedule`, `update_schedule_assignment`
+- `create_holiday`
+- `import_holidays` (sin formulario: se queda en la tarjeta de confirmar)
+
 El frontend solo necesita renderizar `pendingAction.preview` y llamar a `confirm` o `reject`.
+
+### 5.1 Campos del `preview` que la mascota sabe rellenar
+
+Si el formulario correspondiente está en pantalla —o la mascota sabe abrirlo—
+no se enseña la tarjeta de confirmar: la mascota navega, abre el diálogo y lo
+rellena, y guarda la persona. Para eso el `preview` tiene que nombrar los
+campos así:
+
+| Tool | `preview[].field` |
+|---|---|
+| `create_schedule` / `update_schedule` | `name`, `color`, `details[i].dayOfWeek`, `details[i].startTime`, `details[i].endTime` |
+| `assign_schedule` / `update_schedule_assignment` | `scheduleId`, `validFrom`, `validTo` |
+| `create_holiday` | `holidayDate`, `description`, `type` |
+
+Notas del contrato:
+
+- **Las filas van indexadas**: `details[0].startTime`. Los índices se renumeran
+  desde 0 en el orden en que llegan, así que no hace falta que sean
+  consecutivos. Tope de 14 tramos por jornada.
+- **Los valores son texto**, como en el resto del contrato. Las horas en
+  `HH:mm`, las fechas en `YYYY-MM-DD` (también se acepta `DD/MM/YYYY`), el
+  color en hexadecimal y el día de la semana como número ISO (`1` = lunes) o
+  como nombre.
+- **Los desplegables se nombran por lo que se ve**: `scheduleId` acepta el id o
+  el nombre de la jornada, y `type` acepta `NATIONAL`/`LOCAL` o su etiqueta. Si
+  el nombre es ambiguo el campo se deja en blanco en vez de adivinar.
+- `assign_schedule` **no lleva `year`**: el diálogo lo deduce de `validFrom`.
+  Si no se manda `validTo`, la asignación queda indefinida.
 
 ---
 

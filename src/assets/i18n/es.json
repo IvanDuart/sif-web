@@ -1452,6 +1452,8 @@
     "confirm": "Guardar",
     "action_applied": "Listo, he guardado los cambios.",
     "action_cancelled": "He cancelado la acción. No se ha guardado nada.",
+    "subject_not_allowed": "Este paciente no está asignado a ti, así que no puedo trabajar con su ficha. Te ayudo con lo demás.",
+    "fill_adding": "Añado un tramo más…",
     "fill_opening": "Voy a abrirte el formulario…",
     "fill_writing": "Escribiendo {{field}}…",
     "fill_done": "Te he rellenado {{count}} campos.",

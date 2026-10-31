@@ -10,6 +10,9 @@ import { TenantContextService } from '../../../core/tenant/tenant-context.servic
 import { NotificationService } from '../../../core/ui';
 import { ScheduleDto } from '../../../core/api/models/schedule.model';
 import { themePrimary } from '../../../shared/utils/chart-config';
+import { formAccess } from '../../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../../assistant/mascot/fill/mascot-fill.service';
+import { scheduleSurface } from '../../assistant/mascot/fill/surfaces/schedule.surface';
 
 export interface ScheduleFormDialogInput {
   schedule?: ScheduleDto;
@@ -60,6 +63,18 @@ export class ScheduleFormDialog {
   }
 
   constructor() {
+    // Mientras el diálogo esté abierto, la mascota puede rellenarlo. Los
+    // tramos van por referencia: ella misma los va creando al rellenar.
+    inject(MascotFillService).register(
+      scheduleSurface({
+        // El desplegable va por etiqueta; el número del día sirve para que el
+        // asistente pueda mandar `dayOfWeek: 1` en vez de "Lunes".
+        days: () => this.dayOptions().map((day) => ({ label: day.label, value: String(day.value) })),
+        blocks: () => this.details.length,
+      }),
+      formAccess(this.form),
+    );
+
     const data = this.context.data;
     if (data?.schedule) {
       const s = data.schedule;

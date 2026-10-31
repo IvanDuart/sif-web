@@ -8,6 +8,9 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { HolidayService } from '../../../core/api/services/holiday.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
 import { NotificationService } from '../../../core/ui';
+import { formAccess } from '../../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../../assistant/mascot/fill/mascot-fill.service';
+import { holidaySurface } from '../../assistant/mascot/fill/surfaces/holiday.surface';
 
 @Component({
   selector: 'app-holiday-form-dialog',
@@ -40,6 +43,14 @@ export class HolidayFormDialog {
     description: ['', Validators.required],
     type: ['', Validators.required],
   });
+
+  constructor() {
+    // Mientras el diálogo esté abierto, la mascota puede rellenarlo.
+    inject(MascotFillService).register(
+      holidaySurface({ types: () => this.typeOptions() }),
+      formAccess(this.form),
+    );
+  }
 
   save() {
     if (this.form.invalid) return;

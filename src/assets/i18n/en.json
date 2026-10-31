@@ -1392,6 +1392,8 @@
     "confirm": "Save",
     "action_applied": "Done, the changes have been saved.",
     "action_cancelled": "Action cancelled. Nothing has been saved.",
+    "subject_not_allowed": "This patient isn't assigned to you, so I can't work with their file. I can still help with everything else.",
+    "fill_adding": "Adding one more block…",
     "fill_opening": "Let me open the form for you…",
     "fill_writing": "Writing {{field}}…",
     "fill_done": "I've filled in {{count}} fields for you.",

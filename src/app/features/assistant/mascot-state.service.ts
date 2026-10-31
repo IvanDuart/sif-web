@@ -2,7 +2,7 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
-import { Observable, catchError, finalize, of, shareReplay, tap } from 'rxjs';
+import { Observable, catchError, finalize, of, shareReplay, tap, throwError } from 'rxjs';
 
 import { AssistantService } from '../../core/api/services/assistant.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -62,6 +62,14 @@ export class MascotStateService {
 
   readonly session = signal<AssistantSessionDto | null>(null);
   readonly consentRequired = signal(false);
+
+  /**
+   * Los pacientes que el backend no deja usar como `subjectUserId` (no están
+   * asignados a quien mira). Con ellos la sesión se abre SIN paciente, y hay
+   * que recordarlo: si no, `openPanel` vería que la sesión no apunta a la
+   * ficha y se pondría a cerrarla y abrirla una y otra vez.
+   */
+  private readonly deniedSubjects = new Set<string>();
   readonly messages = signal<MascotMessage[]>([]);
   readonly pendingAction = signal<AssistantPendingActionDto | null>(null);
   readonly sending = signal(false);
@@ -199,7 +207,7 @@ export class MascotStateService {
     // Si el nutricionista cambia de ficha, la sesión anterior apuntaba a otro
     // paciente: se cierra y se abre una nueva con el subject actual.
     const session = this.session();
-    if (session && (session.subjectUserId ?? null) !== this.currentSubjectUserId()) {
+    if (session && this.isStaleFor(session, this.currentSubjectUserId())) {
       this.closeRemoteSession(session);
       this.resetConversation(false);
     }
@@ -231,15 +239,26 @@ export class MascotStateService {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return of(null);
 
+    const screen = this.currentScreen();
+    const subjectUserId = this.currentSubjectUserId();
+
     this.sessionRequest = this.api
       // Si el nutricionista abre el asistente desde una ficha, esa ficha es el
       // paciente activo. Sin ficha, arranca sin paciente y el backend lo fija
       // después con `set_active_patient` cuando la tarea lo requiere.
-      .createSession(tenantId, {
-        subjectUserId: this.currentSubjectUserId(),
-        screen: this.currentScreen(),
-      })
+      .createSession(tenantId, { subjectUserId, screen })
       .pipe(
+        catchError((error: HttpErrorResponse) => {
+          // Un nutricionista sólo puede abrir sesión con SUS pacientes
+          // (doc/assistant-frontend.md §2). Si la ficha es de otro, el panel
+          // se quedaba muerto con un "no tienes permisos" a secas. Se abre sin
+          // paciente: la mascota sigue sirviendo para lo general y para
+          // rellenar lo que haya en pantalla, y se dice por qué.
+          if (!subjectUserId || !isSubjectDenied(error)) return throwError(() => error);
+          this.deniedSubjects.add(subjectUserId);
+          this.pushSystem(this.transloco.translate('assistant.subject_not_allowed'));
+          return this.api.createSession(tenantId, { subjectUserId: null, screen });
+        }),
         tap((session) => {
           this.session.set(session);
           this.consentRequired.set(session.consentRequired);
@@ -487,6 +506,7 @@ export class MascotStateService {
     if (url.startsWith('/appointments')) return 'AGENDA';
     if (url.startsWith('/users/')) return 'PATIENT_PROFILE';
     if (url.startsWith('/menus')) return 'MENU';
+    if (url.startsWith('/settings')) return 'SETTINGS';
     return 'DASHBOARD';
   }
 
@@ -519,14 +539,30 @@ export class MascotStateService {
     const patientRoute = patientId ? ['/users', patientId] : null;
 
     switch (action.screen) {
-      case 'PATIENTS':
-        return { commands: ['/patients'] };
+      case 'PATIENTS': {
+        // `find_patient` manda a quién busca: el listado abre ya filtrado, que
+        // es lo que la persona vería al teclearlo ella.
+        const query = typeof params['query'] === 'string' ? params['query'].trim() : '';
+        return query === ''
+          ? { commands: ['/patients'] }
+          : { commands: ['/patients'], queryParams: { q: query } };
+      }
       case 'AGENDA':
       case 'APPOINTMENTS':
       case 'PATIENT_APPOINTMENTS':
         return { commands: ['/appointments'] };
       case 'DASHBOARD':
         return { commands: ['/dashboard'] };
+      // Ajustes es maestro-detalle: las secciones no tienen ruta propia, así
+      // que se abren con la pestaña puesta en los query params.
+      case 'SETTINGS':
+        return { commands: ['/settings'] };
+      case 'SETTINGS_SCHEDULES':
+        return { commands: ['/settings'], queryParams: { tab: 'schedules', section: 'schedules' } };
+      case 'SETTINGS_ASSIGNMENTS':
+        return { commands: ['/settings'], queryParams: { tab: 'schedules', section: 'assignments' } };
+      case 'SETTINGS_HOLIDAYS':
+        return { commands: ['/settings'], queryParams: { tab: 'schedules', section: 'holidays' } };
       case 'PATIENT_PROFILE':
       case 'PROFILE':
       case 'ANAMNESIS':
@@ -593,6 +629,16 @@ export class MascotStateService {
   }
 
   /** Traduce el código estable del backend; si no hay clave, usa el detalle. */
+  /**
+   * Si la sesión abierta ya no sirve para la ficha que se está mirando. Una
+   * sesión general sobre un paciente denegado sí sirve: es lo mejor que el
+   * backend nos deja tener ahí.
+   */
+  private isStaleFor(session: AssistantSessionDto, subjectUserId: string | null): boolean {
+    if ((session.subjectUserId ?? null) === subjectUserId) return false;
+    return !(subjectUserId !== null && this.deniedSubjects.has(subjectUserId) && !session.subjectUserId);
+  }
+
   private errorMessage(error: HttpErrorResponse): string {
     const code = problemDetailCode(error);
     if (code) {
@@ -623,4 +669,13 @@ export class MascotStateService {
     this.localId += 1;
     return `local-${this.localId}-${Date.now()}`;
   }
+}
+
+/**
+ * El 403 que dice "ese paciente no es tuyo", distinguido del resto (la IA
+ * apagada del tenant es `error.assistant_disabled` y ésa sí deja el panel sin
+ * nada que hacer).
+ */
+function isSubjectDenied(error: HttpErrorResponse): boolean {
+  return error.status === 403 && problemDetailCode(error) === 'error.permission_denied';
 }

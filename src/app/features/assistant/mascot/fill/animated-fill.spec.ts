@@ -5,6 +5,7 @@ import {
   matchPreview,
   type FieldAccess,
   type FillField,
+  type FillList,
   type FillOpener,
   type FillSurface,
 } from './descriptor';
@@ -256,6 +257,186 @@ describe('relleno animado de la mascota', () => {
       let pressed = 0;
       host.querySelector('button')!.addEventListener('click', () => (pressed += 1));
       fill.requestSkip();
+
+      expect(await playOpen(opener, STILL_TIMING, fill)).toBeFalse();
+      expect(pressed).toBe(0);
+    });
+  });
+
+  describe('filas repetibles', () => {
+    /** Una lista cuyo botón de añadir mete de verdad una fila en el DOM. */
+    function mountList(max?: number): FillList {
+      host.innerHTML = '<div id="rows"></div><button data-mascot-add="details">Añadir</button>';
+      const rows = host.querySelector('#rows')!;
+      const add = host.querySelector('button')!;
+      add.addEventListener('click', () => {
+        const index = rows.children.length;
+        const row = document.createElement('div');
+        row.setAttribute('data-mascot-row', `details.${index}`);
+        row.innerHTML = '<input formcontrolname="startTime" /><input formcontrolname="endTime" />';
+        rows.appendChild(row);
+      });
+      return {
+        key: 'details',
+        add: '[data-mascot-add="details"]',
+        size: () => rows.children.length,
+        max,
+        fields: [field('startTime'), field('endTime')],
+      };
+    }
+
+    const surfaceWith = (list: FillList): FillSurface => ({
+      id: 'schedule',
+      tools: ['create_schedule'],
+      fields: [field('name')],
+      lists: [list],
+    });
+
+    it('reparte lo que manda el backend en filas, en orden', () => {
+      const matched = matchPreview(surfaceWith(mountList()), [
+        { field: 'details[1].startTime', value: '16:00' },
+        { field: 'details[0].startTime', value: '09:00' },
+        { field: 'name', value: 'Invierno' },
+      ]);
+
+      expect(matched.map((item) => item.field.key)).toEqual([
+        'name',
+        'details.0.startTime',
+        'details.1.startTime',
+      ]);
+      expect(matched.map((item) => item.raw)).toEqual(['Invierno', '09:00', '16:00']);
+    });
+
+    it('renumera desde 0: un índice suelto es la primera fila', () => {
+      const matched = matchPreview(surfaceWith(mountList()), [
+        { field: 'details[7].startTime', value: '09:00' },
+      ]);
+
+      expect(matched.map((item) => item.field.key)).toEqual(['details.0.startTime']);
+      expect(matched[0].grow).toEqual(jasmine.objectContaining({ rows: 1 }));
+    });
+
+    it('no crece más allá del tope', () => {
+      const matched = matchPreview(surfaceWith(mountList(2)), [
+        { field: 'details[0].startTime', value: '09:00' },
+        { field: 'details[1].startTime', value: '12:00' },
+        { field: 'details[2].startTime', value: '16:00' },
+      ]);
+
+      expect(matched.map((item) => item.field.key)).toEqual([
+        'details.0.startTime',
+        'details.1.startTime',
+      ]);
+    });
+
+    it('crea las filas que hagan falta antes de escribir en ellas', async () => {
+      const list = mountList();
+      const surface = surfaceWith(list);
+      const { access } = recorder();
+      const report = await playFill(
+        surface,
+        access,
+        matchPreview(surface, [
+          { field: 'details[0].startTime', value: '09:00' },
+          { field: 'details[1].startTime', value: '16:00' },
+        ]),
+        fill,
+        STILL_TIMING,
+      );
+
+      expect(list.size()).toBe(2);
+      expect(report.written).toEqual(['details.0.startTime', 'details.1.startTime']);
+      expect(report.missing).toEqual([]);
+    });
+
+    it('escribe cada fila en SU campo, no en el de la primera', async () => {
+      const list = mountList();
+      const surface = surfaceWith(list);
+      const { access, values } = recorder();
+      await playFill(
+        surface,
+        access,
+        matchPreview(surface, [
+          { field: 'details[0].startTime', value: '09:00' },
+          { field: 'details[1].startTime', value: '16:00' },
+        ]),
+        fill,
+        STILL_TIMING,
+      );
+
+      expect(values['details.0.startTime']).toBe('09:00');
+      expect(values['details.1.startTime']).toBe('16:00');
+    });
+
+    it('aprovecha la fila que ya existe en vez de añadir otra', async () => {
+      const list = mountList();
+      host.querySelector('button')!.click();
+      const surface = surfaceWith(list);
+      await playFill(
+        surface,
+        recorder().access,
+        matchPreview(surface, [{ field: 'details[0].startTime', value: '09:00' }]),
+        fill,
+        STILL_TIMING,
+      );
+
+      expect(list.size()).toBe(1);
+    });
+
+    it('se rinde sin colgarse si el botón de añadir no añade', async () => {
+      host.innerHTML = '<button data-mascot-add="details">Añadir</button>';
+      const list: FillList = {
+        key: 'details',
+        add: '[data-mascot-add="details"]',
+        size: () => 0,
+        fields: [field('startTime')],
+      };
+      const surface = surfaceWith(list);
+      const report = await playFill(
+        surface,
+        recorder().access,
+        matchPreview(surface, [{ field: 'details[0].startTime', value: '09:00' }]),
+        fill,
+        STILL_TIMING,
+      );
+
+      expect(report.missing).toEqual(['details.0.startTime']);
+    });
+  });
+
+  describe('abrir un formulario que vive detrás de una pestaña', () => {
+    const opener: FillOpener = {
+      id: 'schedule',
+      tools: ['create_schedule'],
+      reveal: ['[data-mascot-reveal="tab"]', '[data-mascot-reveal="subtab"]'],
+      trigger: '[data-mascot-open="schedule"]',
+    };
+
+    it('pulsa las pestañas en orden y luego el botón', async () => {
+      const pressed: string[] = [];
+      host.innerHTML =
+        '<button data-mascot-reveal="tab">Horarios</button>' +
+        '<button data-mascot-reveal="subtab">Jornadas</button>';
+      const tabs = Array.from(host.querySelectorAll('button'));
+      tabs[0].addEventListener('click', () => {
+        pressed.push('tab');
+        // La sub-sección no existe hasta que se pulsa la pestaña.
+        const button = document.createElement('button');
+        button.setAttribute('data-mascot-open', 'schedule');
+        button.textContent = 'Nueva jornada';
+        button.addEventListener('click', () => pressed.push('abrir'));
+        host.appendChild(button);
+      });
+      tabs[1].addEventListener('click', () => pressed.push('subtab'));
+
+      expect(await playOpen(opener, STILL_TIMING, fill)).toBeTrue();
+      expect(pressed).toEqual(['tab', 'subtab', 'abrir']);
+    });
+
+    it('no abre nada si la pestaña no está en pantalla', async () => {
+      host.innerHTML = '<button data-mascot-open="schedule">Nueva jornada</button>';
+      let pressed = 0;
+      host.querySelector('button')!.addEventListener('click', () => (pressed += 1));
 
       expect(await playOpen(opener, STILL_TIMING, fill)).toBeFalse();
       expect(pressed).toBe(0);

@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
@@ -111,6 +111,7 @@ export default class PatientsListPage implements OnInit {
   private readonly confirm = inject(ConfirmService);
   private readonly transloco = inject(TranslocoService);
   private readonly permissionsService = inject(PermissionsService);
+  private readonly route = inject(ActivatedRoute);
 
   users = signal<AppUserDto[]>([]);
   loading = signal(false);
@@ -173,6 +174,12 @@ export default class PatientsListPage implements OnInit {
   lastSize = 25;
 
   ngOnInit() {
+    // `?q=` deja el listado filtrado al entrar: es como llega `find_patient`,
+    // y también hace enlazable una búsqueda. Sin `emitEvent` para no disparar
+    // la recarga con rebote: abajo ya se recarga una vez.
+    const query = this.route.snapshot.queryParamMap.get('q')?.trim();
+    if (query) this.searchControl.setValue(query, { emitEvent: false });
+
     this.searchControl.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged()

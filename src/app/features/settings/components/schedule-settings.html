@@ -1,8 +1,8 @@
 <div *transloco="let t">
   <tui-tabs [(activeItemIndex)]="activeSubTab" class="mb-5">
-    <button tuiTab type="button">{{ t('schedule_settings.schedules_tab') }}</button>
-    <button tuiTab type="button">{{ t('schedule_settings.assignments_tab') }}</button>
-    <button tuiTab type="button">{{ t('schedule_settings.holidays_tab') }}</button>
+    <button tuiTab type="button" data-mascot-reveal="schedule-subtab-schedules">{{ t('schedule_settings.schedules_tab') }}</button>
+    <button tuiTab type="button" data-mascot-reveal="schedule-subtab-assignments">{{ t('schedule_settings.assignments_tab') }}</button>
+    <button tuiTab type="button" data-mascot-reveal="schedule-subtab-holidays">{{ t('schedule_settings.holidays_tab') }}</button>
   </tui-tabs>
 
   @if (activeSubTab === 0) {
@@ -14,7 +14,9 @@
           </h2>
           <p class="mt-1 text-[13px] text-surface-400">{{ t('schedule_settings.subtitle') }}</p>
         </div>
-        <button tuiButton appearance="primary" size="m" type="button" class="sm:shrink-0" (click)="showScheduleForm()">
+        <button tuiButton appearance="primary" size="m" type="button" class="sm:shrink-0"
+          data-mascot-open="schedule"
+          (click)="showScheduleForm()">
           <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
           {{ t('schedule_settings.create_schedule') }}
         </button>
@@ -118,7 +120,9 @@
           </h2>
           <p class="mt-1 text-[13px] text-surface-400">{{ t('schedule_settings.subtitle') }}</p>
         </div>
-        <button tuiButton appearance="primary" size="m" type="button" class="sm:shrink-0" (click)="showAssignmentForm()">
+        <button tuiButton appearance="primary" size="m" type="button" class="sm:shrink-0"
+          data-mascot-open="schedule-assignment"
+          (click)="showAssignmentForm()">
           <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
           {{ t('schedule_settings.create_assignment') }}
         </button>
@@ -239,7 +243,9 @@
               {{ t('schedule_settings.import_holidays') }}
             }
           </button>
-          <button tuiButton appearance="primary" size="m" type="button" (click)="showHolidayForm()">
+          <button tuiButton appearance="primary" size="m" type="button"
+            data-mascot-open="holiday"
+            (click)="showHolidayForm()">
             <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
             {{ t('schedule_settings.create_holiday') }}
           </button>

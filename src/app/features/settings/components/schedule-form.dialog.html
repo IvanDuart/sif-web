@@ -28,14 +28,16 @@
     <div class="border-t border-line pt-4">
       <div class="flex items-center justify-between mb-3">
         <span class="text-sm font-semibold text-surface-700 dark:text-surface-300">{{ t('schedule_settings.blocks_count', { count: details.length }) }}</span>
-        <button tuiButton appearance="secondary" size="s" type="button" (click)="addBlock()">
+        <button tuiButton appearance="secondary" size="s" type="button"
+          data-mascot-add="schedule.details"
+          (click)="addBlock()">
           <i class="fa-solid fa-plus mr-1"></i>{{ t('schedule_settings.add_block') }}
         </button>
       </div>
 
       <div formArrayName="details" class="space-y-2">
         @for (detail of details.controls; track detail; let i = $index) {
-           <div [formGroupName]="i" class="grid grid-cols-1 md:[grid-template-columns:190px_170px_auto_170px_36px] gap-2 p-3 rounded bg-surface-50 dark:bg-surface-800">
+           <div [formGroupName]="i" [attr.data-mascot-row]="'details.' + i" class="grid grid-cols-1 md:[grid-template-columns:190px_170px_auto_170px_36px] gap-2 p-3 rounded bg-surface-50 dark:bg-surface-800">
              <tui-textfield tuiChevron>
                <label tuiLabel for="scheduleDay">{{ t('schedule_settings.day') }}</label>
                <input id="scheduleDay" tuiComboBox formControlName="dayOfWeek" />

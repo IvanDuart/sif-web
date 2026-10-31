@@ -6,11 +6,18 @@
  * El contrato de nutricionista (`doc/assistant-frontend.md`) añade las
  * pantallas `PATIENT_*`, `PATIENTS`, `AGENDA` y `DASHBOARD`; las heredadas se
  * mantienen por compatibilidad con respuestas antiguas.
+ *
+ * Las `SETTINGS_*` son la configuración del centro: abren Ajustes ya en su
+ * pestaña, porque las secciones no tienen ruta propia.
  */
 export type AssistantScreen =
   | 'PATIENTS'
   | 'AGENDA'
   | 'DASHBOARD'
+  | 'SETTINGS'
+  | 'SETTINGS_SCHEDULES'
+  | 'SETTINGS_ASSIGNMENTS'
+  | 'SETTINGS_HOLIDAYS'
   | 'PATIENT_PROFILE'
   | 'PATIENT_MENU'
   | 'PATIENT_MEASUREMENTS'

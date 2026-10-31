@@ -9,6 +9,9 @@ import { ScheduleService } from '../../../core/api/services/schedule.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
 import { NotificationService } from '../../../core/ui';
 import { ScheduleDto, TenantScheduleAssignmentDto } from '../../../core/api/models/schedule.model';
+import { formAccess } from '../../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../../assistant/mascot/fill/mascot-fill.service';
+import { scheduleAssignmentSurface } from '../../assistant/mascot/fill/surfaces/schedule-assignment.surface';
 
 export interface AssignmentFormDialogInput {
   schedules: ScheduleDto[];
@@ -48,6 +51,14 @@ export class AssignmentFormDialog {
   });
 
   constructor() {
+    // Mientras el diálogo esté abierto, la mascota puede rellenarlo.
+    inject(MascotFillService).register(
+      scheduleAssignmentSurface({
+        schedules: () => this.schedules().map((s) => ({ label: s.name, value: s.id })),
+      }),
+      formAccess(this.form),
+    );
+
     const data = this.context.data;
     const assignment = data?.assignment;
 

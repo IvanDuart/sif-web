@@ -54,6 +54,7 @@
           ? 'bg-brand-tint-10 font-medium text-primary-700 dark:text-primary-300'
           : 'text-surface-600 hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-800'"
         [attr.aria-current]="activeTab === 2 ? 'true' : null"
+        data-mascot-reveal="settings-tab-schedules"
         (click)="activeTab = 2"
       >
         <i class="fa-solid fa-clock w-4 text-center opacity-80" aria-hidden="true"></i>

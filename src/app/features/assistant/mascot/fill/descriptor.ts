@@ -33,12 +33,37 @@ export interface FillField {
   parse?: (raw: string) => unknown;
 }
 
+/**
+ * Una lista de filas repetibles (los tramos de una jornada). El formulario
+ * arranca sin filas, así que antes de escribir en la fila N hay que pulsar N
+ * veces el botón de añadir: eso es lo que declara `add`, y es a las filas lo
+ * que `reveal` es a un paso escondido.
+ *
+ * El backend las nombra `<key>[<i>].<campo>` (`details[0].startTime`); aquí se
+ * traducen a la ruta que entiende el formulario (`details.0.startTime`) y al
+ * ancla del DOM, que la plantilla marca con `data-mascot-row="<key>.<i>"`.
+ */
+export interface FillList {
+  /** Cómo la nombran el backend y el formulario: `details`. */
+  key: string;
+  /** El botón que añade una fila más. */
+  add: string;
+  /** Cuántas filas hay ahora mismo en el formulario. */
+  size(): number;
+  /** Los campos de UNA fila, con su clave relativa (`startTime`). */
+  fields: readonly FillField[];
+  /** Tope de filas; lo que pase de ahí se descarta en vez de crecer sin fin. */
+  max?: number;
+}
+
 export interface FillSurface {
   /** Identifica el formulario; sale en `data-mascot-field="<id>.<key>"`. */
   id: string;
   /** Las tools del asistente que rellenan este formulario. */
   tools: readonly string[];
   fields: readonly FillField[];
+  /** Las listas de filas repetibles, si las tiene. */
+  lists?: readonly FillList[];
 }
 
 /** Cómo se lee y se escribe un campo, sea lo que sea el formulario por dentro. */
@@ -66,17 +91,82 @@ export function formAccess(form: FormGroup): FieldAccess {
   };
 }
 
+/** Un campo del formulario con lo que hay que escribir en él. */
+export interface FillValue {
+  field: FillField;
+  raw: string;
+  /** Filas que la lista debe tener antes de poder escribir aquí. */
+  grow?: { list: FillList; rows: number };
+}
+
+/**
+ * De `details[2].startTime` a `['details', 2, 'startTime']`. Se acepta también
+ * la forma con punto (`details.2.startTime`) porque es como lo nombra el
+ * formulario y es fácil que el backend la copie de ahí.
+ */
+function parseRowKey(name: string): { list: string; index: number; field: string } | null {
+  const match = /^([A-Za-z_][\w-]*)(?:\[(\d+)\]|\.(\d+))\.(.+)$/.exec(name);
+  if (!match) return null;
+  return { list: match[1], index: Number(match[2] ?? match[3]), field: match[4] };
+}
+
 /** Qué campos de este formulario cubre lo que manda el backend, en el orden del formulario. */
 export function matchPreview(
   surface: FillSurface,
   preview: readonly { field: string; value: string }[],
-): { field: FillField; raw: string }[] {
+): FillValue[] {
   const byKey = new Map(preview.map((item) => [item.field, item.value]));
-  return surface.fields.flatMap((field) => {
+  const flat = surface.fields.flatMap<FillValue>((field) => {
     const key = field.from.find((name) => byKey.has(name));
     const raw = key === undefined ? undefined : byKey.get(key);
     return raw === undefined || raw === '' ? [] : [{ field, raw }];
   });
+  return [...flat, ...(surface.lists ?? []).flatMap((list) => matchList(list, preview))];
+}
+
+/**
+ * Las filas que el backend manda para una lista, renumeradas a partir de 0 y en
+ * orden: el formulario crece fila a fila, así que un `details[3]` suelto es la
+ * primera fila, no la cuarta.
+ */
+function matchList(list: FillList, preview: readonly { field: string; value: string }[]): FillValue[] {
+  const rows = new Map<number, Map<string, string>>();
+  for (const { field, value } of preview) {
+    const parsed = parseRowKey(field);
+    if (!parsed || parsed.list !== list.key || value === '') continue;
+    const row = rows.get(parsed.index) ?? new Map<string, string>();
+    row.set(parsed.field, value);
+    rows.set(parsed.index, row);
+  }
+
+  const ordered = [...rows.keys()].sort((a, b) => a - b);
+  const capped = list.max === undefined ? ordered : ordered.slice(0, list.max);
+  return capped.flatMap((source, index) => {
+    const row = rows.get(source) as Map<string, string>;
+    return list.fields.flatMap<FillValue>((field) => {
+      const key = field.from.find((name) => row.has(name));
+      const raw = key === undefined ? undefined : row.get(key);
+      if (raw === undefined || raw === '') return [];
+      return [{ field: rowField(list, field, index), raw, grow: { list, rows: index + 1 } }];
+    });
+  });
+}
+
+/**
+ * El campo de una fila concreta: la clave pasa a ser la ruta del formulario
+ * (`details.0.startTime`, que es lo que entiende `FormGroup.get`) y el ancla se
+ * busca dentro de la fila, porque en el DOM todas las filas repiten el mismo
+ * `formControlName`.
+ */
+function rowField(list: FillList, field: FillField, index: number): FillField {
+  const key = `${list.key}.${index}.${field.key}`;
+  const row = `[data-mascot-row="${list.key}.${index}"]`;
+  return {
+    ...field,
+    key,
+    from: [key],
+    anchor: field.anchor ? `${row} ${field.anchor}` : `${row} [formcontrolname="${field.key}"]`,
+  };
 }
 
 /**
@@ -103,4 +193,10 @@ export interface FillOpener {
    * acción suele estar repetida en la página (cabecera, tarjeta, estado vacío).
    */
   trigger: string;
+  /**
+   * Lo que hay que pulsar ANTES para que el botón esté en pantalla, en orden:
+   * las pestañas de ajustes, que sólo montan la sección activa. Pulsar una
+   * pestaña ya activa no hace nada, así que no hace falta comprobarlo.
+   */
+  reveal?: readonly string[];
 }

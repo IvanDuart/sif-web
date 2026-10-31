@@ -1,5 +1,4 @@
 import { Component, computed, DestroyRef, inject, NgZone, signal, viewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
-import { NgComponentOutlet } from '@angular/common';
 import { RouterOutlet, RouterModule, Router } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -59,8 +58,7 @@ const NAV_ITEMS: NavItem[] = [
     TuiProgressBar,
     TuiAvatar,
     ...TuiDropdown,
-    TuiHint,
-    NgComponentOutlet,
+    TuiHint
   ],
   templateUrl: './shell.html',
   styleUrls: ['./shell.scss']
