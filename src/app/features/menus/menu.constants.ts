@@ -1,6 +1,10 @@
 /**
- * Días y tipos de comida. El backend los guarda como texto libre `string(20)`:
- * estos son los valores que ya usa la aplicación y no deben cambiarse.
+ * Días y tipos de comida en el formato legacy que usa la UI.
+ *
+ * El backend ya persiste enums ingleses (`MONDAY`, `BREAKFAST`…), pero
+ * `meal-enums.ts` normaliza las respuestas a estos valores y convierte las
+ * peticiones a inglés. Las claves i18n y el orden de la rejilla siguen
+ * funcionando sin cambios.
  *
  * Desayuno y merienda no están aquí a propósito — viven en el perfil del paciente.
  */

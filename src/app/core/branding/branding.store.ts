@@ -1,8 +1,9 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { TenantBrandingDto } from '../api/models/branding.model';
-import { MenuCreationMode } from '../api/models/tenant.model';
+import { MenuCreationMode, NutrientDisplayMode } from '../api/models/tenant.model';
 import { NutrientDto } from '../api/models/food.model';
 import { FoodService } from '../api/services/food.api';
+import { TenantContextService } from '../tenant/tenant-context.service';
 
 /**
  * Caché en memoria del branding del tenant, rellenada por `brandingResolver`
@@ -14,6 +15,7 @@ import { FoodService } from '../api/services/food.api';
 @Injectable({ providedIn: 'root' })
 export class BrandingStore {
   private readonly foodService = inject(FoodService);
+  private readonly tenantCtx = inject(TenantContextService);
 
   readonly branding = signal<TenantBrandingDto | null>(null);
 
@@ -25,6 +27,29 @@ export class BrandingStore {
   );
 
   readonly isBedcaMode = computed(() => this.menuCreationMode() === 'BEDCA');
+
+  /**
+   * Nivel de detalle nutricional que el centro permite mostrar (P2). Vive en
+   * `TenantPreferences`, así que se lee del perfil del tenant y no del endpoint
+   * público de branding (que no incluye `preferences`).
+   */
+  readonly nutrientDisplayMode = computed<NutrientDisplayMode>(
+    () => this.tenantCtx.tenantProfile()?.preferences?.nutrient_display_mode ?? 'HIDDEN'
+  );
+
+  readonly showNutrition = computed(() => this.nutrientDisplayMode() !== 'HIDDEN');
+
+  /** Códigos visibles: `[]` en `HIDDEN`, lista en `MACROS`, `null` = todos en `FULL`. */
+  readonly visibleNutrientCodes = computed<readonly string[] | null>(() => {
+    switch (this.nutrientDisplayMode()) {
+      case 'HIDDEN':
+        return [];
+      case 'MACROS':
+        return ['ENERC_KCAL', 'PROT', 'FAT', 'CHO', 'CHOCDF', 'FIBTG', 'SUGAR'];
+      default:
+        return null;
+    }
+  });
 
   /**
    * Catálogo de nutrientes, de donde salen etiquetas y unidades. Se pide una

@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AppointmentTypeService } from '../../../core/api/services/appointment-type.api';
+import { TenantService } from '../../../core/api/services/tenant.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
 import { AppointmentTypeDto } from '../../../core/api/models/appointment-type.model';
 import { NotificationService, ModalService, ConfirmService } from '../../../core/ui';
@@ -18,6 +19,7 @@ import { TuiBadge } from '@taiga-ui/kit';
 })
 export class AppointmentTypesSettings implements OnInit {
   private readonly appointmentTypeService = inject(AppointmentTypeService);
+  private readonly tenantService = inject(TenantService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly modal = inject(ModalService);
   private readonly confirm = inject(ConfirmService);
@@ -26,9 +28,21 @@ export class AppointmentTypesSettings implements OnInit {
 
   types = signal<AppointmentTypeDto[]>([]);
   loading = signal(false);
+  currency = signal('EUR');
 
   ngOnInit() {
+    this.loadCurrency();
     this.loadTypes();
+  }
+
+  private loadCurrency(): void {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    this.tenantService.getProfile(tenantId).subscribe({
+      next: tenant => this.currency.set(tenant.currency ?? 'EUR'),
+      // Sin perfil se mantiene EUR como fallback visual.
+      error: () => this.currency.set('EUR'),
+    });
   }
 
   loadTypes() {
@@ -57,7 +71,7 @@ export class AppointmentTypesSettings implements OnInit {
   formatPrice(price: number): string {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
-      currency: 'EUR'
+      currency: this.currency()
     }).format(price);
   }
 

@@ -84,7 +84,7 @@
           <div class="data-card p-4">
             <p class="text-xs text-surface-400">{{ t('revenue.kpi_revenue') }}</p>
             <p class="text-2xl lg:text-3xl font-display font-bold text-primary-600 dark:text-primary-400 mt-2 tabular-nums">
-              {{ formatEUR(revenue()!.total) }}
+              {{ formatCurrency(revenue()!.total) }}
             </p>
           </div>
           <div class="data-card p-4">
@@ -96,7 +96,7 @@
           <div class="data-card p-4">
             <p class="text-xs text-surface-400">{{ t('revenue.kpi_average_ticket') }}</p>
             <p class="text-2xl lg:text-3xl font-display font-bold text-surface-800 dark:text-surface-100 mt-2 tabular-nums">
-              {{ formatEUR(revenue()!.averageTicket) }}
+              {{ formatCurrency(revenue()!.averageTicket) }}
             </p>
           </div>
           <div class="data-card p-4">
@@ -139,7 +139,7 @@
                   @for (point of revenueSeries(); track point.from) {
                     <tr>
                       <td>{{ point.label }}</td>
-                      <td class="text-right tabular-nums">{{ formatEUR(point.value) }}</td>
+                      <td class="text-right tabular-nums">{{ formatCurrency(point.value) }}</td>
                     </tr>
                   }
                 </tbody>
@@ -156,7 +156,7 @@
                 @for (n of byNutritionist(); track n.nutritionistId) {
                   <li class="grid grid-cols-[1fr_auto] gap-x-3 py-2">
                     <span class="text-sm font-medium text-surface-900 dark:text-surface-0">{{ n.nutritionistName }}</span>
-                    <span class="text-sm tabular-nums text-right text-surface-700 dark:text-surface-200">{{ formatEUR(n.revenue) }}</span>
+                    <span class="text-sm tabular-nums text-right text-surface-700 dark:text-surface-200">{{ formatCurrency(n.revenue) }}</span>
                     <div class="col-span-2 h-1.5 rounded-pill bg-surface-100 dark:bg-surface-800 overflow-hidden">
                       <span class="block h-full rounded-pill bg-primary-500" [style.width.%]="n.revenue / maxNutritionistRevenue() * 100"></span>
                     </div>
@@ -178,7 +178,7 @@
                 @for (s of byServiceType(); track s.typeId ?? s.typeName) {
                   <li class="grid grid-cols-[1fr_auto] gap-x-3 py-2">
                     <span class="text-sm font-medium text-surface-900 dark:text-surface-0">{{ s.typeName }}</span>
-                    <span class="text-sm tabular-nums text-right text-surface-700 dark:text-surface-200">{{ formatEUR(s.revenue) }}</span>
+                    <span class="text-sm tabular-nums text-right text-surface-700 dark:text-surface-200">{{ formatCurrency(s.revenue) }}</span>
                     <div class="col-span-2 h-1.5 rounded-pill bg-surface-100 dark:bg-surface-800 overflow-hidden">
                       <span class="block h-full rounded-pill bg-primary-500" [style.width.%]="s.revenue / maxServiceRevenue() * 100"></span>
                     </div>

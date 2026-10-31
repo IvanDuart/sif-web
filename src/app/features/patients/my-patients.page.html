@@ -63,6 +63,7 @@
               <tr>
                 <th tuiTh scope="col">{{ t('appointments.patient') }}</th>
                 <th tuiTh scope="col">{{ t('patients.my_last_appointment') }}</th>
+                <th tuiTh scope="col">{{ t('patients.my_last_no_show') }}</th>
                 <th tuiTh scope="col">{{ t('patients.my_next_appointment') }}</th>
                 <th tuiTh scope="col">{{ t('common.status') }}</th>
                 <th tuiTh scope="col" class="text-center" style="width: 16rem;">{{ t('common.actions') }}</th>
@@ -87,7 +88,12 @@
                   </td>
                   <td tuiTd>
                     <span class="text-sm font-mono">
-                      {{ patient.lastAppointment ? formatInstantWithTime(patient.lastAppointment) : t('patients.my_no_appointments') }}
+                      {{ patient.lastVisitDate ? formatInstantWithTime(patient.lastVisitDate) : t('patients.my_no_appointments') }}
+                    </span>
+                  </td>
+                  <td tuiTd>
+                    <span class="text-sm font-mono">
+                      {{ patient.lastNoShowDate ? formatInstantWithTime(patient.lastNoShowDate) : '—' }}
                     </span>
                   </td>
                   <td tuiTd>
@@ -159,8 +165,12 @@
                 <div class="flex justify-between gap-2">
                   <dt class="text-surface-500">{{ t('patients.my_last_appointment') }}</dt>
                   <dd class="font-mono">
-                    {{ patient.lastAppointment ? formatInstantWithTime(patient.lastAppointment) : t('patients.my_no_appointments') }}
+                    {{ patient.lastVisitDate ? formatInstantWithTime(patient.lastVisitDate) : t('patients.my_no_appointments') }}
                   </dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt class="text-surface-500">{{ t('patients.my_last_no_show') }}</dt>
+                  <dd class="font-mono">{{ patient.lastNoShowDate ? formatInstantWithTime(patient.lastNoShowDate) : '—' }}</dd>
                 </div>
                 <div class="flex justify-between gap-2">
                   <dt class="text-surface-500">{{ t('patients.my_next_appointment') }}</dt>

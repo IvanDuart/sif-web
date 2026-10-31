@@ -3,6 +3,37 @@ import { BodyCompositionReport, BodyMeasurementDto } from './body-measurement.mo
 export type UserType = 'STAFF' | 'PATIENT';
 export type Gender = 'MALE' | 'FEMALE';
 
+/** Estado clínico del paciente en un centro, independiente de `enabled` (P1). */
+export type ClinicalStatus = 'ONBOARDING' | 'ACTIVE' | 'PAUSED' | 'DISCHARGED' | 'DROPPED_OUT';
+
+/** Estados en los que el backend rechaza cualquier escritura bajo el tenant. */
+export const CLINICAL_STATUS_READ_ONLY: readonly ClinicalStatus[] = [
+  'PAUSED',
+  'DISCHARGED',
+  'DROPPED_OUT',
+];
+
+export interface ClinicalStatusChangeRequest {
+  clinicalStatus: ClinicalStatus;
+  reason?: string | null;
+}
+
+export interface ClinicalStatusChangeDto {
+  userId: string;
+  clinicalStatus: ClinicalStatus;
+  reason: string | null;
+  changedAt: string;
+}
+
+export interface ClinicalStatusHistoryEntryDto {
+  id: string;
+  previousStatus: ClinicalStatus | null;
+  newStatus: ClinicalStatus;
+  reason: string | null;
+  changedAt: string;
+  changedBy: string | null;
+}
+
 export interface TenantMembershipDto {
   tenantId: string;
   tenantName: string;
@@ -96,14 +127,28 @@ export interface AppUserDto {
   age?: number | null;
   heightCm?: number | null;
   gender?: Gender | null;
+  /** Zona horaria IANA del usuario (p. ej. `Europe/Madrid`). */
+  timezone?: string | null;
+  /** Código ISO del idioma del usuario (p. ej. `es`, `en`). */
+  language?: string | null;
   lastMeasurement?: BodyMeasurementDto | null;
   userType?: UserType;
   /** Titular nutritionist assigned to this patient in the active tenant (V45). */
   assignedNutritionistId?: string | null;
   /** Full name of the titular nutritionist, ready to display. */
   assignedNutritionistName?: string | null;
-  /** Inicio de la última cita `COMPLETED`/`NO_SHOW` del paciente en el centro (ISO-8601 UTC). */
-  lastAppointmentDate?: string | null;
+  /** Estado clínico del paciente en este centro (P1). */
+  clinicalStatus?: ClinicalStatus | null;
+  /** Motivo del último cambio de estado clínico. */
+  clinicalStatusReason?: string | null;
+  /** Fecha del último cambio de estado clínico (ISO-8601 UTC). */
+  clinicalStatusChangedAt?: string | null;
+  /** Fecha de alta del usuario en este centro (ISO-8601 UTC). */
+  joinedAt?: string | null;
+  /** Inicio de la última cita `COMPLETED` del paciente en el centro (T7). */
+  lastVisitDate?: string | null;
+  /** Inicio de la última cita `NO_SHOW` del paciente en el centro (T7). */
+  lastNoShowDate?: string | null;
   /** Inicio de la próxima cita `SCHEDULED`/`PROPOSED` vigente (ISO-8601 UTC). */
   nextAppointmentDate?: string | null;
 }

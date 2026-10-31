@@ -26,11 +26,13 @@
               {{ u.firstName }} {{ u.lastName }}
             </h1>
             <p class="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px] text-surface-500">
-              <span tuiBadge [appearance]="u.enabled !== false ? 'positive' : 'neutral'">
-                {{ u.enabled !== false ? t('users.enabled') : t('users.disabled') }}
-              </span>
               <span tuiBadge appearance="info">
+                <i class="fa-solid mr-1" [class.fa-user]="u.userType !== 'STAFF'" [class.fa-user-doctor]="u.userType === 'STAFF'" aria-hidden="true"></i>
                 {{ u.userType === 'STAFF' ? t('users.user_type_staff') : t('users.user_type_patient') }}
+              </span>
+              <span tuiBadge [appearance]="u.enabled !== false ? 'positive' : 'neutral'">
+                <i class="fa-solid mr-1" [class.fa-toggle-on]="u.enabled !== false" [class.fa-toggle-off]="u.enabled === false" aria-hidden="true"></i>
+                {{ u.enabled !== false ? t('users.enabled') : t('users.disabled') }}
               </span>
               @if (u.age !== null) {
                 <span class="tabular-nums">{{ u.age }} {{ t('common.years') }}</span>
@@ -59,15 +61,35 @@
             *appIfPermission="'MANAGE_USER'"
             type="button"
             tuiButton appearance="secondary" size="m"
+            [disabled]="isClinicalReadOnly()"
             (click)="showEditDialog()">
             <i class="fa-solid fa-pen-to-square mr-1" aria-hidden="true"></i>
             {{ t('users.edit') }}
           </button>
+          @if (u.userType === 'PATIENT') {
+            <button
+              *appIfPermission="'MANAGE_CHAT'"
+              type="button"
+              tuiButton appearance="secondary" size="m"
+              (click)="openChat()">
+              <i class="fa-solid fa-comments mr-1" aria-hidden="true"></i>
+              {{ t('chat.open_chat') }}
+            </button>
+            <button
+              *appIfPermission="'MANAGE_USER'"
+              type="button"
+              tuiButton appearance="secondary" size="m"
+              (click)="showClinicalStatusDialog()">
+              <i class="fa-solid fa-heart-pulse mr-1" aria-hidden="true"></i>
+              {{ t('clinical_status.status') }}
+            </button>
+          }
           @if (nextAppointment()) {
             <button
               *appIfPermission="'MANAGE_APPOINTMENTS'"
               type="button"
               tuiButton appearance="secondary" size="m"
+              [disabled]="isClinicalReadOnly()"
               (click)="showRescheduleDialog()">
               <i class="fa-solid fa-calendar-check mr-1" aria-hidden="true"></i>
               {{ t('appointments.reschedule') }}
@@ -77,6 +99,7 @@
               *appIfPermission="'MANAGE_APPOINTMENTS'"
               type="button"
               tuiButton appearance="secondary" size="m"
+              [disabled]="isClinicalReadOnly()"
               (click)="showNewAppointmentDialog()">
               <i class="fa-solid fa-calendar-plus mr-1" aria-hidden="true"></i>
               {{ t('appointments.new_appointment') }}
@@ -87,6 +110,7 @@
               *appIfPermission="'MANAGE_USER'"
               type="button"
               tuiButton appearance="primary" size="m"
+              [disabled]="isClinicalReadOnly()"
               (click)="showRegisterDialog()">
               <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
               {{ t('measurements.register') }}
@@ -104,6 +128,13 @@
           </button>
         </div>
       </header>
+
+      @if (isClinicalReadOnly()) {
+        <div class="flex items-start gap-3 rounded-md border border-warn bg-warn-soft px-4 py-3 text-sm text-surface-700 dark:text-surface-200">
+          <i class="fa-solid fa-lock mt-0.5 text-warn" aria-hidden="true"></i>
+          <p>{{ t('clinical_status.read_only_notice') }}</p>
+        </div>
+      }
 
       <!-- Tabs nativas Taiga UI -->
       <div class="border-b border-line">
@@ -211,6 +242,27 @@
                         tuiButton appearance="secondary" size="xs"
                         (click)="showAssignNutritionistDialog()">
                         {{ assignedNutritionist().name ? t('users.change_nutritionist') : t('common.assign') }}
+                      </button>
+                    </div>
+                  </div>
+                  <div class="border-b border-line py-3">
+                    <div class="text-xs text-surface-400">{{ t('clinical_status.status') }}</div>
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="truncate text-sm" [class.text-surface-400]="!u.clinicalStatus">
+                        @if (u.clinicalStatus; as status) {
+                          <span tuiBadge [appearance]="clinicalStatusAppearance(status)" [attr.title]="u.clinicalStatusReason ?? ''">
+                            {{ t(clinicalStatusLabel(status)) }}
+                          </span>
+                        } @else {
+                          {{ t('clinical_status.none') }}
+                        }
+                      </span>
+                      <button
+                        *appIfPermission="'MANAGE_USER'"
+                        type="button"
+                        tuiButton appearance="secondary" size="xs"
+                        (click)="showClinicalStatusDialog()">
+                        {{ u.clinicalStatus ? t('clinical_status.change') : t('common.assign') }}
                       </button>
                     </div>
                   </div>

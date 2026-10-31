@@ -1,0 +1,62 @@
+<article class="row" [class.row--own]="own()" *transloco="let t">
+  @if (!own()) {
+    <span class="avatar" aria-hidden="true">{{ initials() }}</span>
+  }
+
+  <div class="bubble" [class.bubble--own]="own()">
+    @if (message().deleted) {
+      <p class="deleted">
+        <i class="fa-solid fa-ban" aria-hidden="true"></i>
+        {{ t('chat.message_deleted') }}
+      </p>
+    } @else if (isImage() && message().attachment; as attachment) {
+      <a
+        class="image-link"
+        [href]="attachment.url"
+        target="_blank"
+        rel="noopener noreferrer"
+        [attr.aria-label]="t('chat.open_image', { name: attachment.fileName })"
+      >
+        <img
+          class="image"
+          [src]="attachment.url"
+          [alt]="attachment.fileName"
+          loading="lazy"
+          (error)="onImageError()"
+        />
+      </a>
+      @if (message().content) {
+        <p class="text">{{ message().content }}</p>
+      }
+    } @else {
+      <p class="text">{{ message().content }}</p>
+    }
+
+    <footer class="meta">
+      <time [attr.datetime]="message().createdAt">{{ message().createdAt | date: 'shortTime' }}</time>
+
+      @if (own()) {
+        @if (read()) {
+          <span class="read">
+            <i class="fa-solid fa-check-double" aria-hidden="true"></i>
+            <span class="sr-only">{{ t('chat.read') }}</span>
+          </span>
+        } @else {
+          <i class="fa-solid fa-check sent" aria-hidden="true"></i>
+        }
+
+        @if (!message().deleted) {
+          <button
+            type="button"
+            class="delete"
+            (click)="remove.emit(message())"
+            [attr.aria-label]="t('chat.delete_message')"
+            [attr.title]="t('chat.delete_message')"
+          >
+            <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+          </button>
+        }
+      }
+    </footer>
+  </div>
+</article>

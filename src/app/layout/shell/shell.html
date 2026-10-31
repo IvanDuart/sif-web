@@ -46,6 +46,9 @@
         >
           <i [class]="item.icon" aria-hidden="true"></i>
           <span class="nav-label">{{ navLabel(item) }}</span>
+          @if (item.route === '/chat/threads' && chatUnread.unread() > 0) {
+            <span class="dot-badge">{{ chatUnread.unread() }}</span>
+          }
         </a>
       }
     </nav>
@@ -254,6 +257,9 @@
             >
               <i [class]="item.icon" aria-hidden="true"></i>
               <span>{{ navLabel(item) }}</span>
+              @if (item.route === '/chat/threads' && chatUnread.unread() > 0) {
+                <span class="dot-badge">{{ chatUnread.unread() }}</span>
+              }
             </a>
           </li>
         }
@@ -304,5 +310,10 @@
         </button>
       </div>
     </div>
+  }
+
+  <!-- ═══════════ Asistente virtual (global, en su propio chunk) ═══════════ -->
+  @if (mascotLauncher(); as mascot) {
+    <ng-container *ngComponentOutlet="mascot" />
   }
 </div>

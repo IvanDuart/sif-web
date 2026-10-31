@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AppUserDto, UserType, UserTenantProfileDto, UpdateUserTenantProfileRequest, UserTenantProfileFixedMealsDto } from '../models/user.model';
+import { AppUserDto, ClinicalStatus, UserType, UserTenantProfileDto, UpdateUserTenantProfileRequest, UserTenantProfileFixedMealsDto } from '../models/user.model';
 import { Page } from '../models/page.model';
 import {ConfigService} from '../../config/config.service';
 
@@ -9,6 +9,8 @@ export interface UserSearchParams {
   search?: string;
   /** Filtro por estado: `true` = activos, `false` = inactivos, omitido = todos. */
   enabled?: boolean;
+  /** Filtro por estado clínico (P1). */
+  clinicalStatus?: ClinicalStatus;
   page?: number;
   size?: number;
   sort?: string[];
@@ -68,6 +70,7 @@ export class UserTenantRoleService {
     if (!params) return httpParams;
     if (params.search) httpParams = httpParams.set('search', params.search);
     if (params.enabled !== undefined) httpParams = httpParams.set('enabled', String(params.enabled));
+    if (params.clinicalStatus) httpParams = httpParams.set('clinicalStatus', params.clinicalStatus);
     if (params.page !== undefined) httpParams = httpParams.set('page', String(params.page));
     if (params.size !== undefined) httpParams = httpParams.set('size', String(params.size));
     (params.sort || []).forEach(s => httpParams = httpParams.append('sort', s));

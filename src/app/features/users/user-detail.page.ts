@@ -18,10 +18,11 @@ import { PatientEventService } from '../../core/api/services/patient-event.api';
 import { BodyMeasurementService } from '../../core/api/services/body-measurement.api';
 import { MenuService } from '../../core/api/services/menu.api';
 import { AppointmentService } from '../../core/api/services/appointment.api';
+import { ChatThreadService } from '../../core/api/services/chat-thread.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { TenantBrandingService } from '../../core/api/services/tenant-branding.api';
 import { MenuTemplateService } from '../../core/api/services/menu-template.api';
-import { AppUserDto, UserTenantProfileDto } from '../../core/api/models/user.model';
+import { AppUserDto, ClinicalStatus, CLINICAL_STATUS_READ_ONLY, UserTenantProfileDto } from '../../core/api/models/user.model';
 import { PatientEventDto } from '../../core/api/models/patient-event.model';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { BodyMeasurementDto, MeasurementHistoryDto, MeasurementPoint, BodyCompositionReport, SegmentalResult, BodySegment, LateralSymmetryResult, MeasurementSource } from '../../core/api/models/body-measurement.model';
@@ -39,6 +40,8 @@ import { WaterIntakeWidget } from '../tenant/dashboard/components/water-intake-w
 import { PatientEventFormDialog } from './patient-event-form.dialog';
 import { AssignMenuTemplateDialog } from './assign-menu-template.dialog';
 import { AssignNutritionistDialog, AssignNutritionistDialogInput } from './assign-nutritionist.dialog';
+import { ClinicalStatusDialog, ClinicalStatusDialogInput } from './clinical-status.dialog';
+import { ClinicalStatusChangeDto } from '../../core/api/models/user.model';
 import { MenuUploadDialog } from '../menus/menu-upload.dialog';
 import { MenuFormDialog } from '../menus/menu-form.dialog';
 import { formatInstant, formatInstantWithTime } from '../../shared/utils/date';
@@ -212,6 +215,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   private readonly templateService = inject(MenuTemplateService);
   private readonly tenantBrandingService = inject(TenantBrandingService);
   private readonly appointmentService = inject(AppointmentService);
+  private readonly chatThreads = inject(ChatThreadService);
   private readonly patientEventService = inject(PatientEventService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly confirm = inject(ConfirmService);
@@ -292,6 +296,27 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   canViewPatientEvents = computed(() => this.permissionsService.has('VIEW_PATIENT_EVENTS'));
   canManagePatientEvents = computed(() => this.permissionsService.has('MANAGE_PATIENT_EVENTS'));
   canManageUsers = computed(() => this.permissionsService.has('MANAGE_USER'));
+
+  /** `true` si el estado clínico bloquea cualquier escritura bajo el tenant (P1). */
+  readonly isClinicalReadOnly = computed(() => {
+    const status = this.user()?.clinicalStatus;
+    return status ? CLINICAL_STATUS_READ_ONLY.includes(status) : false;
+  });
+
+  clinicalStatusLabel(status: ClinicalStatus): string {
+    return `clinical_status.${status.toLowerCase()}`;
+  }
+
+  clinicalStatusAppearance(status: ClinicalStatus): 'positive' | 'warning' | 'neutral' | 'negative' {
+    switch (status) {
+      case 'ACTIVE': return 'positive';
+      case 'ONBOARDING': return 'warning';
+      case 'PAUSED': return 'warning';
+      case 'DISCHARGED': return 'neutral';
+      case 'DROPPED_OUT': return 'negative';
+      default: return 'neutral';
+    }
+  }
 
   /**
    * Titular nutritionist of the patient (V45). Resolved separately because
@@ -902,6 +927,10 @@ export default class UserDetailPage implements OnInit, OnDestroy {
 
   activeTabIndex = signal(0);
 
+  /** Tab solicitado por `?tab=` (lo usa el asistente para abrir una sección). */
+  private pendingTabId: string | null = null;
+  private tabSub?: Subscription;
+
   protected readonly tabs = computed(() => {
     const items: { id: string; label: string; defaultValue?: string; icon: string }[] = [];
 
@@ -964,6 +993,17 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     return initials || '?';
   }
 
+  /** Abre (o crea, si no existe) el chat 1:1 con este paciente. */
+  openChat(): void {
+    const tenantId = this.tenantCtx.currentTenantId();
+    const userId = this.user()?.id;
+    if (!tenantId || !userId) return;
+
+    this.chatThreads.create(tenantId, { patientId: userId }).subscribe({
+      next: (thread) => void this.router.navigate(['/chat/threads', thread.id]),
+    });
+  }
+
   getRoleLabel(user: AppUserDto): string {
     if (user.roleName) return user.roleName;
     const tenantId = this.tenantCtx.currentTenantId();
@@ -981,6 +1021,16 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     }
 
     this.userId = this.route.snapshot.paramMap.get('id') || '';
+
+    // El asistente abre secciones con `?tab=`; si ya estamos en la ficha y sólo
+    // cambia el query param, hay que aplicarlo sin esperar a recargar el usuario.
+    this.tabSub = this.route.queryParamMap.subscribe(params => {
+      const tabId = params.get('tab');
+      this.pendingTabId = tabId;
+      if (!tabId) return;
+      if (this.user()) this.applyPendingTab();
+    });
+
     if (this.userId) {
       this.loadUser();
     }
@@ -1001,6 +1051,20 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     if (this.canViewPatientEvents()) {
       this.loadPatientEvents();
     }
+    this.applyPendingTab();
+  }
+
+  /**
+   * Activa el tab pedido en `?tab=`. Se hace aquí y no en `ngOnInit` porque la
+   * lista de tabs depende de permisos y del usuario ya cargado.
+   */
+  private applyPendingTab(): void {
+    const tabId = this.pendingTabId;
+    if (!tabId) return;
+    this.pendingTabId = null;
+
+    const index = this.tabs().findIndex(tab => tab.id === tabId);
+    if (index >= 0) this.activeTabIndex.set(index);
   }
 
   private loadUser() {
@@ -1037,6 +1101,20 @@ export default class UserDetailPage implements OnInit, OnDestroy {
           id: match?.assignedNutritionistId ?? null,
           name: match?.assignedNutritionistName ?? null
         });
+        // `GET /users/{id}` devuelve `AppUser_Full`; los campos clínicos viven en
+        // `TenantUserDto`, así que se completan desde el listado del tenant.
+        if (match) {
+          this.user.update(current => current ? {
+            ...current,
+            clinicalStatus: match.clinicalStatus ?? current.clinicalStatus,
+            clinicalStatusReason: match.clinicalStatusReason ?? current.clinicalStatusReason,
+            clinicalStatusChangedAt: match.clinicalStatusChangedAt ?? current.clinicalStatusChangedAt,
+            joinedAt: match.joinedAt ?? current.joinedAt,
+            lastVisitDate: match.lastVisitDate ?? current.lastVisitDate,
+            lastNoShowDate: match.lastNoShowDate ?? current.lastNoShowDate,
+            nextAppointmentDate: match.nextAppointmentDate ?? current.nextAppointmentDate,
+          } : current);
+        }
       }
     });
   }
@@ -1627,6 +1705,30 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     });
   }
 
+  showClinicalStatusDialog() {
+    const current = this.user();
+    if (!current) return;
+
+    this.modal.open<ClinicalStatusChangeDto | true, ClinicalStatusDialogInput>(ClinicalStatusDialog, {
+      label: this.transloco.translate('clinical_status.change_title'),
+      size: 'm',
+      data: {
+        patientId: current.id,
+        patientName: `${current.firstName ?? ''} ${current.lastName ?? ''}`.trim() || current.email,
+        currentStatus: current.clinicalStatus,
+        currentReason: current.clinicalStatusReason,
+      }
+    }).subscribe((result) => {
+      if (!result || result === true) return;
+      this.user.update(user => user ? {
+        ...user,
+        clinicalStatus: result.clinicalStatus,
+        clinicalStatusReason: result.reason,
+        clinicalStatusChangedAt: result.changedAt,
+      } : user);
+    });
+  }
+
   /**
    * Agendado desde la ficha (mismo `AppointmentFormDialog` del resto de la
    * app). El paciente de la ficha ya viene seleccionado; para un miembro del
@@ -1768,6 +1870,9 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     }
     if (this.saveSub) {
       this.saveSub.unsubscribe();
+    }
+    if (this.tabSub) {
+      this.tabSub.unsubscribe();
     }
     if (this.savedStatusTimeout) {
       clearTimeout(this.savedStatusTimeout);

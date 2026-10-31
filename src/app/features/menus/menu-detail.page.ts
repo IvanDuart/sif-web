@@ -28,6 +28,7 @@ import { ShoppingListService } from '../../core/api/services/shopping-list.api';
 import { ShoppingListDialog, ShoppingListDialogInput } from './shopping-list.dialog';
 import { ALL_DAYS, MEAL_ORDER, MEAL_TYPES } from './menu.constants';
 import { KCAL, MenuNutritionDto, NutrientMap } from '../../core/api/models/food.model';
+import { normalizeDayOfWeek, normalizeMealType } from '../../core/api/models/meal-enums';
 import { MealCell } from './components/meal-cell';
 import { MealItemsEditor } from './components/meal-items-editor';
 import { LiveIndicator } from '../../shared/ui/live-indicator';
@@ -243,10 +244,38 @@ export default class MenuDetailPage implements OnInit, OnDestroy {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
     this.menuService.getNutrition(tenantId, this.menuId).subscribe({
-      next: result => this.nutrition.set(result),
+      next: result => this.nutrition.set(this.filterNutrition(result)),
       // Sin nutrición la pantalla sigue siendo usable: se ocultan los totales.
       error: () => this.nutrition.set(null),
     });
+  }
+
+  /**
+   * En modo `MACROS` el backend ya limita los nutrientes, pero se filtra también
+   * en cliente para no depender de que la preferencia esté aplicada en todos
+   * los entornos.
+   */
+  private filterNutrition(result: MenuNutritionDto): MenuNutritionDto {
+    const allowed = this.brandingStore.visibleNutrientCodes();
+    const filterMap = (map: NutrientMap): NutrientMap =>
+      allowed
+        ? Object.fromEntries(Object.entries(map).filter(([code]) => allowed.includes(code)))
+        : map;
+
+    return {
+      ...result,
+      total: filterMap(result.total),
+      // La API devuelve las claves de día en inglés (T6); la rejilla las usa en español.
+      days: Object.fromEntries(
+        Object.entries(result.days).map(([day, map]) => [normalizeDayOfWeek(day), filterMap(map)])
+      ),
+      meals: result.meals.map(meal => ({
+        ...meal,
+        dayOfWeek: normalizeDayOfWeek(meal.dayOfWeek),
+        mealType: normalizeMealType(meal.mealType),
+        nutrients: filterMap(meal.nutrients),
+      })),
+    };
   }
 
   /** Total de kcal del día, del endpoint de nutrición. */

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <style>
+    .pet {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      animation: pet-breathe 4.6s ease-in-out infinite;
+    }
+    .eye {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      animation: pet-blink 5.4s ease-in-out infinite;
+    }
+    .eye--right { animation-delay: 90ms; }
+    @keyframes pet-breathe {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+    @keyframes pet-blink {
+      0%, 88%, 100% { transform: scaleY(1); }
+      90% { transform: scaleY(0.08); }
+      92% { transform: scaleY(1); }
+      94% { transform: scaleY(0.08); }
+      96% { transform: scaleY(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pet, .eye { animation: none; }
+    }
+  </style>
+  <g class="pet">
+    <!-- Tallo -->
+    <path d="M 35 40 L 65 40 L 60 85 L 40 85 Z" fill="#8BA973" />
+    <!-- Copa del brócoli -->
+    <circle cx="35" cy="35" r="18" fill="#659C55" />
+    <circle cx="65" cy="35" r="18" fill="#659C55" />
+    <circle cx="50" cy="25" r="22" fill="#659C55" />
+    <!-- Ojos -->
+    <rect class="eye eye--left" x="41" y="55" width="6" height="14" rx="3" fill="#111111" />
+    <rect class="eye eye--right" x="53" y="55" width="6" height="14" rx="3" fill="#111111" />
+  </g>
+</svg>

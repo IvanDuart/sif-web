@@ -59,6 +59,7 @@
     "keycloak-angular": "^21.0.0",
     "keycloak-js": "^26.2.4",
     "libphonenumber-js": "^1.13.9",
+    "lottie-web": "^5.13.0",
     "motion": "^13.4.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

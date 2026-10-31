@@ -1,0 +1,151 @@
+:host {
+  display: block;
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.row--own {
+  justify-content: flex-end;
+}
+
+.avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-pill);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+}
+
+.bubble {
+  min-width: 0;
+  max-width: min(78%, 34rem);
+  padding: 8px 11px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  border-bottom-left-radius: 4px;
+  background: var(--sunken);
+  color: var(--ink);
+}
+
+.bubble--own {
+  border-color: transparent;
+  border-bottom-left-radius: var(--r-md);
+  border-bottom-right-radius: 4px;
+  background: var(--primary);
+  color: var(--p-primary-contrast-color, #fff);
+}
+
+.text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.deleted {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  font-style: italic;
+  opacity: 0.75;
+}
+
+.image-link {
+  display: block;
+  margin: -2px -3px 4px;
+  border-radius: calc(var(--r-md) - 4px);
+  overflow: hidden;
+}
+
+.image {
+  display: block;
+  max-width: 100%;
+  max-height: 320px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  background: var(--surface, transparent);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-top: 3px;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+.bubble--own .meta {
+  opacity: 0.85;
+}
+
+.read {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.delete {
+  display: inline-grid;
+  place-items: center;
+  margin-left: 2px;
+  padding: 2px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font-size: 10px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--motion-duration-fast, 150ms) var(--motion-ease-out, ease-out),
+    background-color var(--motion-duration-fast, 150ms) var(--motion-ease-out, ease-out);
+
+  &:focus-visible {
+    opacity: 1;
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
+  }
+}
+
+.bubble:hover .delete,
+.delete:focus-visible {
+  opacity: 0.85;
+}
+
+.delete:hover {
+  background: rgb(0 0 0 / 0.12);
+}
+
+@media (max-width: 640px) {
+  .bubble {
+    max-width: 84%;
+  }
+
+  .delete {
+    opacity: 0.65;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .delete {
+    transition: none;
+  }
+}

@@ -299,8 +299,11 @@ export default class RevenuePage implements OnInit, OnDestroy {
   }
 
   // ── Formato ───────────────────────────────────────────────────────────
-  formatEUR(value: number): string {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(value);
+  /** Moneda del centro; el backend la envía en el bloque de ingresos (T2). */
+  readonly currency = computed(() => this.revenue()?.currency ?? 'EUR');
+
+  formatCurrency(value: number): string {
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: this.currency() }).format(value);
   }
 
   formatNumber(value: number): string {

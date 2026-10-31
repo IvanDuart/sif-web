@@ -109,8 +109,8 @@ export default class MyPatientsPage implements OnInit {
   /** Assigned but idle: no upcoming appointment and either never seen or seen long ago. */
   needsFollowUp(p: NutritionistPatientDto): boolean {
     if (p.nextAppointment) return false;
-    if (!p.lastAppointment) return true;
-    return (Date.now() - Date.parse(p.lastAppointment)) / DAY_MS >= REACTIVATION_DAYS;
+    if (!p.lastVisitDate) return true;
+    return (Date.now() - Date.parse(p.lastVisitDate)) / DAY_MS >= REACTIVATION_DAYS;
   }
 
   getInitials(p: NutritionistPatientDto): string {

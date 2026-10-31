@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { KEYCLOAK_EVENT_SIGNAL, KeycloakEventType, ReadyArgs, typeEventArgs } from 'keycloak-angular';
 import { AppUserDto, TenantMembershipDto } from '../api/models/user.model';
 import { firstValueFrom } from 'rxjs';
+import { TranslocoService } from '@jsverse/transloco';
 import {ConfigService} from '../config/config.service';
 import {environment} from '../../../environments/environment';
 
@@ -18,6 +19,7 @@ export class InitService {
   readonly #keycloak = inject(Keycloak);
   readonly #authService = inject(AuthService);
   readonly #configService = inject(ConfigService);
+  readonly #transloco = inject(TranslocoService);
 
   private get baseUrl(): string {
     return this.#configService.apiUrl;
@@ -57,6 +59,7 @@ export class InitService {
 
       this.#authService.user.set(user);
       this.setActiveTenant(user.memberships);
+      await this.syncLocale();
 
       const currentPath = globalThis.location.pathname;
       if (currentPath === "/" || currentPath === "/login") {
@@ -70,6 +73,23 @@ export class InitService {
   private async getUserValidate(): Promise<AppUserDto> {
     const url = `${this.baseUrl}/users/me`;
     return firstValueFrom(this.#http.get<AppUserDto>(url));
+  }
+
+  /**
+   * Sincroniza la zona horaria y el idioma del dispositivo para que el backend
+   * pueda localizar las notificaciones push. Un fallo aquí nunca debe bloquear
+   * el login.
+   */
+  private async syncLocale(): Promise<void> {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid';
+    const language = this.#transloco.getActiveLang() || 'es';
+    try {
+      await firstValueFrom(
+        this.#http.patch(`${this.baseUrl}/users/me/locale`, { timezone, language })
+      );
+    } catch {
+      // Sin locale el usuario puede seguir usando la aplicación.
+    }
   }
 
   private setActiveTenant(memberships: TenantMembershipDto[]): void {

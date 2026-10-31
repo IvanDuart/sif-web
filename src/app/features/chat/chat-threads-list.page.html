@@ -1,0 +1,132 @@
+<div class="space-y-6 pb-4" *transloco="let t">
+  <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+    <div class="min-w-0">
+      <h1 class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]">
+        {{ t('chat.title') }}
+      </h1>
+      <p class="mt-1.5 max-w-prose text-[13px] text-surface-500 dark:text-surface-400">
+        {{ t('chat.subtitle') }}
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2.5 lg:ml-auto">
+      <button type="button" tuiButton appearance="primary" size="m" (click)="newConversation()">
+        <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
+        {{ t('chat.new_conversation') }}
+      </button>
+    </div>
+  </header>
+
+  <tui-segmented [activeItemIndex]="filterIndex()" (activeItemIndexChange)="setFilterIndex($event)">
+    <button type="button">{{ t('chat.filter_active') }}</button>
+    <button type="button">
+      {{ t('chat.filter_unread') }}
+      @if (chatUnread.unread() > 0) {
+        <span class="ml-1.5 tabular-nums opacity-70">{{ chatUnread.unread() }}</span>
+      }
+    </button>
+    <button type="button">{{ t('chat.filter_archived') }}</button>
+  </tui-segmented>
+
+  @if (loading()) {
+    <div class="thread-list" aria-busy="true">
+      @for (row of [1, 2, 3, 4]; track row) {
+        <div class="thread-card thread-card--skeleton" aria-hidden="true">
+          <span class="skeleton skeleton--avatar"></span>
+          <span class="flex-1 space-y-2">
+            <span class="skeleton block h-3.5 w-40 rounded"></span>
+            <span class="skeleton block h-3 w-64 max-w-full rounded"></span>
+          </span>
+        </div>
+      }
+    </div>
+  } @else if (threads().length === 0) {
+    @if (filter() === 'active') {
+      <app-empty-state
+        icon="fa-solid fa-comments"
+        [title]="t('chat.empty_active_title')"
+        [description]="t('chat.empty_active')"
+        [actionLabel]="t('chat.new_conversation')"
+        (action)="newConversation()">
+      </app-empty-state>
+    } @else if (filter() === 'unread') {
+      <app-empty-state
+        icon="fa-solid fa-envelope-open"
+        [title]="t('chat.empty_unread_title')"
+        [description]="t('chat.empty_unread')">
+      </app-empty-state>
+    } @else {
+      <app-empty-state
+        icon="fa-solid fa-box-archive"
+        [title]="t('chat.empty_archived_title')"
+        [description]="t('chat.empty_archived')">
+      </app-empty-state>
+    }
+  } @else {
+    <ul class="thread-list">
+      @for (thread of threads(); track thread.id) {
+        <li class="thread-card" [class.thread-card--unread]="thread.unreadCount > 0">
+          <a class="thread-main" [routerLink]="['/chat/threads', thread.id]">
+            <span class="thread-avatar" aria-hidden="true">{{ initials(thread) }}</span>
+            <span class="min-w-0 flex-1">
+              <span class="flex items-center gap-2">
+                <span class="truncate text-sm font-semibold text-surface-900 dark:text-surface-0">
+                  {{ participantName(thread) }}
+                </span>
+                @if (thread.unreadCount > 0) {
+                  <span tuiBadge appearance="info" class="tabular-nums">
+                    {{ thread.unreadCount }}
+                  </span>
+                }
+              </span>
+              <span class="mt-0.5 flex items-center gap-1.5 text-[13px] text-surface-400">
+                @if (thread.lastMessage?.kind === 'IMAGE') {
+                  <i class="fa-solid fa-image text-[11px]" aria-hidden="true"></i>
+                }
+                <span class="truncate">{{ preview(thread) }}</span>
+              </span>
+            </span>
+          </a>
+
+          <div class="thread-side">
+            @if (thread.lastMessageAt) {
+              <time class="thread-time" [attr.datetime]="thread.lastMessageAt">
+                {{ thread.lastMessageAt | date: 'short' }}
+              </time>
+            }
+            <button
+              type="button"
+              tuiButton
+              appearance="flat"
+              size="s"
+              class="archive-btn"
+              [disabled]="archivingId() === thread.id"
+              (click)="archiveConfirm(thread)"
+              [attr.title]="thread.archived ? t('chat.unarchive') : t('chat.archive')"
+              [attr.aria-label]="(thread.archived ? t('chat.unarchive') : t('chat.archive')) + ': ' + participantName(thread)"
+            >
+              @if (archivingId() === thread.id) {
+                <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+              } @else {
+                <i
+                  class="fa-solid"
+                  [class.fa-box-archive]="!thread.archived"
+                  [class.fa-box-open]="thread.archived"
+                  aria-hidden="true"
+                ></i>
+              }
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+
+    <app-pagination-footer
+      [page]="page()"
+      [size]="size"
+      [total]="totalRecords()"
+      (prev)="prevPage()"
+      (next)="nextPage()"
+    />
+  }
+</div>

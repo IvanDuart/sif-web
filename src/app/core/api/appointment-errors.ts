@@ -1,9 +1,11 @@
 /**
  * Clasificación de los errores del backend de citas.
  *
- * El backend puede devolver el código (`error.appointment_overlap`) o el
- * mensaje en inglés ("The nutritionist already has an appointment in that time
- * slot"), así que aquí se comprueban ambas formas.
+ * El backend devuelve `ProblemDetail` con un `code` estable
+ * (`error.appointment_overlap`), pero durante la transición aún puede llegar el
+ * mensaje suelto en inglés ("The nutritionist already has an appointment in
+ * that time slot"). Se prioriza `code` y se mantiene el matching por texto como
+ * fallback.
  *
  * Sin esto, cualquier `409` se interpretaba como solape y se ofrecía "agendar
  * en paralelo" aunque el motivo real fuera otro: el caso más habitual es que el
@@ -58,8 +60,23 @@ export function apiErrorText(err: ApiErrorLike | null | undefined): string {
 
 const normalize = (value: string): string => value.toLowerCase();
 
+/** Código estable del `ProblemDetail`, si está presente. */
+function errorCode(err: ApiErrorLike | null | undefined): string {
+  const payload = err?.error;
+  if (!payload || typeof payload !== 'object') return '';
+  const code = (payload as Record<string, unknown>)['code'];
+  return typeof code === 'string' ? normalize(code) : '';
+}
+
 /** Clave i18n del error, si es uno de los códigos conocidos. */
 export function appointmentErrorKey(err: ApiErrorLike | null | undefined): string | null {
+  // El `code` es estable y no depende del idioma; es la vía principal.
+  const code = errorCode(err);
+  if (code) {
+    const codeMatch = ERROR_KEYS.find(([pattern]) => code.includes(pattern));
+    if (codeMatch) return codeMatch[1];
+  }
+
   const text = normalize(apiErrorText(err));
   if (!text) return null;
 

@@ -1,0 +1,65 @@
+<div class="composer" *transloco="let t">
+  <input
+    #fileInput
+    type="file"
+    class="sr-only"
+    accept="image/jpeg,image/png,image/webp"
+    (change)="onFileSelected($event)"
+  />
+
+  <button
+    type="button"
+    tuiButton
+    appearance="flat"
+    size="m"
+    class="attach"
+    [disabled]="disabled()"
+    (click)="chooseImage()"
+    [attr.aria-label]="t('chat.attach_image')"
+    [attr.title]="t('chat.attach_image')"
+  >
+    <i class="fa-solid fa-image" aria-hidden="true"></i>
+  </button>
+
+  <div class="field">
+    <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+      <textarea
+        #textarea
+        tuiTextarea
+        rows="1"
+        [max]="8"
+        [attr.maxlength]="maxLength"
+        [disabled]="disabled()"
+        [placeholder]="t('chat.input_placeholder')"
+        [attr.aria-label]="t('chat.input_placeholder')"
+        [value]="text()"
+        (input)="write($any($event.target).value)"
+        (keydown)="onKeydown($event)"
+      ></textarea>
+    </tui-textfield>
+
+    @if (localError(); as errorKey) {
+      <p class="error" role="alert">{{ t(errorKey) }}</p>
+    }
+
+    @if (text().length > maxLength - 200) {
+      <p class="counter" [class.counter--limit]="text().length >= maxLength" aria-live="polite">
+        {{ text().length }} / {{ maxLength }}
+      </p>
+    }
+  </div>
+
+  <button
+    type="button"
+    tuiButton
+    appearance="primary"
+    size="m"
+    class="send"
+    [disabled]="disabled() || !text().trim()"
+    (click)="submit()"
+    [attr.aria-label]="t('chat.send')"
+    [attr.title]="t('chat.send')"
+  >
+    <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+  </button>
+</div>

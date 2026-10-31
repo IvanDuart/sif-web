@@ -188,6 +188,23 @@
                 <th
                   tuiTh
                   scope="col"
+                  class="w-36"
+                  [attr.aria-sort]="isSorted('clinicalStatus') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
+                >
+                  <button type="button" class="sort-header" (click)="onSort('clinicalStatus')">
+                    {{ t('clinical_status.status') }}
+                    <i
+                      class="fa-solid text-[10px]"
+                      [class.fa-arrow-up]="isSorted('clinicalStatus') && sortDirection() === 'ASC'"
+                      [class.fa-arrow-down]="isSorted('clinicalStatus') && sortDirection() === 'DESC'"
+                      [class.opacity-0]="!isSorted('clinicalStatus')"
+                      aria-hidden="true"
+                    ></i>
+                  </button>
+                </th>
+                <th
+                  tuiTh
+                  scope="col"
                   class="w-24"
                   [attr.aria-sort]="isSorted('birthDate') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
                 >
@@ -226,15 +243,32 @@
                   tuiTh
                   scope="col"
                   class="w-32"
-                  [attr.aria-sort]="isSorted('lastAppointmentDate') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
+                  [attr.aria-sort]="isSorted('lastVisitDate') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
                 >
-                  <button type="button" class="sort-header" (click)="onSort('lastAppointmentDate')">
+                  <button type="button" class="sort-header" (click)="onSort('lastVisitDate')">
                     {{ t('patients.col_last_visit') }}
                     <i
                       class="fa-solid text-[10px]"
-                      [class.fa-arrow-up]="isSorted('lastAppointmentDate') && sortDirection() === 'ASC'"
-                      [class.fa-arrow-down]="isSorted('lastAppointmentDate') && sortDirection() === 'DESC'"
-                      [class.opacity-0]="!isSorted('lastAppointmentDate')"
+                      [class.fa-arrow-up]="isSorted('lastVisitDate') && sortDirection() === 'ASC'"
+                      [class.fa-arrow-down]="isSorted('lastVisitDate') && sortDirection() === 'DESC'"
+                      [class.opacity-0]="!isSorted('lastVisitDate')"
+                      aria-hidden="true"
+                    ></i>
+                  </button>
+                </th>
+                <th
+                  tuiTh
+                  scope="col"
+                  class="w-32"
+                  [attr.aria-sort]="isSorted('lastNoShowDate') ? (sortDirection() === 'ASC' ? 'ascending' : 'descending') : null"
+                >
+                  <button type="button" class="sort-header" (click)="onSort('lastNoShowDate')">
+                    {{ t('patients.col_last_no_show') }}
+                    <i
+                      class="fa-solid text-[10px]"
+                      [class.fa-arrow-up]="isSorted('lastNoShowDate') && sortDirection() === 'ASC'"
+                      [class.fa-arrow-down]="isSorted('lastNoShowDate') && sortDirection() === 'DESC'"
+                      [class.opacity-0]="!isSorted('lastNoShowDate')"
                       aria-hidden="true"
                     ></i>
                   </button>
@@ -343,6 +377,15 @@
                       {{ row.user.enabled !== false ? t('users.status_active') : t('users.status_disabled') }}
                     </span>
                   </td>
+                  <td tuiTd>
+                    @if (row.user.clinicalStatus; as status) {
+                      <span tuiBadge [appearance]="clinicalStatusAppearance(status)">
+                        {{ t(clinicalStatusLabel(status)) }}
+                      </span>
+                    } @else {
+                      <span class="text-surface-300 dark:text-surface-600">—</span>
+                    }
+                  </td>
                   <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">
                     {{ row.user.age !== null && row.user.age !== undefined ? row.user.age + ' ' + t('common.years') : '—' }}
                   </td>
@@ -356,7 +399,16 @@
                   </td>
                   <td tuiTd class="text-surface-500 dark:text-surface-400">
                     @if (row.lastVisit; as rel) {
-                      <span class="tabular-nums" [attr.title]="absoluteDate(row.user.lastAppointmentDate)">
+                      <span class="tabular-nums" [attr.title]="absoluteDate(row.user.lastVisitDate)">
+                        {{ t(rel.key, rel.params) }}
+                      </span>
+                    } @else {
+                      <span class="text-surface-300 dark:text-surface-600">—</span>
+                    }
+                  </td>
+                  <td tuiTd class="text-surface-500 dark:text-surface-400">
+                    @if (row.lastNoShow; as rel) {
+                      <span class="tabular-nums" [attr.title]="absoluteDate(row.user.lastNoShowDate)">
                         {{ t(rel.key, rel.params) }}
                       </span>
                     } @else {
@@ -418,6 +470,18 @@
 
               <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px]">
                 <div class="flex items-center gap-1.5">
+                  <dt class="text-surface-400">{{ t('clinical_status.status') }}</dt>
+                  <dd class="text-surface-600 dark:text-surface-300">
+                    @if (row.user.clinicalStatus; as status) {
+                      <span tuiBadge size="s" [appearance]="clinicalStatusAppearance(status)">
+                        {{ t(clinicalStatusLabel(status)) }}
+                      </span>
+                    } @else {
+                      —
+                    }
+                  </dd>
+                </div>
+                <div class="flex items-center gap-1.5">
                   <dt class="text-surface-400">{{ t('users.age') }}</dt>
                   <dd class="tabular-nums text-surface-600 dark:text-surface-300">
                     {{ row.user.age !== null && row.user.age !== undefined ? row.user.age : '—' }}
@@ -431,6 +495,12 @@
                   <dt class="text-surface-400">{{ t('patients.col_last_visit') }}</dt>
                   <dd class="text-surface-600 dark:text-surface-300">
                     @if (row.lastVisit; as rel) { {{ t(rel.key, rel.params) }} } @else { — }
+                  </dd>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <dt class="text-surface-400">{{ t('patients.col_last_no_show') }}</dt>
+                  <dd class="text-surface-600 dark:text-surface-300">
+                    @if (row.lastNoShow; as rel) { {{ t(rel.key, rel.params) }} } @else { — }
                   </dd>
                 </div>
                 <div class="flex items-center gap-1.5">

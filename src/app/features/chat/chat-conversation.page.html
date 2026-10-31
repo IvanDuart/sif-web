@@ -1,0 +1,104 @@
+<div class="chat-shell" *transloco="let t">
+  <header class="chat-head">
+    <a class="back" routerLink="/chat/threads" [attr.aria-label]="t('chat.back_to_list')" [attr.title]="t('chat.back_to_list')">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+    </a>
+
+    <span class="head-avatar" aria-hidden="true">{{ partnerInitials() }}</span>
+
+    <div class="min-w-0 flex-1">
+      <p class="head-name">{{ partnerName() }}</p>
+      <div class="head-meta">
+        @if (connected()) {
+          <app-live-indicator [label]="t('chat.live')" />
+        } @else {
+          <span class="head-offline">
+            <i class="fa-solid fa-plug-circle-xmark" aria-hidden="true"></i>
+            {{ t('chat.connecting') }}
+          </span>
+        }
+      </div>
+    </div>
+
+    <button
+      type="button"
+      tuiButton
+      appearance="flat"
+      size="m"
+      class="head-action"
+      [disabled]="archiving()"
+      (click)="confirmArchive()"
+      [attr.title]="thread()?.archived ? t('chat.unarchive') : t('chat.archive')"
+      [attr.aria-label]="thread()?.archived ? t('chat.unarchive') : t('chat.archive')"
+    >
+      @if (archiving()) {
+        <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+      } @else {
+        <i class="fa-solid" [class.fa-box-archive]="!thread()?.archived" [class.fa-box-open]="thread()?.archived" aria-hidden="true"></i>
+      }
+    </button>
+  </header>
+
+  <div #scrollHost class="chat-scroll" [attr.aria-label]="t('chat.messages_label', { name: partnerName() })">
+    @if (loading()) {
+      <div class="chat-status" aria-busy="true">
+        <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+        <span>{{ t('common.loading') }}</span>
+      </div>
+    } @else if (messages().length === 0) {
+      <div class="chat-empty">
+        <i class="fa-regular fa-comments" aria-hidden="true"></i>
+        <p class="chat-empty__title">{{ t('chat.empty_thread_title') }}</p>
+        <p class="chat-empty__text">{{ t('chat.empty_thread') }}</p>
+      </div>
+    } @else {
+      @if (hasMore()) {
+        <div class="load-older">
+          <button type="button" tuiButton appearance="secondary" size="s" [disabled]="loadingOlder()" (click)="loadOlder()">
+            @if (loadingOlder()) {
+              <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>
+            } @else {
+              <i class="fa-solid fa-arrow-up mr-1" aria-hidden="true"></i>
+            }
+            {{ t('chat.load_older') }}
+          </button>
+        </div>
+      }
+
+      @for (message of messages(); track message.id; let i = $index) {
+        @if (isNewDay(messages()[i - 1], message)) {
+          <div class="day-sep">
+            <span>{{ message.createdAt | date: 'fullDate' }}</span>
+          </div>
+        }
+
+        <app-chat-message-bubble
+          [message]="message"
+          [participant]="partner()"
+          [own]="message.senderId === currentUserId()"
+          [read]="isRead(message, i)"
+          (refreshAttachment)="refreshAttachment($event)"
+          (remove)="confirmDelete($event)"
+        />
+      }
+    }
+  </div>
+
+  @if (thread()?.archived) {
+    <div class="archived-bar">
+      <p>
+        <i class="fa-solid fa-box-archive mr-1.5" aria-hidden="true"></i>
+        {{ t('chat.archived_notice') }}
+      </p>
+      <button type="button" tuiButton appearance="secondary" size="s" [disabled]="archiving()" (click)="unarchive()">
+        {{ t('chat.unarchive') }}
+      </button>
+    </div>
+  } @else {
+    <app-chat-message-input
+      [disabled]="sending() || !thread()"
+      (sendText)="sendText($event)"
+      (sendImage)="sendImage($event)"
+    />
+  }
+</div>

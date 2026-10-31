@@ -10,6 +10,7 @@ import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppUserDto, Gender } from '../../core/api/models/user.model';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { HttpErrorResponse } from '@angular/common/http';
+import { problemDetailCode, problemDetailMessage } from '../../core/http/error.interceptor';
 import { switchMap, map, catchError, of } from 'rxjs';
 import { PhoneInput } from '../../shared/ui/phone-input';
 
@@ -157,27 +158,51 @@ export class EditUserDialog {
 
   private handleError(err: HttpErrorResponse) {
     const body = err.error;
-    const errorMsg = typeof body === 'object' && body !== null ? body.error || body.message || '' : body || '';
+    const code = problemDetailCode(err) ?? '';
+    const errorMsg = problemDetailMessage(err) ?? '';
 
-    if (!errorMsg) {
+    if (!errorMsg && !code) {
       this.notify.error(this.transloco.translate('users.update_error'));
       return;
     }
 
-    if (errorMsg.toLowerCase().includes('email already in use')) {
+    // Errores de validación del `ProblemDetail`: se pintan en su campo.
+    const fieldErrors = typeof body === 'object' && body !== null
+      ? (body as { fieldErrors?: { field?: string; message?: string }[] }).fieldErrors
+      : undefined;
+    if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
+      const mapped: Record<string, string> = {};
+      for (const fieldError of fieldErrors) {
+        if (!fieldError?.field) continue;
+        mapped[fieldError.field] = this.fieldErrorText(fieldError.field, fieldError.message ?? '');
+        this.form.get(fieldError.field)?.markAsDirty();
+      }
+      this.fieldErrors = mapped;
+      this.notify.error(Object.values(mapped).join(' '));
+      return;
+    }
+
+    if (code.includes('email_already_in_use') || errorMsg.toLowerCase().includes('email already in use')) {
       this.fieldErrors = { email: this.transloco.translate('users.email_already_in_use') };
       this.form.get('email')?.markAsDirty();
       this.notify.error(this.transloco.translate('users.email_already_in_use'));
-    } else if (errorMsg.toLowerCase().includes('birthdate') && errorMsg.toLowerCase().includes('past')) {
+    } else if (code.includes('birth_date') || (errorMsg.toLowerCase().includes('birthdate') && errorMsg.toLowerCase().includes('past'))) {
       this.fieldErrors = { birthDate: this.transloco.translate('users.future_birth_date') };
       this.form.get('birthDate')?.markAsDirty();
       this.notify.error(this.transloco.translate('users.future_birth_date'));
-    } else if (errorMsg.toLowerCase().includes('heightcm') || errorMsg.toLowerCase().includes('height')) {
+    } else if (code.includes('height') || errorMsg.toLowerCase().includes('height')) {
       this.fieldErrors = { heightCm: this.transloco.translate('users.height_out_of_range') };
       this.form.get('heightCm')?.markAsDirty();
       this.notify.error(this.transloco.translate('users.height_out_of_range'));
     } else {
-      this.notify.error(errorMsg);
+      this.notify.error(errorMsg || this.transloco.translate('users.update_error'));
     }
+  }
+
+  private fieldErrorText(field: string, backendMessage: string): string {
+    if (field === 'email') return this.transloco.translate('users.email_already_in_use');
+    if (field === 'birthDate') return this.transloco.translate('users.future_birth_date');
+    if (field === 'heightCm') return this.transloco.translate('users.height_out_of_range');
+    return backendMessage;
   }
 }

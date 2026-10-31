@@ -127,6 +127,8 @@ export interface BodyCompositionReport {
 export interface BodyMeasurementDto {
   id: string;
   measuredAt: string;
+  /** Altura congelada con la que se tomó la medición (T8). */
+  heightCm?: number | null;
   weightKg: number | null;
   bodyFatPct: number | null;
   muscleMassPct: number | null;
@@ -157,6 +159,8 @@ export interface BodyMeasurementDto {
 }
 
 export interface CreateBodyMeasurementRequest {
+  /** Si se omite en el alta, el backend copia `app_user.height_cm` (T8). */
+  heightCm?: number | null;
   weightKg?: number | null;
   bodyFatPct?: number | null;
   muscleMassPct?: number | null;
@@ -192,6 +196,8 @@ export type UpdateBodyMeasurementRequest = CreateBodyMeasurementRequest;
 
 export interface MeasurementPoint {
   measuredAt: string;
+  /** Altura congelada de esa toma (T8). */
+  heightCm?: number | null;
   weightKg: number | null;
   bodyFatPct: number | null;
   muscleMassPct: number | null;

@@ -2,6 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { FoodDto, FoodSearchResultDto, NutrientDto, NutrientMap } from '../models/food.model';
+import { normalizeRecipe } from '../models/meal-normalizers';
+import { map } from 'rxjs/operators';
 import { ConfigService } from '../../config/config.service';
 
 export interface CreateFoodRequest {
@@ -30,7 +32,10 @@ export class FoodService {
     return this.http.get<FoodSearchResultDto>(
       `${this.baseUrl}/tenant/${tenantId}/food/search`,
       { params }
-    );
+    ).pipe(map(result => ({
+      ...result,
+      recipes: (result.recipes ?? []).map(normalizeRecipe),
+    })));
   }
 
   /** Catálogo de nutrientes (código, nombre, unidad, grupo). Pedirlo una vez y cachear. */

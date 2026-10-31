@@ -220,7 +220,9 @@ export default class MyDietPage implements OnInit, OnDestroy {
     const fromFixed: MealEntryVm[] = fixed
       ? ([
           ['DESAYUNO', fixed.breakfast],
-          ['ALMUERZO', fixed.lunch],
+          // `LUNCH` se normaliza a `COMIDA` en `meal-enums.ts`; usar el mismo
+          // valor evita duplicar la comida del menú y la pauta fija.
+          ['COMIDA', fixed.lunch],
           ['MERIENDA', fixed.snack],
         ] as [string, string | null][])
           .filter(([, text]) => !!text?.trim())

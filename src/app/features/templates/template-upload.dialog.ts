@@ -1,6 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { problemDetailMessage } from '../../core/http/error.interceptor';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiButton, TuiDialogContext, TuiInput } from '@taiga-ui/core';
 import { TuiTextarea, TuiFiles } from '@taiga-ui/kit';
@@ -99,8 +100,8 @@ export class TemplateUploadDialog implements OnInit {
         this.isUploading.set(false);
 
         if (error.status === 403) {
-          const backendMessage = error.error?.message || '';
-          if (backendMessage.includes('AI functionality')) {
+          const backendMessage = problemDetailMessage(error) ?? '';
+          if (backendMessage.includes('AI functionality') || backendMessage.includes('IA')) {
             this.notify.error('La funcionalidad de IA no está habilitada para tu cuenta.', 8000);
           } else if (backendMessage.includes('Gemini API key')) {
             this.notify.error('La API Key de Gemini no está configurada. Contactá al administrador.', 8000);

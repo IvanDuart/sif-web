@@ -2,6 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Menu } from '../models/menu.model';
+import { normalizeMenu } from '../models/meal-normalizers';
+import { map } from 'rxjs/operators';
 import {ConfigService} from '../../config/config.service';
 
 @Injectable({ providedIn: 'root' })
@@ -25,6 +27,8 @@ export class MenuUploadService {
 
     const params = new HttpParams().set('userId', userId);
 
-    return this.http.post<Menu>(`${this.baseUrl}/tenant/${tenantId}/menu/upload`, formData, { params });
+    return this.http.post<Menu>(`${this.baseUrl}/tenant/${tenantId}/menu/upload`, formData, { params }).pipe(
+      map(normalizeMenu)
+    );
   }
 }

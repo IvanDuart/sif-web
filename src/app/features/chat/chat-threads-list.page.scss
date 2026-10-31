@@ -1,0 +1,133 @@
+:host {
+  display: block;
+}
+
+.thread-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.thread-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface, #fff);
+  transition: border-color var(--motion-duration-fast, 150ms) var(--motion-ease-out, ease-out),
+    background-color var(--motion-duration-fast, 150ms) var(--motion-ease-out, ease-out);
+}
+
+.thread-card:hover {
+  border-color: var(--line-strong);
+  background: var(--sunken);
+}
+
+.thread-card--unread {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--line));
+}
+
+.thread-card--skeleton {
+  pointer-events: none;
+}
+
+.thread-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--r-sm);
+}
+
+.thread-main:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+.thread-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-pill);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+  user-select: none;
+}
+
+.thread-side {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.thread-time {
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.archive-btn {
+  opacity: 0.55;
+}
+
+.thread-card:hover .archive-btn,
+.archive-btn:focus-visible {
+  opacity: 1;
+}
+
+.skeleton {
+  background: var(--line);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton--avatar {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-pill);
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thread-card,
+  .archive-btn {
+    transition: none;
+  }
+
+  .skeleton {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .thread-card {
+    padding: 10px 11px;
+  }
+
+  .thread-time {
+    font-size: 10.5px;
+  }
+
+  .archive-btn {
+    opacity: 0.7;
+  }
+}

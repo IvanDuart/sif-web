@@ -1,0 +1,36 @@
+<article class="card" *transloco="let t">
+  <header class="card__head">
+    <span class="card__icon" aria-hidden="true">
+      <i class="fa-solid fa-shield-halved"></i>
+    </span>
+    <div class="min-w-0">
+      <p class="card__kicker">{{ t('assistant.action_title') }}</p>
+      <h3 class="card__summary">{{ action().summary }}</h3>
+    </div>
+  </header>
+
+  @if (action().preview.length > 0) {
+    <dl class="preview">
+      @for (item of action().preview; track item.field) {
+        <div class="preview__row">
+          <dt>{{ item.label }}</dt>
+          <dd>{{ item.value }}</dd>
+        </div>
+      }
+    </dl>
+  }
+
+  <p class="card__hint">{{ t('assistant.action_hint') }}</p>
+
+  <footer class="card__actions">
+    <button type="button" class="btn btn--ghost" [disabled]="busy()" (click)="cancelled.emit(action())">
+      {{ t('common.cancel') }}
+    </button>
+    <button type="button" class="btn btn--primary" [disabled]="busy()" (click)="confirmed.emit(action())">
+      @if (busy()) {
+        <i class="fa-solid fa-spinner fa-spin mr-1.5" aria-hidden="true"></i>
+      }
+      {{ t('assistant.confirm') }}
+    </button>
+  </footer>
+</article>

@@ -3,6 +3,7 @@ import { Shell } from './layout/shell/shell';
 import { brandingResolver } from './core/branding/branding.resolver';
 import { authGuard } from './core/auth/auth.guard';
 import { adminGuard } from './core/auth/admin.guard';
+import { chatGuard } from './core/auth/chat.guard';
 import { sandboxRoutes } from './features/sandbox/sandbox.routes';
 
 export const routes: Routes = [
@@ -74,6 +75,16 @@ export const routes: Routes = [
       {
         path: 'appointments',
         loadComponent: () => import('./features/appointments/appointments.page').then(m => m.default)
+      },
+      {
+        path: 'chat/threads',
+        canActivate: [chatGuard],
+        loadComponent: () => import('./features/chat/chat-threads-list.page').then(m => m.default)
+      },
+      {
+        path: 'chat/threads/:threadId',
+        canActivate: [chatGuard],
+        loadComponent: () => import('./features/chat/chat-conversation.page').then(m => m.default)
       },
       {
         path: 'revenue',

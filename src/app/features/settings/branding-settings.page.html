@@ -72,6 +72,20 @@
         <i class="fa-solid fa-location-dot w-4 text-center opacity-80" aria-hidden="true"></i>
         <span class="whitespace-nowrap">{{ t('settings.address_tab') }}</span>
       </button>
+
+      <button
+        *appIfPermission="'MANAGE_TENANT'"
+        type="button"
+        class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 text-[14px] transition-colors lg:w-full"
+        [class]="activeTab === 4
+          ? 'bg-brand-tint-10 font-medium text-primary-700 dark:text-primary-300'
+          : 'text-surface-600 hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-800'"
+        [attr.aria-current]="activeTab === 4 ? 'true' : null"
+        (click)="activeTab = 4"
+      >
+        <i class="fa-solid fa-robot w-4 text-center opacity-80" aria-hidden="true"></i>
+        <span class="whitespace-nowrap">{{ t('assistant.settings_tab') }}</span>
+      </button>
     </nav>
 
     <div class="min-w-0">
@@ -79,6 +93,7 @@
       @if (activeTab === 1) { <app-appointment-types-settings /> }
       @if (activeTab === 2) { <app-schedule-settings /> }
       @if (activeTab === 3) { <app-tenant-address-settings /> }
+      @if (activeTab === 4) { <app-assistant-settings /> }
     </div>
   </div>
 </div>

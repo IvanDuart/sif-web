@@ -21,7 +21,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
  * añadir métricas nuevas.
  */
 const MEASUREMENT_METRIC_FIELDS = [
-  'weightKg', 'bodyFatPct', 'muscleMassPct', 'bodyWaterPct', 'visceralFatLevel', 'boneMassKg',
+  'heightCm', 'weightKg', 'bodyFatPct', 'muscleMassPct', 'bodyWaterPct', 'visceralFatLevel', 'boneMassKg',
   'waistCm', 'chestCm', 'hipsCm', 'contourCm', 'armCm', 'wristCircumferenceCm',
   'trunkFatPct', 'trunkMassKg',
   'rightArmFatPct', 'rightArmMassKg', 'leftArmFatPct', 'leftArmMassKg',
@@ -72,6 +72,7 @@ export class MeasurementFormDialog {
   readonly isEdit = this.measurement !== null;
 
   form = this.fb.group({
+    heightCm: [null as number | null, [Validators.min(30), Validators.max(275)]],
     weightKg: [null as number | null],
     bodyFatPct: [null as number | null],
     muscleMassPct: [null as number | null],

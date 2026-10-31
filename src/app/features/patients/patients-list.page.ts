@@ -10,7 +10,7 @@ import { debounceTime, distinctUntilChanged, forkJoin } from 'rxjs';
 
 import { UserTenantRoleService, UserSearchParams } from '../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
-import { AppUserDto } from '../../core/api/models/user.model';
+import { AppUserDto, ClinicalStatus } from '../../core/api/models/user.model';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { EmptyState } from '../../shared/ui/empty-state';
@@ -33,6 +33,7 @@ export interface RelativeStamp {
 export interface PatientRowVm {
   user: AppUserDto;
   lastVisit: RelativeStamp | null;
+  lastNoShow: RelativeStamp | null;
   nextAppointment: RelativeStamp | null;
 }
 
@@ -44,7 +45,9 @@ const DEFAULT_DIR: Record<string, 'ASC' | 'DESC'> = {
   phone: 'ASC',
   enabled: 'ASC',
   birthDate: 'ASC',
-  lastAppointmentDate: 'DESC',
+  clinicalStatus: 'ASC',
+  lastVisitDate: 'DESC',
+  lastNoShowDate: 'DESC',
   nextAppointmentDate: 'ASC'
 };
 
@@ -136,7 +139,7 @@ export default class PatientsListPage implements OnInit {
       (this.permissionsService.has('MANAGE_TENANT') || this.permissionsService.has('MANAGE_USER'));
   });
 
-  sortKey = signal<string>('lastAppointmentDate');
+  sortKey = signal<string>('lastVisitDate');
   sortDirection = signal<'ASC' | 'DESC'>('DESC');
 
   /** Selección múltiple para las acciones en lote. */
@@ -145,7 +148,8 @@ export default class PatientsListPage implements OnInit {
   /** Filas listas para pintar (fechas relativas ya resueltas). */
   readonly rows = computed<PatientRowVm[]>(() => this.users().map(user => ({
     user,
-    lastVisit: relativeStamp(user.lastAppointmentDate),
+    lastVisit: relativeStamp(user.lastVisitDate),
+    lastNoShow: relativeStamp(user.lastNoShowDate),
     nextAppointment: relativeStamp(user.nextAppointmentDate)
   })));
 
@@ -369,7 +373,7 @@ export default class PatientsListPage implements OnInit {
     const selected = this.users().filter(u => this.selectedIds().has(u.id));
     if (selected.length === 0) return;
 
-    const header = ['Nombre', 'Apellidos', 'Email', 'Telefono', 'Estado', 'Edad', 'Profesional', 'Ultima visita', 'Proxima cita'];
+    const header = ['Nombre', 'Apellidos', 'Email', 'Telefono', 'Estado', 'Estado clinico', 'Edad', 'Profesional', 'Ultima visita', 'Ultima ausencia', 'Proxima cita'];
     const activeLabel = this.transloco.translate('users.status_active');
     const disabledLabel = this.transloco.translate('users.status_disabled');
     const rows = selected.map(u => [
@@ -378,9 +382,11 @@ export default class PatientsListPage implements OnInit {
       u.email,
       u.phone ?? '',
       u.enabled !== false ? activeLabel : disabledLabel,
+      u.clinicalStatus ? this.transloco.translate(`clinical_status.${u.clinicalStatus.toLowerCase()}`) : '',
       u.age ?? '',
       u.assignedNutritionistName ?? '',
-      u.lastAppointmentDate ?? '',
+      u.lastVisitDate ?? '',
+      u.lastNoShowDate ?? '',
       u.nextAppointmentDate ?? ''
     ]);
 
@@ -470,6 +476,21 @@ export default class PatientsListPage implements OnInit {
 
   getInitials(firstName: string, lastName: string): string {
     return `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase();
+  }
+
+  clinicalStatusLabel(status: ClinicalStatus): string {
+    return `clinical_status.${status.toLowerCase()}`;
+  }
+
+  clinicalStatusAppearance(status: ClinicalStatus): 'positive' | 'warning' | 'neutral' | 'negative' {
+    switch (status) {
+      case 'ACTIVE': return 'positive';
+      case 'ONBOARDING': return 'warning';
+      case 'PAUSED': return 'warning';
+      case 'DISCHARGED': return 'neutral';
+      case 'DROPPED_OUT': return 'negative';
+      default: return 'neutral';
+    }
   }
 
   toggleEnabled(user: AppUserDto) {

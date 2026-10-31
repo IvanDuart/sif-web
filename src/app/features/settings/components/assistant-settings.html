@@ -1,0 +1,226 @@
+<div class="space-y-6" *transloco="let t">
+  <p class="text-[13.5px] text-surface-500 dark:text-surface-400">{{ t('assistant.settings_subtitle') }}</p>
+
+  @if (loading()) {
+    <p class="py-10 text-center text-[13px] text-surface-400">{{ t('common.loading') }}</p>
+  } @else if (loadError()) {
+    <div class="data-card flex flex-col items-start gap-3">
+      <p class="text-sm text-surface-600 dark:text-surface-300">{{ t('assistant.settings_load_error') }}</p>
+      <button type="button" tuiButton appearance="secondary" size="m" (click)="load()">
+        <i class="fa-solid fa-rotate-right mr-1" aria-hidden="true"></i>
+        {{ t('assistant.retry') }}
+      </button>
+    </div>
+  } @else {
+    <div class="data-card space-y-6">
+      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0">{{ t('assistant.settings_title') }}</h3>
+
+      <div class="flex items-start gap-3">
+        <input id="assistantEnabled" type="checkbox" tuiSwitch [ngModel]="enabled()" (ngModelChange)="enabled.set($event)" />
+        <div>
+          <label for="assistantEnabled" class="cursor-pointer text-sm font-medium text-surface-700 dark:text-surface-200">
+            {{ t('assistant.settings_enabled') }}
+          </label>
+          <p class="mt-0.5 text-xs text-surface-400">{{ t('assistant.settings_enabled_hint') }}</p>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label for="assistantName" class="text-sm font-medium text-surface-700 dark:text-surface-200">
+          {{ t('assistant.settings_name') }}
+        </label>
+        <tui-textfield>
+          <input
+            id="assistantName"
+            tuiInput
+            maxlength="60"
+            [ngModel]="name()"
+            (ngModelChange)="name.set($event)"
+            [placeholder]="t('assistant.settings_name_placeholder')"
+          />
+        </tui-textfield>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label for="assistantPersona" class="text-sm font-medium text-surface-700 dark:text-surface-200">
+          {{ t('assistant.settings_persona') }}
+        </label>
+        <tui-textfield>
+          <textarea
+            id="assistantPersona"
+            tuiTextarea
+            rows="3"
+            maxlength="500"
+            [ngModel]="persona()"
+            (ngModelChange)="persona.set($event)"
+            [placeholder]="t('assistant.settings_persona_placeholder')"
+          ></textarea>
+        </tui-textfield>
+        <p class="text-xs text-surface-400">{{ t('assistant.settings_persona_hint') }}</p>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label for="assistantTone" class="text-sm font-medium text-surface-700 dark:text-surface-200">
+          {{ t('assistant.settings_tone') }}
+        </label>
+        <tui-textfield>
+          <input
+            id="assistantTone"
+            tuiInput
+            maxlength="60"
+            [ngModel]="tone()"
+            (ngModelChange)="tone.set($event)"
+            [placeholder]="t('assistant.settings_tone_placeholder')"
+          />
+        </tui-textfield>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label for="assistantConsent" class="text-sm font-medium text-surface-700 dark:text-surface-200">
+          {{ t('assistant.settings_consent') }}
+        </label>
+        <tui-textfield [tuiTextfieldCleaner]="false">
+          <textarea
+            id="assistantConsent"
+            tuiTextarea
+            rows="4"
+            maxlength="1000"
+            [ngModel]="consentText()"
+            (ngModelChange)="consentText.set($event)"
+            [placeholder]="t('assistant.consent_default')"
+          ></textarea>
+        </tui-textfield>
+        <p class="text-xs text-surface-400">{{ t('assistant.settings_consent_hint') }}</p>
+      </div>
+
+      <div class="flex items-center gap-2 text-sm">
+        <i
+          class="fa-solid"
+          [class]="apiKeyConfigured() ? 'fa-circle-check text-green-600' : 'fa-circle-exclamation text-amber-500'"
+          aria-hidden="true"
+        ></i>
+        <span class="text-surface-600 dark:text-surface-300">
+          {{ apiKeyConfigured() ? t('assistant.settings_api_key_configured') : t('assistant.settings_api_key_missing') }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Avatar -->
+    <div class="data-card space-y-5">
+      <div>
+        <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0">{{ t('assistant.settings_avatar_title') }}</h3>
+        <p class="mt-1 text-xs text-surface-400">{{ t('assistant.settings_avatar_hint') }}</p>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <span class="grid h-16 w-16 place-items-center overflow-hidden rounded-full border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800">
+          @if (config()?.avatarUrl; as avatarUrl) {
+            <img [src]="avatarUrl" alt="" class="h-full w-full object-contain" />
+          } @else {
+            <i class="fa-solid fa-robot text-2xl text-surface-400" aria-hidden="true"></i>
+          }
+        </span>
+        <div class="flex flex-col gap-1.5">
+          <label for="assistantAvatarFile" class="text-sm font-medium text-surface-700 dark:text-surface-200">
+            {{ t('assistant.settings_avatar_upload') }}
+          </label>
+          <input
+            id="assistantAvatarFile"
+            tuiInputFiles
+            accept=".svg,image/svg+xml"
+            [ngModel]="null"
+            (ngModelChange)="onAvatarFile($event)"
+            [disabled]="uploadingAvatar()"
+          />
+          <p class="text-xs text-surface-400">{{ t('assistant.settings_avatar_upload_hint') }}</p>
+        </div>
+        @if (uploadingAvatar()) {
+          <i class="fa-solid fa-spinner fa-spin text-primary" aria-hidden="true"></i>
+        }
+      </div>
+
+      @if (pets().length > 0) {
+        <div class="space-y-2">
+          <p class="text-sm font-medium text-surface-700 dark:text-surface-200">{{ t('assistant.settings_avatar_presets') }}</p>
+          <div class="flex flex-wrap gap-3">
+            @for (pet of pets(); track pet.id) {
+              <button
+                type="button"
+                class="grid h-16 w-16 place-items-center rounded-full border border-surface-200 bg-surface-50 p-1 transition hover:border-primary hover:bg-brand-tint-10 disabled:opacity-50 dark:border-surface-700 dark:bg-surface-800"
+                [disabled]="uploadingAvatar()"
+                [attr.title]="pet.name"
+                [attr.aria-label]="pet.name"
+                (click)="selectPet(pet)"
+              >
+                <img [src]="petPreview(pet)" [alt]="pet.name" class="h-full w-full object-contain" />
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Animaciones Lottie -->
+    <div class="data-card space-y-5">
+      <div>
+        <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0">{{ t('assistant.settings_animations_title') }}</h3>
+        <p class="mt-1 text-xs text-surface-400">{{ t('assistant.settings_animations_hint') }}</p>
+      </div>
+
+      <div class="space-y-3">
+        @for (slot of animationSlots; track slot) {
+          <div class="flex flex-wrap items-center justify-between gap-3 rounded-md border border-surface-200 px-3 py-2.5 dark:border-surface-700">
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-surface-700 dark:text-surface-200">{{ t(animationLabelKey(slot)) }}</p>
+              <p class="text-xs text-surface-400">
+                {{ hasAnimation(slot) ? t('assistant.settings_animation_configured') : t('assistant.settings_animation_empty') }}
+              </p>
+            </div>
+
+            <div class="flex items-center gap-2">
+              @if (uploadingAnimation() === slot || deletingAnimation() === slot) {
+                <i class="fa-solid fa-spinner fa-spin text-primary" aria-hidden="true"></i>
+              } @else if (hasAnimation(slot)) {
+                <button
+                  type="button"
+                  tuiButton
+                  appearance="flat"
+                  size="s"
+                  (click)="deleteAnimation(slot)"
+                >
+                  <i class="fa-solid fa-trash mr-1" aria-hidden="true"></i>
+                  {{ t('assistant.settings_animation_delete') }}
+                </button>
+              }
+
+              <input
+                tuiInputFiles
+                accept=".json,application/json"
+                [ngModel]="null"
+                (ngModelChange)="onAnimationFile(slot, $event)"
+                [disabled]="uploadingAnimation() !== null"
+                [attr.aria-label]="t('assistant.settings_animation_upload')"
+              />
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="flex justify-end">
+      <button
+        type="button"
+        tuiButton
+        appearance="primary"
+        size="m"
+        [disabled]="saving() || !name().trim()"
+        (click)="save()"
+      >
+        @if (saving()) {
+          <i class="fa-solid fa-spinner fa-spin mr-1.5" aria-hidden="true"></i>
+        }
+        {{ t('common.save') }}
+      </button>
+    </div>
+  }
+</div>

@@ -5,7 +5,7 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { TuiButton, TuiTextfield } from '@taiga-ui/core';
 import { TuiBadge, TuiTextarea } from '@taiga-ui/kit';
 import { Meal } from '../../../core/api/models/meal.model';
-import { MACROS, NutrientMap } from '../../../core/api/models/food.model';
+import { NutrientMap } from '../../../core/api/models/food.model';
 
 /**
  * Una celda de comida de la rejilla semanal: muestra la comida, la edita en
@@ -46,7 +46,10 @@ export class MealCell {
   readonly macros = computed(() => {
     const nutrients = this.nutrients();
     if (!nutrients) return null;
-    const [protein, fat, carbs] = MACROS.map(code => nutrients[code]);
+    const protein = nutrients['PROT'];
+    const fat = nutrients['FAT'];
+    // El catálogo BEDCA usa `CHO`; el backend de nutrientes puede usar `CHOCDF`.
+    const carbs = nutrients['CHO'] ?? nutrients['CHOCDF'];
     if (protein === undefined && fat === undefined && carbs === undefined) return null;
     return { protein: protein ?? 0, fat: fat ?? 0, carbs: carbs ?? 0 };
   });

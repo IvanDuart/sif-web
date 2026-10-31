@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { TenantBrandingDto } from '../models/branding.model';
-import { TenantPreferences } from '../models/tenant.model';
+import { TenantPreferences, TenantPreferencesPatch } from '../models/tenant.model';
 import {ConfigService} from '../../config/config.service';
 import { IGNORE_NOT_FOUND } from '../../http/error.interceptor';
 
@@ -19,6 +19,15 @@ export class TenantBrandingService {
     return this.http.get<TenantBrandingDto>(`${this.baseUrl}/tenant/${tenantId}/branding`);
   }
 
+  /**
+   * Actualiza solo las preferencias enviadas (T5). Sustituye al antiguo
+   * `PUT /branding/preferences`, que queda deprecado.
+   */
+  patchPreferences(tenantId: string, request: TenantPreferencesPatch): Observable<TenantPreferences> {
+    return this.http.patch<TenantPreferences>(`${this.baseUrl}/tenant/${tenantId}/preferences`, request);
+  }
+
+  /** @deprecated Usar `patchPreferences`. Se mantiene para endpoints legacy. */
   updatePreferences(tenantId: string, request: TenantPreferences): Observable<TenantPreferences> {
     return this.http.put<TenantPreferences>(`${this.baseUrl}/tenant/${tenantId}/branding/preferences`, request);
   }

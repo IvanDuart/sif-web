@@ -1,0 +1,77 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 mt-2" *transloco="let t">
+  <p class="text-sm text-surface-500 m-0">
+    {{ t('clinical_status.change_hint', { name: patientName }) }}
+  </p>
+
+  <tui-textfield class="w-full" tuiChevron [stringify]="statusStringify" [tuiTextfieldCleaner]="false">
+    <label tuiLabel for="clinicalStatus">{{ t('clinical_status.status') }}</label>
+    <input id="clinicalStatus" formControlName="clinicalStatus" tuiSelect />
+    <tui-data-list-wrapper *tuiDropdown [items]="statusValues()"></tui-data-list-wrapper>
+  </tui-textfield>
+  <tui-error formControlName="clinicalStatus" />
+
+  <div class="flex flex-col gap-1.5">
+    <label for="clinicalStatusReason" class="font-medium text-sm text-surface-700 dark:text-surface-300">
+      {{ t('clinical_status.reason') }}
+    </label>
+    <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+      <textarea
+        id="clinicalStatusReason"
+        formControlName="reason"
+        tuiTextarea
+        [min]="2"
+        [placeholder]="t('clinical_status.reason_placeholder')"></textarea>
+    </tui-textfield>
+  </div>
+
+  <section class="mt-2">
+    <h3 class="text-sm font-semibold text-surface-800 dark:text-surface-200 mb-2">
+      {{ t('clinical_status.history_title') }}
+    </h3>
+
+    @if (loadingHistory()) {
+      <p class="text-sm text-surface-400">{{ t('common.loading') }}…</p>
+    } @else if (history().length === 0) {
+      <p class="text-sm text-surface-400">{{ t('clinical_status.history_empty') }}</p>
+    } @else {
+      <ul class="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1">
+        @for (entry of history(); track entry.id) {
+          <li class="rounded-md border border-line bg-surface-50 dark:bg-surface-800/50 px-3 py-2">
+            <div class="flex flex-wrap items-center gap-1.5">
+              @if (entry.previousStatus; as previous) {
+                <span tuiBadge [appearance]="statusAppearance(previous)">
+                  {{ t(statusLabelKey(previous)) }}
+                </span>
+                <i class="fa-solid fa-arrow-right text-[10px] text-surface-400" aria-hidden="true"></i>
+              }
+              <span tuiBadge [appearance]="statusAppearance(entry.newStatus)">
+                {{ t(statusLabelKey(entry.newStatus)) }}
+              </span>
+            </div>
+            @if (entry.reason) {
+              <p class="mt-1 text-sm text-surface-600 dark:text-surface-300">{{ entry.reason }}</p>
+            }
+            <p class="mt-1 text-xs text-surface-400">
+              {{ changeDate(entry.changedAt) }}
+              @if (entry.changedBy) {
+                · {{ t('clinical_status.changed_by', { name: entry.changedBy }) }}
+              }
+            </p>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">
+      {{ t('common.cancel') }}
+    </button>
+    <button type="submit" tuiButton size="m" [disabled]="saving()">
+      @if (saving()) {
+        <i class="fa-solid fa-spinner fa-spin mr-1"></i>
+      }
+      {{ t('common.save') }}
+    </button>
+  </div>
+</form>

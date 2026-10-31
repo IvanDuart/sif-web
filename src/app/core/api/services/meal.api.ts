@@ -1,8 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Meal, MealItem } from '../models/meal.model';
 import { Page } from '../models/page.model';
+import { normalizeMeal } from '../models/meal-normalizers';
+import { toApiDayOfWeek, toApiMealType } from '../models/meal-enums';
 import {ConfigService} from '../../config/config.service';
 
 export interface MealItemRequest {
@@ -78,15 +81,19 @@ export class MealService {
     if (dayOfWeek) params = params.set('dayOfWeek', dayOfWeek);
     if (mealType) params = params.set('mealType', mealType);
 
-    return this.http.get<Page<Meal>>(`${this.baseUrl}/tenant/${tenantId}/meal`, { params });
+    return this.http.get<Page<Meal>>(`${this.baseUrl}/tenant/${tenantId}/meal`, { params }).pipe(
+      map(page => ({ ...page, content: (page.content ?? []).map(normalizeMeal) }))
+    );
   }
 
   create(tenantId: string, request: CreateMealRequest): Observable<Meal> {
-    return this.http.post<Meal>(`${this.baseUrl}/tenant/${tenantId}/meal`, request);
+    return this.http.post<Meal>(`${this.baseUrl}/tenant/${tenantId}/meal`, this.toApiRequest(request)).pipe(
+      map(normalizeMeal)
+    );
   }
 
   getById(tenantId: string, id: string): Observable<Meal> {
-    return this.http.get<Meal>(`${this.baseUrl}/tenant/${tenantId}/meal/${id}`);
+    return this.http.get<Meal>(`${this.baseUrl}/tenant/${tenantId}/meal/${id}`).pipe(map(normalizeMeal));
   }
 
   delete(tenantId: string, id: string): Observable<void> {
@@ -94,10 +101,23 @@ export class MealService {
   }
 
   update(tenantId: string, id: string, request: UpdateMealRequest): Observable<Meal> {
-    return this.http.put<Meal>(`${this.baseUrl}/tenant/${tenantId}/meal/${id}`, request);
+    return this.http.put<Meal>(`${this.baseUrl}/tenant/${tenantId}/meal/${id}`, this.toApiRequest(request)).pipe(
+      map(normalizeMeal)
+    );
   }
 
   getByMenuId(tenantId: string, menuId: string): Observable<Meal[]> {
-    return this.http.get<Meal[]>(`${this.baseUrl}/tenant/${tenantId}/meal/menu/${menuId}`);
+    return this.http.get<Meal[]>(`${this.baseUrl}/tenant/${tenantId}/meal/menu/${menuId}`).pipe(
+      map(meals => meals.map(normalizeMeal))
+    );
+  }
+
+  /** Convierte los enums legacy de la UI a los nombres ingleses de la API (T6). */
+  private toApiRequest<T extends CreateMealRequest | UpdateMealRequest>(request: T): T {
+    return {
+      ...request,
+      dayOfWeek: toApiDayOfWeek(request.dayOfWeek),
+      mealType: toApiMealType(request.mealType),
+    };
   }
 }

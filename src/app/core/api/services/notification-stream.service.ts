@@ -19,7 +19,8 @@ export type AppNotificationType =
   | 'APPOINTMENT_CANCELLED'
   | 'APPOINTMENT_NO_SHOW'
   | 'APPOINTMENT_REMINDER'
-  | 'CALENDAR_NOTE_REMINDER';
+  | 'CALENDAR_NOTE_REMINDER'
+  | 'CHAT_MESSAGE';
 
 /**
  * Datos estructurados del aviso. **Todos los valores son cadenas**, incluidos
@@ -36,6 +37,9 @@ export interface AppNotificationData {
   startTime?: string;
   /** Sólo en notas de calendario. */
   noteType?: 'REMINDER' | 'TIME_BLOCK';
+  /** Sólo en `CHAT_MESSAGE`: hilo y mensaje afectados. */
+  threadId?: string;
+  messageId?: string;
 }
 
 /** Aviso tal y como viaja por el canal: el texto ya viene traducido. */

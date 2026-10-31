@@ -1,0 +1,137 @@
+<section
+  class="mascot-panel"
+  id="mascot-panel"
+  role="dialog"
+  aria-labelledby="mascot-title"
+  *transloco="let t"
+>
+  <header class="mascot-head">
+    <app-mascot-avatar
+      [src]="state.avatarSrc()"
+      [fallback]="state.fallbackSrc()"
+      [idleAnimation]="state.idleAnimation()"
+      [thinkingAnimation]="state.thinkingAnimation()"
+      size="m"
+      [mood]="state.sending() ? 'thinking' : 'idle'"
+    />
+    <div class="min-w-0 flex-1">
+      <p id="mascot-title" class="mascot-name">{{ state.name() }}</p>
+      <p class="mascot-sub">{{ t('assistant.subtitle') }}</p>
+    </div>
+    <button
+      type="button"
+      tuiButton
+      appearance="flat"
+      size="s"
+      (click)="close()"
+      [attr.aria-label]="t('common.close')"
+      [attr.title]="t('common.close')"
+    >
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
+  </header>
+
+  <div #scrollHost class="mascot-scroll" aria-live="polite">
+    @if (state.consentRequired()) {
+      <div class="consent">
+        <h3 class="consent__title">{{ t('assistant.consent_title') }}</h3>
+        <p class="consent__text">{{ state.consentText() }}</p>
+        <div class="consent__actions">
+          <button type="button" class="btn btn--ghost" (click)="declineConsent()">
+            {{ t('assistant.consent_decline') }}
+          </button>
+          <button type="button" class="btn btn--primary" [disabled]="state.sending()" (click)="acceptConsent()">
+            @if (state.sending()) {
+              <i class="fa-solid fa-spinner fa-spin mr-1.5" aria-hidden="true"></i>
+            }
+            {{ t('assistant.consent_accept') }}
+          </button>
+        </div>
+      </div>
+    } @else {
+      @if (showGreeting()) {
+        <div class="msg">
+          <app-mascot-avatar [src]="state.avatarSrc()" [fallback]="state.fallbackSrc()" size="s" />
+          <p class="bubble">{{ state.greeting() }}</p>
+        </div>
+      }
+
+      @for (message of state.messages(); track message.id) {
+        <div
+          class="msg"
+          [class.msg--user]="message.role === 'USER'"
+          [class.msg--system]="message.role === 'SYSTEM'"
+        >
+          @if (message.role !== 'USER') {
+            <app-mascot-avatar [src]="state.avatarSrc()" [fallback]="state.fallbackSrc()" size="s" />
+          }
+          <p class="bubble">
+            @if (message.role === 'SYSTEM') {
+              <i class="fa-solid fa-circle-exclamation mr-1.5" aria-hidden="true"></i>
+            }
+            {{ message.content }}
+          </p>
+        </div>
+      }
+
+      @if (state.pendingAction(); as action) {
+        <app-mascot-action-card
+          [action]="action"
+          [busy]="state.resolvingAction()"
+          (confirmed)="confirmAction($event)"
+          (cancelled)="cancelAction($event)"
+        />
+      }
+
+      @if (state.sending()) {
+        <div class="msg">
+          <app-mascot-avatar [src]="state.avatarSrc()" [fallback]="state.fallbackSrc()" size="s" mood="thinking" />
+          <p class="bubble bubble--typing" [attr.aria-label]="t('assistant.thinking')">
+            <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+          </p>
+        </div>
+      }
+    }
+  </div>
+
+  <footer class="mascot-foot">
+    @if (!state.consentRequired()) {
+      <app-mascot-quick-replies
+        [prompts]="state.suggestedPrompts()"
+        [label]="t('assistant.suggestions')"
+        (selected)="sendPrompt($event)"
+      />
+
+      <div class="composer">
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <input
+            #input
+            tuiInput
+            type="text"
+            maxlength="2000"
+            [ngModel]="text()"
+            (ngModelChange)="text.set($event)"
+            (keydown)="onKeydown($event)"
+            [placeholder]="t('assistant.input_placeholder')"
+            [attr.aria-label]="t('assistant.input_placeholder')"
+            [disabled]="state.sending()"
+          />
+        </tui-textfield>
+        <button
+          type="button"
+          tuiButton
+          appearance="primary"
+          size="m"
+          [disabled]="state.sending() || !text().trim()"
+          (click)="submit()"
+          [attr.aria-label]="t('assistant.send')"
+          [attr.title]="t('assistant.send')"
+        >
+          <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+        </button>
+      </div>
+    }
+
+    <p class="disclaimer">{{ t('assistant.disclaimer') }}</p>
+  </footer>
+</section>

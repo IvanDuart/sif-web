@@ -61,14 +61,24 @@
           </div>
           @if (preferences().ai_enabled) {
             <div class="flex flex-col gap-1.5">
-              <label for="geminiKey" class="text-sm font-medium text-surface-700 dark:text-surface-200">
-                Gemini API Key
-              </label>
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-surface-700 dark:text-surface-200">Gemini API Key</span>
+                <span tuiBadge [appearance]="hasApiKey() ? 'positive' : 'neutral'">
+                  {{ hasApiKey() ? 'Configurada' : 'Sin configurar' }}
+                </span>
+              </div>
               <tui-textfield>
-                <input id="geminiKey" tuiInput [(ngModel)]="preferences().gemini_api_key" type="password" placeholder="AIzaSy..." aria-describedby="geminiKeyHelp" />
+                <input
+                  id="geminiKey"
+                  tuiInput
+                  [ngModel]="geminiApiKeyInput()"
+                  (ngModelChange)="geminiApiKeyInput.set($event)"
+                  type="password"
+                  [placeholder]="hasApiKey() ? 'Introduce una nueva clave para rotarla' : 'AIzaSy...'"
+                  aria-describedby="geminiKeyHelp" />
               </tui-textfield>
               <p id="geminiKeyHelp" class="text-xs text-surface-400">
-                Obtén tu clave de API gratuita en
+                La clave es de solo escritura: nunca se vuelve a mostrar. Obtén una en
                 <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" class="text-primary-500 hover:underline">Google AI Studio</a>.
               </p>
             </div>
@@ -104,6 +114,24 @@
         <p id="menuCreationModeHint" class="text-xs text-surface-400 mt-2 ml-14">
           {{ isBedcaMode() ? t('settings.menu_mode_bedca_hint') : t('settings.menu_mode_manual_hint') }}
         </p>
+      </div>
+
+      <div class="data-card">
+        <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0 mb-1">{{ t('settings.nutrient_display_section') }}</h3>
+        <p class="text-xs text-surface-400 mb-5">{{ t('settings.nutrient_display_hint') }}</p>
+        <div class="flex flex-col gap-1.5">
+          <label for="nutrientDisplayMode" class="text-sm font-medium text-surface-700 dark:text-surface-200">
+            {{ t('settings.nutrient_display_mode') }}
+          </label>
+          <tui-textfield tuiChevron>
+            <input
+              id="nutrientDisplayMode"
+              tuiComboBox
+              [ngModel]="nutrientDisplayModeDisplay()"
+              (ngModelChange)="onNutrientDisplayModeChange($event)" />
+            <tui-data-list-wrapper *tuiDropdown [items]="nutrientDisplayModeLabels | tuiFilterByInput" />
+          </tui-textfield>
+        </div>
       </div>
 
       <div class="data-card">

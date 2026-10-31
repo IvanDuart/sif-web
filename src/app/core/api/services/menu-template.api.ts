@@ -1,10 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { MenuTemplate, MealTemplate } from '../models/menu-template.model';
 import { Menu } from '../models/menu.model';
 import { Page } from '../models/page.model';
+import { normalizeMenu, normalizeMenuTemplate, normalizeMealTemplate } from '../models/meal-normalizers';
+import { toApiDayOfWeek, toApiMealType } from '../models/meal-enums';
 import { MealItemRequest, toMealItemRequests } from './meal.api';
 import {ConfigService} from '../../config/config.service';
 
@@ -61,15 +63,22 @@ export class MenuTemplateService {
     sort.forEach(s => params = params.append('sort', s));
     if (search) params = params.set('search', search);
 
-    return this.http.get<Page<MenuTemplate>>(`${this.baseUrl}/tenant/${tenantId}/menu-template`, { params });
+    return this.http.get<Page<MenuTemplate>>(`${this.baseUrl}/tenant/${tenantId}/menu-template`, { params }).pipe(
+      map(page => ({ ...page, content: (page.content ?? []).map(normalizeMenuTemplate) }))
+    );
   }
 
   create(tenantId: string, request: CreateMenuTemplateRequest): Observable<MenuTemplate> {
-    return this.http.post<MenuTemplate>(`${this.baseUrl}/tenant/${tenantId}/menu-template`, request);
+    return this.http.post<MenuTemplate>(
+      `${this.baseUrl}/tenant/${tenantId}/menu-template`,
+      this.toApiCreateRequest(request)
+    ).pipe(map(normalizeMenuTemplate));
   }
 
   getById(tenantId: string, id: string): Observable<MenuTemplate> {
-    return this.http.get<MenuTemplate>(`${this.baseUrl}/tenant/${tenantId}/menu-template/${id}`);
+    return this.http.get<MenuTemplate>(`${this.baseUrl}/tenant/${tenantId}/menu-template/${id}`).pipe(
+      map(normalizeMenuTemplate)
+    );
   }
 
   /**
@@ -110,15 +119,24 @@ export class MenuTemplateService {
   }
 
   instantiate(tenantId: string, id: string, request: InstantiateMenuTemplateRequest): Observable<Menu> {
-    return this.http.post<Menu>(`${this.baseUrl}/tenant/${tenantId}/menu-template/${id}/instantiate`, request);
+    return this.http.post<Menu>(
+      `${this.baseUrl}/tenant/${tenantId}/menu-template/${id}/instantiate`,
+      request
+    ).pipe(map(normalizeMenu));
   }
 
   addMeal(tenantId: string, templateId: string, request: UpdateMealTemplateRequest): Observable<MealTemplate> {
-    return this.http.post<MealTemplate>(`${this.baseUrl}/tenant/${tenantId}/menu-template/${templateId}/meals`, request);
+    return this.http.post<MealTemplate>(
+      `${this.baseUrl}/tenant/${tenantId}/menu-template/${templateId}/meals`,
+      this.toApiMealRequest(request)
+    ).pipe(map(normalizeMealTemplate));
   }
 
   updateMeal(tenantId: string, templateId: string, mealId: string, request: UpdateMealTemplateRequest): Observable<MealTemplate> {
-    return this.http.put<MealTemplate>(`${this.baseUrl}/tenant/${tenantId}/menu-template/${templateId}/meals/${mealId}`, request);
+    return this.http.put<MealTemplate>(
+      `${this.baseUrl}/tenant/${tenantId}/menu-template/${templateId}/meals/${mealId}`,
+      this.toApiMealRequest(request)
+    ).pipe(map(normalizeMealTemplate));
   }
 
   deleteMeal(tenantId: string, templateId: string, mealId: string): Observable<void> {
@@ -137,6 +155,21 @@ export class MenuTemplateService {
       `${this.baseUrl}/tenant/${tenantId}/menu-template/upload`,
       formData,
       { params }
-    );
+    ).pipe(map(normalizeMenuTemplate));
+  }
+
+  private toApiCreateRequest(request: CreateMenuTemplateRequest): CreateMenuTemplateRequest {
+    return {
+      ...request,
+      meals: request.meals?.map(meal => this.toApiMealRequest(meal)),
+    };
+  }
+
+  private toApiMealRequest<T extends CreateMealTemplateRequest | UpdateMealTemplateRequest>(request: T): T {
+    return {
+      ...request,
+      dayOfWeek: toApiDayOfWeek(request.dayOfWeek),
+      mealType: toApiMealType(request.mealType),
+    };
   }
 }

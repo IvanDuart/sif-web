@@ -13,6 +13,10 @@ export interface AppointmentDto {
   endTime: string;
   status: AppointmentStatus;
   notes: string | null;
+  /** Precio congelado en el momento de crear la cita (T2). */
+  price?: number;
+  /** Moneda del centro en el momento de crear la cita (p. ej. `EUR`). */
+  currency?: string;
   createdAt: string;
   /** Momento en que la cita pasó a `CANCELLED`. `null` si no aplica. */
   cancelledAt?: string | null;
@@ -160,6 +164,9 @@ export interface NutritionistPatientDto {
   firstName: string;
   lastName: string;
   email: string;
-  lastAppointment: string | null;
+  /** Inicio de la última cita `COMPLETED` (T7). */
+  lastVisitDate: string | null;
+  /** Inicio de la última cita `NO_SHOW` (T7). */
+  lastNoShowDate: string | null;
   nextAppointment: string | null;
 }

@@ -161,6 +161,7 @@
 }
 
 .nav-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 11px;
@@ -746,6 +747,7 @@
 }
 
 .mobile-nav-link {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;

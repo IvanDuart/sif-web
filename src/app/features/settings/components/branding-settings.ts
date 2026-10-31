@@ -1,11 +1,11 @@
 import { Component, computed, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TuiButton, TuiInput, TuiTextfield, TuiDropdown, TuiFilterByInputPipe } from '@taiga-ui/core';
-import { TuiSwitch, TuiComboBox, TuiDataListWrapper, TuiChevron, TuiFiles } from '@taiga-ui/kit';
+import { TuiSwitch, TuiComboBox, TuiDataListWrapper, TuiChevron, TuiFiles, TuiBadge } from '@taiga-ui/kit';
 import { TenantBrandingService } from '../../../core/api/services/tenant-branding.api';
 import { TenantService } from '../../../core/api/services/tenant.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
-import { AppointmentTimeBand, TenantPreferences } from '../../../core/api/models/tenant.model';
+import { AppointmentTimeBand, NutrientDisplayMode, TenantPreferences, TenantPreferencesPatch } from '../../../core/api/models/tenant.model';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ThemeService } from '../../../core/branding/theme.service';
 import { NotificationService } from '../../../core/ui';
@@ -29,7 +29,7 @@ const DEFAULT_PREFERENCES: TenantPreferences = {
   enable_vacation_module: false,
   enable_clock_in_module: false,
   ai_enabled: false,
-  gemini_api_key: '',
+  nutrient_display_mode: 'HIDDEN',
   default_language: 'es',
   primary_color: '#059669',
   keycloak_sync_mode: '',
@@ -50,7 +50,7 @@ const DEFAULT_PREFERENCES: TenantPreferences = {
   imports: [
     FormsModule, TranslocoDirective, IfPermissionDirective,
     TuiButton, TuiInput, TuiTextfield, TuiDropdown, TuiFilterByInputPipe,
-    TuiSwitch, TuiComboBox, TuiDataListWrapper, TuiChevron, ...TuiFiles,
+    TuiSwitch, TuiComboBox, TuiDataListWrapper, TuiChevron, TuiBadge, ...TuiFiles,
   ],
   templateUrl: `branding-settings.html`
 })
@@ -64,8 +64,19 @@ export class BrandingSettings implements OnInit, OnDestroy {
 
   readonly languageLabels = LANGUAGE_OPTIONS.map(l => l.label);
   readonly languageDisplay = signal('');
+  readonly nutrientDisplayModeOptions: { label: string; value: NutrientDisplayMode }[] = [
+    { label: 'Ocultos', value: 'HIDDEN' },
+    { label: 'Macros', value: 'MACROS' },
+    { label: 'Completos', value: 'FULL' },
+  ];
+  readonly nutrientDisplayModeLabels = this.nutrientDisplayModeOptions.map(o => o.label);
+  readonly nutrientDisplayModeDisplay = signal('Ocultos');
 
   preferences = signal<TenantPreferences>({ ...DEFAULT_PREFERENCES });
+  private loadedPreferences = signal<TenantPreferences | null>(null);
+  /** Clave nueva que el usuario escribe para guardar/rotar (nunca se lee de la API). */
+  readonly geminiApiKeyInput = signal('');
+  readonly hasApiKey = computed(() => this.brandingStore.branding()?.hasApiKey === true);
 
   readonly isBedcaMode = computed(() => this.preferences().menu_creation_mode === 'BEDCA');
 
@@ -121,6 +132,12 @@ export class BrandingSettings implements OnInit, OnDestroy {
       ...prefs,
       menu_creation_mode: enabled ? 'BEDCA' : 'MANUAL',
     }));
+  }
+
+  onNutrientDisplayModeChange(label: string): void {
+    this.nutrientDisplayModeDisplay.set(label);
+    const value = this.nutrientDisplayModeOptions.find(o => o.label === label)?.value ?? 'HIDDEN';
+    this.preferences.update(prefs => ({ ...prefs, nutrient_display_mode: value }));
   }
   saving = signal(false);
   loading = signal(false);
@@ -187,8 +204,11 @@ export class BrandingSettings implements OnInit, OnDestroy {
           prefs.appointment_time_bands = [];
         }
         this.preferences.set(prefs);
+        this.loadedPreferences.set({ ...prefs });
         const found = LANGUAGE_OPTIONS.find(l => l.value === prefs.default_language);
         this.languageDisplay.set(found?.label ?? prefs.default_language);
+        const nutrientMode = this.nutrientDisplayModeOptions.find(o => o.value === prefs.nutrient_display_mode);
+        this.nutrientDisplayModeDisplay.set(nutrientMode?.label ?? this.nutrientDisplayModeOptions[0].label);
         this.loading.set(false);
       },
       error: () => this.loading.set(false)
@@ -213,23 +233,64 @@ export class BrandingSettings implements OnInit, OnDestroy {
 
   save() {
     const tenantId = this.tenantCtx.currentTenantId();
-    const prefs = { ...this.preferences() };
     if (!tenantId) return;
+
+    const prefs = { ...this.preferences() };
     const found = LANGUAGE_OPTIONS.find(l => l.label === this.languageDisplay());
     prefs.default_language = found?.value ?? this.languageDisplay();
     this.preferences.set(prefs);
+
+    const loaded = this.loadedPreferences();
+    const patch: TenantPreferencesPatch = {};
+    const editableKeys: (keyof TenantPreferences)[] = [
+      'enable_vacation_module',
+      'enable_clock_in_module',
+      'ai_enabled',
+      'default_language',
+      'primary_color',
+      'keycloak_sync_mode',
+      'from_email',
+      'standard_vacation_days',
+      'active_anamnesis_fields',
+      'show_price',
+      'enable_appointment_reminders',
+      'menu_creation_mode',
+      'attendance_target_rate',
+      'cancellation_notice_threshold_hours',
+      'appointment_time_bands',
+      'nutrient_display_mode',
+    ];
+
+    for (const key of editableKeys) {
+      if (!loaded || JSON.stringify(prefs[key]) !== JSON.stringify(loaded[key])) {
+        (patch as Record<string, unknown>)[key] = prefs[key];
+      }
+    }
+
+    const newKey = this.geminiApiKeyInput().trim();
+    if (newKey) patch.gemini_api_key = newKey;
+
+    if (Object.keys(patch).length === 0) {
+      this.notify.success('Éxito: Preferencias actualizadas');
+      return;
+    }
+
     this.saving.set(true);
-    this.tenantBrandingService.updatePreferences(tenantId, prefs).subscribe({
+    this.tenantBrandingService.patchPreferences(tenantId, patch).subscribe({
       next: (res) => {
-        this.preferences.set({ ...DEFAULT_PREFERENCES, ...res });
-        this.themeService.setPrimary(res.primary_color ?? '#059669');
+        const merged: TenantPreferences = { ...DEFAULT_PREFERENCES, ...res };
+        this.preferences.set(merged);
+        this.loadedPreferences.set({ ...merged });
+        this.geminiApiKeyInput.set('');
+        this.themeService.setPrimary(merged.primary_color ?? '#059669');
         // Sin esto el modo recién guardado no se aplicaría hasta recargar la página.
         this.brandingStore.branding.update(branding =>
           branding
             ? {
                 ...branding,
-                menuCreationMode: res.menu_creation_mode ?? 'MANUAL',
-                aiEnabled: res.ai_enabled,
+                menuCreationMode: merged.menu_creation_mode ?? 'MANUAL',
+                aiEnabled: merged.ai_enabled,
+                hasApiKey: newKey ? true : branding.hasApiKey,
               }
             : branding
         );

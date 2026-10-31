@@ -1,4 +1,5 @@
-import { Component, computed, DestroyRef, inject, NgZone, signal, viewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
+import { Component, computed, DestroyRef, inject, NgZone, signal, Type, viewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
+import { NgComponentOutlet } from '@angular/common';
 import { RouterOutlet, RouterModule, Router } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -19,6 +20,7 @@ import {
   AppNotification,
   NotificationStreamService,
 } from '../../core/api/services/notification-stream.service';
+import { ChatUnreadService } from '../../core/api/services/chat-unread.service';
 import { NotificationService } from '../../core/ui';
 import { globalLoadingSignal } from '../../core/http/loading.interceptor';
 
@@ -36,6 +38,7 @@ const NAV_ITEMS: NavItem[] = [
   { labelKey: 'patients', icon: 'fa-solid fa-user-injured', route: '/patients', permission: 'VIEW_USER' },
   { labelKey: 'staff', icon: 'fa-solid fa-user-doctor', route: '/staff', permission: 'VIEW_USER' },
   { labelKey: 'appointments', icon: 'fa-solid fa-calendar-days', route: '/appointments', permission: 'VIEW_APPOINTMENTS' },
+  { labelKey: 'messages', icon: 'fa-solid fa-comments', route: '/chat/threads', permission: 'MANAGE_CHAT' },
   { labelKey: 'revenue', icon: 'fa-solid fa-chart-line', route: '/revenue', permission: 'VIEW_REVENUE' },
   { labelKey: 'my_diet', icon: 'fa-solid fa-utensils', route: '/my-diet', permission: 'VIEW_MENU' },
   { labelKey: 'shopping_list', icon: 'fa-solid fa-cart-shopping', route: '/shopping-lists', permission: 'VIEW_MENU' },
@@ -56,6 +59,7 @@ const NAV_ITEMS: NavItem[] = [
     TuiAvatar,
     ...TuiDropdown,
     TuiHint,
+    NgComponentOutlet,
   ],
   templateUrl: './shell.html',
   styleUrls: ['./shell.scss']
@@ -69,6 +73,7 @@ export class Shell implements OnInit, OnDestroy {
   private readonly tenantCtx = inject(TenantContextService);
   private readonly appointmentService = inject(AppointmentService);
   private readonly notificationStream = inject(NotificationStreamService);
+  readonly chatUnread = inject(ChatUnreadService);
   private readonly notify = inject(NotificationService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
@@ -91,6 +96,12 @@ export class Shell implements OnInit, OnDestroy {
   mobileMenuOpen = signal(false);
   userMenuOpen = signal(false);
   tenantMenuOpen = signal(false);
+
+  /**
+   * La mascota se carga en un chunk aparte: es un extra global, no parte del
+   * camino crítico del panel. `ngComponentOutlet` la monta cuando llega.
+   */
+  readonly mascotLauncher = signal<Type<unknown> | null>(null);
 
   /**
    * Raíl compacto (72px, 768–1080px): las etiquetas del nav se ocultan por CSS
@@ -122,6 +133,11 @@ export class Shell implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadProposals();
     this.listenToNotifications();
+    this.chatUnread.refresh();
+
+    void import('../../features/assistant/components/mascot-launcher').then((module) =>
+      this.mascotLauncher.set(module.MascotLauncher)
+    );
   }
 
   ngOnDestroy() {
@@ -157,6 +173,12 @@ export class Shell implements OnInit, OnDestroy {
     // campanita (un reagendado del paciente la devuelve a `PROPOSED`).
     if (notification.data?.type?.startsWith('APPOINTMENT_')) {
       this.loadProposals();
+    }
+
+    // El push de chat sólo dice que hay un mensaje nuevo (nunca el contenido):
+    // se recalcula el contador de no leídos del menú.
+    if (notification.data?.type === 'CHAT_MESSAGE') {
+      this.chatUnread.refresh();
     }
   }
 
@@ -231,6 +253,10 @@ export class Shell implements OnInit, OnDestroy {
       if (item.permission === 'VIEW_MENU') {
         return this.activeTenant()?.userType === 'PATIENT';
       }
+      // El chat es una herramienta del nutricionista; los pacientes usan la app.
+      if (item.permission === 'MANAGE_CHAT') {
+        return this.activeTenant()?.userType === 'STAFF' && this.permissionsService.has('MANAGE_CHAT');
+      }
       // La evolución de medidas es una pantalla del propio paciente.
       if (item.permission === 'VIEW_EVOLUTION') {
         return this.activeTenant()?.userType === 'PATIENT';
@@ -257,7 +283,7 @@ export class Shell implements OnInit, OnDestroy {
    */
   private static readonly MOBILE_PRIORITY = [
     '/dashboard', '/my-diet', '/shopping-lists', '/evolution', '/appointments',
-    '/patients', '/revenue', '/staff', '/templates', '/settings', '/admin',
+    '/chat/threads', '/patients', '/revenue', '/staff', '/templates', '/settings', '/admin',
   ];
 
   readonly bottomNavItems = computed<NavItem[]>(() => {

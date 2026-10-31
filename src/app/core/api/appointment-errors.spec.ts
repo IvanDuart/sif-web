@@ -39,6 +39,20 @@ describe('appointment-errors', () => {
       expect(apiErrorText(httpError(500, null))).toBe('');
       expect(apiErrorText(undefined)).toBe('');
     });
+
+    it('lee el código estable del ProblemDetail', () => {
+      const err = httpError(409, {
+        type: 'about:blank',
+        title: 'Conflict',
+        status: 409,
+        detail: 'This patient already has an upcoming appointment.',
+        code: 'error.appointment_patient_has_active',
+        traceId: 'trace-1',
+      });
+      expect(appointmentErrorKey(err)).toBe('appointments.patient_has_active');
+      expect(isPatientBusyConflict(err)).toBe(true);
+      expect(isOverlapConflict(err)).toBe(false);
+    });
   });
 
   describe('solape vs. paciente ocupado', () => {
