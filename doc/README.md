@@ -122,6 +122,9 @@ doc/
 | [`sse-notificaciones-frontend.md`](notifications/sse-notificaciones-frontend.md) | Notificaciones en tiempo real por SSE. |
 | [`chat-frontend.md`](chat-frontend.md) | Contrato del chat 1:1: REST, SSE, adjuntos y push. |
 | [`mascota-frontend.md`](mascota-frontend.md) | Contrato de la mascota: sesiones, consentimiento, tools y acciones pendientes. |
+| [`assistant-frontend.md`](assistant-frontend.md) | Contrato del asistente de nutricionista: pantallas, `uiActions` y `pendingAction`. |
+| [`assistant-tools-backend.md`](assistant-tools-backend.md) | Tools que faltan en el backend: horarios del centro y el resto del catálogo, con el formato del `preview`. |
+| [`assistant-backend-peticion.md`](assistant-backend-peticion.md) | Peticiones de protocolo al backend: streaming SSE, tipos de `uiAction`, pantallas y reanudación de sesión. |
 
 ### Roadmap — [`roadmap/`](roadmap/README.md)
 

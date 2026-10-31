@@ -125,6 +125,37 @@ export function matchPreview(
 }
 
 /**
+ * Al revés que `matchPreview`: los nombres que manda el backend y este
+ * formulario no reconoce.
+ *
+ * Es el aviso de que el contrato se ha movido. Si el backend renombra un campo
+ * del `preview`, el relleno deja de encontrarlo y la acción cae a la tarjeta de
+ * confirmar **sin dar ningún error**: sigue funcionando, pero la mascota deja
+ * de escribir y nadie se entera. Esto lo hace visible
+ * (`doc/assistant-backend-peticion.md` §2).
+ *
+ * Los campos vacíos no cuentan: el backend los manda a propósito cuando no
+ * sabe resolver un desplegable.
+ */
+export function unmatchedPreview(
+  surface: FillSurface,
+  preview: readonly { field: string; value: string }[],
+): string[] {
+  const known = new Set(surface.fields.flatMap((field) => field.from));
+  const lists = new Map(
+    (surface.lists ?? []).map((list) => [list.key, new Set(list.fields.flatMap((field) => field.from))]),
+  );
+
+  return preview
+    .filter(({ field, value }) => {
+      if (value === '' || known.has(field)) return false;
+      const row = parseRowKey(field);
+      return !row || !lists.get(row.list)?.has(row.field);
+    })
+    .map(({ field }) => field);
+}
+
+/**
  * Las filas que el backend manda para una lista, renumeradas a partir de 0 y en
  * orden: el formulario crece fila a fila, así que un `details[3]` suelto es la
  * primera fila, no la cuarta.

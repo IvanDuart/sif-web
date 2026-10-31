@@ -10,7 +10,7 @@ import { problemDetailCode, problemDetailMessage } from '../../core/http/error.i
 import { MascotLookService } from './mascot/mascot-look.service';
 import { MascotMoodService } from './mascot/mascot-mood.service';
 import { DEFAULT_FILL_TIMING, STILL_TIMING, playFill, playOpen } from './mascot/fill/animated-fill';
-import { matchPreview } from './mascot/fill/descriptor';
+import { matchPreview, unmatchedPreview, type FillSurface } from './mascot/fill/descriptor';
 import { MascotFillService } from './mascot/fill/mascot-fill.service';
 import type { MascotMode } from './mascot/mascot-life.service';
 import {
@@ -394,6 +394,7 @@ export class MascotStateService {
     }
 
     const values = mounted ? matchPreview(mounted.surface, action.preview) : [];
+    if (mounted) this.warnPreviewDrift(action, mounted.surface);
     if (!mounted || values.length === 0) {
       this.pendingAction.set(action);
       return;
@@ -415,6 +416,27 @@ export class MascotStateService {
       tone: 'celebrate',
     });
     this.pushAssistantText(this.transloco.translate('assistant.fill_review'));
+  }
+
+  /**
+   * El formulario está en pantalla y el backend nombra campos que no reconoce.
+   *
+   * A la persona no se le dice nada —la tarjeta de confirmar sigue haciendo su
+   * trabajo—, pero sin esto el contrato se rompe en silencio y nadie se entera
+   * hasta que un nutricionista nota que la mascota ha dejado de rellenar. Los
+   * nombres están fijados en `doc/assistant-backend-peticion.md` §2.
+   */
+  private warnPreviewDrift(action: AssistantPendingActionDto, surface: FillSurface): void {
+    const orphans = unmatchedPreview(surface, action.preview);
+    if (orphans.length === 0) return;
+
+    const total = action.preview.filter((item) => item.value !== '').length;
+    const scope = orphans.length === total ? 'ninguno' : `${orphans.length} de ${total}`;
+    console.warn(
+      `[mascota] "${action.toolName}" → formulario "${surface.id}": no reconoce ${scope} de los campos del preview.`,
+      `Sin reconocer: ${orphans.join(', ')}.`,
+      'El contrato de nombres está en doc/assistant-backend-peticion.md §2.',
+    );
   }
 
   /** Retira la acción sin contarlo en el chat: lo que cuenta es el relleno. */
