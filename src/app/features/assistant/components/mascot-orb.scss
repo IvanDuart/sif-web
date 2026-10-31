@@ -197,11 +197,15 @@
   top: 4px;
 }
 
+/* El móvil que saca cuando lleva mucho esperando: visto por detrás, inclinado
+   y sujeto abajo a la derecha. El giro vive aquí (y no sólo en la animación de
+   entrada, que no fija su pose final) para que no se enderece al terminar. */
 .mascot-phone {
-  left: 16px;
-  top: 20px;
+  left: 36px;
+  top: 29px;
   width: 14px;
   height: 22px;
+  transform: rotate(30deg);
   border: 1px solid rgb(255 255 255 / 0.5);
   border-radius: 3px;
   background: #2a2a2a;

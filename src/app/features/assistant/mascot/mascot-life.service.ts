@@ -14,9 +14,9 @@ export type MascotLife =
   | { kind: 'blush' }
   /** Seguís pulsando mientras está mareada: se enoja. */
   | { kind: 'angry' }
-  /** Esperando una respuesta mucho tiempo: saca el teléfono. `glance`: mira arriba por si volvió la persona. */
+  /** Nadie le hace caso (esperando respuesta, o en reposo): saca el teléfono. `glance`: mira arriba por si volvió la persona. */
   | { kind: 'phone'; glance: boolean }
-  /** La persona se fue (pestaña oculta): se duerme hasta que vuelve. */
+  /** Se fue la persona (pestaña oculta) o lleva un buen rato sin hacerle caso: se duerme hasta que vuelve. */
   | { kind: 'sleep' };
 
 export type MascotMode =
@@ -45,6 +45,14 @@ export const PHONE_AFTER_MS = 20_000;
 const GLANCE_GAP_MS = 2800;
 const GLANCE_RANGE_MS = 2200;
 const GLANCE_MS = 1100;
+
+/** En reposo y sin que nadie le haga caso en todo este rato (más lo que salga del rango), se aburre. */
+export const BORED_AFTER_MS = 40_000;
+const BORED_RANGE_MS = 20_000;
+/** Lo que aguanta con el teléfono antes de que se le cierren los ojos. */
+export const BORED_PHONE_MS = 25_000;
+/** Cada cuánto el aburrimiento empieza por el teléfono en vez de por dormirse directamente. */
+const PHONE_FIRST = 0.6;
 
 export const DIZZY_MS = 2400;
 export const BLUSH_MS = 2600;
@@ -80,6 +88,8 @@ export class MascotLifeService {
   private readonly reaction = signal<Reaction | null>(null);
   private readonly ambient = signal<MascotLife | null>(null);
   private readonly phone = signal<{ glance: boolean } | null>(null);
+  /** Se aburrió de esperar a que le hicieran caso y se quedó dormida. */
+  private readonly drowsy = signal(false);
 
   /** Lo que la mascota está haciendo por su cuenta ahora mismo, o `null`. */
   readonly life = computed<MascotLife | null>(() => {
@@ -104,7 +114,7 @@ export class MascotLifeService {
       !this.awake() &&
       !this.still() &&
       !this.reaction() &&
-      this.away(),
+      (this.away() || this.drowsy()),
   );
 
   private readonly restless = computed(() => IDLE_MODES.includes(this.mode()) && !this.still());
@@ -117,9 +127,10 @@ export class MascotLifeService {
       const still = this.still();
       const away = this.away();
       const reaction = this.reaction();
+      const bored = this.phone() || this.drowsy();
 
       untracked(() => this.ambient.set(null));
-      if (mode !== 'idle' || awake || still || reaction || away) return;
+      if (mode !== 'idle' || awake || still || reaction || away || bored) return;
 
       const timers: ReturnType<typeof setTimeout>[] = [];
       const later = (ms: number, fn: () => void) => timers.push(setTimeout(fn, ms));
@@ -150,29 +161,56 @@ export class MascotLifeService {
       });
     });
 
-    // Esperando mucho una respuesta: el teléfono; cualquier señal de atención lo guarda.
+    // Nadie le hace caso: esperando una respuesta saca el teléfono, y en reposo
+    // acaba aburriéndose (teléfono o siesta). Cualquier atención la despierta.
     effect((onCleanup) => {
       const mode = this.mode();
       const awake = this.awake();
       const still = this.still();
+      const away = this.away();
+      const reaction = this.reaction();
 
-      untracked(() => this.phone.set(null));
-      if (mode !== 'confirm' || awake || still) return;
+      untracked(() => {
+        this.phone.set(null);
+        this.drowsy.set(false);
+      });
+
+      const waiting = mode === 'confirm';
+      const resting = mode === 'idle' && !away && !reaction;
+      if ((!waiting && !resting) || awake || still) return;
 
       const timers: ReturnType<typeof setTimeout>[] = [];
       const later = (ms: number, fn: () => void) => timers.push(setTimeout(fn, ms));
+      let dozed = false;
       const glanceSoon = () =>
         later(GLANCE_GAP_MS + Math.random() * GLANCE_RANGE_MS, () => {
+          if (dozed) return;
           this.phone.set({ glance: true });
           later(GLANCE_MS, () => {
+            if (dozed) return;
             this.phone.set({ glance: false });
             glanceSoon();
           });
         });
-      later(PHONE_AFTER_MS, () => {
+      const takePhone = () => {
         this.phone.set({ glance: false });
         glanceSoon();
-      });
+      };
+      const dozeOff = () => {
+        dozed = true;
+        this.phone.set(null);
+        this.drowsy.set(true);
+      };
+
+      if (waiting) {
+        later(PHONE_AFTER_MS, takePhone);
+      } else {
+        later(BORED_AFTER_MS + Math.random() * BORED_RANGE_MS, () => {
+          if (Math.random() >= PHONE_FIRST) return dozeOff();
+          takePhone();
+          later(BORED_PHONE_MS, dozeOff);
+        });
+      }
 
       onCleanup(() => timers.forEach(clearTimeout));
     });

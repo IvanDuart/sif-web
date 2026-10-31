@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  afterRenderEffect,
   computed,
   effect,
   inject,
@@ -153,22 +154,21 @@ export class MascotOrb {
       this.lifeService.away.set(this.away());
     });
 
-    effect((onCleanup) => {
+    // Después de pintar, no antes: el teléfono, las zetas o los humos los crea
+    // el `@if` de la plantilla, y la animación tiene que encontrarlos ya en el
+    // DOM para encenderlos (si no, se quedan en `opacity: 0`).
+    afterRenderEffect((onCleanup) => {
       const orb = this.orb()?.nativeElement;
       const scene = this.scene();
-      if (!orb || !scene) return undefined;
-      const stop = startMotion(orb, scene, this.skin(), this.still() || this.prefersReducedMotion());
-      onCleanup(stop);
-      return undefined;
+      if (!orb || !scene) return;
+      onCleanup(startMotion(orb, scene, this.skin(), this.still() || this.prefersReducedMotion()));
     });
 
-    effect((onCleanup) => {
+    afterRenderEffect((onCleanup) => {
       const orb = this.orb()?.nativeElement;
       const blink = this.blink();
-      if (!orb || blink === null || this.still() || this.prefersReducedMotion()) return undefined;
-      const stop = startBlink(orb, blink);
-      onCleanup(stop);
-      return undefined;
+      if (!orb || blink === null || this.still() || this.prefersReducedMotion()) return;
+      onCleanup(startBlink(orb, blink));
     });
 
     // Morphing entre skins: RAF sobre los paths, sin disparar CD por frame si
