@@ -15,7 +15,7 @@ import { TuiButton, TuiInput, TuiTextfield } from '@taiga-ui/core';
 import { AssistantPendingActionDto } from '../../../core/api/models/assistant.model';
 import { MascotStateService } from '../mascot-state.service';
 import { MascotActionCard } from './mascot-action-card';
-import { MascotAvatar } from './mascot-avatar';
+import { MascotOrb } from './mascot-orb';
 import { MascotQuickReplies } from './mascot-quick-replies';
 
 /**
@@ -31,7 +31,7 @@ import { MascotQuickReplies } from './mascot-quick-replies';
     TuiButton,
     TuiInput,
     TuiTextfield,
-    MascotAvatar,
+    MascotOrb,
     MascotActionCard,
     MascotQuickReplies,
   ],
@@ -95,6 +95,10 @@ export class MascotPanel {
 
   declineConsent(): void {
     this.state.declineConsent();
+  }
+
+  openWardrobe(): void {
+    this.state.openWardrobe();
   }
 
   close(): void {

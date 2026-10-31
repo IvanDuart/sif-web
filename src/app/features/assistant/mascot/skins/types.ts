@@ -6,11 +6,11 @@
  * comprueba contra esta lista. Una skin listada aquí y ausente en el registro
  * es un error de test, no una mascota en blanco.
  */
-export const SKIN_IDS = ['brocoli', 'manzana', 'semilla', 'zanahoria'] as const;
+export const SKIN_IDS = ['manzana', 'naranja', 'pina', 'melon'] as const;
 export type SkinId = (typeof SKIN_IDS)[number];
 
 /** La skin por defecto y a la que cae cualquier id desconocido. */
-export const DEFAULT_SKIN: SkinId = 'brocoli';
+export const DEFAULT_SKIN: SkinId = 'manzana';
 
 /** Lo que se puede poner encima de cualquier skin. */
 export const ACCESSORY_IDS = ['orejas'] as const;

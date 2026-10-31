@@ -1,0 +1,428 @@
+/* El armario (diseño de alkimia, `core/copilot/mascot/wardrobe.css`): una
+   tarjeta sobre la página atenuada donde la propia mascota enseña el look que
+   se está probando. Dos puertas con su tirador se abren sobre ella y lo que
+   hay dentro sube, uno detrás de otro. Nada de la tarjeta hace scroll. */
+
+:host {
+  position: fixed;
+  /* Por encima del panel (300) y del propio FAB: el armario los tapa a los dos. */
+  z-index: 1200;
+  inset: 0;
+  display: block;
+}
+
+.wd-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.45);
+  animation: wd-fade 200ms ease-out both;
+}
+
+/* El envoltorio guarda la perspectiva en la que giran las puertas; la tarjeta
+   de dentro las recorta. */
+.wd-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  perspective: 1600px;
+  transform: translate(-50%, -50%);
+}
+
+/* La tarjeta la mide su contenido: nada de ella hace scroll. */
+.wd-card {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+  box-sizing: border-box;
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: 0 30px 80px rgb(0 0 0 / 0.35);
+  color: var(--ink);
+}
+
+/* ── Cabecera ─────────────────────────────────────────────────────── */
+
+.wd-head {
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  box-sizing: border-box;
+  padding: 18px 16px 0 24px;
+}
+
+.wd-head > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.wd-eyebrow {
+  margin: 0;
+  color: var(--primary);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wd-title {
+  margin: 2px 0 0;
+  font-family: var(--font-display, inherit);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ── El escenario: la barra, la sombra del suelo y las flechas ─────── */
+
+.wd-stage {
+  position: relative;
+  flex: none;
+  height: 176px;
+  margin: 12px 20px 0;
+  border-radius: 16px;
+  background: var(--sunken);
+}
+
+.wd-bar {
+  position: absolute;
+  top: 18px;
+  right: 28px;
+  left: 28px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--line-strong);
+}
+
+.wd-floor {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  width: 150px;
+  height: 20px;
+  margin-left: -75px;
+  border-radius: 50%;
+  background: rgb(31 29 26 / 0.12);
+}
+
+:host-context(.dark) .wd-floor {
+  background: rgb(0 0 0 / 0.3);
+}
+
+/* La mascota en el perchero: la misma que se lleva puesta, al tamaño del
+   escenario. Entra cuando las puertas ya han abierto. */
+.wd-model {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1.6);
+  animation: wd-arrive 420ms cubic-bezier(0.2, 0.7, 0.2, 1) 0.95s both;
+}
+
+.wd-arrow {
+  position: absolute;
+  top: 50%;
+  margin-top: -18px;
+  border-radius: 50% !important;
+  background: var(--surface) !important;
+}
+
+.wd-arrow--prev {
+  left: 14px;
+}
+
+.wd-arrow--next {
+  right: 14px;
+}
+
+/* ── El nombre de lo que se está probando ─────────────────────────── */
+
+.wd-info {
+  flex: none;
+  box-sizing: border-box;
+  height: 58px;
+  padding: 14px 24px 0;
+  text-align: center;
+}
+
+.wd-info__line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.wd-info strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.wd-info em {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.wd-info p {
+  min-height: 18px;
+  margin: 4px 0 0;
+  color: var(--ink-3);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ── El estante ───────────────────────────────────────────────────── */
+
+.wd-shelf {
+  display: grid;
+  flex: none;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: 8px;
+  padding: 16px 20px 0;
+}
+
+.wd-thumb {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 4px 9px;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  background: var(--canvas);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  gap: 6px;
+  transition:
+    background 200ms ease,
+    border-color 200ms ease;
+}
+
+.wd-thumb:hover {
+  border-color: var(--line-strong);
+}
+
+.wd-thumb--on {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.wd-thumb:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+/* 48px de cuerpo dibujados al .82, en una caja del tamaño que ocupa. */
+.wd-thumb__box {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.wd-thumb__art {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  display: flex;
+  width: 56px;
+  height: 56px;
+  align-items: center;
+  justify-content: center;
+  transform: scale(0.72);
+}
+
+/* En el estante no se mueve nada: eso lo para el propio orb con `still`. */
+
+.wd-thumb__name {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+/* El punto de la que se lleva puesta ahora mismo. */
+.wd-thumb__dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+/* ── Accesorios ───────────────────────────────────────────────────── */
+
+.wd-extras {
+  flex: none;
+  padding: 14px 20px 0;
+  text-align: center;
+}
+
+.wd-extras__label {
+  margin: 0 0 8px;
+  color: var(--ink-3);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wd-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.wd-chip {
+  padding: 6px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  transition:
+    background 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease;
+}
+
+.wd-chip:hover {
+  border-color: var(--line-strong);
+}
+
+.wd-chip--on {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* ── El pie ───────────────────────────────────────────────────────── */
+
+.wd-foot {
+  display: flex;
+  flex: none;
+  align-items: center;
+  padding: 18px 20px;
+  gap: 8px;
+}
+
+.wd-hint {
+  flex: 1;
+  color: var(--ink-3);
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: left;
+}
+
+/* ── Las puertas ──────────────────────────────────────────────────── */
+
+/* Dos hojas macizas con un tirador cada una, con la bisagra en el borde de
+   fuera; una vez pasado el canto ya no están. */
+.wd-door {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  width: 50%;
+  align-items: center;
+  box-sizing: border-box;
+  backface-visibility: hidden;
+  background: var(--primary-soft);
+  pointer-events: none;
+}
+
+.wd-door > i {
+  width: 6px;
+  height: 46px;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+.wd-door--left {
+  left: 0;
+  justify-content: flex-end;
+  padding-right: 14px;
+  border-right: 1px solid var(--line);
+  animation: wd-open-left 750ms cubic-bezier(0.5, 0, 0.2, 1) 700ms both;
+  transform-origin: left center;
+}
+
+.wd-door--right {
+  right: 0;
+  justify-content: flex-start;
+  padding-left: 14px;
+  border-left: 1px solid var(--line);
+  animation: wd-open-right 750ms cubic-bezier(0.5, 0, 0.2, 1) 700ms both;
+  transform-origin: right center;
+}
+
+/* ── Lo que sube, uno detrás de otro ──────────────────────────────── */
+
+.wd-rise {
+  animation: wd-rise 350ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 1.1s) both;
+}
+
+@keyframes wd-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes wd-open-left {
+  to {
+    transform: rotateY(-104deg);
+  }
+}
+
+@keyframes wd-open-right {
+  to {
+    transform: rotateY(104deg);
+  }
+}
+
+@keyframes wd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes wd-arrive {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -62%) scale(1.3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wd-door {
+    display: none;
+  }
+
+  .wd-rise,
+  .wd-scrim,
+  .wd-model {
+    animation: none;
+  }
+}

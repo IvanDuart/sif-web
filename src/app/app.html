@@ -1,3 +1,8 @@
 <tui-root>
   <router-outlet></router-outlet>
 </tui-root>
+
+<!-- Fuera de `tui-root` a propósito: ver `OverlayLayerService`. -->
+@if (overlay.component(); as layer) {
+  <ng-container *ngComponentOutlet="layer" />
+}

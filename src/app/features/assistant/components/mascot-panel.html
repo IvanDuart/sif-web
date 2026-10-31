@@ -6,18 +6,30 @@
   *transloco="let t"
 >
   <header class="mascot-head">
-    <app-mascot-avatar
-      [src]="state.avatarSrc()"
-      [fallback]="state.fallbackSrc()"
-      [idleAnimation]="state.idleAnimation()"
-      [thinkingAnimation]="state.thinkingAnimation()"
+    <app-mascot-orb
+      [mode]="state.orbMode()"
+      [skin]="state.skin()"
+      [accessories]="state.accessories()"
       size="m"
-      [mood]="state.sending() ? 'thinking' : 'idle'"
+      [mirror]="true"
     />
     <div class="min-w-0 flex-1">
       <p id="mascot-title" class="mascot-name">{{ state.name() }}</p>
       <p class="mascot-sub">{{ t('assistant.subtitle') }}</p>
     </div>
+    @if (state.allowUserLook()) {
+      <button
+        type="button"
+        tuiButton
+        appearance="flat"
+        size="s"
+        (click)="openWardrobe()"
+        [attr.aria-label]="t('assistant.wardrobe_open')"
+        [attr.title]="t('assistant.wardrobe_open')"
+      >
+        <i class="fa-solid fa-shirt" aria-hidden="true"></i>
+      </button>
+    }
     <button
       type="button"
       tuiButton
@@ -51,7 +63,7 @@
     } @else {
       @if (showGreeting()) {
         <div class="msg">
-          <app-mascot-avatar [src]="state.avatarSrc()" [fallback]="state.fallbackSrc()" size="s" />
+          <app-mascot-orb [skin]="state.skin()" [accessories]="state.accessories()" size="s" [decorative]="true" [still]="true" />
           <p class="bubble">{{ state.greeting() }}</p>
         </div>
       }
@@ -63,7 +75,7 @@
           [class.msg--system]="message.role === 'SYSTEM'"
         >
           @if (message.role !== 'USER') {
-            <app-mascot-avatar [src]="state.avatarSrc()" [fallback]="state.fallbackSrc()" size="s" />
+            <app-mascot-orb [skin]="state.skin()" [accessories]="state.accessories()" size="s" [decorative]="true" [still]="true" />
           }
           <p class="bubble">
             @if (message.role === 'SYSTEM') {
@@ -85,7 +97,7 @@
 
       @if (state.sending()) {
         <div class="msg">
-          <app-mascot-avatar [src]="state.avatarSrc()" [fallback]="state.fallbackSrc()" size="s" mood="thinking" />
+          <app-mascot-orb [skin]="state.skin()" [accessories]="state.accessories()" size="s" [decorative]="true" mode="thinking" />
           <p class="bubble bubble--typing" [attr.aria-label]="t('assistant.thinking')">
             <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
           </p>

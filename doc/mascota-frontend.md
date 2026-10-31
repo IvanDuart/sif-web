@@ -1,6 +1,6 @@
-# Mascota conversacional — contrato para Angular
+# Mascota procedural — contrato y guía de frontend
 
-> **Estado:** backend v1 implementado.
+> **Estado:** contrato v2 (mascotas procedurales).
 > **Base:** `context-path` `/api`.
 > **Autenticación:** `Authorization: Bearer <JWT>`.
 > **Regla de oro:** ninguna escritura se aplica sin `pending_action` confirmada.
@@ -9,27 +9,38 @@
 
 ## 1. Resumen
 
-La mascota es un asistente administrativo:
+La mascota sigue siendo un asistente administrativo conversacional, pero su
+cara ya no es un SVG subido por el centro: es un **personaje procedural** con
+skins definidas por el producto, vida propia y vestuario por usuario.
 
-- Ayuda a completar el perfil y la anamnesis.
-- Propone registrar mediciones.
-- Permite navegar a pantallas conocidas.
-- Responde en el idioma del usuario.
-- **No** diagnostica, no prescribe y no interpreta analíticas.
-
-Toda escritura sigue este ciclo:
-
-```text
-mensaje → Gemini propone una acción → pendingAction
-        → el usuario confirma → se escribe
-        → o el usuario rechaza → no se escribe
-```
+- El catálogo de skins lo controla el producto.
+- El centro elige la skin por defecto y qué personalización permite.
+- Cada usuario puede elegir su skin y accesorios.
+- El backend solo sirve datos; el dibujo vive en el frontend.
+- **Solo la ven nutricionistas y administradores** (`userType === 'STAFF'` y
+  `roleCode` `ADMIN` o `NUTRITIONIST`). Los pacientes no ven la mascota ni el
+  FAB, y el panel no se monta para ellos.
 
 ---
 
-## 2. Configuración
+## 2. Catálogo de skins
 
-### 2.1 Obtener configuración
+Las skins se empaquetan en el frontend (`src/app/features/assistant/mascot/skins`).
+
+| Id | Nombre | Forma |
+|---|---|---|
+| `manzana` | Manzana | Cuerpo rojo redondeado, con rabillo y hoja. |
+| `naranja` | Naranja | Esfera naranja, con rabillo y hoja. |
+| `pina` | Piña | Esfera dorada con enrejado y penacho verde. |
+| `melon` | Melón | Óvalo verde con rayas y rabillo rizado. |
+
+Accesorios iniciales: `orejas` (orejas de gato).
+
+---
+
+## 3. Configuración del tenant
+
+### 3.1 Obtener configuración
 
 ```http
 GET /api/tenant/{tenantId}/assistant/config
@@ -41,51 +52,25 @@ GET /api/tenant/{tenantId}/assistant/config
   "apiKeyConfigured": true,
   "name": "Nuti",
   "tone": "CERCANO",
-  "avatarUrl": "https://minio.../firmada",
-  "avatarExpiresAt": "2026-10-29T10:25:00Z",
-  "animations": {
-    "idle": "https://minio.../idle.json",
-    "thinking": "https://minio.../thinking.json"
-  },
+  "defaultSkinId": "manzana",
   "greeting": "¡Hola! Soy Nuti. ¿Te ayudo a completar tu perfil?",
   "suggestedPrompts": ["Completar mis datos", "¿Qué me falta?", "Registrar mi peso"],
-  "consentRequired": false
+  "consentRequired": false,
+  "consentText": null,
+  "lookPolicy": {
+    "allowUserLook": true,
+    "allowedSkinIds": ["manzana", "naranja", "pina", "melon"],
+    "allowedAccessories": ["orejas"]
+  }
 }
 ```
 
-### 2.2 Configurar la clave Gemini
+- `defaultSkinId`: skin por defecto del centro.
+- `lookPolicy.allowUserLook`: si es `false`, todos ven `defaultSkinId` y no hay vestuario.
+- `lookPolicy.allowedSkinIds` vacío = todas permitidas.
+- Ya **no** existen `avatarUrl`, `avatarExpiresAt` ni `animations`.
 
-La clave se guarda siempre cifrada y nunca se devuelve en las respuestas.
-Usa `apiKeyConfigured` de `GET /assistant/config` para decidir si el botón
-debe decir “Configurar clave” o “Rotar clave”. También puedes leer
-`api_key_configured` en las respuestas de preferencias y `hasApiKey` en
-`GET /tenant/{tenantId}/branding`.
-
-Usa el endpoint dedicado para evitar enviar el resto de preferencias:
-
-```http
-PUT /api/tenant/{tenantId}/preferences/ai-key
-Content-Type: application/json
-
-{ "apiKey": "AIza..." }
-```
-
-También se aceptan los alias `geminiApiKey`, `gemini_api_key`, `apiKey` y `key`.
-
-Para borrarla:
-
-```http
-DELETE /api/tenant/{tenantId}/preferences/ai-key
-```
-
-> **Compatibilidad:** `PATCH /api/tenant/{tenantId}/preferences` acepta tanto
-> `gemini_api_key` como `geminiApiKey`. Si el campo se omite o llega vacío, se
-> conserva la clave actual. Para borrarla desde el PATCH, envía
-> `"gemini_api_key": "__REMOVE__"`.
-
-### 2.3 Actualizar configuración
-
-Requiere `MANAGE_TENANT`.
+### 3.2 Actualizar configuración
 
 ```http
 PUT /api/tenant/{tenantId}/assistant/config
@@ -95,301 +80,192 @@ Content-Type: application/json
   "name": "Nuti",
   "persona": "Cercana y breve",
   "tone": "CERCANO",
-  "avatarStoredFileId": "uuid",
-  "animations": { "idle": "...", "thinking": "..." },
+  "defaultSkinId": "melon",
   "enabled": true,
-  "consentText": "Voy a usar un asistente de IA..."
+  "consentText": "Voy a usar un asistente de IA...",
+  "lookPolicy": {
+    "allowUserLook": true,
+    "allowedSkinIds": ["manzana", "naranja", "pina", "melon"],
+    "allowedAccessories": ["orejas"]
+  }
 }
 ```
 
-### 2.4 Subir el avatar (SVG)
+Requiere `MANAGE_TENANT`.
 
-Requiere `MANAGE_TENANT`. El SVG se valida y se sanea en el backend
-(se eliminan scripts, manejadores de eventos y referencias externas) antes de
-guardarse en MinIO. Tamaño máximo por defecto: 512 KB.
-
-```http
-PUT /api/tenant/{tenantId}/assistant/avatar
-Content-Type: multipart/form-data
-
-file: avatar.svg
-```
-
-Respuesta: el mismo `AssistantConfigDto` de `GET /assistant/config`, con
-`avatarUrl` actualizado.
-
-### 2.5 Mascotas predefinidas
-
-Todas las mascotas SVG empaquetadas en `src/main/resources/pets/` están
-disponibles para cualquier tenant.
-
-#### Listar mascotas
+### 3.3 Catálogo
 
 ```http
 GET /api/tenant/{tenantId}/assistant/pets
 ```
 
-Respuesta:
-
 ```json
 [
-  { "id": "brocoli", "name": "Brocoli", "svgContent": "<svg ..." },
-  { "id": "manzana", "name": "Manzana", "svgContent": "<svg ..." },
-  { "id": "semilla", "name": "Semilla", "svgContent": "<svg ..." },
-  { "id": "zanahoria", "name": "Zanahoria", "svgContent": "<svg ..." }
+  {
+    "id": "manzana",
+    "name": "Brócoli",
+    "category": "VEGETABLE",
+    "order": 1,
+    "supports": {
+      "accessories": ["orejas"],
+      "expressions": ["idle", "listening", "thinking", "happy", "confused", "sleeping"]
+    }
+  }
 ]
 ```
 
-El frontend usa `svgContent` para pintar el selector.
-
-#### Elegir una mascota
-
-Requiere `MANAGE_TENANT`.
-
-```http
-PUT /api/tenant/{tenantId}/assistant/avatar/preset/{petId}
-```
-
-El backend copia el SVG elegido a MinIO y lo fija como avatar del centro.
-Los SVG predefinidos se consideran de confianza y conservan sus animaciones
-CSS. Devuelve el `AssistantConfigDto` con la nueva `avatarUrl` firmada.
-
-### 2.6 Subir o reemplazar una animación Lottie
-
-Requiere `MANAGE_TENANT`. Nombres admitidos: `idle`, `listening`, `thinking`,
-`happy`, `confused`, `sleeping`. Tamaño máximo por defecto: 2 MB.
-
-```http
-PUT /api/tenant/{tenantId}/assistant/animations/{animationName}
-Content-Type: multipart/form-data
-
-file: idle.json
-```
-
-La animación debe ser un JSON Lottie válido (con `v` y `fr`).
-
-Respuesta: el mismo `AssistantConfigDto`, con `animations` actualizado a URLs
-firmadas.
-
-### 2.7 Borrar una animación
-
-```http
-DELETE /api/tenant/{tenantId}/assistant/animations/{animationName}
-```
-
-Respuesta: el mismo `AssistantConfigDto`, sin la animación eliminada.
+El backend no envía SVG: el frontend ya conoce cada skin.
 
 ---
 
-## 3. Sesión
+## 4. Look del usuario
 
-### 3.1 Crear o reutilizar sesión
+### 4.1 Obtener
 
 ```http
-POST /api/tenant/{tenantId}/assistant/sessions
-Content-Type: application/json
-
-{ "mode": "SELF", "subjectUserId": null, "screen": "PROFILE" }
+GET /api/tenant/{tenantId}/assistant/look
 ```
-
-- `SELF`: el usuario habla por sí mismo.
-- `STAFF`: el profesional actúa sobre un paciente. Exige `subjectUserId` y `MANAGE_PATIENT_PROFILE`.
-- Si hay una sesión activa del mismo usuario y subject, se reutiliza.
-
-Respuesta:
 
 ```json
 {
-  "sessionId": "uuid",
-  "consentRequired": true,
-  "greeting": "¡Hola! Soy Nuti. ¿Te ayudo a completar tu perfil?",
-  "expiresAt": "2026-10-30T10:00:00Z",
-  "mode": "SELF",
-  "subjectUserId": "uuid"
+  "skinId": "melon",
+  "accessories": ["orejas"],
+  "updatedAt": "2026-10-31T09:15:00Z"
 }
 ```
 
-### 3.2 Consentimiento
+`skinId: null` = usar `defaultSkinId`.
+
+### 4.2 Guardar
 
 ```http
-POST /api/tenant/{tenantId}/assistant/sessions/{sessionId}/consent
+PUT /api/tenant/{tenantId}/assistant/look
 Content-Type: application/json
 
-{ "accepted": true }
+{
+  "skinId": "manzana",
+  "accessories": ["orejas"]
+}
 ```
 
-- Sin consentimiento no se llama a Gemini.
-- `accepted: false` cierra la sesión.
-- Respuesta `204`.
+- `skinId` debe existir en el catálogo y estar permitido.
+- `accessories` debe estar permitido y soportado por la skin.
+- Cualquier usuario autenticado puede cambiar su propio look.
 
-### 3.3 Cerrar sesión
+### 4.3 Borrar
 
 ```http
+DELETE /api/tenant/{tenantId}/assistant/look
+```
+
+Vuelve al `defaultSkinId`. Responde `204`.
+
+---
+
+## 5. Sesión y conversación
+
+Sin cambios respecto a v1:
+
+```http
+POST   /api/tenant/{tenantId}/assistant/sessions
+POST   /api/tenant/{tenantId}/assistant/sessions/{sessionId}/consent
 DELETE /api/tenant/{tenantId}/assistant/sessions/{sessionId}
+POST   /api/tenant/{tenantId}/assistant/sessions/{sessionId}/messages
+GET    /api/tenant/{tenantId}/assistant/sessions/{sessionId}/messages?before=<cursor>&limit=30
+POST   /api/tenant/{tenantId}/assistant/pending-actions/{actionId}/confirm
+POST   /api/tenant/{tenantId}/assistant/pending-actions/{actionId}/reject
 ```
-
-- Respuesta `204`.
-- No borra el historial.
 
 ---
 
-## 4. Conversación
+## 6. Estados visuales
 
-### 4.1 Enviar mensaje
+El orb (`MascotOrb`) combina tres capas:
 
-```http
-POST /api/tenant/{tenantId}/assistant/sessions/{sessionId}/messages
-Content-Type: application/json
+1. **Modo del asistente** (`orbMode`): `idle`, `listening`, `thinking`, `confirm`.
+2. **Vida propia** (`MascotLifeService`): `peek`, `spin`, `dizzy`, `blush`, `angry`, `phone`, `sleep`.
+3. **Moods** (`MascotMoodService`): `worried`, `cheer`, `highfive`, `welcome`, `proud`; condiciones `offline`, `tired`.
 
-{ "content": "Me peso 72,5 kg" }
-```
+Prioridad: vida propia > mood > condición.
 
-Respuesta con texto y, opcionalmente, una acción pendiente:
+### 6.1 Vida propia
 
-```json
-{
-  "assistantMessage": {
-    "id": "uuid",
-    "sessionId": "uuid",
-    "role": "ASSISTANT",
-    "content": "He entendido 72,5 kg. ¿Quieres que lo guarde con la fecha de hoy?",
-    "createdAt": "2026-10-29T10:01:00Z"
-  },
-  "pendingAction": {
-    "id": "uuid",
-    "toolName": "create_measurement",
-    "summary": "Registrar medición corporal",
-    "preview": [
-      { "field": "weightKg", "label": "Peso (kg)", "value": "72.5" },
-      { "field": "measuredAt", "label": "Fecha de medición", "value": "2026-10-29" }
-    ],
-    "idempotencyKey": "uuid",
-    "expiresAt": "2026-10-29T10:16:00Z"
-  },
-  "uiActions": []
-}
-```
+- **Peek**: medio dormida, abre un ojo y mira alrededor.
+- **Spin**: giro completo sobre sí misma.
+- **Dizzy**: cinco pulsaciones rápidas.
+- **Blush**: acariciarla rápido (movimiento de vaivén).
+- **Angry**: seguir pulsando mientras está mareada.
+- **Phone**: esperar más de 20 s una confirmación.
+- **Sleep**: pestaña oculta.
 
-**Importante:** guarda `idempotencyKey` junto a la tarjeta. Se reenvía al confirmar.
+### 6.2 Moods
 
-Si no hay escritura, `pendingAction` es `null` y `uiActions` puede traer una navegación:
-
-```json
-{ "type": "NAVIGATE", "screen": "MEASUREMENTS", "params": {} }
-```
-
-### 4.2 Historial
-
-```http
-GET /api/tenant/{tenantId}/assistant/sessions/{sessionId}/messages?before=<cursor>&limit=30
-```
-
-Mismo formato de cursor que el chat.
+- `cheer`: al confirmar una acción o aceptar el consentimiento.
+- `worried`: ante un error del asistente.
+- `welcome`: primera apertura del panel en la sesión.
+- `proud`, `highfive`: reservados para eventos propios de la mascota.
 
 ---
 
-## 5. Confirmar o rechazar una acción
+## 7. Vestuario
 
-### 5.1 Confirmar
-
-```http
-POST /api/tenant/{tenantId}/assistant/pending-actions/{actionId}/confirm
-Content-Type: application/json
-
-{ "idempotencyKey": "el-mismo-que-llegó-en-pendingAction" }
-```
-
-Respuesta:
-
-```json
-{
-  "status": "APPLIED",
-  "entityType": "BODY_MEASUREMENT",
-  "entityId": "uuid",
-  "message": "Medición registrada."
-}
-```
-
-- Confirmar dos veces con la misma clave devuelve `APPLIED` sin duplicar.
-- Con otra clave devuelve `409`.
-- Una acción expirada devuelve `409`.
-
-### 5.2 Rechazar
-
-```http
-POST /api/tenant/{tenantId}/assistant/pending-actions/{actionId}/reject
-```
-
-- Respuesta `204`.
-- No escribe nada.
+- Se abre desde el header del panel de chat (icono de camiseta).
+- Solo aparece si `lookPolicy.allowUserLook`.
+- Muestra las skins permitidas y los accesorios permitidos.
+- Guarda al instante con `PUT /assistant/look`.
+- Mientras el backend v2 no esté desplegado, el look se guarda en
+  `localStorage` (`sif-mascota`) y el wardrobe sigue funcionando.
 
 ---
 
-## 6. Tools disponibles
+## 8. Acceso por rol
 
-| Tool | Tipo | Efecto |
-|---|---|---|
-| `get_profile` | Lectura | Campos permitidos del perfil. |
-| `get_missing_fields` | Lectura | Campos relevantes que faltan. |
-| `get_latest_measurement` | Lectura | Última medición. |
-| `get_upcoming_appointments` | Lectura | Próximas citas. |
-| `get_active_menu_summary` | Lectura | Menú activo. |
-| `get_tenant_info` | Lectura | Centro, idioma, zona horaria. |
-| `update_profile` | Escritura | Propone datos básicos. |
-| `update_anamnesis` | Escritura | Propone anamnesis. |
-| `create_measurement` | Escritura | Propone medición. |
-| `update_locale` | Escritura | Propone idioma/zona horaria. |
-| `navigate_to` | Navegación | Devuelve `uiActions`. |
+El frontend decide la visibilidad con `MascotStateService.visible()`:
 
-Pantallas permitidas: `PROFILE`, `ANAMNESIS`, `MEASUREMENTS`, `MENU`, `APPOINTMENTS`, `DIARY`.
+```text
+visible = roleAllowed && config.enabled
+roleAllowed = membership.userType === 'STAFF'
+              && (membership.roleCode === 'ADMIN' || membership.roleCode === 'NUTRITIONIST')
+```
 
----
-
-## 7. UI recomendada
-
-- `MascotAvatarComponent` con estados: `idle`, `listening`, `thinking`, `happy`, `confused`, `sleeping`.
-- `MascotChatComponent` con burbujas y `aria-live="polite"`.
-- `MascotActionCardComponent`:
-  - Muestra `summary` y la lista `preview`.
-  - Botones “Guardar” y “Cancelar”.
-  - Envía el `idempotencyKey` al confirmar.
-- `MascotQuickRepliesComponent` con `suggestedPrompts`.
-- Panel lateral en escritorio; bottom sheet en móvil.
-- Respetar `prefers-reduced-motion`: desactivar animaciones no esenciales.
-- Disclaimer visible: “Asistente virtual. No sustituye a tu nutricionista.”
+- Si el usuario es paciente, no se carga la configuración del asistente y el
+  launcher no renderiza nada.
+- Al cambiar de tenant o de rol, un `effect` recalcula la visibilidad y
+  recarga la configuración si el nuevo rol está permitido.
+- **Nota de seguridad:** ocultar la mascota es solo la capa de UI. Si los
+  endpoints del asistente deben quedar cerrados a pacientes, el backend debe
+  validar el rol en `POST /assistant/sessions` y en el resto de endpoints.
 
 ---
 
-## 8. Errores
+## 9. Accesibilidad
+
+- Todo el movimiento no esencial se desactiva con `prefers-reduced-motion`.
+- Los orbs decorativos llevan `aria-hidden="true"`.
+- El FAB mantiene `aria-expanded`, `aria-controls` y `aria-label`.
+- Las notas de la mascota usan `role="status"`.
+
+---
+
+## 10. Errores nuevos
 
 | Código | HTTP | Cuándo |
 |---|---|---|
-| `error.assistant_disabled` | 403 | Kill switch de plataforma, tenant o mascota. |
-| `error.ai_not_enabled_for_tenant` | 403 | `aiEnabled` desactivado. |
-| `error.ai_api_key_not_configured` | 403 | Sin clave Gemini. |
-| `error.assistant_consent_required` | 403 | Falta consentimiento. |
-| `error.assistant_session_not_found` | 404 | Sesión inexistente o de otro usuario. |
-| `error.assistant_session_closed` | 409 | Sesión cerrada o expirada. |
-| `error.assistant_quota_exceeded` | 429 | Cuota diaria agotada. |
-| `error.assistant_unavailable` | 503 | Gemini no responde. |
-| `error.assistant_action_not_found` | 404 | Acción inexistente o de otro usuario. |
-| `error.assistant_action_expired` | 409 | Acción caducada. |
-| `error.assistant_action_already_resolved` | 409 | Acción ya resuelta con otra clave. |
-| `error.assistant_action_invalid` | 409/422 | Payload inválido o clave incorrecta. |
-| `error.assistant_invalid_tool_arguments` | 422 | Argumentos de tool inválidos. |
-| `error.permission_denied` | 403 | Modo `STAFF` sin `MANAGE_PATIENT_PROFILE`. |
+| `error.assistant_pet_not_found` | 422 | `skinId` no existe en el catálogo. |
+| `error.assistant_invalid_accessory` | 422 | Accesorio no soportado o no permitido. |
+| `error.assistant_look_disabled` | 403 | `lookPolicy.allowUserLook` es `false`. |
+| `error.assistant_look_not_allowed` | 403 | `skinId` no está permitido por el tenant. |
+
+El frontend trata un `404` de `/look` como “backend antiguo” y cae a
+`localStorage` sin mostrar error.
 
 ---
 
-## 9. Checklist de integración Angular
+## 11. Migración desde v1
 
-- [ ] Cargar `/assistant/config` antes de mostrar la mascota.
-- [ ] Crear sesión y pedir consentimiento si `consentRequired`.
-- [ ] Mostrar `greeting` y `suggestedPrompts`.
-- [ ] Enviar mensajes a `/sessions/{id}/messages`.
-- [ ] Pintar `pendingAction` como tarjeta de confirmación.
-- [ ] Guardar y reenviar `idempotencyKey` al confirmar.
-- [ ] Tratar `uiActions` como navegación, nunca como rutas libres.
-- [ ] Mostrar errores 403/409/429/503 con mensajes claros.
-- [ ] Respetar `prefers-reduced-motion`.
-- [ ] No mostrar datos clínicos en notificaciones push.
+- Se eliminan `PUT /assistant/avatar`, `PUT /assistant/avatar/preset/{petId}`
+  (como subida) y `PUT/DELETE /assistant/animations/{name}`.
+- `avatarUrl`, `avatarExpiresAt` y `animations` desaparecen del contrato.
+- Los tenants con avatar predefinido se mapean a `defaultSkinId`.
+- Los tenants con SVG propio pasan al default del producto.
+- El frontend deja de cargar `lottie-web`.

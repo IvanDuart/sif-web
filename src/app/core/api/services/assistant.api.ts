@@ -11,9 +11,11 @@ import {
   AssistantPetDto,
   AssistantSessionDto,
   AssistantTurnResponse,
+  AssistantUserLookDto,
   ConfirmAssistantActionRequest,
   CreateAssistantSessionRequest,
   UpdateAssistantConfigRequest,
+  UpdateAssistantUserLookRequest,
 } from '../models/assistant.model';
 
 /**
@@ -100,6 +102,30 @@ export class AssistantService {
       `${this.endpoint(tenantId)}/animations/${encodeURIComponent(animationName)}`,
       { context: new HttpContext().set(IGNORE_FORBIDDEN, true).set(IGNORE_NOT_FOUND, true) }
     );
+  }
+
+  /**
+   * Look procedural del usuario actual (contrato v2). Un backend antiguo
+   * responde 404: el llamador cae a `localStorage` sin romper nada.
+   */
+  getLook(tenantId: string): Observable<AssistantUserLookDto> {
+    return this.http.get<AssistantUserLookDto>(`${this.endpoint(tenantId)}/look`, {
+      context: this.silent,
+    });
+  }
+
+  /** Guarda el look del usuario actual. */
+  updateLook(tenantId: string, request: UpdateAssistantUserLookRequest): Observable<AssistantUserLookDto> {
+    return this.http.put<AssistantUserLookDto>(`${this.endpoint(tenantId)}/look`, request, {
+      context: this.silent,
+    });
+  }
+
+  /** Vuelve al look por defecto del tenant. */
+  deleteLook(tenantId: string): Observable<void> {
+    return this.http.delete<void>(`${this.endpoint(tenantId)}/look`, {
+      context: this.silent,
+    });
   }
 
   /** Reutiliza la sesión activa del mismo usuario y subject. */

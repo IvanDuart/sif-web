@@ -1,0 +1,195 @@
+<span class="mascot-bob" [style.--mascot-scale]="scale()">
+  <span #orb class="mascot-orb" [attr.data-mode]="mode()" [attr.data-skin]="skin()" [style]="skinStyle()">
+    <span class="mascot-turner" data-turner>
+      @if (skin() === 'manzana') {
+        <svg class="mascot-detail mascot-detail--behind" viewBox="0 0 160 160" aria-hidden="true">
+          <path d="M80 70 Q78 46 82 30" stroke="#6b4a2b" stroke-width="7" fill="none" stroke-linecap="round" />
+          <path d="M84 48 Q98 34 112 40 Q104 54 88 52 Z" fill="#4f8f45" />
+        </svg>
+      }
+      @if (skin() === 'naranja') {
+        <svg class="mascot-detail mascot-detail--behind" viewBox="0 0 160 160" aria-hidden="true">
+          <path d="M80 40 Q80 26 84 18" stroke="#6b4a2b" stroke-width="7" fill="none" stroke-linecap="round" />
+          <path d="M86 26 Q100 14 114 20 Q106 34 90 31 Z" fill="#4f8f45" />
+        </svg>
+      }
+      @if (skin() === 'pina') {
+        <svg class="mascot-detail mascot-detail--behind" viewBox="0 0 160 160" aria-hidden="true">
+          <path d="M80 56 Q62 30 50 14" stroke="#3f8a4d" stroke-width="9" fill="none" stroke-linecap="round" />
+          <path d="M80 56 Q70 26 66 6" stroke="#4fa85e" stroke-width="9" fill="none" stroke-linecap="round" />
+          <path d="M80 56 Q82 24 80 2" stroke="#3f8a4d" stroke-width="9" fill="none" stroke-linecap="round" />
+          <path d="M80 56 Q90 26 94 6" stroke="#4fa85e" stroke-width="9" fill="none" stroke-linecap="round" />
+          <path d="M80 56 Q98 30 110 14" stroke="#3f8a4d" stroke-width="9" fill="none" stroke-linecap="round" />
+        </svg>
+      }
+      @if (skin() === 'melon') {
+        <svg class="mascot-detail mascot-detail--behind" viewBox="0 0 160 160" aria-hidden="true">
+          <path
+            d="M80 50 Q76 32 86 24 Q94 18 90 10"
+            stroke="#6b8f3a"
+            stroke-width="6"
+            fill="none"
+            stroke-linecap="round"
+          />
+        </svg>
+      }
+
+      @if (hasEars()) {
+        <span class="mascot-ears" data-ears aria-hidden="true">
+          <i class="mascot-ear mascot-ear--left"></i>
+          <i class="mascot-ear mascot-ear--right"></i>
+        </span>
+      }
+
+      <svg class="mascot-agent" viewBox="0 0 160 160" aria-hidden="true">
+        <defs>
+          <clipPath [attr.id]="clipId">
+            <path [attr.d]="bodyD()" />
+          </clipPath>
+        </defs>
+        @if (halo() > 0.01) {
+          <circle
+            cx="80"
+            cy="80"
+            [attr.r]="56 + 16 * halo()"
+            fill="#fde3b0"
+            stroke="#f0c072"
+            stroke-width="3"
+            [attr.opacity]="halo()"
+          />
+        }
+        <path [attr.d]="bodyD()" [attr.fill]="dark()" />
+        <path [attr.d]="litD()" [attr.fill]="light()" [attr.clip-path]="clipUrl()" />
+        @if (skin() === 'pina') {
+          <g [attr.clip-path]="clipUrl()" stroke="#b07d12" stroke-width="2.5" opacity="0.5" fill="none">
+            <path d="M30 28 L130 92M30 60 L130 124M30 92 L130 156M50 86 L150 22M50 118 L150 54M50 150 L150 86" />
+          </g>
+        }
+        @if (skin() === 'melon') {
+          <g
+            [attr.clip-path]="clipUrl()"
+            stroke="#55802c"
+            stroke-width="7"
+            fill="none"
+            stroke-linecap="round"
+            opacity="0.85"
+          >
+            <path d="M44 54 Q34 90 46 126" />
+            <path d="M116 54 Q126 90 114 126" />
+          </g>
+        }
+        <ellipse
+          [attr.cx]="spot()[0]"
+          [attr.cy]="spot()[1]"
+          [attr.rx]="11 * spot()[5]"
+          [attr.ry]="5.5 * spot()[5]"
+          fill="#fff"
+          opacity="0.45"
+          [attr.transform]="'rotate(' + spot()[2] + ' ' + spot()[0] + ' ' + spot()[1] + ')'"
+        />
+        <circle [attr.cx]="spot()[3]" [attr.cy]="spot()[4]" [attr.r]="2.8 * spot()[5]" fill="#fff" opacity="0.45" />
+      </svg>
+
+      <svg class="mascot-face" viewBox="0 0 160 160" aria-hidden="true">
+        @for (eye of eyes()[0]; track $index) {
+          <g class="mascot-face-place" [style.transform]="eyeTransform($index)">
+            <g class="mascot-face-eye" data-eye [attr.data-look]="eye.look" [style.transform]="lookTransform(eye)">
+              @if (showCheeks()) {
+                <ellipse
+                  data-cheek
+                  class="mascot-face-cheek"
+                  [attr.cx]="$index === 0 ? eyeCx - 15 : eyeCx + 15"
+                  [attr.cy]="eyeCy + 25"
+                  rx="12"
+                  ry="7"
+                  fill="#ff8fab"
+                  opacity="0.9"
+                />
+              }
+              <rect
+                data-bar
+                class="mascot-face-bar"
+                [attr.width]="eyeW"
+                [attr.height]="eyeH"
+                [attr.rx]="eyeW / 2"
+                [attr.fill]="eyeColour()"
+                [style.transform]="barTransform(eye)"
+                [attr.opacity]="barOpacity(eye)"
+              />
+              <path
+                data-arch
+                class="mascot-face-arch"
+                [attr.d]="archPath"
+                fill="none"
+                stroke-width="6.5"
+                stroke-linecap="round"
+                [attr.stroke]="eyeColour()"
+                [attr.opacity]="archOpacity(eye)"
+              />
+              <g
+                [attr.transform]="'translate(' + (eyeCx - 20) + ' ' + (eyeCy - 20) + ') scale(2.5)'"
+                class="mascot-face-spiral-layer"
+                [attr.opacity]="spiralOpacity(eye)"
+              >
+                <g data-spiral class="mascot-face-spiral">
+                  <path
+                    [attr.d]="spiralPath"
+                    fill="none"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    [attr.stroke]="eyeColour()"
+                  />
+                </g>
+              </g>
+              @if (showBrows()) {
+                <path
+                  data-brow
+                  class="mascot-face-brow"
+                  [attr.d]="
+                    $index === 0
+                      ? 'M' + (eyeCx - 12) + ' ' + (eyeCy - 29) + ' L' + (eyeCx + 10) + ' ' + (eyeCy - 21)
+                      : 'M' + (eyeCx - 10) + ' ' + (eyeCy - 21) + ' L' + (eyeCx + 12) + ' ' + (eyeCy - 29)
+                  "
+                  stroke-width="6.5"
+                  stroke-linecap="round"
+                  [attr.stroke]="eyeColour()"
+                />
+              }
+            </g>
+          </g>
+        }
+      </svg>
+    </span>
+
+    @if (showCheeks()) {
+      <i data-o="heart" class="mascot-heart" style="left: 42px; top: -4px; font-size: 11px">♥</i>
+      <i data-o="heart" class="mascot-heart" style="left: 28px; top: -8px; font-size: 8px">♥</i>
+    }
+    @if (life()?.kind === 'dizzy') {
+      <i data-o="star" class="mascot-star">★</i>
+      <i data-o="star" class="mascot-star">★</i>
+      <i data-o="star" class="mascot-star">★</i>
+    }
+    @if (life()?.kind === 'sleep') {
+      <i data-o="z" class="mascot-z">z</i>
+      <i data-o="z" class="mascot-z">z</i>
+      <i data-o="z" class="mascot-z">Z</i>
+    }
+    @if (life()?.kind === 'phone') {
+      <span data-o="phone" class="mascot-phone"><i></i></span>
+    }
+    @if (life()?.kind === 'angry') {
+      <span data-o="mark" class="mascot-mark">💢</span>
+      <i data-o="puff" class="mascot-puff"></i>
+      <i data-o="puff" class="mascot-puff"></i>
+    }
+    @if (mood() === 'worried') {
+      <span data-o="sweat" class="mascot-sweat">💧</span>
+    }
+    @if (mood() === 'cheer' || mood() === 'highfive' || mood() === 'proud') {
+      <i data-o="spark" class="mascot-spark" style="left: 0; top: 4px">✦</i>
+      <i data-o="spark" class="mascot-spark" style="left: 46px; top: 0">✦</i>
+      <i data-o="spark" class="mascot-spark" style="left: 40px; top: 40px">✦</i>
+    }
+  </span>
+</span>

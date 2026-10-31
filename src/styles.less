@@ -805,3 +805,19 @@ boneyard-skeleton {
 }
 
 
+
+/* — Lo que escribe la mascota (`features/assistant/mascot/fill`) —
+   Se marca mientras es suyo y se desmarca en cuanto la persona lo toca, para
+   que se vea de un vistazo qué ha puesto ella y qué queda por revisar. */
+[data-mascot-written] {
+  position: relative;
+  border-radius: 8px;
+  box-shadow: 0 0 0 2px var(--primary);
+  transition: box-shadow 240ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-mascot-written] {
+    transition: none;
+  }
+}

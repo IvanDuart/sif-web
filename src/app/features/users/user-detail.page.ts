@@ -54,6 +54,8 @@ import { SkeletonComponent } from 'boneyard-js/angular';
 import { TuiButton, TuiCheckbox, TuiDataList, TuiDropdown, TuiTextfield } from '@taiga-ui/core';
 import { TuiBadge, TuiProgress, TuiSegmented, TuiTabs, TuiTextarea } from '@taiga-ui/kit';
 import { TuiTable } from '@taiga-ui/addon-table';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { PATIENT_PROFILE_SURFACE } from '../assistant/mascot/fill/surfaces/patient-profile.surface';
 
 Chart.register(...registerables);
 
@@ -226,6 +228,17 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   private readonly themeService = inject(ThemeService);
 
   constructor() {
+    // La anamnesis la puede rellenar la mascota. Esta pantalla no tiene botón
+    // de guardar —se guarda sola—, así que una escritura definitiva dispara su
+    // propio guardado; las intermedias del tecleo no.
+    inject(MascotFillService).register(PATIENT_PROFILE_SURFACE, {
+      get: (key) => (this.editProfileData() as Record<string, unknown>)[key],
+      set: (key, value, options) => {
+        this.editProfileData.update((data) => ({ ...data, [key]: value ?? null }));
+        if (!options?.silent) this.persistProfile();
+      },
+    });
+
     // Subscribe to theme changes and rebuild chart when theme toggles
     effect(() => {
       this.themeService.colorScheme(); // Reactive dependency

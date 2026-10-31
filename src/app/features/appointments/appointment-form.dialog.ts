@@ -39,6 +39,9 @@ import { PermissionsService } from '../../core/permissions/permissions.service';
 import { ScheduleAvailabilityService } from '../../core/api/services/schedule-availability.service';
 import { ACTIVE_HOURS_COLOR, statusColor } from '../../shared/utils/status-colors';
 import { hexToRgba } from '../../shared/utils/chart-config';
+import { formAccess } from '../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { appointmentSurface } from '../assistant/mascot/fill/surfaces/appointment.surface';
 
 interface PatientOption {
   label: string;
@@ -139,6 +142,19 @@ export class AppointmentFormDialog implements OnInit, AfterViewInit, OnDestroy {
     this.nutritionists().find(n => n.value === value)?.label ?? value;
 
   isFirstConsultation = signal(false);
+
+  constructor() {
+    // Mientras el diálogo esté abierto, la mascota puede rellenarlo. Las
+    // listas van por referencia: cuando rellena ya están cargadas.
+    inject(MascotFillService).register(
+      appointmentSurface({
+        patients: () => this.patients(),
+        nutritionists: () => this.nutritionists(),
+        types: () => this.appointmentTypes(),
+      }),
+      formAccess(this.form)
+    );
+  }
 
   form = this.fb.group({
     patientId: [''],

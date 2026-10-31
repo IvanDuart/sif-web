@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, NgZone, signal, Type, viewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
+import { Component, computed, DestroyRef, inject, NgZone, signal, viewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { RouterOutlet, RouterModule, Router } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -23,6 +23,7 @@ import {
 import { ChatUnreadService } from '../../core/api/services/chat-unread.service';
 import { NotificationService } from '../../core/ui';
 import { globalLoadingSignal } from '../../core/http/loading.interceptor';
+import { OverlayLayerService } from '../overlay-layer.service';
 
 interface NavItem {
   labelKey: string;
@@ -65,6 +66,7 @@ const NAV_ITEMS: NavItem[] = [
   styleUrls: ['./shell.scss']
 })
 export class Shell implements OnInit, OnDestroy {
+  private readonly overlayLayer = inject(OverlayLayerService);
   loading = globalLoadingSignal;
 
   private readonly transloco = inject(TranslocoService);
@@ -101,7 +103,6 @@ export class Shell implements OnInit, OnDestroy {
    * La mascota se carga en un chunk aparte: es un extra global, no parte del
    * camino crítico del panel. `ngComponentOutlet` la monta cuando llega.
    */
-  readonly mascotLauncher = signal<Type<unknown> | null>(null);
 
   /**
    * Raíl compacto (72px, 768–1080px): las etiquetas del nav se ocultan por CSS
@@ -135,8 +136,9 @@ export class Shell implements OnInit, OnDestroy {
     this.listenToNotifications();
     this.chatUnread.refresh();
 
+    // Se pinta en `app.html`, fuera de `tui-root`: ver `OverlayLayerService`.
     void import('../../features/assistant/components/mascot-launcher').then((module) =>
-      this.mascotLauncher.set(module.MascotLauncher)
+      this.overlayLayer.component.set(module.MascotLauncher)
     );
   }
 

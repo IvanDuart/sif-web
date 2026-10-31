@@ -2,27 +2,29 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TuiButton, TuiInput, TuiTextfield } from '@taiga-ui/core';
-import { TuiFiles, TuiSwitch, TuiTextarea } from '@taiga-ui/kit';
+import { TuiSwitch, TuiTextarea } from '@taiga-ui/kit';
 
 import { AssistantService } from '../../../core/api/services/assistant.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
 import { NotificationService } from '../../../core/ui';
-import { AssistantConfigDto, AssistantPetDto } from '../../../core/api/models/assistant.model';
+import { AssistantConfigDto } from '../../../core/api/models/assistant.model';
 import { MascotStateService } from '../../assistant/mascot-state.service';
-
-/** Slots de animación admitidos por el backend. */
-const ANIMATION_SLOTS = ['idle', 'listening', 'thinking', 'happy', 'confused', 'sleeping'] as const;
-
-/** Límites del backend, validados también en cliente para dar feedback rápido. */
-const MAX_AVATAR_BYTES = 512 * 1024;
-const MAX_ANIMATION_BYTES = 2 * 1024 * 1024;
+import { MascotOrb } from '../../assistant/components/mascot-orb';
+import { SKINS } from '../../assistant/mascot/skins/registry';
+import {
+  ACCESSORY_IDS,
+  DEFAULT_SKIN,
+  isSkinId,
+  type AccessoryId,
+  type SkinId,
+} from '../../assistant/mascot/skins/types';
 
 /**
- * Configuración del asistente por tenant (`PUT /assistant/config`, avatar y
- * animaciones). Sólo la ve quien tiene `MANAGE_TENANT`.
+ * Configuración del asistente por tenant (`PUT /assistant/config`).
  *
- * El avatar y las animaciones no viajan en el `PUT /config`: se suben por sus
- * endpoints dedicados, que devuelven el `AssistantConfigDto` actualizado.
+ * Contrato v2: las mascotas son procedurales y las define el producto. El
+ * centro elige la skin por defecto y qué personalización permite a sus
+ * usuarios; no sube avatares ni animaciones.
  */
 @Component({
   selector: 'app-assistant-settings',
@@ -35,7 +37,7 @@ const MAX_ANIMATION_BYTES = 2 * 1024 * 1024;
     TuiTextfield,
     TuiSwitch,
     TuiTextarea,
-    ...TuiFiles,
+    MascotOrb,
   ],
   templateUrl: './assistant-settings.html',
 })
@@ -46,14 +48,14 @@ export class AssistantSettings implements OnInit {
   private readonly transloco = inject(TranslocoService);
   private readonly mascot = inject(MascotStateService);
 
-  readonly animationSlots = ANIMATION_SLOTS;
+  readonly skins = SKINS;
+  readonly accessories = ACCESSORY_IDS;
 
   readonly loading = signal(true);
   readonly loadError = signal(false);
   readonly saving = signal(false);
 
   readonly config = signal<AssistantConfigDto | null>(null);
-  readonly pets = signal<AssistantPetDto[]>([]);
 
   readonly enabled = signal(false);
   readonly name = signal('');
@@ -61,10 +63,10 @@ export class AssistantSettings implements OnInit {
   readonly tone = signal('');
   readonly consentText = signal('');
 
-  /** Feedback por operación asíncrona (avatar o animación concreta). */
-  readonly uploadingAvatar = signal(false);
-  readonly uploadingAnimation = signal<string | null>(null);
-  readonly deletingAnimation = signal<string | null>(null);
+  readonly defaultSkinId = signal<SkinId>(DEFAULT_SKIN);
+  readonly allowUserLook = signal(true);
+  readonly allowedSkinIds = signal<string[]>([]);
+  readonly allowedAccessories = signal<string[]>([]);
 
   readonly apiKeyConfigured = computed(() => this.config()?.apiKeyConfigured === true);
 
@@ -93,18 +95,17 @@ export class AssistantSettings implements OnInit {
         this.loadError.set(true);
       },
     });
-
-    // Las mascotas son opcionales: si fallan, el selector simplemente no aparece.
-    this.api.listPets(tenantId).subscribe({
-      next: (pets) => this.pets.set(pets),
-      error: () => this.pets.set([]),
-    });
   }
 
   save(): void {
     const tenantId = this.tenantCtx.currentTenantId();
     const name = this.name().trim();
     if (!tenantId || !name || this.saving()) return;
+
+    // Con un backend v1 los campos del contrato v2 no viajan: no romper el
+    // guardado mientras el otro equipo despliega `/look`.
+    const supportsLook =
+      this.config()?.lookPolicy !== undefined || this.config()?.defaultSkinId !== undefined;
 
     this.saving.set(true);
     this.api
@@ -114,6 +115,16 @@ export class AssistantSettings implements OnInit {
         persona: this.persona().trim() || undefined,
         tone: this.tone().trim() || undefined,
         consentText: this.consentText().trim() || undefined,
+        ...(supportsLook
+          ? {
+              defaultSkinId: this.defaultSkinId(),
+              lookPolicy: {
+                allowUserLook: this.allowUserLook(),
+                allowedSkinIds: this.allowedSkinIds(),
+                allowedAccessories: this.allowedAccessories(),
+              },
+            }
+          : {}),
       })
       .subscribe({
         next: (config) => {
@@ -127,103 +138,41 @@ export class AssistantSettings implements OnInit {
       });
   }
 
-  selectPet(pet: AssistantPetDto): void {
-    const tenantId = this.tenantCtx.currentTenantId();
-    if (!tenantId || this.uploadingAvatar()) return;
-
-    this.uploadingAvatar.set(true);
-    this.api.selectPresetAvatar(tenantId, pet.id).subscribe({
-      next: (config) => {
-        this.uploadingAvatar.set(false);
-        this.apply(config);
-        this.notify.success(this.transloco.translate('assistant.settings_avatar_saved'));
-        this.mascot.reloadConfig();
-      },
-      error: () => this.uploadingAvatar.set(false),
-    });
+  selectDefaultSkin(skin: SkinId): void {
+    this.defaultSkinId.set(skin);
   }
 
-  onAvatarFile(file: File | null): void {
-    if (!file) return;
+  isSkinAllowed(skin: SkinId): boolean {
+    // Sin restricciones = todas permitidas.
+    return this.allowedSkinIds().length === 0 || this.allowedSkinIds().includes(skin);
+  }
 
-    if (!file.name.toLowerCase().endsWith('.svg')) {
-      this.notify.error(this.transloco.translate('assistant.settings_avatar_invalid'));
+  toggleAllowedSkin(skin: SkinId): void {
+    const current = this.allowedSkinIds();
+    // Lista vacía = todas permitidas: el primer click desmarca esa skin.
+    if (current.length === 0) {
+      this.allowedSkinIds.set(this.skins.map((entry) => entry.id).filter((id) => id !== skin));
       return;
     }
-    if (file.size > MAX_AVATAR_BYTES) {
-      this.notify.error(this.transloco.translate('assistant.settings_avatar_too_large'));
+    this.allowedSkinIds.set(
+      current.includes(skin) ? current.filter((id) => id !== skin) : [...current, skin],
+    );
+  }
+
+  isAccessoryAllowed(accessory: AccessoryId): boolean {
+    return this.allowedAccessories().length === 0 || this.allowedAccessories().includes(accessory);
+  }
+
+  toggleAllowedAccessory(accessory: AccessoryId): void {
+    const current = this.allowedAccessories();
+    // Lista vacía = todos permitidos: el primer click desmarca ese accesorio.
+    if (current.length === 0) {
+      this.allowedAccessories.set(this.accessories.filter((id) => id !== accessory));
       return;
     }
-
-    const tenantId = this.tenantCtx.currentTenantId();
-    if (!tenantId || this.uploadingAvatar()) return;
-
-    this.uploadingAvatar.set(true);
-    this.api.uploadAvatar(tenantId, file).subscribe({
-      next: (config) => {
-        this.uploadingAvatar.set(false);
-        this.apply(config);
-        this.notify.success(this.transloco.translate('assistant.settings_avatar_saved'));
-        this.mascot.reloadConfig();
-      },
-      error: () => this.uploadingAvatar.set(false),
-    });
-  }
-
-  onAnimationFile(animationName: string, file: File | null): void {
-    if (!file) return;
-
-    if (!file.name.toLowerCase().endsWith('.json')) {
-      this.notify.error(this.transloco.translate('assistant.settings_animation_invalid'));
-      return;
-    }
-    if (file.size > MAX_ANIMATION_BYTES) {
-      this.notify.error(this.transloco.translate('assistant.settings_animation_too_large'));
-      return;
-    }
-
-    const tenantId = this.tenantCtx.currentTenantId();
-    if (!tenantId || this.uploadingAnimation()) return;
-
-    this.uploadingAnimation.set(animationName);
-    this.api.uploadAnimation(tenantId, animationName, file).subscribe({
-      next: (config) => {
-        this.uploadingAnimation.set(null);
-        this.apply(config);
-        this.notify.success(this.transloco.translate('assistant.settings_animation_saved'));
-        this.mascot.reloadConfig();
-      },
-      error: () => this.uploadingAnimation.set(null),
-    });
-  }
-
-  deleteAnimation(animationName: string): void {
-    const tenantId = this.tenantCtx.currentTenantId();
-    if (!tenantId || this.deletingAnimation()) return;
-
-    this.deletingAnimation.set(animationName);
-    this.api.deleteAnimation(tenantId, animationName).subscribe({
-      next: (config) => {
-        this.deletingAnimation.set(null);
-        this.apply(config);
-        this.notify.success(this.transloco.translate('assistant.settings_animation_deleted'));
-        this.mascot.reloadConfig();
-      },
-      error: () => this.deletingAnimation.set(null),
-    });
-  }
-
-  hasAnimation(animationName: string): boolean {
-    return !!this.config()?.animations?.[animationName];
-  }
-
-  /** Vista previa de una mascota predefinida sin ejecutar HTML del backend. */
-  petPreview(pet: AssistantPetDto): string {
-    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(pet.svgContent)}`;
-  }
-
-  animationLabelKey(animationName: string): string {
-    return `assistant.settings_animation_${animationName}`;
+    this.allowedAccessories.set(
+      current.includes(accessory) ? current.filter((id) => id !== accessory) : [...current, accessory],
+    );
   }
 
   private apply(config: AssistantConfigDto): void {
@@ -233,5 +182,11 @@ export class AssistantSettings implements OnInit {
     this.persona.set(config.persona ?? '');
     this.tone.set(config.tone ?? '');
     this.consentText.set(config.consentText ?? '');
+    this.defaultSkinId.set(isSkinId(config.defaultSkinId) ? config.defaultSkinId : DEFAULT_SKIN);
+
+    const policy = config.lookPolicy;
+    this.allowUserLook.set(policy?.allowUserLook ?? true);
+    this.allowedSkinIds.set(policy?.allowedSkinIds ?? []);
+    this.allowedAccessories.set(policy?.allowedAccessories ?? []);
   }
 }

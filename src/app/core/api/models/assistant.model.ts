@@ -29,22 +29,52 @@ export interface AssistantConfigDto {
   /** El OpenAPI no lo lista, pero `PUT /config` lo acepta. */
   persona?: string | null;
   tone: string;
-  /** Avatar configurado por el centro; tiene prioridad sobre el de por defecto. */
-  avatarUrl: string | null;
-  avatarExpiresAt: string | null;
-  animations: Record<string, string> | null;
+  /**
+   * Campos heredados del avatar por tenant. El contrato v2 los sustituye por
+   * `defaultSkinId`; se mantienen opcionales para no romper backend antiguos.
+   */
+  avatarUrl?: string | null;
+  avatarExpiresAt?: string | null;
+  animations?: Record<string, string> | null;
+  /** Skin procedural por defecto del centro (contrato v2). */
+  defaultSkinId?: string | null;
+  /** Qué personalización puede hacer cada usuario (contrato v2). */
+  lookPolicy?: AssistantLookPolicyDto | null;
   greeting: string;
   suggestedPrompts: string[];
   consentRequired: boolean;
   consentText: string | null;
 }
 
+/** Política de personalización del look por usuario. */
+export interface AssistantLookPolicyDto {
+  allowUserLook: boolean;
+  allowedSkinIds: string[];
+  allowedAccessories: string[];
+}
+
+/** Look procedural elegido por el usuario actual. */
+export interface AssistantUserLookDto {
+  skinId: string | null;
+  accessories: string[];
+  updatedAt: string;
+}
+
+export interface UpdateAssistantUserLookRequest {
+  skinId: string;
+  accessories?: string[];
+}
+
 export interface UpdateAssistantConfigRequest {
   name?: string;
   persona?: string;
   tone?: string;
+  /** Campos heredados: se mantienen para backend antiguos. */
   avatarStoredFileId?: string;
   animations?: Record<string, string>;
+  /** Skin procedural por defecto del centro (contrato v2). */
+  defaultSkinId?: string;
+  lookPolicy?: AssistantLookPolicyDto;
   enabled?: boolean;
   consentText?: string;
 }
@@ -62,11 +92,22 @@ export interface AssistantSessionDto {
   subjectUserId: string | null;
 }
 
-/** Mascota predefinida empaquetada en el backend. */
+/**
+ * Mascota predefinida. El contrato v2 devuelve solo metadatos del catálogo
+ * (`svgContent` desaparece); se mantiene opcional para backend antiguos.
+ */
 export interface AssistantPetDto {
   id: string;
   name: string;
-  svgContent: string;
+  svgContent?: string;
+  category?: string;
+  order?: number;
+  supports?: AssistantPetSupportsDto;
+}
+
+export interface AssistantPetSupportsDto {
+  accessories: string[];
+  expressions: string[];
 }
 
 export interface AssistantMessageDto {

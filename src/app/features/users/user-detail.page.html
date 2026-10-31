@@ -140,7 +140,12 @@
       <div class="border-b border-line">
         <tui-tabs [(activeItemIndex)]="activeTabIndex" class="bg-transparent">
           @for (tab of tabs(); track tab.id) {
-            <button tuiTab type="button" class="flex items-center gap-2 px-1 pb-1">
+            <button
+              tuiTab
+              type="button"
+              [attr.data-mascot-reveal]="'tab-' + tab.id"
+              class="flex items-center gap-2 px-1 pb-1"
+            >
               <i class="{{ tab.icon }} text-[1.1em] opacity-80" aria-hidden="true"></i>
               <span class="text-sm font-medium">
                 @if (tab.defaultValue) {
@@ -1038,6 +1043,7 @@
                               type="checkbox"
                               tuiCheckbox
                               [disabled]="!canManagePatientProfile()"
+                              [attr.data-mascot-field]="'patient-profile.' + field.id"
                               [ngModel]="getChecklistValue(field.id)"
                               (ngModelChange)="onCheckboxToggle(field.id, $event)" />
                             <i [class]="field.icon" aria-hidden="true"></i>
@@ -1053,6 +1059,7 @@
                           <textarea
                             tuiTextarea
                             [disabled]="!canManagePatientProfile()"
+                            [attr.data-mascot-field]="'patient-profile.' + field.notesId"
                             [ngModel]="getChecklistNotes(field.notesId)"
                             (ngModelChange)="onNotesChange(field.notesId, $event)"
                             (blur)="onNotesBlur()"

@@ -4,6 +4,7 @@
     @for (step of [1, 2, 3, 4]; track step) {
       <button
         type="button"
+        [attr.data-mascot-reveal]="'measurement-step-' + step"
         (click)="activeStep.set(step)"
         [class.bg-primary-500]="activeStep() >= step"
         [class.text-white]="activeStep() >= step"

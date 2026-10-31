@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
@@ -7,6 +7,12 @@ import { Observable, catchError, finalize, of, shareReplay, tap } from 'rxjs';
 import { AssistantService } from '../../core/api/services/assistant.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { problemDetailCode, problemDetailMessage } from '../../core/http/error.interceptor';
+import { MascotLookService } from './mascot/mascot-look.service';
+import { MascotMoodService } from './mascot/mascot-mood.service';
+import { DEFAULT_FILL_TIMING, STILL_TIMING, playFill } from './mascot/fill/animated-fill';
+import { matchPreview } from './mascot/fill/descriptor';
+import { MascotFillService } from './mascot/fill/mascot-fill.service';
+import type { MascotMode } from './mascot/mascot-life.service';
 import {
   AssistantActionResponse,
   AssistantConfigDto,
@@ -26,16 +32,8 @@ export interface MascotMessage {
   createdAt: string;
 }
 
-/**
- * Avatares por defecto. Se elige uno al azar por sesión de navegador; el avatar
- * configurado por el centro (`config.avatarUrl`) siempre tiene prioridad.
- */
-const DEFAULT_AVATARS = [
-  'pets/brocoli.svg',
-  'pets/manzana.svg',
-  'pets/semilla.svg',
-  'pets/zanahoria.svg',
-] as const;
+/** Lo que se le da al formulario para montar tras un `uiAction` que navega. */
+const SURFACE_WAIT_MS = 1500;
 
 /**
  * Estado global de la mascota: configuración del tenant, sesión y conversación.
@@ -50,10 +48,15 @@ export class MascotStateService {
   private readonly tenantCtx = inject(TenantContextService);
   private readonly transloco = inject(TranslocoService);
   private readonly router = inject(Router);
+  private readonly look = inject(MascotLookService);
+  private readonly mood = inject(MascotMoodService);
+  private readonly fill = inject(MascotFillService);
 
   readonly config = signal<AssistantConfigDto | null>(null);
   readonly configLoaded = signal(false);
   readonly open = signal(false);
+  /** El armario, montado por el launcher para que cubra la página entera. */
+  readonly wardrobeOpen = signal(false);
 
   readonly session = signal<AssistantSessionDto | null>(null);
   readonly consentRequired = signal(false);
@@ -63,27 +66,79 @@ export class MascotStateService {
   readonly resolvingAction = signal(false);
 
   readonly enabled = computed(() => this.config()?.enabled === true);
+
+  /**
+   * La mascota es una herramienta del centro: solo la ven nutricionistas y
+   * administradores. Los pacientes tienen su propia app y no deben verla.
+   */
+  readonly roleAllowed = computed(() => {
+    const membership = this.tenantCtx.currentMembership();
+    if (!membership || membership.userType === 'PATIENT') return false;
+    return membership.roleCode === 'ADMIN' || membership.roleCode === 'NUTRITIONIST';
+  });
+
+  /** Visible = el centro la activó y el rol tiene acceso. */
+  readonly visible = computed(() => this.roleAllowed() && this.enabled());
+
   readonly name = computed(() => this.config()?.name?.trim() || 'Nuti');
+
+  // ── Look procedural y vida (contrato v2) ──────────────────────────────
+  readonly skin = this.look.skin;
+  readonly accessories = this.look.accessories;
+  readonly allowUserLook = this.look.allowUserLook;
+  readonly allowedSkins = this.look.allowedSkins;
+  readonly allowedAccessories = this.look.allowedAccessories;
+
+  /** Lo que la mascota dice por su cuenta (una celebración, un aviso). */
+  readonly note = this.mood.note;
+
+  dismissNote(): void {
+    this.mood.unsay();
+  }
+
+  /** El modo visual del orb según lo que está haciendo el asistente. */
+  readonly orbMode = computed<MascotMode>(() => {
+    if (this.sending()) return 'thinking';
+    if (this.pendingAction()) return 'confirm';
+    if (this.open()) return 'listening';
+    return 'idle';
+  });
   readonly greeting = computed(() => this.session()?.greeting || this.config()?.greeting || '');
   readonly suggestedPrompts = computed(() => this.config()?.suggestedPrompts ?? []);
   readonly consentText = computed(
     () => this.config()?.consentText?.trim() || this.transloco.translate('assistant.consent_default')
   );
 
-  private readonly fallbackAvatar = DEFAULT_AVATARS[Math.floor(Math.random() * DEFAULT_AVATARS.length)];
   private configTenantId: string | null = null;
   private loadingConfig = false;
   private sessionRequest: Observable<AssistantSessionDto | null> | null = null;
   private historyLoadedFor: string | null = null;
   private localId = 0;
+  private welcomed = false;
 
-  /** Avatar visible: el del centro si existe; si no, una mascota al azar. */
-  readonly avatarSrc = computed(() => this.config()?.avatarUrl || this.fallbackAvatar);
-  readonly fallbackSrc = computed(() => this.fallbackAvatar);
+  constructor() {
+    // Al cambiar de tenant o de rol, la mascota se recalcula: un paciente no la
+    // ve, y al volver a un rol permitido se recarga la configuración.
+    effect(() => {
+      const tenantId = this.tenantCtx.currentTenantId();
+      const allowed = this.roleAllowed();
 
-  /** Lottie opcional configurado por el centro. */
-  readonly idleAnimation = computed(() => this.animationUrl('idle'));
-  readonly thinkingAnimation = computed(() => this.animationUrl('thinking'));
+      if (!allowed || !tenantId) {
+        this.open.set(false);
+        if (!allowed) {
+          this.configLoaded.set(false);
+          this.configTenantId = null;
+        }
+        return;
+      }
+
+      if (this.configTenantId !== tenantId) {
+        this.configLoaded.set(false);
+        this.configTenantId = null;
+      }
+      this.loadConfig();
+    });
+  }
 
   /** Carga la configuración una vez por tenant. Silenciosa: si falla, no se muestra. */
   loadConfig(): void {
@@ -98,6 +153,8 @@ export class MascotStateService {
         this.loadingConfig = false;
         this.config.set(config);
         this.configLoaded.set(true);
+        this.look.applyConfig(config);
+        this.look.load();
         if (!config.enabled) this.open.set(false);
       },
       error: () => {
@@ -105,6 +162,7 @@ export class MascotStateService {
         this.loadingConfig = false;
         this.config.set(null);
         this.configLoaded.set(true);
+        this.look.applyConfig(null);
         this.open.set(false);
       },
     });
@@ -118,7 +176,7 @@ export class MascotStateService {
   }
 
   toggle(): void {
-    if (!this.enabled()) return;
+    if (!this.visible()) return;
     if (this.open()) {
       this.closePanel();
     } else {
@@ -127,8 +185,14 @@ export class MascotStateService {
   }
 
   openPanel(): void {
-    if (!this.enabled()) return;
+    if (!this.visible()) return;
     this.open.set(true);
+
+    // La primera vez en la sesión, la mascota se estira y saluda.
+    if (!this.welcomed) {
+      this.welcomed = true;
+      this.mood.feel('welcome');
+    }
 
     // Si el nutricionista cambia de ficha, la sesión anterior apuntaba a otro
     // paciente: se cierra y se abre una nueva con el subject actual.
@@ -145,6 +209,14 @@ export class MascotStateService {
 
   closePanel(): void {
     this.open.set(false);
+  }
+
+  openWardrobe(): void {
+    this.wardrobeOpen.set(true);
+  }
+
+  closeWardrobe(): void {
+    this.wardrobeOpen.set(false);
   }
 
   // ── Sesión y consentimiento ─────────────────────────────────────────
@@ -213,6 +285,7 @@ export class MascotStateService {
         this.sending.set(false);
         this.consentRequired.set(false);
         this.session.update((value) => (value ? { ...value, consentRequired: false } : value));
+        this.mood.feel('cheer');
       },
       error: (error: HttpErrorResponse) => {
         this.sending.set(false);
@@ -252,8 +325,8 @@ export class MascotStateService {
         next: (turn) => {
           this.sending.set(false);
           this.pushAssistant(turn.assistantMessage);
-          this.pendingAction.set(turn.pendingAction ?? null);
           this.handleUiActions(turn.uiActions ?? []);
+          void this.offerAction(turn.pendingAction ?? null);
         },
         error: (error: HttpErrorResponse) => {
           this.sending.set(false);
@@ -261,6 +334,53 @@ export class MascotStateService {
         },
       });
     });
+  }
+
+  /**
+   * Lo que el asistente quiere escribir. Si el formulario está en pantalla (o
+   * acaba de abrirlo con un `uiAction`), la mascota lo recorre y lo rellena
+   * ella, y la acción del backend se retira: a partir de ahí manda la persona,
+   * que revisa y guarda con el botón del propio formulario. Si no hay
+   * formulario, se pide confirmación como siempre.
+   */
+  private async offerAction(action: AssistantPendingActionDto | null): Promise<void> {
+    if (!action) {
+      this.pendingAction.set(null);
+      return;
+    }
+
+    const mounted = await this.fill.waitForTool(action.toolName, SURFACE_WAIT_MS);
+    const values = mounted ? matchPreview(mounted.surface, action.preview) : [];
+    if (!mounted || values.length === 0) {
+      this.pendingAction.set(action);
+      return;
+    }
+
+    // Se retira antes de escribir: lo que vale es lo que quede en el
+    // formulario, y una acción viva en el backend podría escribir lo mismo otra vez.
+    this.rejectQuietly(action);
+    this.closePanel();
+    const timing = matchMedia('(prefers-reduced-motion: reduce)').matches ? STILL_TIMING : DEFAULT_FILL_TIMING;
+    const report = await playFill(mounted.surface, mounted.access, values, this.fill, timing);
+
+    if (report.written.length === 0) {
+      this.pushAssistantText(this.transloco.translate('assistant.fill_failed'));
+      return;
+    }
+    this.mood.feel('cheer');
+    this.mood.say({
+      text: this.transloco.translate('assistant.fill_done', { count: String(report.written.length) }),
+      tone: 'celebrate',
+    });
+    this.pushAssistantText(this.transloco.translate('assistant.fill_review'));
+  }
+
+  /** Retira la acción sin contarlo en el chat: lo que cuenta es el relleno. */
+  private rejectQuietly(action: AssistantPendingActionDto): void {
+    const tenantId = this.tenantCtx.currentTenantId();
+    this.pendingAction.set(null);
+    if (!tenantId) return;
+    this.api.reject(tenantId, action.id).subscribe({ error: () => undefined });
   }
 
   confirmAction(action: AssistantPendingActionDto): void {
@@ -273,9 +393,11 @@ export class MascotStateService {
       next: (response: AssistantActionResponse) => {
         this.resolvingAction.set(false);
         this.pendingAction.set(null);
-        this.pushAssistantText(
-          response.message?.trim() || this.transloco.translate('assistant.action_applied')
-        );
+        const text = response.message?.trim() || this.transloco.translate('assistant.action_applied') || '';
+        this.pushAssistantText(text);
+        // La mascota lo celebra en su propia burbuja, además del chat.
+        this.mood.feel('cheer');
+        this.mood.say({ text: this.transloco.translate('assistant.note_done'), tone: 'celebrate' });
       },
       error: (error: HttpErrorResponse) => {
         this.resolvingAction.set(false);
@@ -305,6 +427,7 @@ export class MascotStateService {
   }
 
   private handleTurnError(error: HttpErrorResponse): void {
+    this.mood.feel('worried');
     const code = problemDetailCode(error);
 
     if (code === 'error.assistant_session_closed' || code === 'error.assistant_session_not_found') {
@@ -476,11 +599,5 @@ export class MascotStateService {
   private nextLocalId(): string {
     this.localId += 1;
     return `local-${this.localId}-${Date.now()}`;
-  }
-
-  /** El contrato declara `animations` como mapa libre; sólo aceptamos strings. */
-  private animationUrl(key: string): string | null {
-    const value = this.config()?.animations?.[key];
-    return typeof value === 'string' && value.length > 0 ? value : null;
   }
 }

@@ -13,6 +13,9 @@ import {
 } from '../../core/api/models/body-measurement.model';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { formAccess } from '../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { MEASUREMENT_SURFACE } from '../assistant/mascot/fill/surfaces/measurement.surface';
 
 /**
  * Campos numéricos de una medición, en el mismo orden que el formulario. Se recorren en lugar de
@@ -104,6 +107,8 @@ export class MeasurementFormDialog {
     if (this.measurement) {
       this.patchFromMeasurement(this.measurement);
     }
+    // Mientras el diálogo esté abierto, la mascota puede rellenarlo.
+    inject(MascotFillService).register(MEASUREMENT_SURFACE, formAccess(this.form));
   }
 
   private patchFromMeasurement(m: BodyMeasurementDto) {
