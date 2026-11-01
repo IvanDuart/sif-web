@@ -79,6 +79,7 @@
               *appIfPermission="'MANAGE_USER'"
               type="button"
               tuiButton appearance="secondary" size="m"
+              data-mascot-open="clinical-status"
               (click)="showClinicalStatusDialog()">
               <i class="fa-solid fa-heart-pulse mr-1" aria-hidden="true"></i>
               {{ t('clinical_status.status') }}
@@ -248,7 +249,8 @@
                         *appIfPermission="'MANAGE_USER'"
                         type="button"
                         tuiButton appearance="secondary" size="xs"
-                        (click)="showAssignNutritionistDialog()">
+                        data-mascot-open="assign-nutritionist"
+              (click)="showAssignNutritionistDialog()">
                         {{ assignedNutritionist().name ? t('users.change_nutritionist') : t('common.assign') }}
                       </button>
                     </div>
@@ -269,7 +271,8 @@
                         *appIfPermission="'MANAGE_USER'"
                         type="button"
                         tuiButton appearance="secondary" size="xs"
-                        (click)="showClinicalStatusDialog()">
+                        data-mascot-open="clinical-status"
+              (click)="showClinicalStatusDialog()">
                         {{ u.clinicalStatus ? t('clinical_status.change') : t('common.assign') }}
                       </button>
                     </div>
@@ -958,6 +961,8 @@
                         <textarea
                           id="profile-consultation-reason"
                           tuiTextarea
+                          [attr.data-mascot-field]="'patient-profile.consultationReason'"
+
                           [disabled]="!canManagePatientProfile()"
                           [ngModel]="getChecklistNotes('consultationReason')"
                           (ngModelChange)="onNotesChange('consultationReason', $event)"
@@ -1016,6 +1021,7 @@
                           <textarea
                             [id]="'profile-' + field.id"
                             tuiTextarea
+                            [attr.data-mascot-field]="'patient-profile.' + field.id"
                             [disabled]="!canManagePatientProfile()"
                             [ngModel]="getChecklistNotes(field.id)"
                             (ngModelChange)="onNotesChange(field.id, $event)"
@@ -1118,7 +1124,7 @@
                   <div class="mt-4 flex flex-col gap-1.5">
                     <label for="observations" class="text-[13px] font-medium text-surface-500">{{ t('patient_profile.observations') }}</label>
                     <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-                      <textarea id="observations" tuiTextarea [ngModel]="editObservations()" (ngModelChange)="editObservations.set($event)" [min]="4" maxlength="2000"></textarea>
+                      <textarea id="observations" tuiTextarea [attr.data-mascot-field]="'patient-profile.observations'" [ngModel]="editObservations()" (ngModelChange)="editObservations.set($event)" [min]="4" maxlength="2000"></textarea>
                     </tui-textfield>
                   </div>
                   <div class="mt-4 flex items-center justify-end gap-2 border-t border-line pt-4">
@@ -1137,7 +1143,7 @@
                         <p class="mt-1 text-[13px] text-surface-400">{{ t('patient_profile.guidelines_hint') }}</p>
                       </div>
                       @if (canManagePatientProfile()) {
-                        <button type="button" tuiButton appearance="secondary" size="m" (click)="startEditGuidelines()">
+                        <button type="button" tuiButton appearance="secondary" size="m" data-mascot-open="patient-guidelines" (click)="startEditGuidelines()">
                           <i class="fa-solid fa-pen-to-square mr-1" aria-hidden="true"></i>
                           {{ t('patient_profile.edit_guidelines') }}
                         </button>
@@ -1220,7 +1226,8 @@
                         {{ t('menu_history.import_menu') }}
                       </button>
                     }
-                    <button type="button" tuiButton appearance="secondary" size="m" (click)="showAssignTemplateDialog()">
+                    <button type="button" tuiButton appearance="secondary" size="m" data-mascot-open="menu-template"
+                  (click)="showAssignTemplateDialog()">
                       <i class="fa-solid fa-copy mr-1" aria-hidden="true"></i>
                       {{ t('menu_history.assign_template') }}
                     </button>
@@ -1493,7 +1500,8 @@
                   <p class="mt-1 text-[13px] text-surface-400">{{ t('patient_events.calendar_hint') }}</p>
                 </div>
                 @if (canManagePatientEvents()) {
-                  <button type="button" tuiButton size="m" (click)="showEventFormDialog()">
+                  <button type="button" tuiButton size="m" data-mascot-open="patient-event"
+                  (click)="showEventFormDialog()">
                     <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
                     {{ t('patient_events.new_event') }}
                   </button>

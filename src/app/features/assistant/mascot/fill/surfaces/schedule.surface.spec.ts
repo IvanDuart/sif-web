@@ -5,6 +5,7 @@ import { holidaySurface } from './holiday.surface';
 import { pickLabel, toHexColor, toYear } from './parse';
 import { scheduleAssignmentSurface } from './schedule-assignment.surface';
 import { scheduleSurface } from './schedule.surface';
+import { resolveFillRoute, routeForTool } from './routes';
 
 /**
  * Lo que la mascota entiende de los formularios del centro. Lo que se prueba
@@ -125,5 +126,37 @@ describe('formularios del centro', () => {
       ];
       expect(pickLabel(options, 'Horario')).toBeNull();
     });
+  });
+});
+
+describe('dónde vive cada formulario', () => {
+  it('lleva a Ajustes con la pestaña y la sub-pestaña puestas', () => {
+    const route = routeForTool('create_schedule');
+    expect(resolveFillRoute(route!, null)).toEqual({
+      commands: ['/settings'],
+      queryParams: { tab: 'schedules', section: 'schedules' },
+    });
+  });
+
+  it('las tres secciones de horarios van a sub-pestañas distintas', () => {
+    const section = (tool: string) => resolveFillRoute(routeForTool(tool)!, null)?.queryParams?.['section'];
+    expect(section('create_schedule')).toBe('schedules');
+    expect(section('assign_schedule')).toBe('assignments');
+    expect(section('create_holiday')).toBe('holidays');
+  });
+
+  it('la ficha del paciente necesita saber de quién es', () => {
+    const route = routeForTool('create_measurement');
+    expect(route!.needsPatient).toBeTrue();
+    expect(resolveFillRoute(route!, null)).toBeNull();
+    expect(resolveFillRoute(route!, 'uuid-paciente')).toEqual({
+      commands: ['/users', 'uuid-paciente'],
+      queryParams: undefined,
+    });
+  });
+
+  it('una tool que no tiene formulario no lleva a ninguna parte', () => {
+    expect(routeForTool('import_holidays')).toBeNull();
+    expect(routeForTool('inventada')).toBeNull();
   });
 });

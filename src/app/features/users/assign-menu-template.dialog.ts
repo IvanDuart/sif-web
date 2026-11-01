@@ -11,6 +11,9 @@ import { ModalService } from '../../core/ui';
 import { MenuTemplate } from '../../core/api/models/menu-template.model';
 import { Menu } from '../../core/api/models/menu.model';
 import { TemplatePreviewDialog, TemplatePreviewDialogInput } from '../templates/template-preview.dialog';
+import { formAccess } from '../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { menuTemplateSurface } from '../assistant/mascot/fill/surfaces/menu-template.surface';
 
 @Component({
   selector: 'app-assign-menu-template',
@@ -19,6 +22,11 @@ import { TemplatePreviewDialog, TemplatePreviewDialogInput } from '../templates/
   templateUrl: './assign-menu-template.dialog.html'
 })
 export class AssignMenuTemplateDialog implements OnInit {
+
+  constructor() {
+    // Mientras el diálogo esté abierto, la mascota puede rellenarlo.
+    inject(MascotFillService).register(menuTemplateSurface({ templates: () => this.templates().map((t) => ({ label: t.name, value: t.id })) }), formAccess(this.form));
+  }
   private readonly fb = inject(FormBuilder);
   private readonly templateService = inject(MenuTemplateService);
   private readonly tenantCtx = inject(TenantContextService);

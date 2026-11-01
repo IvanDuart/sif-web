@@ -1,6 +1,6 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 
-import type { FieldAccess, FillOpener, FillSurface } from './descriptor';
+import type { FieldAccess, FillField, FillOpener, FillSurface } from './descriptor';
 
 /** Un formulario montado, con cómo se escribe en él. */
 export interface MountedSurface {
@@ -53,10 +53,31 @@ export class MascotFillService {
     });
   }
 
-  /** El formulario en pantalla que rellena esa tool, si hay alguno. */
+  /**
+   * El formulario en pantalla que rellena esa tool, si hay alguno y ya tiene
+   * sus datos (`ready`). Uno que todavía está cargando cuenta como ausente:
+   * `waitForTool` seguirá esperándolo.
+   */
   forTool(toolName: string): MountedSurface | null {
     for (const entry of this.mounted.values()) {
-      if (entry.surface.tools.includes(toolName)) return entry;
+      if (!entry.surface.tools.includes(toolName)) continue;
+      if (entry.surface.ready && !entry.surface.ready()) continue;
+      return entry;
+    }
+    return null;
+  }
+
+  /**
+   * El campo que se llama así en alguno de los formularios en pantalla, para
+   * señalarlo. El asistente lo nombra suelto (`waistCm`), sin decir de qué
+   * formulario es, así que se busca por su clave y por los nombres con que lo
+   * nombra el backend. Las filas repetibles se quedan fuera: señalar "el
+   * tercer tramo" no es una pregunta que se haga nadie.
+   */
+  fieldNamed(name: string): { surface: FillSurface; field: FillField } | null {
+    for (const { surface } of this.mounted.values()) {
+      const field = surface.fields.find((item) => item.key === name || item.from.includes(name));
+      if (field) return { surface, field };
     }
     return null;
   }
@@ -70,6 +91,11 @@ export class MascotFillService {
     inject(DestroyRef).onDestroy(() => {
       if (this.openers.get(opener.id) === opener) this.openers.delete(opener.id);
     });
+  }
+
+  /** Cómo abrir un formulario por su nombre (el `target` de un `OPEN_DIALOG`). */
+  openerFor(id: string): FillOpener | null {
+    return this.openers.get(id) ?? null;
   }
 
   /** Cómo abrir un formulario para esa tool desde esta pantalla, si se puede. */

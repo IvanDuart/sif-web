@@ -14,10 +14,6 @@ import { AssignmentFormDialog, AssignmentFormDialogInput } from './assignment-fo
 import { TuiTabs, TuiBadge } from '@taiga-ui/kit';
 import { TuiButton } from '@taiga-ui/core';
 import { TuiTable } from '@taiga-ui/addon-table';
-import { MascotFillService } from '../../assistant/mascot/fill/mascot-fill.service';
-import { SCHEDULE_OPENER } from '../../assistant/mascot/fill/surfaces/schedule.surface';
-import { SCHEDULE_ASSIGNMENT_OPENER } from '../../assistant/mascot/fill/surfaces/schedule-assignment.surface';
-import { HOLIDAY_OPENER } from '../../assistant/mascot/fill/surfaces/holiday.surface';
 
 const DAY_NAMES = ['', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
@@ -53,13 +49,6 @@ export class ScheduleSettings implements OnInit {
   importingHolidays = signal(false);
 
   constructor() {
-    // Mientras esta sección esté viva, la mascota sabe abrir sus tres
-    // formularios. Si falta `MANAGE_TENANT` los botones no están y no abre nada.
-    const fill = inject(MascotFillService);
-    fill.registerOpener(SCHEDULE_OPENER);
-    fill.registerOpener(SCHEDULE_ASSIGNMENT_OPENER);
-    fill.registerOpener(HOLIDAY_OPENER);
-
     const section = inject(ActivatedRoute).snapshot.queryParamMap.get('section');
     const index = SUB_TABS.indexOf((section ?? '') as (typeof SUB_TABS)[number]);
     if (index >= 0) this.activeSubTab = index;

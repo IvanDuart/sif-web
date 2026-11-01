@@ -14,7 +14,13 @@ export type AssistantScreen =
   | 'PATIENTS'
   | 'AGENDA'
   | 'DASHBOARD'
+  | 'MENUS'
+  | 'SHOPPING_LIST'
+  | 'EVOLUTION'
+  | 'REVENUE'
+  | 'STAFF'
   | 'SETTINGS'
+  | 'SETTINGS_BRANDING'
   | 'SETTINGS_SCHEDULES'
   | 'SETTINGS_ASSIGNMENTS'
   | 'SETTINGS_HOLIDAYS'
@@ -151,8 +157,23 @@ export interface AssistantPendingActionDto {
 export interface AssistantUiActionDto {
   type: string;
   screen?: string;
+  /** El formulario que abre un `OPEN_DIALOG`: `measurement`, `schedule`… */
+  target?: string;
   params?: Record<string, unknown>;
 }
+
+/**
+ * Lo que llega por el stream de un turno (`doc/assistant-frontend.md` §3.1).
+ *
+ * `done` trae el mismo objeto que el envío bloqueante, así que de él salen las
+ * `uiActions` y la escritura pendiente igual que siempre: el stream sólo
+ * cambia cómo se pinta el texto.
+ */
+export type AssistantStreamEvent =
+  | { kind: 'delta'; text: string }
+  | { kind: 'tool'; name: string }
+  | { kind: 'done'; turn: AssistantTurnResponse }
+  | { kind: 'error'; error: string; code: string | null };
 
 export interface AssistantTurnResponse {
   assistantMessage: AssistantMessageDto;
@@ -161,10 +182,16 @@ export interface AssistantTurnResponse {
 }
 
 export interface AssistantActionResponse {
+  /** `"APPLIED"`, no `"CONFIRMED"` (`doc/assistant-frontend.md` §5). */
   status: string;
   entityType: string | null;
   entityId: string | null;
   message: string | null;
+  /**
+   * Lo que hay que hacer en pantalla tras aplicar la acción: enseñar lo que se
+   * acaba de crear, avisar. Opcional: si no viene, no se hace nada.
+   */
+  uiActions?: AssistantUiActionDto[];
 }
 
 export interface AssistantConsentRequest {

@@ -12,6 +12,11 @@ import type { MascotFillService } from './mascot-fill.service';
 export const FIELD_ATTR = 'data-mascot-field';
 /** Lo que ha escrito la mascota, hasta que la persona lo toca (se pinta en `styles.less`). */
 export const WRITTEN_ATTR = 'data-mascot-written';
+/** El campo que la mascota está señalando, mientras lo explica. */
+export const HIGHLIGHT_ATTR = 'data-mascot-highlight';
+
+/** Lo que se queda señalando un campo antes de soltarlo. */
+const HIGHLIGHT_MS = 2600;
 
 export interface FillTiming {
   /** Viaje de un campo al siguiente. */
@@ -195,12 +200,14 @@ async function reveal(
   // Si el campo ya está en pantalla no hace falta abrir nada.
   const showing = findAnchor(surfaceId, field);
   if (showing && isVisible(showing)) return;
-  const trigger = document.querySelector<HTMLElement>(field.reveal);
-  if (!trigger || !isVisible(trigger)) return;
-  if (!(await goToElement(trigger, timing, fill))) return;
-  fill.presses.update((count) => count + 1);
-  trigger.click();
-  await fill.wait(timing.settleMs);
+  for (const step of typeof field.reveal === 'string' ? [field.reveal] : field.reveal) {
+    const trigger = document.querySelector<HTMLElement>(step);
+    if (!trigger || !isVisible(trigger)) return;
+    if (!(await goToElement(trigger, timing, fill))) return;
+    fill.presses.update((count) => count + 1);
+    trigger.click();
+    await fill.wait(timing.settleMs);
+  }
 }
 
 /** Va hasta el primer botón visible que encaje y lo pulsa. */
@@ -370,4 +377,43 @@ function watchForTakeover(fill: MascotFillService): () => void {
     document.removeEventListener('keydown', onKey, true);
     document.removeEventListener('pointerdown', onPointer, true);
   };
+}
+
+/**
+ * Señala un campo sin tocarlo: la mascota lo descubre si hace falta, va hasta
+ * él y se queda ahí mientras el asistente lo explica (el `HIGHLIGHT` del
+ * contrato, `doc/assistant-frontend.md` §4).
+ *
+ * No escribe ni retira ninguna acción, así que si la persona está a medias de
+ * algo lo único que pasa es que la mascota se asoma. Devuelve si llegó a
+ * encontrarlo.
+ */
+export async function playHighlight(
+  surface: FillSurface,
+  field: FillField,
+  timing: FillTiming,
+  fill: MascotFillService,
+): Promise<boolean> {
+  fill.begin();
+  const stop = watchForTakeover(fill);
+  try {
+    await reveal(surface.id, field, timing, fill);
+    const anchor = findAnchor(surface.id, field);
+    if (!anchor || fill.skipRequested) return false;
+
+    const spot = visualTarget(anchor);
+    if (!(await goToElement(spot, timing, fill))) return false;
+
+    fill.saying.set({ key: 'assistant.highlight_field', values: { field: fieldLabel(anchor, field) } });
+    spot.setAttribute(HIGHLIGHT_ATTR, '');
+    try {
+      await fill.wait(HIGHLIGHT_MS);
+    } finally {
+      spot.removeAttribute(HIGHLIGHT_ATTR);
+    }
+    return true;
+  } finally {
+    stop();
+    fill.end();
+  }
 }

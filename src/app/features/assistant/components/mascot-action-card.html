@@ -5,7 +5,7 @@
     </span>
     <div class="min-w-0">
       <p class="card__kicker">{{ t('assistant.action_title') }}</p>
-      <h3 class="card__summary">{{ action().summary }}</h3>
+      <h3 class="card__summary"><app-mascot-rich-text [text]="action().summary" /></h3>
     </div>
   </header>
 

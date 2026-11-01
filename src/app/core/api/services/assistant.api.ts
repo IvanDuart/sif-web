@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpEventType, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from '../../config/config.service';
@@ -10,6 +10,7 @@ import {
   AssistantMessagePageDto,
   AssistantPetDto,
   AssistantSessionDto,
+  AssistantStreamEvent,
   AssistantTurnResponse,
   AssistantUserLookDto,
   ConfirmAssistantActionRequest,
@@ -17,6 +18,7 @@ import {
   UpdateAssistantConfigRequest,
   UpdateAssistantUserLookRequest,
 } from '../models/assistant.model';
+import { parseFrame, scanFrames } from './assistant-stream';
 
 /**
  * API del asistente. Todas las llamadas son **silenciosas** para el
@@ -155,6 +157,52 @@ export class AssistantService {
       { content },
       { context: this.silent }
     );
+  }
+
+  /**
+   * El mismo envío, pero en streaming (`doc/assistant-frontend.md` §3.1).
+   *
+   * Va por `HttpClient` y no por `EventSource` por dos razones: `EventSource`
+   * no sabe hacer POST con cuerpo, y por aquí pasan los interceptores, así que
+   * el token se refresca como en el resto de llamadas.
+   *
+   * `reportProgress` da el texto acumulado según llega; se trocea en marcos y
+   * se lleva la cuenta de lo consumido, porque un pedazo puede cortar un JSON
+   * por la mitad.
+   */
+  streamMessage(tenantId: string, sessionId: string, content: string): Observable<AssistantStreamEvent> {
+    return new Observable<AssistantStreamEvent>((subscriber) => {
+      let consumed = 0;
+
+      const take = (buffer: string): void => {
+        const scan = scanFrames(buffer, consumed);
+        consumed = scan.consumed;
+        for (const frame of scan.frames) {
+          const event = parseFrame(frame);
+          if (event) subscriber.next(event);
+        }
+      };
+
+      const inner = this.http
+        .post(`${this.endpoint(tenantId)}/sessions/${sessionId}/messages/stream`, { content }, {
+          context: this.silent,
+          headers: new HttpHeaders({ Accept: 'text/event-stream' }),
+          observe: 'events',
+          responseType: 'text',
+          reportProgress: true,
+        })
+        .subscribe({
+          next: (event) => {
+            if (event.type === HttpEventType.DownloadProgress) take(event.partialText ?? '');
+            // El último pedazo puede llegar sólo aquí, sin un progreso que lo traiga.
+            else if (event.type === HttpEventType.Response) take(event.body ?? '');
+          },
+          error: (error: unknown) => subscriber.error(error),
+          complete: () => subscriber.complete(),
+        });
+
+      return () => inner.unsubscribe();
+    });
   }
 
   history(

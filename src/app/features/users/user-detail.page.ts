@@ -56,6 +56,10 @@ import { TuiBadge, TuiProgress, TuiSegmented, TuiTabs, TuiTextarea } from '@taig
 import { TuiTable } from '@taiga-ui/addon-table';
 import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
 import { PATIENT_PROFILE_SURFACE } from '../assistant/mascot/fill/surfaces/patient-profile.surface';
+import { CLINICAL_STATUS_OPENER } from '../assistant/mascot/fill/surfaces/clinical-status.surface';
+import { PATIENT_EVENT_OPENER } from '../assistant/mascot/fill/surfaces/patient-event.surface';
+import { ASSIGN_NUTRITIONIST_OPENER } from '../assistant/mascot/fill/surfaces/assign-nutritionist.surface';
+import { MENU_TEMPLATE_OPENER } from '../assistant/mascot/fill/surfaces/menu-template.surface';
 import { MEASUREMENT_OPENER } from '../assistant/mascot/fill/surfaces/measurement.surface';
 import { APPOINTMENT_OPENER } from '../assistant/mascot/fill/surfaces/appointment.surface';
 
@@ -238,13 +242,27 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     const fillService = inject(MascotFillService);
     fillService.registerOpener(MEASUREMENT_OPENER);
     fillService.registerOpener(APPOINTMENT_OPENER);
+    fillService.registerOpener(CLINICAL_STATUS_OPENER);
+    fillService.registerOpener(ASSIGN_NUTRITIONIST_OPENER);
+    fillService.registerOpener(PATIENT_EVENT_OPENER);
+    fillService.registerOpener(MENU_TEMPLATE_OPENER);
 
     // La anamnesis la puede rellenar la mascota. Esta pantalla no tiene botón
     // de guardar —se guarda sola—, así que una escritura definitiva dispara su
     // propio guardado; las intermedias del tecleo no.
     fillService.register(PATIENT_PROFILE_SURFACE, {
-      get: (key) => (this.editProfileData() as Record<string, unknown>)[key],
+      get: (key) =>
+        key === 'observations'
+          ? this.editObservations()
+          : (this.editProfileData() as Record<string, unknown>)[key],
       set: (key, value, options) => {
+        // Las observaciones no son de la anamnesis sino de las pautas fijas,
+        // que tienen su propio editor y su propio botón: la mascota las
+        // escribe y las guarda la persona con "Guardar pautas".
+        if (key === 'observations') {
+          this.editObservations.set(value === null || value === undefined ? '' : String(value));
+          return;
+        }
         this.editProfileData.update((data) => ({ ...data, [key]: value ?? null }));
         if (!options?.silent) this.persistProfile();
       },

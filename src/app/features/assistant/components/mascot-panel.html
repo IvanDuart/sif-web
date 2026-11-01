@@ -64,7 +64,7 @@
       @if (showGreeting()) {
         <div class="msg">
           <app-mascot-orb [skin]="state.skin()" [accessories]="state.accessories()" size="s" [decorative]="true" [still]="true" />
-          <p class="bubble">{{ state.greeting() }}</p>
+          <p class="bubble"><app-mascot-rich-text [text]="state.greeting()" /></p>
         </div>
       }
 
@@ -81,7 +81,7 @@
             @if (message.role === 'SYSTEM') {
               <i class="fa-solid fa-circle-exclamation mr-1.5" aria-hidden="true"></i>
             }
-            {{ message.content }}
+            <app-mascot-rich-text [text]="message.content" />
           </p>
         </div>
       }

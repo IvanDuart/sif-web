@@ -5,6 +5,13 @@ title: Tools del asistente — guía de implementación backend
 
 # Tools del asistente — guía de implementación backend
 
+> **Estado (2026-11-01): implementado.** Lo que entró, lo que no y por qué está en
+> [`assistant-frontend.md`](assistant-frontend.md), que es el contrato vigente. En
+> resumen: entró todo salvo `cancel_appointment` y `assign_menu_template` (se solapan
+> con tools que ya existían) y `send_message_to_patient` (descartada en el propio
+> documento). `VIEW_TENANT` no existe como permiso: se usan `VIEW_SCHEDULE` y
+> `VIEW_HOLIDAY`. `confirm` sigue devolviendo `"APPLIED"`, no `"CONFIRMED"`.
+
 Contrato que espera Angular para las tools que faltan en `tus-dietas`.
 
 - **Primera parte (§0-§7): horarios del centro.** El frontend ya está hecho y
@@ -518,6 +525,12 @@ tool: añadirlas al `Set<String> WRITE_TOOLS`, y que `confirm()` no exija
 paciente visible cuando la acción es de ámbito tenant (sección 5).
 
 ### Lo que falta en Angular
+
+> **Hecho.** Todas las superficies de esta lista existen ya; el estado real y lo
+> que queda fuera a propósito está en
+> [`assistant-frontend.md`](assistant-frontend.md), sección "Estado de las
+> superficies en `sif-web`". Lo de abajo se deja como estaba, por contexto.
+
 
 De las tools de arriba, estas rellenarían formulario en cuanto exista la
 superficie, que es trabajo de `sif-web` y no de aquí:

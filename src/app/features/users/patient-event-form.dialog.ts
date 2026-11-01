@@ -1,6 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { formAccess } from '../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { PATIENT_EVENT_SURFACE } from '../assistant/mascot/fill/surfaces/patient-event.surface';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext, TuiDropdown, TuiTextfield, TuiLabel, TuiButton, TuiError } from '@taiga-ui/core';
 import { TuiInputDate } from '@taiga-ui/kit';
@@ -18,6 +21,11 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
   templateUrl: './patient-event-form.dialog.html'
 })
 export class PatientEventFormDialog {
+
+  constructor() {
+    // Mientras el diálogo esté abierto, la mascota puede rellenarlo.
+    inject(MascotFillService).register(PATIENT_EVENT_SURFACE, formAccess(this.form));
+  }
   private readonly fb = inject(FormBuilder);
   private readonly patientEventService = inject(PatientEventService);
   private readonly tenantCtx = inject(TenantContextService);

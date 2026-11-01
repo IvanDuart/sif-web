@@ -1396,6 +1396,8 @@
     "fill_adding": "Adding one more block…",
     "fill_opening": "Let me open the form for you…",
     "fill_writing": "Writing {{field}}…",
+    "highlight_field": "Look: {{field}}",
+    "tool_running": "One moment, let me check…",
     "fill_done": "I've filled in {{count}} fields for you.",
     "fill_review": "I've filled it in. Check it over and save it yourself when it looks right.",
     "fill_failed": "I couldn't find the form on screen, so I haven't filled anything in.",

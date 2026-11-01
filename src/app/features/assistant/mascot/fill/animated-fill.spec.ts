@@ -443,6 +443,46 @@ describe('relleno animado de la mascota', () => {
     });
   });
 
+  describe('un formulario que todavía está cargando', () => {
+    it('no cuenta como presente hasta que tiene sus datos', async () => {
+      let loaded = false;
+      const surface: FillSurface = {
+        id: 'tenant-profile',
+        tools: ['update_tenant_profile'],
+        ready: () => loaded,
+        fields: [field('address')],
+      };
+      TestBed.runInInjectionContext(() => fill.register(surface, recorder().access));
+
+      expect(fill.forTool('update_tenant_profile')).toBeNull();
+      loaded = true;
+      expect(fill.forTool('update_tenant_profile')?.surface).toBe(surface);
+    });
+
+    it('la espera lo recoge en cuanto carga', async () => {
+      let loaded = false;
+      TestBed.runInInjectionContext(() =>
+        fill.register(
+          { id: 'late', tools: ['late_tool'], ready: () => loaded, fields: [field('one')] },
+          recorder().access,
+        ),
+      );
+      setTimeout(() => (loaded = true), 150);
+
+      expect(await fill.waitForTool('late_tool', 1500)).not.toBeNull();
+    });
+  });
+
+  describe('abrir un formulario por su nombre', () => {
+    it('lo encuentra por el id que manda un OPEN_DIALOG', () => {
+      const opener: FillOpener = { id: 'schedule', tools: ['create_schedule'], trigger: 'button' };
+      TestBed.runInInjectionContext(() => fill.registerOpener(opener));
+
+      expect(fill.openerFor('schedule')).toBe(opener);
+      expect(fill.openerFor('inventado')).toBeNull();
+    });
+  });
+
   describe('saber abrir el formulario', () => {
     it('sólo ofrece abrirlo para sus tools', () => {
       TestBed.runInInjectionContext(() =>

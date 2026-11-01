@@ -17,6 +17,7 @@ import { MascotStateService } from '../mascot-state.service';
 import { MascotActionCard } from './mascot-action-card';
 import { MascotOrb } from './mascot-orb';
 import { MascotQuickReplies } from './mascot-quick-replies';
+import { MascotRichText } from './mascot-rich-text';
 
 /**
  * Panel de la mascota. El estado (sesión, mensajes, acción pendiente) vive en
@@ -34,6 +35,7 @@ import { MascotQuickReplies } from './mascot-quick-replies';
     MascotOrb,
     MascotActionCard,
     MascotQuickReplies,
+    MascotRichText,
   ],
   templateUrl: './mascot-panel.html',
   styleUrl: './mascot-panel.scss',

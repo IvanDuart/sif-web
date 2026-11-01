@@ -25,8 +25,13 @@ export interface FillField {
    * donde se tocan, así que una clave nueva del backend es una línea aquí.
    */
   from: readonly string[];
-  /** Qué hay que pulsar para que el campo esté en pantalla (un paso, una pestaña). */
-  reveal?: string;
+  /**
+   * Qué hay que pulsar para que el campo esté en pantalla: un paso, una
+   * pestaña. Si hace falta más de una pulsación van en orden, como en
+   * `FillOpener.reveal` — las observaciones del paciente viven en otra pestaña
+   * y además detrás del botón de editar.
+   */
+  reveal?: string | readonly string[];
   /** Un selector propio, para cuando no se encuentra solo. */
   anchor?: string;
   /** Del texto que manda el backend al valor que espera el formulario. */
@@ -64,6 +69,13 @@ export interface FillSurface {
   fields: readonly FillField[];
   /** Las listas de filas repetibles, si las tiene. */
   lists?: readonly FillList[];
+  /**
+   * Si el formulario ya tiene sus datos. Un formulario que carga lo suyo por
+   * HTTP se apunta al montarse, pero escribir antes de que llegue la respuesta
+   * no sirve de nada: la carga pisa lo escrito. Mientras esto sea `false`, la
+   * mascota sigue esperando en vez de rellenar.
+   */
+  ready?(): boolean;
 }
 
 /** Cómo se lee y se escribe un campo, sea lo que sea el formulario por dentro. */
@@ -110,6 +122,34 @@ function parseRowKey(name: string): { list: string; index: number; field: string
   return { list: match[1], index: Number(match[2] ?? match[3]), field: match[4] };
 }
 
+/**
+ * `FieldAccess` sobre un objeto de señales o de propiedades sueltas, para los
+ * formularios que no son reactivos (los `[(ngModel)]` de Ajustes, los `signal()`
+ * de la nota de calendario).
+ *
+ * Cada campo se declara con cómo se lee y cómo se escribe. `after` es para los
+ * campos que arrastran a otros: elegir país recarga la lista de provincias, y
+ * sin eso el siguiente campo escribiría en una lista vacía.
+ */
+export interface FieldBinding {
+  get(): unknown;
+  set(value: unknown): void;
+  /** Lo que hay que hacer tras una escritura definitiva (no las del tecleo). */
+  after?(): void;
+}
+
+export function bindingAccess(bindings: Record<string, FieldBinding>): FieldAccess {
+  return {
+    get: (key) => bindings[key]?.get(),
+    set: (key, value, options) => {
+      const binding = bindings[key];
+      if (!binding) return;
+      binding.set(value);
+      if (!options?.silent) binding.after?.();
+    },
+  };
+}
+
 /** Qué campos de este formulario cubre lo que manda el backend, en el orden del formulario. */
 export function matchPreview(
   surface: FillSurface,
@@ -132,7 +172,7 @@ export function matchPreview(
  * del `preview`, el relleno deja de encontrarlo y la acción cae a la tarjeta de
  * confirmar **sin dar ningún error**: sigue funcionando, pero la mascota deja
  * de escribir y nadie se entera. Esto lo hace visible
- * (`doc/assistant-backend-peticion.md` §2).
+ * (`doc/assistant-frontend.md` §6).
  *
  * Los campos vacíos no cuentan: el backend los manda a propósito cuando no
  * sabe resolver un desplegable.

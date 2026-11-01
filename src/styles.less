@@ -821,3 +821,24 @@ boneyard-skeleton {
     transition: none;
   }
 }
+
+/* — Lo que la mascota señala mientras lo explica —
+   No lo ha escrito ella, así que no se marca igual: late para que la vista
+   vaya ahí y se suelta solo. */
+[data-mascot-highlight] {
+  position: relative;
+  border-radius: 8px;
+  animation: mascot-highlight 1200ms ease-in-out infinite;
+}
+
+@keyframes mascot-highlight {
+  0%, 100% { box-shadow: 0 0 0 2px var(--primary); }
+  50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 35%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-mascot-highlight] {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--primary);
+  }
+}

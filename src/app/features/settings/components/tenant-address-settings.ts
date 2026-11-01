@@ -7,6 +7,9 @@ import { TenantService, UpdateTenantRequest } from '../../../core/api/services/t
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
 import { NotificationService } from '../../../core/ui';
 import { Country, State, City } from 'country-state-city';
+import { bindingAccess } from '../../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../../assistant/mascot/fill/mascot-fill.service';
+import { tenantProfileSurface } from '../../assistant/mascot/fill/surfaces/tenant-profile.surface';
 
 interface GeoOption {
   label: string;
@@ -46,6 +49,37 @@ export class TenantAddressSettings implements OnInit {
   private countryCode = '';
   private stateCode = '';
   private tenantId: string | null = null;
+
+  constructor() {
+    // Mientras esta sección esté en pantalla, la mascota puede rellenarla.
+    // País y provincia arrastran a los siguientes (recargan su lista), así que
+    // su escritura dispara el mismo `onChange` que dispararía la persona.
+    inject(MascotFillService).register(
+      tenantProfileSurface({
+        loaded: () => !this.loading(),
+        countries: () => this.countries(),
+        states: () => this.states(),
+        cities: () => this.cities(),
+      }),
+      bindingAccess({
+        countryDisplay: {
+          get: () => this.countryDisplay,
+          set: (value) => (this.countryDisplay = String(value ?? '')),
+          after: () => this.onCountryChange(),
+        },
+        stateDisplay: {
+          get: () => this.stateDisplay,
+          set: (value) => (this.stateDisplay = String(value ?? '')),
+          after: () => this.onStateChange(),
+        },
+        cityDisplay: {
+          get: () => this.cityDisplay,
+          set: (value) => (this.cityDisplay = String(value ?? '')),
+        },
+        address: { get: () => this.address, set: (value) => (this.address = String(value ?? '')) },
+      }),
+    );
+  }
 
   ngOnInit() {
     const all = Country.getAllCountries().map(c => ({ label: c.name, value: c.isoCode }));

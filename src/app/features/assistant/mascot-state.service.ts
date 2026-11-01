@@ -9,9 +9,11 @@ import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { problemDetailCode, problemDetailMessage } from '../../core/http/error.interceptor';
 import { MascotLookService } from './mascot/mascot-look.service';
 import { MascotMoodService } from './mascot/mascot-mood.service';
-import { DEFAULT_FILL_TIMING, STILL_TIMING, playFill, playOpen } from './mascot/fill/animated-fill';
+import { DEFAULT_FILL_TIMING, STILL_TIMING, playFill, playHighlight, playOpen, type FillTiming } from './mascot/fill/animated-fill';
 import { matchPreview, unmatchedPreview, type FillSurface } from './mascot/fill/descriptor';
 import { MascotFillService } from './mascot/fill/mascot-fill.service';
+import { resolveFillRoute, routeForTool } from './mascot/fill/surfaces/routes';
+import { NotificationService } from '../../core/ui';
 import type { MascotMode } from './mascot/mascot-life.service';
 import {
   AssistantActionResponse,
@@ -20,6 +22,7 @@ import {
   AssistantPendingActionDto,
   AssistantScreen,
   AssistantSessionDto,
+  AssistantTurnResponse,
   AssistantUiActionDto,
 } from '../../core/api/models/assistant.model';
 
@@ -53,6 +56,7 @@ export class MascotStateService {
   private readonly look = inject(MascotLookService);
   private readonly mood = inject(MascotMoodService);
   private readonly fill = inject(MascotFillService);
+  private readonly notify = inject(NotificationService);
 
   readonly config = signal<AssistantConfigDto | null>(null);
   readonly configLoaded = signal(false);
@@ -342,19 +346,119 @@ export class MascotStateService {
         return;
       }
 
-      this.api.sendMessage(tenantId, session.sessionId, text).subscribe({
-        next: (turn) => {
-          this.sending.set(false);
-          this.pushAssistant(turn.assistantMessage);
-          this.handleUiActions(turn.uiActions ?? []);
-          void this.offerAction(turn.pendingAction ?? null);
-        },
-        error: (error: HttpErrorResponse) => {
-          this.sending.set(false);
-          this.handleTurnError(error);
-        },
-      });
+      this.streamTurn(tenantId, session.sessionId, text);
     });
+  }
+
+  /**
+   * El turno en streaming (`doc/assistant-frontend.md` §3.1). La mascota va
+   * diciendo lo que le llega en vez de quedarse muda mientras el modelo
+   * piensa; el `done` trae el turno entero, y de ahí salen las `uiActions` y
+   * la escritura pendiente igual que por el camino bloqueante.
+   */
+  private streamTurn(tenantId: string, sessionId: string, text: string): void {
+    const bubble = this.nextLocalId();
+    let painted = '';
+    let settled = false;
+
+    this.api.streamMessage(tenantId, sessionId, text).subscribe({
+      next: (event) => {
+        switch (event.kind) {
+          case 'delta':
+            painted += event.text;
+            this.paintStream(bubble, painted);
+            break;
+
+          // Lo que está haciendo, sin detalles: el nombre de la tool es de
+          // casa, no algo que enseñarle a nadie.
+          case 'tool':
+            this.mood.say({ text: this.transloco.translate('assistant.tool_running'), tone: 'neutral', ms: 2600 });
+            break;
+
+          case 'done':
+            settled = true;
+            this.settleTurn(bubble, event.turn);
+            break;
+
+          case 'error':
+            settled = true;
+            this.dropStream(bubble);
+            this.sending.set(false);
+            this.applyTurnErrorCode(event.code);
+            this.pushSystem(event.error.trim() || this.transloco.translate('errors.unexpected'));
+            break;
+        }
+      },
+      error: (error: HttpErrorResponse) => {
+        if (settled) return;
+        // Si se cortó sin haber pintado nada, lo más probable es que este
+        // backend no tenga el stream: se reintenta por el camino de siempre.
+        // Si ya había texto, NO se reintenta: el backend ya procesó el turno y
+        // reenviarlo lo haría dos veces.
+        if (painted === '') {
+          this.sendBlocking(tenantId, sessionId, text);
+          return;
+        }
+        this.dropStream(bubble);
+        this.sending.set(false);
+        this.handleTurnError(error);
+      },
+      complete: () => {
+        if (settled) return;
+        // Se cerró sin `done`: lo pintado se queda, pero no hay `uiActions` ni
+        // escritura que atender.
+        this.sending.set(false);
+        if (painted === '') this.pushSystem(this.transloco.translate('errors.unexpected'));
+      },
+    });
+  }
+
+  /** El camino bloqueante, de respaldo cuando el stream no arranca. */
+  private sendBlocking(tenantId: string, sessionId: string, text: string): void {
+    this.api.sendMessage(tenantId, sessionId, text).subscribe({
+      next: (turn) => {
+        this.sending.set(false);
+        this.pushAssistant(turn.assistantMessage);
+        void this.handleUiActions(turn.uiActions ?? []);
+        void this.offerAction(turn.pendingAction ?? null);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.sending.set(false);
+        this.handleTurnError(error);
+      },
+    });
+  }
+
+  /**
+   * Lo que se va pintando mientras llega. Es un mensaje más de la lista, con
+   * un id local, para que el panel lo enseñe y lo desplace como a los demás.
+   */
+  private paintStream(id: string, content: string): void {
+    this.messages.update((current) => {
+      const at = current.findIndex((item) => item.id === id);
+      if (at === -1) {
+        return [...current, { id, role: 'ASSISTANT', content, createdAt: new Date().toISOString() }];
+      }
+      const next = [...current];
+      next[at] = { ...next[at], content };
+      return next;
+    });
+  }
+
+  private dropStream(id: string): void {
+    this.messages.update((current) => current.filter((item) => item.id !== id));
+  }
+
+  /**
+   * Llegó el turno entero: lo pintado se cambia por el mensaje de verdad, con
+   * su id del backend, para que el historial no lo duplique al recargar.
+   */
+  private settleTurn(bubble: string, turn: AssistantTurnResponse): void {
+    this.sending.set(false);
+    this.dropStream(bubble);
+    this.pushAssistant(turn.assistantMessage);
+    void this.handleUiActions(turn.uiActions ?? []);
+    void this.offerAction(turn.pendingAction ?? null);
   }
 
   /**
@@ -370,8 +474,18 @@ export class MascotStateService {
       return;
     }
 
-    const timing = matchMedia('(prefers-reduced-motion: reduce)').matches ? STILL_TIMING : DEFAULT_FILL_TIMING;
+    const timing = this.fillTiming();
     let mounted = await this.fill.waitForTool(action.toolName, SURFACE_WAIT_MS);
+
+    // Ni el formulario ni su botón están aquí: habrá que ir a su pantalla. La
+    // propuesta NO trae navegación (el backend manda su `NAVIGATE` al aplicar,
+    // ya confirmada la acción), así que si no va la mascota no va nadie, y
+    // pedir "cambia el horario" desde el panel principal se quedaba siempre en
+    // la tarjeta de confirmar.
+    if (!mounted && !this.fill.openerForTool(action.toolName)) {
+      await this.goToForm(action.toolName);
+      mounted = await this.fill.waitForTool(action.toolName, SURFACE_WAIT_MS);
+    }
 
     // No está en pantalla, pero esta pantalla sabe abrirlo: la mascota va hasta
     // el botón y lo pulsa ella. Sin esto, pedir una medición con el diálogo
@@ -424,7 +538,7 @@ export class MascotStateService {
    * A la persona no se le dice nada —la tarjeta de confirmar sigue haciendo su
    * trabajo—, pero sin esto el contrato se rompe en silencio y nadie se entera
    * hasta que un nutricionista nota que la mascota ha dejado de rellenar. Los
-   * nombres están fijados en `doc/assistant-backend-peticion.md` §2.
+   * nombres están fijados en `doc/assistant-frontend.md` §6.
    */
   private warnPreviewDrift(action: AssistantPendingActionDto, surface: FillSurface): void {
     const orphans = unmatchedPreview(surface, action.preview);
@@ -435,7 +549,7 @@ export class MascotStateService {
     console.warn(
       `[mascota] "${action.toolName}" → formulario "${surface.id}": no reconoce ${scope} de los campos del preview.`,
       `Sin reconocer: ${orphans.join(', ')}.`,
-      'El contrato de nombres está en doc/assistant-backend-peticion.md §2.',
+      'El contrato de nombres está en doc/assistant-frontend.md §6.',
     );
   }
 
@@ -462,6 +576,9 @@ export class MascotStateService {
         // La mascota lo celebra en su propia burbuja, además del chat.
         this.mood.feel('cheer');
         this.mood.say({ text: this.transloco.translate('assistant.note_done'), tone: 'celebrate' });
+        // Y lleva a ver lo que se acaba de crear, si el backend lo pide
+        // (`doc/assistant-frontend.md` §5).
+        void this.handleUiActions(response.uiActions ?? []);
       },
       error: (error: HttpErrorResponse) => {
         this.resolvingAction.set(false);
@@ -508,6 +625,23 @@ export class MascotStateService {
     this.pushSystem(this.errorMessage(error));
   }
 
+  /**
+   * Lo que un código de error deja en el estado. Sale aparte de
+   * `handleTurnError` porque el stream trae el suyo dentro del evento, no en
+   * una respuesta HTTP.
+   */
+  private applyTurnErrorCode(code: string | null): void {
+    if (code === 'error.assistant_session_closed' || code === 'error.assistant_session_not_found') {
+      this.session.set(null);
+      this.consentRequired.set(false);
+      this.historyLoadedFor = null;
+      this.pendingAction.set(null);
+    }
+    if (code === 'error.assistant_consent_required') {
+      this.consentRequired.set(true);
+    }
+  }
+
   private isResolvedActionError(error: HttpErrorResponse): boolean {
     const code = problemDetailCode(error);
     return code === 'error.assistant_action_expired'
@@ -538,15 +672,111 @@ export class MascotStateService {
    * `uiActions` no son rutas: se traduce `screen` contra una lista blanca.
    * Cualquier pantalla o acción desconocida se ignora.
    */
-  private handleUiActions(actions: AssistantUiActionDto[]): void {
+  private async handleUiActions(actions: AssistantUiActionDto[]): Promise<void> {
+    // La navegación primero, y una sola: cambia la pantalla debajo de las
+    // demás, así que abrir un formulario o señalar un campo sólo tiene sentido
+    // una vez que se ha llegado.
     for (const action of actions) {
       if (action.type !== 'NAVIGATE') continue;
       const route = this.routeFor(action);
       if (!route) continue;
 
       this.closePanel();
-      void this.router.navigate(route.commands, { queryParams: route.queryParams });
+      await this.router.navigate(route.commands, { queryParams: route.queryParams });
+      break;
+    }
+
+    // Y después TODAS las demás, no la primera: el backend manda el aviso y la
+    // navegación en el mismo turno (`doc/assistant-frontend.md` §5).
+    for (const action of actions) {
+      switch (action.type) {
+        case 'TOAST':
+          this.showToast(action.params ?? {});
+          break;
+        // Abrir un formulario sin escribir en él ("ábreme una medición").
+        case 'OPEN_DIALOG':
+          await this.openDialog(action.target);
+          break;
+        // Señalar un campo mientras lo explica.
+        case 'HIGHLIGHT':
+          await this.highlightField(action.target);
+          break;
+        default:
+          // `NAVIGATE` ya está, y lo desconocido se ignora en silencio.
+          break;
+      }
+    }
+  }
+
+  /** Un aviso corto, que no necesita que el panel esté abierto. */
+  private showToast(params: Record<string, unknown>): void {
+    const message = typeof params['message'] === 'string' ? params['message'].trim() : '';
+    if (message === '') return;
+
+    switch (params['severity']) {
+      case 'success': this.notify.success(message); break;
+      case 'error': this.notify.error(message); break;
+      case 'warning': this.notify.warning(message); break;
+      default: this.notify.info(message); break;
+    }
+  }
+
+  /**
+   * Señala un campo de un formulario que esté en pantalla. Si no hay ninguno
+   * que se llame así, se ignora como cualquier otro `target` desconocido.
+   */
+  private async highlightField(target: string | undefined): Promise<void> {
+    if (!target) return;
+    const found = this.fill.fieldNamed(target);
+    if (!found) return;
+
+    this.closePanel();
+    await playHighlight(found.surface, found.field, this.fillTiming(), this.fill);
+  }
+
+  /** Quien no quiera movimiento ve lo mismo, pero sin viaje ni tecleo. */
+  private fillTiming(): FillTiming {
+    return matchMedia('(prefers-reduced-motion: reduce)').matches ? STILL_TIMING : DEFAULT_FILL_TIMING;
+  }
+
+  /**
+   * Va a la pantalla donde se rellena esa tool, si la mascota sabe cuál es.
+   * Espera a que la página monte, porque lo siguiente es buscar allí el
+   * formulario o el botón que lo abre.
+   */
+  private async goToForm(toolName: string): Promise<void> {
+    const known = routeForTool(toolName);
+    if (!known) return;
+    const route = resolveFillRoute(known, this.subjectPatientId());
+    if (!route) return;
+
+    const url = this.router.createUrlTree(route.commands, { queryParams: route.queryParams });
+    if (this.router.isActive(url, { paths: 'exact', queryParams: 'subset', fragment: 'ignored', matrixParams: 'ignored' })) {
       return;
+    }
+
+    this.closePanel();
+    await this.router.navigate(route.commands, { queryParams: route.queryParams });
+  }
+
+  /** El paciente del que va la conversación: el de la sesión o el de la ficha abierta. */
+  private subjectPatientId(): string | null {
+    return this.session()?.subjectUserId ?? this.currentSubjectUserId();
+  }
+
+  /** Lleva a la mascota hasta el botón que abre ese formulario y lo pulsa. */
+  private async openDialog(target: string | undefined): Promise<void> {
+    if (!target) return;
+    const opener = this.fill.openerFor(target);
+    if (!opener) return;
+
+    const timing = this.fillTiming();
+    this.closePanel();
+    this.fill.begin();
+    try {
+      await playOpen(opener, timing, this.fill);
+    } finally {
+      this.fill.end();
     }
   }
 
@@ -577,8 +807,24 @@ export class MascotStateService {
         return { commands: ['/dashboard'] };
       // Ajustes es maestro-detalle: las secciones no tienen ruta propia, así
       // que se abren con la pestaña puesta en los query params.
+      case 'MENUS': {
+        const query = typeof params['query'] === 'string' ? params['query'].trim() : '';
+        return query === ''
+          ? { commands: ['/menus'] }
+          : { commands: ['/menus'], queryParams: { q: query } };
+      }
+      case 'SHOPPING_LIST':
+        return { commands: ['/shopping-lists'] };
+      case 'EVOLUTION':
+        return { commands: ['/evolution'] };
+      case 'REVENUE':
+        return { commands: ['/revenue'] };
+      case 'STAFF':
+        return { commands: ['/staff'] };
       case 'SETTINGS':
         return { commands: ['/settings'] };
+      case 'SETTINGS_BRANDING':
+        return { commands: ['/settings'], queryParams: { tab: 'branding' } };
       case 'SETTINGS_SCHEDULES':
         return { commands: ['/settings'], queryParams: { tab: 'schedules', section: 'schedules' } };
       case 'SETTINGS_ASSIGNMENTS':

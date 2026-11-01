@@ -9,8 +9,10 @@
  * exactamente lo que haría una persona.
  */
 
-/** La pestaña de Horarios dentro de Ajustes. */
+/** Las pestañas de Ajustes que la mascota sabe abrir. */
 export const SETTINGS_SCHEDULES_TAB = '[data-mascot-reveal="settings-tab-schedules"]';
+export const SETTINGS_APPOINTMENT_TYPES_TAB = '[data-mascot-reveal="settings-tab-appointment-types"]';
+export const SETTINGS_ADDRESS_TAB = '[data-mascot-reveal="settings-tab-address"]';
 
 /** Las sub-pestañas de Horarios. */
 export const SCHEDULE_SUBTAB = {

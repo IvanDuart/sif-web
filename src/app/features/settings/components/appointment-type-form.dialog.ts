@@ -7,6 +7,9 @@ import { AppointmentTypeService } from '../../../core/api/services/appointment-t
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
 import { NotificationService } from '../../../core/ui';
 import { AppointmentTypeDto } from '../../../core/api/models/appointment-type.model';
+import { bindingAccess } from '../../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../../assistant/mascot/fill/mascot-fill.service';
+import { APPOINTMENT_TYPE_SURFACE } from '../../assistant/mascot/fill/surfaces/appointment-type.surface';
 
 export interface AppointmentTypeFormDialogInput {
   appointmentType?: AppointmentTypeDto;
@@ -32,6 +35,24 @@ export class AppointmentTypeFormDialog {
   isDefault = false;
 
   constructor() {
+    // Mientras el diálogo esté abierto, la mascota puede rellenarlo. No es un
+    // formulario reactivo: son propiedades con `[(ngModel)]`.
+    inject(MascotFillService).register(
+      APPOINTMENT_TYPE_SURFACE,
+      bindingAccess({
+        name: { get: () => this.name, set: (value) => (this.name = String(value ?? '')) },
+        durationMinutes: {
+          get: () => this.durationMinutes,
+          set: (value) => (this.durationMinutes = value === null ? null : Number(value)),
+        },
+        price: {
+          get: () => this.price,
+          set: (value) => (this.price = value === null ? null : Number(value)),
+        },
+        isDefault: { get: () => this.isDefault, set: (value) => (this.isDefault = value === true) },
+      }),
+    );
+
     const data = this.context.data;
     if (data?.appointmentType) {
       const at: AppointmentTypeDto = data.appointmentType;

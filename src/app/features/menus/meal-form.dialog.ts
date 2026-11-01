@@ -8,6 +8,9 @@ import { MealService, CreateMealRequest } from '../../core/api/services/meal.api
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { Meal } from '../../core/api/models/meal.model';
 import { ALL_DAYS as DAY_VALUES, MEAL_TYPES as MEAL_VALUES } from './menu.constants';
+import { formAccess } from '../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { mealSurface } from '../assistant/mascot/fill/surfaces/meal.surface';
 
 export interface MealFormDialogInput {
   menuId?: string;
@@ -35,6 +38,14 @@ export interface MealFormDialogInput {
   templateUrl: './meal-form.dialog.html'
 })
 export class MealFormDialog implements OnInit {
+
+  constructor() {
+    // Mientras el diálogo esté abierto, la mascota puede rellenarlo.
+    inject(MascotFillService).register(
+      mealSurface({ days: () => this.days(), mealTypes: () => this.mealTypes() }),
+      formAccess(this.form),
+    );
+  }
   private readonly fb = inject(FormBuilder);
   private readonly mealService = inject(MealService);
   private readonly tenantCtx = inject(TenantContextService);

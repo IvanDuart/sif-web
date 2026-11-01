@@ -47,8 +47,42 @@ const fields: FillField[] = CHECKLIST.flatMap(([id, notesId, alias]) => [
   { key: notesId, kind: 'text', from: [notesId, `${alias}Notas`], reveal: REVEAL } satisfies FillField,
 ]);
 
+/**
+ * El texto libre de la anamnesis (`doc/assistant-frontend.md` §6).
+ *
+ * **Sin alias en castellano a propósito**: `alergias` ya es el alias de
+ * `hasAllergiesAsthma`, y un nombre ambiguo se lo quedaría el primero que lo
+ * pidiera. El contrato nombra estos campos en inglés y no hay más.
+ *
+ * Falta `allergiesIntolerances`, que el backend sí manda: está en
+ * `UserTenantProfileDto` pero **la ficha no lo pinta en ninguna parte**, así
+ * que no hay dónde escribirlo. Mientras no exista el campo, que caiga en la
+ * tarjeta de confirmar es lo correcto.
+ */
+const NOTES: FillField[] = [
+  { key: 'consultationReason', kind: 'text', from: ['consultationReason'], reveal: REVEAL },
+  { key: 'habits', kind: 'text', from: ['habits'], reveal: REVEAL },
+  { key: 'lifestyle', kind: 'text', from: ['lifestyle'], reveal: REVEAL },
+  { key: 'exercise', kind: 'text', from: ['exercise'], reveal: REVEAL },
+  { key: 'foodPreferences', kind: 'text', from: ['foodPreferences'], reveal: REVEAL },
+  {
+    // Las observaciones no están en la anamnesis sino en las pautas fijas, que
+    // además se editan a mano: la pestaña y luego el botón de editar.
+    key: 'observations',
+    kind: 'text',
+    from: ['observations'],
+    reveal: ['[data-mascot-reveal="tab-fixed_guidelines"]', '[data-mascot-open="patient-guidelines"]'],
+  },
+];
+
+/**
+ * `update_profile` **no** se rellena aquí: sus campos (`firstName`, `phone`,
+ * `birthDate`…) son los del diálogo de editar usuario, no los de la anamnesis.
+ * Declararla aquí hacía que cayera siempre en la tarjeta de confirmar con todo
+ * el preview sin reconocer.
+ */
 export const PATIENT_PROFILE_SURFACE: FillSurface = {
   id: 'patient-profile',
-  tools: ['update_anamnesis', 'update_profile'],
-  fields,
+  tools: ['update_anamnesis'],
+  fields: [...fields, ...NOTES],
 };

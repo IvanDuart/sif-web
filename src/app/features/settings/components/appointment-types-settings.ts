@@ -18,6 +18,7 @@ import { TuiBadge } from '@taiga-ui/kit';
   templateUrl: './appointment-types-settings.html'
 })
 export class AppointmentTypesSettings implements OnInit {
+
   private readonly appointmentTypeService = inject(AppointmentTypeService);
   private readonly tenantService = inject(TenantService);
   private readonly tenantCtx = inject(TenantContextService);

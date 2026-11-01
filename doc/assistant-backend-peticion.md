@@ -1,5 +1,12 @@
 # Asistente — peticiones de protocolo al backend
 
+> **Estado (2026-11-01): implementado.** Lo que entró, lo que no y por qué está en
+> [`assistant-frontend.md`](assistant-frontend.md), que es el contrato vigente. En
+> resumen: entró todo salvo `cancel_appointment` y `assign_menu_template` (se solapan
+> con tools que ya existían) y `send_message_to_patient` (descartada en el propio
+> documento). `VIEW_TENANT` no existe como permiso: se usan `VIEW_SCHEDULE` y
+> `VIEW_HOLIDAY`. `confirm` sigue devolviendo `"APPLIED"`, no `"CONFIRMED"`.
+
 > **Quién lo pide:** frontend (sif-web).
 > **Contra qué:** el contrato vigente en [`assistant-frontend.md`](assistant-frontend.md).
 > **Fecha:** 2026-11-01.
@@ -139,31 +146,6 @@ Dieciocho antecedentes, cada uno con su interruptor y sus notas:
 
 Los booleanos se mandan como texto: `"sí"`, `"true"`, `"1"` y variantes son
 verdadero; cualquier otra cosa es falso.
-
-### Nuestro lado ya está cerrado
-
-Mientras llega la respuesta a esto, el frontend ha hecho lo que podía hacer
-solo:
-
-- **El contrato está fijado con tests.** `mascot/fill/surfaces/contract.spec.ts`
-  prueba nombre a nombre todas las tablas de arriba, más las del §3.1 del doc
-  de tools. Si renombramos un campo de un formulario, la prueba se cae: ya no
-  nos lo podemos llevar por delante sin enterarnos.
-- **El fallo silencioso ahora hace ruido.** `unmatchedPreview()` compara lo que
-  manda el backend con lo que el formulario reconoce, y la mascota avisa por
-  consola cuando llega un nombre que no entiende:
-
-  ```
-  [mascota] "create_measurement" → formulario "measurement": no reconoce
-  ninguno de los campos del preview. Sin reconocer: pesoCorporal, alturaTotal.
-  ```
-
-  Así, si el día de mañana cambian los nombres en backend, se ve en la consola
-  del navegador en vez de descubrirse porque un nutricionista nota que la
-  mascota ha dejado de escribir.
-
-Lo que no podemos hacer desde aquí es garantizar que los nombres no cambien:
-eso es lo que pedimos, que pasen a estar escritos en §3.1.
 
 ---
 

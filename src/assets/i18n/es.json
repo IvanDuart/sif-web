@@ -1456,6 +1456,8 @@
     "fill_adding": "Añado un tramo más…",
     "fill_opening": "Voy a abrirte el formulario…",
     "fill_writing": "Escribiendo {{field}}…",
+    "highlight_field": "Mira: {{field}}",
+    "tool_running": "Un momento, estoy mirándolo…",
     "fill_done": "Te he rellenado {{count}} campos.",
     "fill_review": "Te lo he rellenado. Revísalo y guarda tú cuando lo veas bien.",
     "fill_failed": "No he encontrado el formulario en pantalla, así que no he rellenado nada.",

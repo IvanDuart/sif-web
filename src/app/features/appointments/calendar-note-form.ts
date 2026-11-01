@@ -28,6 +28,9 @@ import {
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { ConfirmService, NotificationService } from '../../core/ui';
 import { CALENDAR_NOTE_PALETTE, allDayRange } from '../../shared/utils/calendar-notes';
+import { bindingAccess } from '../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { CALENDAR_NOTE_SURFACE } from '../assistant/mascot/fill/surfaces/calendar-note.surface';
 
 /**
  * Opciones de aviso push.
@@ -131,6 +134,28 @@ export class CalendarNoteForm {
   readonly canSave = computed(() => !this.blockingReason() && !this.saving());
 
   constructor() {
+    // Mientras el formulario esté en pantalla, la mascota puede rellenarlo.
+    // Es de señales, no reactivo, así que su acceso se declara a mano.
+    inject(MascotFillService).register(
+      CALENDAR_NOTE_SURFACE,
+      bindingAccess({
+        title: { get: () => this.title(), set: (value) => this.title.set(String(value ?? '')) },
+        description: {
+          get: () => this.description(),
+          set: (value) => this.description.set(String(value ?? '')),
+        },
+        day: { get: () => this.day(), set: (value) => value && this.day.set(value as TuiDay) },
+        startTime: {
+          get: () => this.startTime(),
+          set: (value) => value && this.startTime.set(value as TuiTime),
+        },
+        endTime: {
+          get: () => this.endTime(),
+          set: (value) => value && this.endTime.set(value as TuiTime),
+        },
+      }),
+    );
+
     // Primera carga: entrada existente, hueco pulsado en el calendario, o los
     // valores por defecto. Depende de inputs, así que vive en un effect.
     effect(() => {

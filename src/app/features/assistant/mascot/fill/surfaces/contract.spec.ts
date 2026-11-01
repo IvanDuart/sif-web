@@ -19,9 +19,8 @@ import { scheduleSurface } from './schedule.surface';
  * del backend lo vigila `unmatchedPreview()`, que avisa por consola cuando
  * llega un nombre que no reconocemos.
  *
- * Las tablas están en `doc/assistant-backend-peticion.md` §2 (tools de
- * paciente) y `doc/assistant-tools-backend.md` §3.1 (configuración del centro).
- * **Si cambia una, cambia la otra.**
+ * Las tablas están en `doc/assistant-frontend.md` §6, que es el contrato
+ * vigente desde que el backend entregó la v2. **Si cambia una, cambia la otra.**
  */
 
 /** Lo que el formulario tiene que saber hacer con lo que le mandan. */
@@ -146,8 +145,29 @@ describe('contrato del preview', () => {
       ['hasSleepIssues', 'sleepIssuesNotes'],
     ];
 
-    it('rellena estas tools', () => {
-      expect(PATIENT_PROFILE_SURFACE.tools).toEqual(['update_anamnesis', 'update_profile']);
+    /** El texto libre, con el nombre exacto que manda el backend. */
+    const NOTES = ['consultationReason', 'habits', 'lifestyle', 'exercise', 'foodPreferences', 'observations'];
+
+    it('rellena esta tool, y sólo esta', () => {
+      // `update_profile` va en el diálogo de editar usuario, no en la
+      // anamnesis: aquí no reconocería ni uno de sus campos.
+      expect(PATIENT_PROFILE_SURFACE.tools).toEqual(['update_anamnesis']);
+    });
+
+    it('reconoce el texto libre', () => {
+      expectContract(PATIENT_PROFILE_SURFACE, Object.fromEntries(
+        NOTES.map((field) => [field, 'Lo que cuenta la persona.']),
+      ));
+    });
+
+    it('no confunde las alergias de la anamnesis con las del historial', () => {
+      // `alergias` es el alias del interruptor; `allergiesIntolerances` es
+      // otro campo, y la ficha no lo pinta en ninguna parte todavía.
+      const [{ field }] = matchPreview(PATIENT_PROFILE_SURFACE, [{ field: 'alergias', value: 'sí' }]);
+      expect(field.key).toBe('hasAllergiesAsthma');
+      expect(unmatchedPreview(PATIENT_PROFILE_SURFACE, [
+        { field: 'allergiesIntolerances', value: 'Lactosa' },
+      ])).toEqual(['allergiesIntolerances']);
     });
 
     it('reconoce los 18 interruptores y sus 18 notas', () => {

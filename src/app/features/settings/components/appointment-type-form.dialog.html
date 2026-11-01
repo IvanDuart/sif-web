@@ -4,7 +4,7 @@
     <input
       id="typeName"
       tuiInput
-      [(ngModel)]="name" />
+      data-mascot-field="appointment-type.name" [(ngModel)]="name" />
   </tui-textfield>
 
   <tui-textfield class="w-full">
@@ -13,7 +13,7 @@
       id="typeDuration"
       tuiInput
       type="number"
-      [(ngModel)]="durationMinutes"
+      data-mascot-field="appointment-type.durationMinutes" [(ngModel)]="durationMinutes"
       min="1"
       max="480"
       step="5"
@@ -26,7 +26,7 @@
       id="typePrice"
       tuiInput
       type="number"
-      [(ngModel)]="price"
+      data-mascot-field="appointment-type.price" [(ngModel)]="price"
       min="0"
       step="0.01"
       placeholder="50.00"
@@ -38,7 +38,7 @@
       id="isDefault"
       type="checkbox"
       tuiSwitch
-      [(ngModel)]="isDefault" />
+      data-mascot-field="appointment-type.isDefault" [(ngModel)]="isDefault" />
     <label for="isDefault" class="text-sm font-medium text-surface-700 dark:text-surface-300 cursor-pointer">
       Tipo predeterminado
     </label>

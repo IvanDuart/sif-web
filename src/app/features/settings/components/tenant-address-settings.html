@@ -15,26 +15,26 @@
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
         <tui-textfield tuiChevron>
           <label tuiLabel for="addressCountry">{{ t('settings.address_country') }}</label>
-          <input id="addressCountry" tuiComboBox [(ngModel)]="countryDisplay" (ngModelChange)="onCountryChange()" />
+          <input id="addressCountry" data-mascot-field="tenant-profile.countryDisplay" tuiComboBox [(ngModel)]="countryDisplay" (ngModelChange)="onCountryChange()" />
           <tui-data-list-wrapper *tuiDropdown [items]="countryLabels() | tuiFilterByInput" />
         </tui-textfield>
 
         <tui-textfield tuiChevron>
           <label tuiLabel for="addressState">{{ t('settings.address_state') }}</label>
-          <input id="addressState" tuiComboBox [(ngModel)]="stateDisplay" (ngModelChange)="onStateChange()" [disabled]="!countryDisplay" />
+          <input id="addressState" data-mascot-field="tenant-profile.stateDisplay" tuiComboBox [(ngModel)]="stateDisplay" (ngModelChange)="onStateChange()" [disabled]="!countryDisplay" />
           <tui-data-list-wrapper *tuiDropdown [items]="stateLabels() | tuiFilterByInput" />
         </tui-textfield>
 
         <tui-textfield tuiChevron>
           <label tuiLabel for="addressCity">{{ t('settings.address_city') }}</label>
-          <input id="addressCity" tuiComboBox [(ngModel)]="cityDisplay" [disabled]="!stateDisplay" />
+          <input id="addressCity" data-mascot-field="tenant-profile.cityDisplay" tuiComboBox [(ngModel)]="cityDisplay" [disabled]="!stateDisplay" />
           <tui-data-list-wrapper *tuiDropdown [items]="cityLabels() | tuiFilterByInput" />
         </tui-textfield>
       </div>
 
       <tui-textfield class="mt-5 w-full">
         <label tuiLabel for="addressStreet">{{ t('settings.address_street') }}</label>
-        <input id="addressStreet" tuiInput [(ngModel)]="address" placeholder="C/ Mayor 1, 07001 Palma" />
+        <input id="addressStreet" data-mascot-field="tenant-profile.address" tuiInput [(ngModel)]="address" placeholder="C/ Mayor 1, 07001 Palma" />
       </tui-textfield>
 
       <div class="mt-6 flex justify-end border-t border-line pt-5">

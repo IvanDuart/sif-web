@@ -9,6 +9,9 @@ import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppUserDto } from '../../core/api/models/user.model';
 import { NotificationService } from '../../core/ui';
+import { formAccess } from '../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { assignNutritionistSurface } from '../assistant/mascot/fill/surfaces/assign-nutritionist.surface';
 
 export interface AssignNutritionistDialogInput {
   patientId: string;
@@ -39,6 +42,11 @@ export interface AssignNutritionistDialogInput {
   templateUrl: './assign-nutritionist.dialog.html'
 })
 export class AssignNutritionistDialog implements OnInit {
+
+  constructor() {
+    // Mientras el diálogo esté abierto, la mascota puede rellenarlo.
+    inject(MascotFillService).register(assignNutritionistSurface({ nutritionists: () => this.nutritionists() }), formAccess(this.form));
+  }
   private readonly fb = inject(FormBuilder);
   private readonly userRoleService = inject(UserTenantRoleService);
   private readonly tenantCtx = inject(TenantContextService);

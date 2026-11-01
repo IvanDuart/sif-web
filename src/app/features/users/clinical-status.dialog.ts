@@ -19,6 +19,9 @@ import {
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
 import { ClinicalStatusService } from '../../core/api/services/clinical-status.api';
+import { formAccess } from '../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { clinicalStatusSurface } from '../assistant/mascot/fill/surfaces/clinical-status.surface';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import {
   ClinicalStatus,
@@ -90,6 +93,14 @@ export class ClinicalStatusDialog implements OnInit {
   );
 
   readonly statusValues = computed(() => this.statusLabels().map(s => s.value));
+
+  constructor() {
+    // Mientras el diálogo esté abierto, la mascota puede rellenarlo.
+    inject(MascotFillService).register(
+      clinicalStatusSurface({ statuses: () => this.statusLabels() }),
+      formAccess(this.form),
+    );
+  }
 
   readonly statusStringify = (value: string): string =>
     this.statusLabels().find(s => s.value === value)?.label ?? value;

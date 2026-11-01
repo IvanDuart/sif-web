@@ -8,6 +8,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { MenuService } from '../../core/api/services/menu.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { Menu } from '../../core/api/models/menu.model';
+import { bindingAccess } from '../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { MENU_RENAME_SURFACE } from '../assistant/mascot/fill/surfaces/menu-rename.surface';
 
 export interface MenuRenameDialogInput {
   menu: Menu;
@@ -20,6 +23,13 @@ export interface MenuRenameDialogInput {
   templateUrl: './menu-rename.dialog.html'
 })
 export class MenuRenameDialog implements OnInit {
+
+  constructor() {
+    // Mientras el diálogo esté abierto, la mascota puede rellenarlo.
+    inject(MascotFillService).register(MENU_RENAME_SURFACE, bindingAccess({
+      name: { get: () => this.name(), set: (value) => this.name.set(String(value ?? '')) },
+    }));
+  }
   private readonly menuService = inject(MenuService);
   private readonly tenantCtx = inject(TenantContextService);
   readonly context = injectContext<TuiDialogContext<Menu, MenuRenameDialogInput>>();

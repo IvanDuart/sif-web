@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { TranslocoDirective } from '@jsverse/transloco';
 
 import { AssistantPendingActionDto } from '../../../core/api/models/assistant.model';
+import { MascotRichText } from './mascot-rich-text';
 
 /**
  * Tarjeta de confirmación de una escritura. Muestra el resumen y la vista
@@ -10,7 +11,7 @@ import { AssistantPendingActionDto } from '../../../core/api/models/assistant.mo
 @Component({
   selector: 'app-mascot-action-card',
   standalone: true,
-  imports: [TranslocoDirective],
+  imports: [TranslocoDirective, MascotRichText],
   templateUrl: './mascot-action-card.html',
   styleUrl: './mascot-action-card.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

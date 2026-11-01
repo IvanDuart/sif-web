@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
@@ -33,6 +33,7 @@ export type MenuStatusFilter = 'all' | 'active' | 'inactive';
 })
 export default class MenusListPage implements OnInit {
   private readonly menuService = inject(MenuService);
+  private readonly route = inject(ActivatedRoute);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly authService = inject(AuthService);
   private readonly permissionsService = inject(PermissionsService);
@@ -73,6 +74,11 @@ export default class MenusListPage implements OnInit {
   lastSize = 25;
 
   ngOnInit() {
+    // `?q=` deja el listado filtrado al entrar, como en pacientes. Sin
+    // `emitEvent` para no disparar la recarga con rebote.
+    const query: string | undefined = this.route.snapshot.queryParamMap.get('q')?.trim();
+    if (query) this.searchControl.setValue(query, { emitEvent: false });
+
     this.searchControl.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged()
