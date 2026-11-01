@@ -2,7 +2,7 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
-import { Observable, catchError, finalize, of, shareReplay, tap, throwError } from 'rxjs';
+import { Observable, catchError, finalize, firstValueFrom, of, shareReplay, tap, throwError } from 'rxjs';
 
 import { AssistantService } from '../../core/api/services/assistant.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -74,6 +74,17 @@ export class MascotStateService {
    * ficha y se pondría a cerrarla y abrirla una y otra vez.
    */
   private readonly deniedSubjects = new Set<string>();
+
+  /**
+   * El paciente del que va la conversación **según el backend**.
+   *
+   * No basta con `session().subjectUserId`: esa copia es de cuando se creó la
+   * sesión, y el backend la cambia por su cuenta con `set_active_patient`
+   * cuando la persona nombra a alguien ("las medidas de Frink") sin tener su
+   * ficha abierta. Sin esto, la propuesta que llega después no se puede llevar
+   * a ninguna ficha y se quedaba siempre en la tarjeta de confirmar.
+   */
+  private readonly activePatientId = signal<string | null>(null);
   readonly messages = signal<MascotMessage[]>([]);
   readonly pendingAction = signal<AssistantPendingActionDto | null>(null);
   readonly sending = signal(false);
@@ -266,6 +277,7 @@ export class MascotStateService {
         tap((session) => {
           this.session.set(session);
           this.consentRequired.set(session.consentRequired);
+          this.activePatientId.set(session.subjectUserId ?? null);
         }),
         catchError((error: HttpErrorResponse) => {
           this.pushSystem(this.errorMessage(error));
@@ -475,6 +487,16 @@ export class MascotStateService {
     }
 
     const timing = this.fillTiming();
+
+    // De quién es la escritura, antes de mirar lo que hay en pantalla: si es
+    // de otro paciente, el formulario que está abierto es el de la ficha
+    // equivocada y escribir en él guardaría las medidas de uno en la ficha de
+    // otro.
+    const patientId = await this.actionPatientId(action);
+    if (patientId && patientId !== this.currentSubjectUserId()) {
+      await this.goToForm(action.toolName, patientId);
+    }
+
     let mounted = await this.fill.waitForTool(action.toolName, SURFACE_WAIT_MS);
 
     // Ni el formulario ni su botón están aquí: habrá que ir a su pantalla. La
@@ -483,7 +505,7 @@ export class MascotStateService {
     // pedir "cambia el horario" desde el panel principal se quedaba siempre en
     // la tarjeta de confirmar.
     if (!mounted && !this.fill.openerForTool(action.toolName)) {
-      await this.goToForm(action.toolName);
+      await this.goToForm(action.toolName, patientId ?? this.subjectPatientId());
       mounted = await this.fill.waitForTool(action.toolName, SURFACE_WAIT_MS);
     }
 
@@ -614,6 +636,7 @@ export class MascotStateService {
     if (code === 'error.assistant_session_closed' || code === 'error.assistant_session_not_found') {
       // La próxima vez se crea otra sesión; no hay replay de la conversación.
       this.session.set(null);
+      this.activePatientId.set(null);
       this.consentRequired.set(false);
       this.historyLoadedFor = null;
       this.pendingAction.set(null);
@@ -633,6 +656,7 @@ export class MascotStateService {
   private applyTurnErrorCode(code: string | null): void {
     if (code === 'error.assistant_session_closed' || code === 'error.assistant_session_not_found') {
       this.session.set(null);
+      this.activePatientId.set(null);
       this.consentRequired.set(false);
       this.historyLoadedFor = null;
       this.pendingAction.set(null);
@@ -673,6 +697,14 @@ export class MascotStateService {
    * Cualquier pantalla o acción desconocida se ignora.
    */
   private async handleUiActions(actions: AssistantUiActionDto[]): Promise<void> {
+    // De paso se apunta de quién habla el backend: `params.patientId` es el
+    // único sitio del contrato por el que el paciente activo llega hoy al
+    // frontend (`doc/assistant-frontend.md` §4).
+    for (const action of actions) {
+      const patientId = action.params?.['patientId'];
+      if (typeof patientId === 'string' && patientId !== '') this.activePatientId.set(patientId);
+    }
+
     // La navegación primero, y una sola: cambia la pantalla debajo de las
     // demás, así que abrir un formulario o señalar un campo sólo tiene sentido
     // una vez que se ha llegado.
@@ -744,10 +776,10 @@ export class MascotStateService {
    * Espera a que la página monte, porque lo siguiente es buscar allí el
    * formulario o el botón que lo abre.
    */
-  private async goToForm(toolName: string): Promise<void> {
+  private async goToForm(toolName: string, patientId: string | null): Promise<void> {
     const known = routeForTool(toolName);
     if (!known) return;
-    const route = resolveFillRoute(known, this.subjectPatientId());
+    const route = resolveFillRoute(known, patientId);
     if (!route) return;
 
     const url = this.router.createUrlTree(route.commands, { queryParams: route.queryParams });
@@ -759,9 +791,61 @@ export class MascotStateService {
     await this.router.navigate(route.commands, { queryParams: route.queryParams });
   }
 
-  /** El paciente del que va la conversación: el de la sesión o el de la ficha abierta. */
+  /** El paciente del que va la conversación: el que diga el backend o, si no, el de la ficha abierta. */
   private subjectPatientId(): string | null {
-    return this.session()?.subjectUserId ?? this.currentSubjectUserId();
+    return this.activePatientId() ?? this.session()?.subjectUserId ?? this.currentSubjectUserId();
+  }
+
+  /**
+   * De quién es esta escritura. Sólo para las tools que se rellenan en una
+   * ficha; para las del centro no hay paciente y devuelve `null`.
+   *
+   * Se mira en este orden, de lo más fiable a lo menos:
+   *
+   * 1. Lo que trae la propia propuesta. El backend lo tiene (lo comprueba al
+   *    confirmar) y es lo único que no se puede quedar viejo.
+   * 2. El paciente activo que ya conocíamos (de abrir la sesión o de un
+   *    `uiAction` anterior).
+   * 3. Preguntándoselo al backend: si la persona nombró a alguien, se habrá
+   *    fijado con `set_active_patient` después de crear la sesión y nuestra
+   *    copia no se ha enterado.
+   * 4. La ficha que esté abierta, como siempre.
+   */
+  private async actionPatientId(action: AssistantPendingActionDto): Promise<string | null> {
+    if (!routeForTool(action.toolName)?.needsPatient) return null;
+
+    const stated = action.subjectUserId ?? action.patientId ?? null;
+    if (stated) {
+      this.activePatientId.set(stated);
+      return stated;
+    }
+
+    const known = this.activePatientId() ?? this.session()?.subjectUserId ?? null;
+    if (known) return known;
+
+    return (await this.refreshActivePatient()) ?? this.currentSubjectUserId();
+  }
+
+  /**
+   * Relee la sesión viva para ver a quién apunta ahora. Sólo se hace caso si
+   * es **nuestra** sesión: `latest` es del usuario, no de la conversación, y
+   * tomar el paciente de otra sería peor que no tener ninguno.
+   */
+  private async refreshActivePatient(): Promise<string | null> {
+    const tenantId = this.tenantCtx.currentTenantId();
+    const sessionId = this.session()?.sessionId;
+    if (!tenantId || !sessionId) return null;
+
+    try {
+      const fresh = await firstValueFrom(this.api.latestSession(tenantId));
+      if (fresh.sessionId !== sessionId) return null;
+      const patientId = fresh.subjectUserId ?? null;
+      if (patientId) this.activePatientId.set(patientId);
+      return patientId;
+    } catch {
+      // Sin sesión viva (404) o sin endpoint: se sigue con lo que haya.
+      return null;
+    }
   }
 
   /** Lleva a la mascota hasta el botón que abre ese formulario y lo pulsa. */
@@ -926,6 +1010,7 @@ export class MascotStateService {
 
   private resetConversation(closePanel: boolean): void {
     this.session.set(null);
+    this.activePatientId.set(null);
     this.messages.set([]);
     this.pendingAction.set(null);
     this.consentRequired.set(false);

@@ -8,8 +8,10 @@ import {
   signal,
 } from '@angular/core';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { TuiButton } from '@taiga-ui/core';
 
 import { MascotFillService } from '../mascot/fill/mascot-fill.service';
+import type { NoteAction } from '../mascot/mascot-mood.service';
 import { MascotStateService } from '../mascot-state.service';
 import { MascotOrb } from './mascot-orb';
 import { MascotPanel } from './mascot-panel';
@@ -46,7 +48,7 @@ export function beside(target: HTMLElement): { x: number; y: number } {
 @Component({
   selector: 'app-mascot-launcher',
   standalone: true,
-  imports: [TranslocoDirective, MascotOrb, MascotPanel, MascotWardrobe],
+  imports: [TranslocoDirective, TuiButton, MascotOrb, MascotPanel, MascotWardrobe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (state.visible()) {
@@ -60,11 +62,33 @@ export function beside(target: HTMLElement): { x: number; y: number } {
       }
 
       @if (!state.open() && state.note(); as note) {
-        <div class="mascot-note" role="status" *transloco="let t">
+        <div
+          class="mascot-note"
+          [attr.data-tone]="note.tone ?? 'neutral'"
+          [attr.role]="note.actions?.length ? 'alertdialog' : 'status'"
+          *transloco="let t"
+        >
           @if (note.title) {
             <strong>{{ note.title }}</strong>
           }
           <p>{{ note.text }}</p>
+
+          @if (note.actions?.length) {
+            <div class="mascot-note__actions">
+              @for (action of note.actions; track action.label) {
+                <button
+                  type="button"
+                  tuiButton
+                  size="xs"
+                  [appearance]="action.primary ? 'primary' : 'flat'"
+                  (click)="runAction(action)"
+                >
+                  {{ action.label }}
+                </button>
+              }
+            </div>
+          }
+
           <button type="button" class="mascot-note__close" [attr.aria-label]="t('common.close')" (click)="state.dismissNote()">
             <i class="fa-solid fa-xmark" aria-hidden="true"></i>
           </button>
@@ -189,6 +213,23 @@ export function beside(target: HTMLElement): { x: number; y: number } {
       color: var(--ink-2);
     }
 
+    /* El tono se ve en el filo de la izquierda: ni colorea el fondo ni compite
+       con la mascota, que es quien lleva la emoción. */
+    .mascot-note[data-tone='danger'] {
+      border-left: 3px solid var(--tui-status-negative);
+    }
+
+    .mascot-note[data-tone='celebrate'] {
+      border-left: 3px solid var(--tui-status-positive);
+    }
+
+    .mascot-note__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
     .mascot-note__close {
       position: absolute;
       top: 4px;
@@ -294,5 +335,14 @@ export class MascotLauncher implements OnInit {
 
   ngOnInit(): void {
     this.state.loadConfig();
+  }
+
+  /**
+   * Lo que ofrecía la nota. Se retira antes de hacerlo: si la acción abre el
+   * panel, la nota ya no está ahí para parpadear por detrás.
+   */
+  protected runAction(action: NoteAction): void {
+    this.state.dismissNote();
+    action.run();
   }
 }

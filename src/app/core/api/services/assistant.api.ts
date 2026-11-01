@@ -137,6 +137,25 @@ export class AssistantService {
     });
   }
 
+  /**
+   * La sesión viva tal y como está **ahora en el backend**.
+   *
+   * Hace falta por el paciente activo: cuando la persona dice "las medidas de
+   * Frink" sin tener su ficha abierta, el backend lo resuelve con
+   * `set_active_patient` y actualiza la sesión, pero la propuesta que llega no
+   * trae el paciente por ningún lado (`AssistantPendingActionDto` no tiene
+   * campo para él). Sin releer la sesión, el frontend no sabe de quién va la
+   * medición y no puede ir a su ficha a rellenarla.
+   *
+   * Es de sólo lectura y silenciosa: si no hay sesión viva responde 404 y el
+   * panel sigue como estaba.
+   */
+  latestSession(tenantId: string): Observable<AssistantSessionDto> {
+    return this.http.get<AssistantSessionDto>(`${this.endpoint(tenantId)}/sessions/latest`, {
+      context: this.silent,
+    });
+  }
+
   consent(tenantId: string, sessionId: string, accepted: boolean): Observable<void> {
     return this.http.post<void>(
       `${this.endpoint(tenantId)}/sessions/${sessionId}/consent`,

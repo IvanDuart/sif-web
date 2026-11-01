@@ -152,6 +152,17 @@ export interface AssistantPendingActionDto {
   /** Se reenvía **exactamente igual** al confirmar. */
   idempotencyKey: string;
   expiresAt: string;
+  /**
+   * De quién es la escritura, cuando es de paciente.
+   *
+   * El backend lo tiene (`AssistantPreparedAction.getSubjectUserId()`, que
+   * comprueba al confirmar) pero hoy **no siempre lo serializa**. Sin él, una
+   * propuesta pedida sin la ficha delante ("las medidas de Frink") no se puede
+   * llevar a su formulario, porque el frontend no sabe de quién va. Ambos
+   * nombres se aceptan: lo que llegue, se usa.
+   */
+  subjectUserId?: string | null;
+  patientId?: string | null;
 }
 
 export interface AssistantUiActionDto {

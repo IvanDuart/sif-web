@@ -25,6 +25,18 @@ export const MOOD_MS: Record<MoodKind, number> = {
   proud: 2600,
 };
 
+/**
+ * Algo que se puede hacer desde la propia nota, sin abrir el panel.
+ *
+ * El `label` viene ya traducido: la nota no sabe de i18n, y quien la dice sí.
+ */
+export interface NoteAction {
+  label: string;
+  /** La que se ofrece de verdad. Como mucho una por nota. */
+  primary?: boolean;
+  run(): void;
+}
+
 /** Algo que la mascota dice por su cuenta (no es una respuesta del asistente). */
 export interface MascotNote {
   id: number;
@@ -35,6 +47,11 @@ export interface MascotNote {
   tone?: 'neutral' | 'danger' | 'celebrate';
   /** Cuánto tiempo se queda (ms). Sin él, una nota sin acciones se va sola. */
   ms?: number;
+  /**
+   * Lo que ofrece. Una nota con acciones y sin `ms` **espera**: irse sola sería
+   * retirar de las manos lo que acaba de ofrecer.
+   */
+  actions?: readonly NoteAction[];
 }
 
 /** Una nota sin acciones se va sola tras este tiempo. */
@@ -78,14 +95,12 @@ export class MascotMoodService {
     clearTimeout(this.noteTimer);
     const id = this.nextId++;
     this.note.set({ ...note, id });
-    if (note.ms !== undefined) {
+    // Con `ms` manda `ms`, tenga acciones o no: quien lo pone sabe lo que hace.
+    // Sin él, sólo se va sola la que no ofrece nada.
+    if (note.ms !== undefined || !note.actions?.length) {
       this.noteTimer = setTimeout(() => {
         if (this.note()?.id === id) this.note.set(null);
-      }, note.ms);
-    } else {
-      this.noteTimer = setTimeout(() => {
-        if (this.note()?.id === id) this.note.set(null);
-      }, NOTE_MS);
+      }, note.ms ?? NOTE_MS);
     }
     return id;
   }

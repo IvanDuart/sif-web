@@ -39,6 +39,27 @@ export const FACES: Record<SkinId, Face> = {
     ],
     colour: '#ffffff',
   },
+  brocoli: {
+    eyes: [
+      [53, 76],
+      [90, 76],
+    ],
+    colour: '#ffffff',
+  },
+  zanahoria: {
+    eyes: [
+      [53, 56],
+      [90, 56],
+    ],
+    colour: '#ffffff',
+  },
+  semilla: {
+    eyes: [
+      [53, 86],
+      [90, 86],
+    ],
+    colour: '#ffffff',
+  },
 };
 
 /** El tamaño de la barra y su centro, desde su esquina superior izquierda. */

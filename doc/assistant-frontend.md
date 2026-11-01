@@ -463,10 +463,41 @@ Angular ya no depende de eso: sabe en qué pantalla vive el formulario de cada t
 igualmente un `NAVIGATE` con la propuesta, mejor —se ahorra el salto—, pero no hace
 falta.
 
-Las tools cuyo formulario está en la ficha de un paciente necesitan saber de quién:
-se usa el `subjectUserId` de la sesión y, si no lo hay, el paciente de la ficha
-abierta. Sin ninguno de los dos no se navega, porque abrir la ficha de quien no es
-sería peor que no hacer nada.
+Las tools cuyo formulario está en la ficha de un paciente necesitan saber de quién.
+Se mira, por este orden:
+
+1. **`subjectUserId` (o `patientId`) de la propia propuesta**, si viene. Es lo único
+   que no se puede quedar viejo. Hoy el backend **no lo serializa** aunque lo tiene:
+   `AssistantPreparedAction.getSubjectUserId()` es justo lo que comprueba al
+   confirmar. Ver la petición de abajo.
+2. El paciente activo que ya conociéramos: el de abrir la sesión, o el
+   `params.patientId` de cualquier `uiAction` anterior del turno.
+3. **Releyendo la sesión** con `GET /sessions/latest`, y sólo si responde la nuestra
+   (`sessionId` igual). `latest` es del usuario, no de la conversación.
+4. La ficha que esté abierta.
+
+Sin ninguno no se navega, porque abrir la ficha de quien no es sería peor que no
+hacer nada. Y si el paciente de la propuesta **no es** el de la ficha abierta, se
+navega a la suya antes de tocar nada: rellenar el formulario que hay delante
+guardaría las medidas de uno en la ficha de otro.
+
+> **Por qué hacen falta los pasos 2 y 3.** La sesión se crea sin paciente cuando la
+> mascota se abre fuera de una ficha, y es el backend quien lo fija después con
+> `set_active_patient` al oír "las medidas de Frink". Esa copia que tiene el frontend
+> se queda vieja, y sin releerla la propuesta no se puede llevar a ninguna parte.
+
+#### Petición: que la propuesta diga de quién es
+
+`AssistantPendingActionDto` debería incluir el paciente de la escritura:
+
+```json
+{ "id": "…", "toolName": "create_measurement", "subjectUserId": "uuid-del-paciente", "preview": [ … ] }
+```
+
+El dato ya existe en `AssistantPreparedAction`; es serializarlo. Con él sobran los
+pasos 2 y 3 y la ida a la ficha es inmediata y siempre correcta, también cuando la
+conversación salta de un paciente a otro. El frontend ya lo acepta (`subjectUserId` o
+`patientId`, lo que llegue) e ignora su ausencia.
 
 `OPEN_DIALOG` ya está implementado, y acepta más `target` de los cinco del contrato:
 también `clinical-status`, `patient-event`, `assign-nutritionist`, `menu-template`,

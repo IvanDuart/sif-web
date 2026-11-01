@@ -93,6 +93,25 @@ const PINEAPPLE = circle(80, 92, 52);
 /** Melón: algo más ancho que alto (el rabillo y las rayas son detalle). */
 const MELON = ellipse(80, 90, 58, 50);
 
+/**
+ * Brócoli: la mata de cogollos sobre un tallo estrecho (el tallo es detalle).
+ *
+ * Los bultos tienen que quedar **separados** para que el borde salga festoneado:
+ * juntos se funden en una bola y lo que se ve es un árbol. De ahí que la corona
+ * sea ancha, el cuerpo de abajo estrecho, y entre bulto y bulto haya más
+ * distancia que radio.
+ */
+const BROCCOLI = blob([80, 112, 22], [40, 86, 19], [56, 56, 20], [80, 46, 20], [104, 56, 20], [120, 86, 19]);
+
+/**
+ * Zanahoria: ancha de hombros y estrechándose al bajar, como la raíz. Tres
+ * círculos cada vez más pequeños bastan para el cono (el penacho es detalle).
+ */
+const CARROT = blob([80, 58, 32], [80, 88, 25], [80, 116, 15]);
+
+/** Semilla: una gota, estrecha arriba y llena abajo (el brote es detalle). */
+const SEED = blob([80, 66, 22], [80, 102, 40]);
+
 const DRAWINGS: Record<SkinId, Drawing> = {
   manzana: {
     centre: [80, 92],
@@ -128,6 +147,33 @@ const DRAWINGS: Record<SkinId, Drawing> = {
     dark: '#6f9a3a',
     light: '#9bc45f',
     spot: [46, 58, -30, 36, 76, 1],
+    halo: false,
+  },
+  brocoli: {
+    centre: [80, 88],
+    inside: BROCCOLI,
+    lit: moved(BROCCOLI, -9, -12),
+    dark: '#36713a',
+    light: '#54954d',
+    spot: [50, 50, -30, 40, 70, 1],
+    halo: false,
+  },
+  zanahoria: {
+    centre: [80, 80],
+    inside: CARROT,
+    lit: moved(CARROT, -9, -11),
+    dark: '#cf5f18',
+    light: '#ef8726',
+    spot: [44, 52, -30, 38, 62, 1],
+    halo: false,
+  },
+  semilla: {
+    centre: [80, 96],
+    inside: SEED,
+    lit: moved(SEED, -9, -12),
+    dark: '#8a6334',
+    light: '#b1854c',
+    spot: [44, 54, -30, 38, 84, 1],
     halo: false,
   },
 };

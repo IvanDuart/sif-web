@@ -1,11 +1,15 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 
+import { TranslocoService } from '@jsverse/transloco';
+
 import { AssistantConfigDto, AssistantLookPolicyDto } from '../../../core/api/models/assistant.model';
 import { AssistantService } from '../../../core/api/services/assistant.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
-import { cleanAccessories, readLook, writeLook } from './skins/storage';
+import { NotificationService } from '../../../core/ui';
+import { cleanAccessories, readStoredLook, writeLook } from './skins/storage';
 import {
   ACCESSORY_IDS,
+  DEFAULT_SKIN,
   SKIN_IDS,
   isSkinId,
   type AccessoryId,
@@ -23,15 +27,20 @@ import {
 export class MascotLookService {
   private readonly api = inject(AssistantService);
   private readonly tenantCtx = inject(TenantContextService);
+  private readonly notifications = inject(NotificationService);
+  private readonly transloco = inject(TranslocoService);
 
-  private readonly stored = readLook();
-  readonly skin = signal<SkinId>(this.stored.skin);
-  readonly accessories = signal<AccessoryId[]>(this.stored.accessories);
+  private readonly stored = readStoredLook();
+  readonly skin = signal<SkinId>(this.stored?.skin ?? DEFAULT_SKIN);
+  readonly accessories = signal<AccessoryId[]>(this.stored?.accessories ?? []);
+  /** Cuándo se eligió lo que se está usando: decide si manda esto o lo remoto. */
+  private chosenAt = this.stored?.updatedAt ?? null;
 
   private readonly policySignal = signal<AssistantLookPolicyDto | null>(null);
   private loaded = false;
   private tenantId: string | null = null;
-  private hasRemoteLook = false;
+  /** Hubo eleccion: la guardada en este navegador, la remota o la de ahora mismo. */
+  private hasUserLook = this.stored !== null;
 
   readonly allowUserLook = computed(() => this.policySignal()?.allowUserLook ?? true);
 
@@ -51,7 +60,7 @@ export class MascotLookService {
   applyConfig(config: AssistantConfigDto | null): void {
     this.policySignal.set(config?.lookPolicy ?? null);
     const defaultSkin = config?.defaultSkinId;
-    if (!this.hasRemoteLook && defaultSkin && isSkinId(defaultSkin)) {
+    if (!this.hasUserLook && defaultSkin && isSkinId(defaultSkin)) {
       this.skin.set(defaultSkin);
     }
   }
@@ -67,11 +76,15 @@ export class MascotLookService {
 
     this.api.getLook(tenantId).subscribe({
       next: (look) => {
-        if (look.skinId) {
-          this.hasRemoteLook = true;
-          if (isSkinId(look.skinId)) this.skin.set(look.skinId);
-          this.accessories.set(cleanAccessories(look.accessories));
-        }
+        // Sin skin remota no hay nada que aplicar: lo local no se toca.
+        if (!look.skinId) return;
+        this.hasUserLook = true;
+        // Lo elegido aquí después manda: el centro puede no haber aceptado el
+        // último guardado (skin fuera de su catálogo) y devolver uno viejo.
+        if (this.isOlderThanLocal(look.updatedAt)) return;
+        if (isSkinId(look.skinId)) this.skin.set(look.skinId);
+        this.accessories.set(cleanAccessories(look.accessories));
+        this.chosenAt = look.updatedAt ?? new Date().toISOString();
         this.remember();
       },
       // Backend v1 sin `/look`, o red caída: el local sigue mandando.
@@ -107,16 +120,32 @@ export class MascotLookService {
     this.persist();
   }
 
+  /** Un look remoto anterior a lo que se eligió aquí no tiene nada que decir. */
+  private isOlderThanLocal(remoteAt: string | null | undefined): boolean {
+    if (!this.chosenAt) return false;
+    const remote = Date.parse(remoteAt ?? '');
+    const local = Date.parse(this.chosenAt);
+    if (Number.isNaN(remote) || Number.isNaN(local)) return false;
+    return remote < local;
+  }
+
   private persist(): void {
+    this.chosenAt = new Date().toISOString();
     this.remember();
     const tenantId = this.tenantId ?? this.tenantCtx.currentTenantId();
     if (!tenantId) return;
-    this.api
-      .updateLook(tenantId, { skinId: this.skin(), accessories: this.accessories() })
-      .subscribe({ error: () => undefined });
+    this.api.updateLook(tenantId, { skinId: this.skin(), accessories: this.accessories() }).subscribe({
+      // Se queda puesta en este navegador, pero no viaja a otros: hay que decirlo.
+      error: () => this.notifications.warning(this.transloco.translate('assistant.wardrobe_not_saved')),
+    });
   }
 
   private remember(): void {
-    writeLook({ skin: this.skin(), accessories: this.accessories() });
+    this.hasUserLook = true;
+    writeLook({
+      skin: this.skin(),
+      accessories: this.accessories(),
+      updatedAt: this.chosenAt ?? new Date().toISOString(),
+    });
   }
 }

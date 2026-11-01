@@ -35,6 +35,27 @@
         </svg>
       }
 
+      @if (skin() === 'brocoli') {
+        <svg class="mascot-detail mascot-detail--behind" viewBox="0 0 160 160" aria-hidden="true">
+          <path d="M80 116 Q80 140 80 158" stroke="#a8c98a" stroke-width="16" fill="none" stroke-linecap="round" />
+        </svg>
+      }
+      @if (skin() === 'zanahoria') {
+        <svg class="mascot-detail mascot-detail--behind" viewBox="0 0 160 160" aria-hidden="true">
+          <path d="M80 44 Q60 24 46 10" stroke="#3f8a4d" stroke-width="8" fill="none" stroke-linecap="round" />
+          <path d="M80 44 Q74 20 70 2" stroke="#4fa85e" stroke-width="8" fill="none" stroke-linecap="round" />
+          <path d="M80 44 Q84 20 88 2" stroke="#3f8a4d" stroke-width="8" fill="none" stroke-linecap="round" />
+          <path d="M80 44 Q100 24 114 10" stroke="#4fa85e" stroke-width="8" fill="none" stroke-linecap="round" />
+        </svg>
+      }
+      @if (skin() === 'semilla') {
+        <svg class="mascot-detail mascot-detail--behind" viewBox="0 0 160 160" aria-hidden="true">
+          <path d="M80 56 Q79 34 82 18" stroke="#5f9b46" stroke-width="6" fill="none" stroke-linecap="round" />
+          <path d="M81 28 Q94 16 110 20 Q102 34 84 34 Z" fill="#6fb153" />
+          <path d="M81 38 Q68 30 54 34 Q62 46 79 44 Z" fill="#5f9b46" />
+        </svg>
+      }
+
       <svg class="mascot-agent" viewBox="0 0 160 160" aria-hidden="true">
         <defs>
           <clipPath [attr.id]="clipId">
@@ -78,6 +99,35 @@
           >
             <path d="M44 54 Q34 90 46 126" />
             <path d="M116 54 Q126 90 114 126" />
+          </g>
+        }
+        @if (skin() === 'brocoli') {
+          <!-- Un cogollo en el centro de cada bulto: la sombra que los separa. -->
+          <g [attr.clip-path]="clipUrl()" fill="#2a5a2d" opacity="0.32">
+            <circle cx="40" cy="90" r="11" />
+            <circle cx="56" cy="60" r="11" />
+            <circle cx="80" cy="50" r="11" />
+            <circle cx="104" cy="60" r="11" />
+            <circle cx="120" cy="90" r="11" />
+          </g>
+        }
+        @if (skin() === 'zanahoria') {
+          <g
+            [attr.clip-path]="clipUrl()"
+            stroke="#a9480f"
+            stroke-width="4"
+            fill="none"
+            stroke-linecap="round"
+            opacity="0.5"
+          >
+            <path d="M50 100 Q62 104 72 102" />
+            <path d="M92 110 Q102 114 112 110" />
+            <path d="M62 128 Q72 132 82 129" />
+          </g>
+        }
+        @if (skin() === 'semilla') {
+          <g [attr.clip-path]="clipUrl()" stroke="#6d4b24" stroke-width="4" fill="none" opacity="0.45">
+            <path d="M58 118 Q80 134 102 118" stroke-linecap="round" />
           </g>
         }
         <ellipse

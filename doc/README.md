@@ -125,6 +125,12 @@ doc/
 | [`assistant-frontend.md`](assistant-frontend.md) | Contrato del asistente de nutricionista: pantallas, `uiActions` y `pendingAction`. |
 | [`assistant-tools-backend.md`](assistant-tools-backend.md) | Tools que faltan en el backend: horarios del centro y el resto del catálogo, con el formato del `preview`. |
 | [`assistant-backend-peticion.md`](assistant-backend-peticion.md) | Peticiones de protocolo al backend: streaming SSE, tipos de `uiAction`, pantallas y reanudación de sesión. |
+| [`mascota-catalogo-backend-peticion.md`](mascota-catalogo-backend-peticion.md) | Petición al backend: registrar `naranja`, `pina` y `melon` en el catálogo de mascotas (el `PUT /look` las rechaza con 422). |
+| [`mascota-catalogo-ampliacion-backend-peticion.md`](mascota-catalogo-ampliacion-backend-peticion.md) | Petición al backend: conservar `brocoli`, `semilla` y `zanahoria` (enmienda), catálogo de siete mascotas y regla `/pets` ↔ `PUT /look`. |
+| [`mascota-adjuntos-backend-peticion.md`](mascota-adjuntos-backend-peticion.md) | Petición al backend: adjuntos en la conversación del asistente (subida, lectura por el modelo, límites y retención). |
+| [`mascota-memoria-usuario-backend-peticion.md`](mascota-memoria-usuario-backend-peticion.md) | Petición al backend: preferencias de proactividad e hitos de primera vez por usuario. |
+| [`mascot-improvement-plan.md`](mascot-improvement-plan.md) | Plan de mejoras de la mascota: brechas frente a alkimia-app y fases. |
+| [`mascot-improvement-plan-detailed.md`](mascot-improvement-plan-detailed.md) | El mismo plan con ejemplos de código por fase. |
 
 ### Roadmap — [`roadmap/`](roadmap/README.md)
 
