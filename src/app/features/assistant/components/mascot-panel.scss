@@ -242,3 +242,104 @@
     transition: none;
   }
 }
+
+/* ── Adjuntos ───────────────────────────────────────────────────────── */
+
+/* Dentro de la burbuja: la imagen se ve, el PDF se nombra. */
+.attach {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm, 8px);
+  background: var(--sunken);
+  color: inherit;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.attach:hover {
+  border-color: var(--line-strong);
+}
+
+.attach--image {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.attach--image img {
+  display: block;
+  max-width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+}
+
+.attach__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Esperando al mensaje que lo lleve. */
+.attach-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 6px;
+  padding: 6px 8px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-sm, 8px);
+  color: var(--ink-2);
+  font-size: 12px;
+}
+
+.attach-chip__name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attach-chip__drop {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.attach-chip__drop:hover {
+  background: var(--sunken);
+}
+
+/* Algo viene volando hacia el panel. */
+.mascot-panel--dropping {
+  outline: 2px dashed var(--primary);
+  outline-offset: -6px;
+}
+
+.drop-hint {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--surface, #fff) 86%, transparent);
+  color: var(--ink);
+  font-size: 13px;
+  pointer-events: none;
+}

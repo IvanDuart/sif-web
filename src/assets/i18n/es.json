@@ -1523,7 +1523,13 @@
         "prompt": "Registra en el historial de "
       }
     },
-    "tip_try": "Pruébalo",
+        "attachment_add": "Adjuntar un archivo",
+    "attachment_remove": "Quitar el archivo",
+    "attachment_uploading": "Subiendo el archivo…",
+    "attachment_drop": "Suéltalo aquí y lo miro",
+    "attachment_too_large": "El archivo pesa más de 10 MB.",
+    "attachment_unsupported": "Solo puedo leer imágenes (JPG, PNG, WebP) y PDF.",
+"tip_try": "Pruébalo",
     "tip_never": "No me lo digas más",
 "milestone": {
       "first_patient": {
@@ -1630,7 +1636,10 @@
     "assistant_session_not_found": "La conversación ha caducado. Vuelve a escribir para empezar otra.",
     "assistant_session_closed": "La conversación se ha cerrado. Vuelve a escribir para empezar otra.",
     "assistant_quota_exceeded": "Se alcanzó la cuota diaria del asistente. Inténtalo mañana.",
-    "assistant_unavailable": "El asistente no responde ahora mismo. Inténtalo de nuevo en unos minutos.",
+        "assistant_attachment_not_found": "Ese archivo ya no está disponible. Vuelve a subirlo.",
+    "assistant_attachment_too_large": "El archivo pesa más de 10 MB.",
+    "assistant_attachment_unsupported": "Solo puedo leer imágenes (JPG, PNG, WebP) y PDF.",
+"assistant_unavailable": "El asistente no responde ahora mismo. Inténtalo de nuevo en unos minutos.",
     "assistant_action_not_found": "La acción ya no existe.",
     "assistant_action_expired": "La acción ha caducado. Pide de nuevo la operación.",
     "assistant_action_already_resolved": "La acción ya se había resuelto.",

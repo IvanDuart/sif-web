@@ -156,12 +156,51 @@ export interface AssistantMilestoneDto {
   celebratedAt: string | null;
 }
 
+/**
+ * Un archivo subido a la conversación (`doc/mascota-frontend.md` §4.3).
+ *
+ * `url` viene firmada y caduca a los 10 minutos; para renovarla está
+ * `GET /assistant/attachments/{id}/url`. Vive y muere con su sesión.
+ */
+export interface AssistantAttachmentDto {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  url: string;
+}
+
 export interface AssistantMessageDto {
   id: string;
   sessionId: string;
   role: 'USER' | 'ASSISTANT' | 'SYSTEM' | string;
   content: string;
+  /** `null` en todos los que no lo llevan, incluidos todos los del asistente. */
+  attachment?: AssistantAttachmentDto | null;
   createdAt: string;
+}
+
+/** Lo que el modelo sabe leer, que es lo mismo que el backend acepta subir. */
+export const ATTACHMENT_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'application/pdf',
+] as const;
+
+/** `ASSISTANT_ATTACHMENT_MAX_BYTES` del backend. */
+export const ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Por qué no se puede mandar este archivo, antes de intentarlo.
+ *
+ * El backend lo valida por magic bytes y manda igual, así que esto no es la
+ * seguridad: es no hacerle esperar diez megas para decirle que no valía.
+ */
+export function attachmentProblem(file: File): 'type' | 'size' | null {
+  if (!(ATTACHMENT_TYPES as readonly string[]).includes(file.type)) return 'type';
+  if (file.size > ATTACHMENT_MAX_BYTES) return 'size';
+  return null;
 }
 
 export interface AssistantMessagePageDto {

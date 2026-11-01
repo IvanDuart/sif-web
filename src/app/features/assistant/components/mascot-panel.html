@@ -3,8 +3,18 @@
   id="mascot-panel"
   role="dialog"
   aria-labelledby="mascot-title"
+  [class.mascot-panel--dropping]="dropping()"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
   *transloco="let t"
 >
+  @if (dropping()) {
+    <p class="drop-hint" aria-hidden="true">
+      <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
+      {{ t('assistant.attachment_drop') }}
+    </p>
+  }
   <header class="mascot-head">
     <app-mascot-orb
       [mode]="state.orbMode()"
@@ -81,6 +91,27 @@
             @if (message.role === 'SYSTEM') {
               <i class="fa-solid fa-circle-exclamation mr-1.5" aria-hidden="true"></i>
             }
+            @if (message.attachment; as file) {
+              <a
+                class="attach"
+                [class.attach--image]="isImage(file)"
+                [href]="file.url"
+                target="_blank"
+                rel="noopener"
+                [attr.title]="file.fileName"
+              >
+                @if (isImage(file)) {
+                  <img
+                    [src]="file.url"
+                    [alt]="file.fileName"
+                    (error)="state.refreshAttachmentUrl(file.id)"
+                  />
+                } @else {
+                  <i class="fa-solid fa-file-pdf" aria-hidden="true"></i>
+                  <span class="attach__name">{{ file.fileName }}</span>
+                }
+              </a>
+            }
             <app-mascot-rich-text [text]="message.content" />
           </p>
         </div>
@@ -114,7 +145,47 @@
         (selected)="sendPrompt($event)"
       />
 
+      @if (state.uploading()) {
+        <p class="attach-chip attach-chip--busy" role="status">
+          <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+          {{ t('assistant.attachment_uploading') }}
+        </p>
+      } @else if (state.attachment(); as file) {
+        <p class="attach-chip" role="status">
+          <i class="fa-solid" [class.fa-image]="isImage(file)" [class.fa-file-pdf]="!isImage(file)" aria-hidden="true"></i>
+          <span class="attach-chip__name">{{ file.fileName }}</span>
+          <button
+            type="button"
+            class="attach-chip__drop"
+            (click)="state.clearAttachment()"
+            [attr.aria-label]="t('assistant.attachment_remove')"
+            [attr.title]="t('assistant.attachment_remove')"
+          >
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </p>
+      }
+
       <div class="composer">
+        <input
+          #file
+          type="file"
+          class="sr-only"
+          [accept]="acceptedTypes"
+          (change)="onFilePicked($event)"
+        />
+        <button
+          type="button"
+          tuiButton
+          appearance="flat"
+          size="m"
+          [disabled]="state.sending() || state.uploading()"
+          (click)="file.click()"
+          [attr.aria-label]="t('assistant.attachment_add')"
+          [attr.title]="t('assistant.attachment_add')"
+        >
+          <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
+        </button>
         <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
           <input
             #input
@@ -134,7 +205,7 @@
           tuiButton
           appearance="primary"
           size="m"
-          [disabled]="state.sending() || !text().trim()"
+          [disabled]="state.sending() || state.uploading() || (!text().trim() && !state.attachment())"
           (click)="submit()"
           [attr.aria-label]="t('assistant.send')"
           [attr.title]="t('assistant.send')"

@@ -12,7 +12,11 @@ import { FormsModule } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { TuiButton, TuiInput, TuiTextfield } from '@taiga-ui/core';
 
-import { AssistantPendingActionDto } from '../../../core/api/models/assistant.model';
+import {
+  ATTACHMENT_TYPES,
+  AssistantAttachmentDto,
+  AssistantPendingActionDto,
+} from '../../../core/api/models/assistant.model';
 import { MascotStateService } from '../mascot-state.service';
 import { MascotActionCard } from './mascot-action-card';
 import { MascotOrb } from './mascot-orb';
@@ -46,6 +50,9 @@ export class MascotPanel {
   readonly state = inject(MascotStateService);
 
   readonly text = signal('');
+  /** Hay algo encima del panel esperando a que lo suelten. */
+  readonly dropping = signal(false);
+  protected readonly acceptedTypes = ATTACHMENT_TYPES.join(',');
 
   private readonly scrollHost = viewChild<ElementRef<HTMLElement>>('scrollHost');
   private readonly input = viewChild<ElementRef<HTMLInputElement>>('input');
@@ -79,9 +86,50 @@ export class MascotPanel {
     });
   }
 
+  /** Una imagen se enseña; un PDF se nombra. */
+  protected isImage(file: AssistantAttachmentDto): boolean {
+    return file.mimeType.startsWith('image/');
+  }
+
+  protected onFilePicked(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) this.state.attach(file);
+    // Para que elegir dos veces el mismo archivo vuelva a disparar `change`.
+    input.value = '';
+  }
+
+  protected onDragOver(event: DragEvent): void {
+    if (!this.carriesFile(event)) return;
+    // Sin esto el navegador abre el archivo en la pestaña y se lleva la sesión.
+    event.preventDefault();
+    this.dropping.set(true);
+  }
+
+  protected onDragLeave(event: DragEvent): void {
+    // `dragleave` salta también al pasar por encima de lo que hay dentro del
+    // panel; solo cuenta el que sale del panel entero.
+    if (event.currentTarget === event.target) this.dropping.set(false);
+  }
+
+  protected onDrop(event: DragEvent): void {
+    if (!this.carriesFile(event)) return;
+    event.preventDefault();
+    this.dropping.set(false);
+    const file = event.dataTransfer?.files?.[0];
+    if (file) this.state.attach(file);
+  }
+
+  private carriesFile(event: DragEvent): boolean {
+    return Array.from(event.dataTransfer?.types ?? []).includes('Files');
+  }
+
   submit(): void {
     const text = this.text().trim();
-    if (!text || this.state.sending() || this.state.consentRequired()) return;
+    // Un archivo sin nada escrito también es un mensaje.
+    if ((!text && !this.state.attachment()) || this.state.sending() || this.state.consentRequired()) {
+      return;
+    }
 
     this.state.send(text);
     this.text.set('');

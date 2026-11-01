@@ -19,6 +19,7 @@ import { NotificationService } from '../../core/ui';
 import type { MascotMode } from './mascot/mascot-life.service';
 import {
   AssistantActionResponse,
+  AssistantAttachmentDto,
   AssistantConfigDto,
   AssistantMessageDto,
   AssistantPendingActionDto,
@@ -26,6 +27,7 @@ import {
   AssistantSessionDto,
   AssistantTurnResponse,
   AssistantUiActionDto,
+  attachmentProblem,
 } from '../../core/api/models/assistant.model';
 
 export type MascotMessageRole = 'USER' | 'ASSISTANT' | 'SYSTEM';
@@ -34,6 +36,8 @@ export interface MascotMessage {
   id: string;
   role: MascotMessageRole;
   content: string;
+  /** El archivo que iba con él, si lo llevaba. */
+  attachment?: AssistantAttachmentDto | null;
   createdAt: string;
 }
 
@@ -41,6 +45,14 @@ export interface MascotMessage {
 const SURFACE_WAIT_MS = 1500;
 /** Lo que se le da a un diálogo recién abierto para montar y apuntarse. */
 const OPENED_SURFACE_WAIT_MS = 2500;
+
+/**
+ * El código del 403 del asistente: la ficha no es de quien pregunta. Lo
+ * manda tanto al abrir sesión sobre un paciente de otro como a mitad de un
+ * turno, cuando el modelo ha encontrado al paciente por su nombre y se topa
+ * con el guardia al ir a escribir.
+ */
+const PERMISSION_DENIED = 'error.permission_denied';
 
 /**
  * Estado global de la mascota: configuración del tenant, sesión y conversación.
@@ -95,6 +107,14 @@ export class MascotStateService {
   readonly draft = signal('');
   readonly sending = signal(false);
   readonly resolvingAction = signal(false);
+
+  /**
+   * El archivo ya subido esperando al mensaje que lo lleve. Se sube en cuanto
+   * se suelta —así el turno no se queda esperando diez megas— y se gasta con el
+   * siguiente envío.
+   */
+  readonly attachment = signal<AssistantAttachmentDto | null>(null);
+  readonly uploading = signal(false);
 
   readonly enabled = computed(() => this.config()?.enabled === true);
 
@@ -242,11 +262,17 @@ export class MascotStateService {
       this.mood.feel('welcome');
     }
 
-    // Si el nutricionista cambia de ficha, la sesión anterior apuntaba a otro
-    // paciente: se cierra y se abre una nueva con el subject actual.
+    // Si el nutricionista cambia de ficha, la sesión anterior era de otro
+    // paciente: se suelta aquí y `ensureSession` trae la del paciente de ahora.
+    //
+    // Soltarla, no cerrarla. Las sesiones del backend van por
+    // `(tenant, usuario, paciente)` y no hay límite de abiertas, así que un
+    // `POST /sessions` con otro paciente devuelve o crea la suya sin tocar
+    // esta. Cerrarla borraba su historial y sus adjuntos para nada: volver a
+    // la ficha de antes devuelve la misma conversación donde se dejó. El
+    // `DELETE` se queda para cuando la persona cierra la conversación aposta.
     const session = this.session();
     if (session && this.isStaleFor(session, this.currentSubjectUserId())) {
-      this.closeRemoteSession(session);
       this.resetConversation(false);
     }
 
@@ -370,10 +396,15 @@ export class MascotStateService {
   send(content: string): void {
     const text = content.trim();
     const tenantId = this.tenantCtx.currentTenantId();
-    if (!text || !tenantId || this.sending() || this.consentRequired()) return;
+    // Con un archivo delante no hace falta texto: soltar la analítica y callar
+    // es una pregunta perfectamente clara.
+    const attachment = this.attachment();
+    if ((!text && !attachment) || !tenantId || this.sending() || this.consentRequired()) return;
 
     this.sending.set(true);
-    this.pushUser(text);
+    this.pushUser(text, attachment);
+    // Se gasta al enviarlo: el siguiente mensaje ya no lo lleva.
+    this.attachment.set(null);
 
     this.ensureSession().subscribe((session) => {
       if (!session) {
@@ -381,7 +412,75 @@ export class MascotStateService {
         return;
       }
 
-      this.streamTurn(tenantId, session.sessionId, text);
+      this.streamTurn(tenantId, session.sessionId, text, attachment?.id ?? null);
+    });
+  }
+
+  /**
+   * Sube el archivo y lo deja esperando al próximo mensaje.
+   *
+   * Lo que no valga se dice aquí mismo, sin subirlo: el backend lo valida de
+   * todas formas por magic bytes, pero hacerle esperar diez megas para decirle
+   * que no admitimos ese tipo sería maleducado.
+   */
+  attach(file: File): void {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId || this.uploading() || this.sending()) return;
+
+    const problem = attachmentProblem(file);
+    if (problem) {
+      this.notify.warning(
+        this.transloco.translate(
+          problem === 'size' ? 'assistant.attachment_too_large' : 'assistant.attachment_unsupported',
+        ),
+      );
+      return;
+    }
+
+    this.uploading.set(true);
+    // Hace falta sesión: el adjunto vive dentro de ella.
+    this.ensureSession().subscribe((session) => {
+      if (!session) {
+        this.uploading.set(false);
+        return;
+      }
+      this.api.uploadAttachment(tenantId, session.sessionId, file).subscribe({
+        next: (attachment) => {
+          this.uploading.set(false);
+          this.attachment.set(attachment);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.uploading.set(false);
+          this.notify.warning(this.codeMessage(problemDetailCode(error), null));
+        },
+      });
+    });
+  }
+
+  /** Se arrepintió antes de enviarlo. El objeto morirá con la sesión. */
+  clearAttachment(): void {
+    this.attachment.set(null);
+  }
+
+  /**
+   * Renueva la URL firmada de un adjunto, que caduca a los 10 minutos. La pide
+   * quien se encuentra con que la imagen ya no carga.
+   */
+  refreshAttachmentUrl(attachmentId: string): void {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+    this.api.attachmentUrl(tenantId, attachmentId).subscribe({
+      next: ({ url }) => {
+        if (!url) return;
+        this.messages.update((current) =>
+          current.map((message) =>
+            message.attachment?.id === attachmentId
+              ? { ...message, attachment: { ...message.attachment, url } }
+              : message,
+          ),
+        );
+      },
+      error: () => undefined,
     });
   }
 
@@ -391,12 +490,17 @@ export class MascotStateService {
    * piensa; el `done` trae el turno entero, y de ahí salen las `uiActions` y
    * la escritura pendiente igual que por el camino bloqueante.
    */
-  private streamTurn(tenantId: string, sessionId: string, text: string): void {
+  private streamTurn(
+    tenantId: string,
+    sessionId: string,
+    text: string,
+    attachmentId: string | null = null,
+  ): void {
     const bubble = this.nextLocalId();
     let painted = '';
     let settled = false;
 
-    this.api.streamMessage(tenantId, sessionId, text).subscribe({
+    this.api.streamMessage(tenantId, sessionId, text, attachmentId).subscribe({
       next: (event) => {
         switch (event.kind) {
           case 'delta':
@@ -420,7 +524,7 @@ export class MascotStateService {
             this.dropStream(bubble);
             this.sending.set(false);
             this.applyTurnErrorCode(event.code);
-            this.pushSystem(event.error.trim() || this.transloco.translate('errors.unexpected'));
+            this.pushSystem(this.codeMessage(event.code, event.error));
             break;
         }
       },
@@ -431,7 +535,9 @@ export class MascotStateService {
         // Si ya había texto, NO se reintenta: el backend ya procesó el turno y
         // reenviarlo lo haría dos veces.
         if (painted === '') {
-          this.sendBlocking(tenantId, sessionId, text);
+          // El adjunto va también por el camino de respaldo: ya está subido,
+          // así que no hay que volver a subirlo, solo nombrarlo.
+          this.sendBlocking(tenantId, sessionId, text, attachmentId);
           return;
         }
         this.dropStream(bubble);
@@ -449,8 +555,13 @@ export class MascotStateService {
   }
 
   /** El camino bloqueante, de respaldo cuando el stream no arranca. */
-  private sendBlocking(tenantId: string, sessionId: string, text: string): void {
-    this.api.sendMessage(tenantId, sessionId, text).subscribe({
+  private sendBlocking(
+    tenantId: string,
+    sessionId: string,
+    text: string,
+    attachmentId: string | null = null,
+  ): void {
+    this.api.sendMessage(tenantId, sessionId, text, attachmentId).subscribe({
       next: (turn) => {
         this.sending.set(false);
         this.pushAssistant(turn.assistantMessage);
@@ -970,10 +1081,16 @@ export class MascotStateService {
 
   // ── Mensajes y errores ──────────────────────────────────────────────
 
-  private pushUser(content: string): void {
+  private pushUser(content: string, attachment: AssistantAttachmentDto | null = null): void {
     this.messages.update((current) => [
       ...current,
-      { id: this.nextLocalId(), role: 'USER', content, createdAt: new Date().toISOString() },
+      {
+        id: this.nextLocalId(),
+        role: 'USER',
+        content,
+        attachment,
+        createdAt: new Date().toISOString(),
+      },
     ]);
   }
 
@@ -1001,6 +1118,7 @@ export class MascotStateService {
       id: message.id,
       role: message.role === 'USER' ? 'USER' : message.role === 'SYSTEM' ? 'SYSTEM' : 'ASSISTANT',
       content: message.content,
+      attachment: message.attachment ?? null,
       createdAt: message.createdAt,
     };
   }
@@ -1011,27 +1129,57 @@ export class MascotStateService {
    * sesión general sobre un paciente denegado sí sirve: es lo mejor que el
    * backend nos deja tener ahí.
    */
+  /**
+   * De quién es la sesión **según el backend**, que no siempre es de quien era
+   * al crearse: la mascota mueve el paciente activo con `set_active_patient`
+   * cuando alguien nombra a otro ("las medidas de Frink") sin abrir su ficha.
+   * Comparar contra el `subjectUserId` de la creación sería comparar contra lo
+   * que el frontend creía hace diez minutos.
+   */
+  private sessionSubjectId(session: AssistantSessionDto): string | null {
+    return this.activePatientId() ?? session.subjectUserId ?? null;
+  }
+
   private isStaleFor(session: AssistantSessionDto, subjectUserId: string | null): boolean {
-    if ((session.subjectUserId ?? null) === subjectUserId) return false;
-    return !(subjectUserId !== null && this.deniedSubjects.has(subjectUserId) && !session.subjectUserId);
+    const current = this.sessionSubjectId(session);
+    if (current === subjectUserId) return false;
+    return !(subjectUserId !== null && this.deniedSubjects.has(subjectUserId) && !current);
   }
 
   private errorMessage(error: HttpErrorResponse): string {
-    const code = problemDetailCode(error);
+    return this.codeMessage(problemDetailCode(error), problemDetailMessage(error));
+  }
+
+  /**
+   * El texto de un error del turno. El **código manda sobre el `detail`** del
+   * backend: un "Permiso denegado" a secas no le dice a nadie qué pasa, y el
+   * 403 del asistente es siempre el mismo —la ficha no está asignada a quien
+   * pregunta (`doc/assistant-frontend.md` §2)—, así que se dice eso, igual
+   * que al abrir sesión sobre un paciente de otro.
+   *
+   * Sale aparte de `errorMessage` porque el stream trae su código dentro del
+   * evento y no en una respuesta HTTP (§3.1), y ese camino pintaba el texto
+   * crudo del backend.
+   */
+  private codeMessage(code: string | null, fallback: string | null): string {
+    if (code === PERMISSION_DENIED) {
+      return this.transloco.translate('assistant.subject_not_allowed');
+    }
     if (code) {
       const key = `errors.${code.replace(/^error\./, '')}`;
       const translated = this.transloco.translate(key);
       if (translated && translated !== key) return translated;
     }
-    return problemDetailMessage(error) ?? this.transloco.translate('errors.unexpected');
+    return fallback?.trim() || this.transloco.translate('errors.unexpected');
   }
 
-  /** Cierra la sesión en el backend sin bloquear la UI. */
-  private closeRemoteSession(session: AssistantSessionDto): void {
-    const tenantId = this.tenantCtx.currentTenantId();
-    if (!tenantId) return;
-    this.api.closeSession(tenantId, session.sessionId).subscribe({ error: () => undefined });
-  }
+  /*
+   * No hay quien cierre la sesión en el backend, y es a propósito: el
+   * `DELETE /sessions/{id}` (`AssistantService.closeSession`) borra con ella su
+   * historial y sus adjuntos, así que solo debe llamarlo un gesto deliberado de
+   * la persona —"cerrar esta conversación"—, que hoy no existe en la interfaz.
+   * Cambiar de ficha no lo es.
+   */
 
   private resetConversation(closePanel: boolean): void {
     this.session.set(null);
@@ -1055,5 +1203,5 @@ export class MascotStateService {
  * nada que hacer).
  */
 function isSubjectDenied(error: HttpErrorResponse): boolean {
-  return error.status === 403 && problemDetailCode(error) === 'error.permission_denied';
+  return error.status === 403 && problemDetailCode(error) === PERMISSION_DENIED;
 }

@@ -392,6 +392,15 @@ Con un adjunto subido antes (ver §4.3) se añade su id, y nada más:
 { "content": "¿Me pasas estos valores a la ficha?", "attachmentId": "uuid" }
 ```
 
+Vale igual para `POST .../messages/stream` (`assistant-frontend.md` §3.1): los
+dos endpoints leen el mismo cuerpo y acaban en el mismo sitio, así que el turno
+con adjunto va por streaming como cualquier otro. La diferencia está en el
+error: en el stream la respuesta ya salió con `200`, así que lo que en el
+bloqueante es un `404` llega como evento `error` con el mismo `code`
+(`error.assistant_attachment_not_found`). Y ese código es el mismo para un
+adjunto inexistente, de otra sesión o de otro tenant: a propósito, no se
+distingue "no existe" de "no es tuyo".
+
 Respuesta con texto y, opcionalmente, una acción pendiente:
 
 ```json
@@ -503,8 +512,16 @@ valor es bueno, malo o preocupante.
 - Hereda el `subjectUserId` de la sesión, para que una auditoría posterior sepa
   de qué paciente era el PDF.
 - **Muere con la conversación.** Cerrar la sesión (§3.3) y la expiración
-  automática borran también los objetos de MinIO. No hay `DELETE /sessions/{id}`:
-  el cierre es ese borrado.
+  automática borran también los objetos de MinIO. No hay un `DELETE` de
+  adjuntos aparte: el cierre de la sesión **es** ese borrado. El
+  `DELETE /sessions/{id}` del §3.3 sigue existiendo tal cual.
+  <!-- Corregido el 2026-11-01: la frase original decía "No hay
+  `DELETE /sessions/{id}`", que contradecía al §3.3. Confirmado por backend al
+  responder `mascota-adjuntos-preguntas-backend.md` §2. -->
+- Por eso **cambiar de ficha de paciente no cierra la sesión**: las sesiones van
+  por `(tenant, usuario, paciente)` y no hay límite de abiertas, así que pedir
+  la de otro paciente no toca la anterior. El `DELETE` es solo para cuando la
+  persona cierra la conversación a propósito.
 
 ---
 

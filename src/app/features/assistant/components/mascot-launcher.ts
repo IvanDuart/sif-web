@@ -107,6 +107,10 @@ export function beside(target: HTMLElement): { x: number; y: number } {
         class="mascot-fab"
         [class.mascot-fab--open]="state.open() && !fill.filling()"
         [class.mascot-fab--travelling]="travelling()"
+        [class.mascot-fab--catching]="catching()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="catching.set(false)"
+        (drop)="onDrop($event)"
         [style.transform]="travelTransform()"
         [style.--mascot-hop]="fill.hopMs() + 'ms'"
         [attr.aria-expanded]="state.open()"
@@ -222,6 +226,11 @@ export function beside(target: HTMLElement): { x: number; y: number } {
 
     .mascot-note[data-tone='celebrate'] {
       border-left: 3px solid var(--tui-status-positive);
+    }
+
+    /* Con un archivo encima se agranda un poco: te está haciendo sitio. */
+    .mascot-fab--catching {
+      transform: scale(1.12);
     }
 
     .mascot-note__actions {
@@ -340,6 +349,30 @@ export class MascotLauncher implements OnInit {
     // Mira desde aquí, que es donde vive la mascota: si el centro la tiene
     // apagada, `isBusy` lo ve en `visible()` y no se ofrece nada.
     this.stuck.start();
+  }
+
+  /** Le están acercando un archivo: abre los brazos. */
+  protected readonly catching = signal(false);
+
+  /**
+   * Soltarle un archivo encima es dárselo: abre el panel con él adjunto, que
+   * es donde se puede decir qué quieres que haga con eso.
+   */
+  protected onDragOver(event: DragEvent): void {
+    if (!Array.from(event.dataTransfer?.types ?? []).includes('Files')) return;
+    // Sin esto el navegador abre el archivo y se lleva por delante la sesión.
+    event.preventDefault();
+    this.catching.set(true);
+  }
+
+  protected onDrop(event: DragEvent): void {
+    if (!Array.from(event.dataTransfer?.types ?? []).includes('Files')) return;
+    event.preventDefault();
+    this.catching.set(false);
+    const file = event.dataTransfer?.files?.[0];
+    if (!file) return;
+    this.state.openPanel();
+    this.state.attach(file);
   }
 
   /**

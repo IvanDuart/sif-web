@@ -8,6 +8,7 @@ import {
   AssistantActionResponse,
   AssistantConfigDto,
   AssistantMessagePageDto,
+  AssistantAttachmentDto,
   AssistantMilestoneDto,
   AssistantPetDto,
   AssistantPreferencesDto,
@@ -126,6 +127,29 @@ export class AssistantService {
     });
   }
 
+  /**
+   * Sube el archivo a la sesión, **antes** de enviar el mensaje que lo lleva
+   * (`§4.3`). Así el endpoint de mensajes sigue siendo JSON y el archivo se
+   * sube una sola vez aunque el turno falle.
+   */
+  uploadAttachment(tenantId: string, sessionId: string, file: File): Observable<AssistantAttachmentDto> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    return this.http.post<AssistantAttachmentDto>(
+      `${this.endpoint(tenantId)}/sessions/${sessionId}/attachments`,
+      form,
+      { context: this.silent },
+    );
+  }
+
+  /** Renueva la URL firmada de un adjunto cuando caduca (10 minutos). */
+  attachmentUrl(tenantId: string, attachmentId: string): Observable<{ url: string }> {
+    return this.http.get<{ url: string }>(
+      `${this.endpoint(tenantId)}/attachments/${attachmentId}/url`,
+      { context: this.silent },
+    );
+  }
+
   /** Las preferencias de proactividad del usuario actual (`§5.1`). */
   getPreferences(tenantId: string): Observable<AssistantPreferencesDto> {
     return this.http.get<AssistantPreferencesDto>(`${this.endpoint(tenantId)}/preferences`, {
@@ -208,10 +232,15 @@ export class AssistantService {
     });
   }
 
-  sendMessage(tenantId: string, sessionId: string, content: string): Observable<AssistantTurnResponse> {
+  sendMessage(
+    tenantId: string,
+    sessionId: string,
+    content: string,
+    attachmentId?: string | null,
+  ): Observable<AssistantTurnResponse> {
     return this.http.post<AssistantTurnResponse>(
       `${this.endpoint(tenantId)}/sessions/${sessionId}/messages`,
-      { content },
+      attachmentId ? { content, attachmentId } : { content },
       { context: this.silent }
     );
   }
@@ -227,7 +256,12 @@ export class AssistantService {
    * se lleva la cuenta de lo consumido, porque un pedazo puede cortar un JSON
    * por la mitad.
    */
-  streamMessage(tenantId: string, sessionId: string, content: string): Observable<AssistantStreamEvent> {
+  streamMessage(
+    tenantId: string,
+    sessionId: string,
+    content: string,
+    attachmentId?: string | null,
+  ): Observable<AssistantStreamEvent> {
     return new Observable<AssistantStreamEvent>((subscriber) => {
       let consumed = 0;
 
@@ -241,7 +275,9 @@ export class AssistantService {
       };
 
       const inner = this.http
-        .post(`${this.endpoint(tenantId)}/sessions/${sessionId}/messages/stream`, { content }, {
+        // Los dos endpoints leen el mismo cuerpo, así que el turno con adjunto
+        // va por streaming como cualquier otro (`mascota-frontend.md` §4.1).
+        .post(`${this.endpoint(tenantId)}/sessions/${sessionId}/messages/stream`, attachmentId ? { content, attachmentId } : { content }, {
           context: this.silent,
           headers: new HttpHeaders({ Accept: 'text/event-stream' }),
           observe: 'events',
