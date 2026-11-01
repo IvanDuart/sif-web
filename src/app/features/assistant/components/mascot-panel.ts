@@ -62,6 +62,21 @@ export class MascotPanel {
       this.state.pendingAction();
       requestAnimationFrame(() => this.scrollToBottom());
     });
+
+    // Lo que dejó escrito quien abrió el panel (un tip, por ejemplo): se pone
+    // en la caja y se consume, para que no vuelva a aparecer al reabrir.
+    effect(() => {
+      const draft = this.state.draft();
+      if (!draft) return;
+      this.text.set(draft);
+      this.state.draft.set('');
+      requestAnimationFrame(() => {
+        const input = this.input()?.nativeElement;
+        if (!input) return;
+        input.focus();
+        input.setSelectionRange(draft.length, draft.length);
+      });
+    });
   }
 
   submit(): void {

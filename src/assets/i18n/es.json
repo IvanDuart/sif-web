@@ -1476,6 +1476,10 @@
     "wardrobe_put": "Ponérsela",
     "wardrobe_keep": "Dejarla así",
     "wardrobe_not_saved": "No se ha podido guardar en tu centro: la mascota se queda puesta solo en este navegador.",
+    "wardrobe_not_allowed": "Tu centro no permite esa mascota. Se queda puesta solo en este navegador.",
+    "wardrobe_look_disabled": "Tu centro elige la mascota por ti. Se queda puesta solo en este navegador.",
+    "wardrobe_unknown_pet": "Esa mascota ya no está en el catálogo. Se queda puesta solo en este navegador.",
+    "wardrobe_invalid_accessory": "Ese complemento no vale para esta mascota. Se queda puesto solo en este navegador.",
     "skin_manzana": "Manzana",
     "skin_naranja": "Naranja",
     "skin_pina": "Piña",
@@ -1490,6 +1494,63 @@
     "skin_brocoli_desc": "Un brócoli con mucha mata y más energía.",
     "skin_zanahoria_desc": "Una zanahoria despierta, de las que ven bien el plan.",
     "skin_semilla_desc": "Una semilla a punto de brotar: todo está por empezar.",
+    "stuck_title": "¿Te atascaste?",
+    "stuck_text": "Puedo ayudarte con {{fields}}.",
+    "stuck_text_plain": "Puedo ayudarte a terminar este formulario.",
+    "stuck_help": "Ayúdame",
+    "stuck_not_now": "Ahora no",
+    "stuck_never": "No me lo digas más",
+    "stuck_ask": "Estoy en un formulario y no consigo terminarlo. Me da error en: {{fields}}. ¿Me ayudas?",
+    "tip": {
+      "appointment.create": {
+        "title": "¿Sabías que puedo agendar yo?",
+        "text": "Dímelo y la creo: a quién, qué día y a qué hora.",
+        "prompt": "Crea una cita con "
+      },
+      "measurement.create": {
+        "title": "Las mediciones te las apunto yo",
+        "text": "Dime los valores de viva voz y relleno la ficha.",
+        "prompt": "Apunta una medición de "
+      },
+      "calendar-note.create": {
+        "title": "También tomo notas en la agenda",
+        "text": "Dime qué pasa ese día y lo dejo anotado.",
+        "prompt": "Añade una nota en la agenda para "
+      },
+      "patient-event.create": {
+        "title": "Puedo registrar lo que pasa con un paciente",
+        "text": "Cuéntamelo como se lo contarías a alguien y yo lo escribo.",
+        "prompt": "Registra en el historial de "
+      }
+    },
+    "tip_try": "Pruébalo",
+    "tip_never": "No me lo digas más",
+"milestone": {
+      "first_patient": {
+        "title": "¡Tu primer paciente!",
+        "text": "Ya tienes a quien cuidar. Esto empieza."
+      },
+      "first_appointment": {
+        "title": "¡Tu primera cita!",
+        "text": "La agenda ya tiene algo que contar."
+      },
+      "first_measurement": {
+        "title": "¡Tu primera medición!",
+        "text": "A partir de hoy ya hay con qué comparar."
+      },
+      "first_menu": {
+        "title": "¡Tu primer menú!",
+        "text": "Hecho. Que aproveche."
+      },
+      "first_menu_template": {
+        "title": "¡Tu primera plantilla!",
+        "text": "Lo que hiciste una vez ya sirve para la próxima."
+      },
+      "first_shopping_list": {
+        "title": "¡Tu primera lista de la compra!",
+        "text": "La parte aburrida, resuelta."
+      }
+    },
     "settings_tab": "Asistente",
     "settings_title": "Mascota del asistente",
     "settings_subtitle": "Configura cómo se presenta el asistente virtual a los usuarios del centro. Los cambios se aplican a toda la clínica.",

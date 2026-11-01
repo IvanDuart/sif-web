@@ -1416,6 +1416,10 @@
     "wardrobe_put": "Put it on",
     "wardrobe_keep": "Keep this one",
     "wardrobe_not_saved": "Your clinic could not save it: the mascot stays on in this browser only.",
+    "wardrobe_not_allowed": "Your clinic doesn't allow that pet. It stays on in this browser only.",
+    "wardrobe_look_disabled": "Your clinic picks the pet for you. It stays on in this browser only.",
+    "wardrobe_unknown_pet": "That pet is no longer in the catalogue. It stays on in this browser only.",
+    "wardrobe_invalid_accessory": "That accessory doesn't fit this pet. It stays on in this browser only.",
     "skin_manzana": "Apple",
     "skin_naranja": "Orange",
     "skin_pina": "Pineapple",
@@ -1430,6 +1434,63 @@
     "skin_brocoli_desc": "A bushy broccoli with energy to spare.",
     "skin_zanahoria_desc": "A bright carrot, the kind that sees the plan clearly.",
     "skin_semilla_desc": "A seed about to sprout: everything is still ahead.",
+    "stuck_title": "Stuck?",
+    "stuck_text": "I can help you with {{fields}}.",
+    "stuck_text_plain": "I can help you finish this form.",
+    "stuck_help": "Help me",
+    "stuck_not_now": "Not now",
+    "stuck_never": "Don't offer again",
+    "stuck_ask": "I'm on a form and can't finish it. These fields are failing: {{fields}}. Can you help?",
+    "tip": {
+      "appointment.create": {
+        "title": "Did you know I can book these?",
+        "text": "Just tell me who, which day and what time.",
+        "prompt": "Book an appointment with "
+      },
+      "measurement.create": {
+        "title": "I can take down measurements",
+        "text": "Say the values out loud and I fill the form in.",
+        "prompt": "Record a measurement for "
+      },
+      "calendar-note.create": {
+        "title": "I can write calendar notes too",
+        "text": "Tell me what happens that day and I note it down.",
+        "prompt": "Add a calendar note for "
+      },
+      "patient-event.create": {
+        "title": "I can log what happens with a patient",
+        "text": "Tell me like you would tell a colleague and I write it up.",
+        "prompt": "Log in the history of "
+      }
+    },
+    "tip_try": "Try it",
+    "tip_never": "Don't tell me again",
+"milestone": {
+      "first_patient": {
+        "title": "Your first patient!",
+        "text": "Someone to look after. It begins."
+      },
+      "first_appointment": {
+        "title": "Your first appointment!",
+        "text": "The calendar has something to say now."
+      },
+      "first_measurement": {
+        "title": "Your first measurement!",
+        "text": "From today there's something to compare against."
+      },
+      "first_menu": {
+        "title": "Your first menu!",
+        "text": "Done. Enjoy."
+      },
+      "first_menu_template": {
+        "title": "Your first template!",
+        "text": "What you did once now works for next time."
+      },
+      "first_shopping_list": {
+        "title": "Your first shopping list!",
+        "text": "The boring part, sorted."
+      }
+    },
     "settings_tab": "Assistant",
     "settings_title": "Assistant mascot",
     "settings_subtitle": "Configure how the virtual assistant is presented to the clinic's users. Changes apply to the whole clinic.",

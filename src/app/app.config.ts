@@ -16,6 +16,7 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { errorInterceptor } from './core/http/error.interceptor';
 import { loadingInterceptor } from './core/http/loading.interceptor';
+import { mascotWritesInterceptor } from './features/assistant/mascot/mascot-writes.interceptor';
 import { getKeycloakProvider } from './core/auth/keycloak.config';
 import { provideTransloco, TranslocoService } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
@@ -64,7 +65,13 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
       withFetch(),
-      withInterceptors([authInterceptor, errorInterceptor, loadingInterceptor])
+      // El de la mascota va el último: solo mira lo que ya pasó por los demás.
+      withInterceptors([
+        authInterceptor,
+        errorInterceptor,
+        loadingInterceptor,
+        mascotWritesInterceptor,
+      ])
     ),
     // Los iconos SVG de Taiga se sirven desde los assets locales (angular.json
     // copia `node_modules/@taiga-ui/icons/src` a `assets/taiga-ui/icons`).

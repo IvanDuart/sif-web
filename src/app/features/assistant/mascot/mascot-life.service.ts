@@ -88,6 +88,8 @@ export class MascotLifeService {
   private readonly phone = signal<{ glance: boolean } | null>(null);
   /** Se aburrió de esperar a que le hicieran caso y se quedó dormida. */
   private readonly drowsy = signal(false);
+  /** Cuántas veces la han reclamado desde fuera: cada una reinicia su reloj. */
+  private readonly attention = signal(0);
 
   /** Lo que la mascota está haciendo por su cuenta ahora mismo, o `null`. */
   readonly life = computed<MascotLife | null>(() => {
@@ -173,6 +175,10 @@ export class MascotLifeService {
         this.drowsy.set(false);
       });
 
+      // Reclamarla la despierta: la cuenta se lee para que este efecto vuelva a
+      // empezar, y al empezar deja el teléfono y la siesta (arriba).
+      this.attention();
+
       const waiting = mode === 'confirm';
       const resting = mode === 'idle' && !away && !reaction;
       if ((!waiting && !resting) || awake || still) return;
@@ -223,6 +229,16 @@ export class MascotLifeService {
         this.petting.reset();
       });
     });
+  }
+
+  /**
+   * Algo de fuera le reclama la atención —la nota que ofrece ayuda con un
+   * formulario, por ejemplo—. Deja el teléfono, se despierta de la siesta y su
+   * reloj de aburrimiento vuelve a cero: estar ahí mientras la persona lee lo
+   * que le acaba de ofrecer es justo lo contrario de pasar de ella.
+   */
+  attend(): void {
+    this.attention.update((count) => count + 1);
   }
 
   /** Registra una pulsación. `true` = se la traga (está mareada, o esta la mareó). */

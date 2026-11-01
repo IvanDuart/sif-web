@@ -1,9 +1,15 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { TranslocoService } from '@jsverse/transloco';
 
-import { AssistantConfigDto, AssistantLookPolicyDto } from '../../../core/api/models/assistant.model';
+import {
+  AssistantConfigDto,
+  AssistantLookPolicyDto,
+  AssistantPetDto,
+} from '../../../core/api/models/assistant.model';
 import { AssistantService } from '../../../core/api/services/assistant.api';
+import { problemDetailCode } from '../../../core/http/error.interceptor';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
 import { NotificationService } from '../../../core/ui';
 import { cleanAccessories, readStoredLook, writeLook } from './skins/storage';
@@ -23,6 +29,29 @@ import {
  * exista —o falle— el look vive en `localStorage`, así que el wardrobe
  * funciona igual en desarrollo y con el backend v1.
  */
+/**
+ * Por qué no se guardó, en las palabras de quien lo sufre.
+ *
+ * No es lo mismo "esa mascota ya no existe" que "tu centro no te deja esa":
+ * la primera no tiene arreglo desde aquí y la segunda la arregla quien
+ * administre el centro. Todas acaban igual —se queda puesta solo en este
+ * navegador—, pero saber cuál es cambia a quién preguntar.
+ */
+export function whyNotSaved(error: HttpErrorResponse | null | undefined): string {
+  switch (problemDetailCode(error)) {
+    case 'error.assistant_look_not_allowed':
+      return 'assistant.wardrobe_not_allowed';
+    case 'error.assistant_look_disabled':
+      return 'assistant.wardrobe_look_disabled';
+    case 'error.assistant_pet_not_found':
+      return 'assistant.wardrobe_unknown_pet';
+    case 'error.assistant_invalid_accessory':
+      return 'assistant.wardrobe_invalid_accessory';
+    default:
+      return 'assistant.wardrobe_not_saved';
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class MascotLookService {
   private readonly api = inject(AssistantService);
@@ -37,6 +66,16 @@ export class MascotLookService {
   private chosenAt = this.stored?.updatedAt ?? null;
 
   private readonly policySignal = signal<AssistantLookPolicyDto | null>(null);
+  /**
+   * El catálogo del centro (`GET /assistant/pets`). `null` mientras no se sabe
+   * —no ha contestado todavía, o es un backend sin el endpoint—, y entonces no
+   * se filtra por él: un armario vacío por no haber preguntado sería peor que
+   * uno de más.
+   */
+  private readonly pets = signal<readonly AssistantPetDto[] | null>(null);
+  private readonly catalogue = computed<readonly string[] | null>(
+    () => this.pets()?.map((pet) => pet.id) ?? null,
+  );
   private loaded = false;
   private tenantId: string | null = null;
   /** Hubo eleccion: la guardada en este navegador, la remota o la de ahora mismo. */
@@ -44,17 +83,42 @@ export class MascotLookService {
 
   readonly allowUserLook = computed(() => this.policySignal()?.allowUserLook ?? true);
 
+  /**
+   * Lo que el armario puede ofrecer: la intersección de tres listas, y hacen
+   * falta las tres (`doc/mascota-frontend.md` §2.4).
+   *
+   * 1. `SKIN_IDS`  — lo que este frontend sabe dibujar.
+   * 2. `/pets`     — el catálogo del producto; fuera de él, `PUT /look` da 422.
+   * 3. `lookPolicy.allowedSkinIds` — lo que **este centro** permite; dentro del
+   *    catálogo pero fuera de aquí, `PUT /look` da 422 igualmente.
+   *
+   * Ofrecer algo que no está en las tres es prometer una mascota que al
+   * recargar vuelve a ser otra.
+   */
   readonly allowedSkins = computed<SkinId[]>(() => {
-    const allowed = this.policySignal()?.allowedSkinIds;
-    if (!allowed?.length) return [...SKIN_IDS];
-    return SKIN_IDS.filter((id) => allowed.includes(id));
+    const policy = this.policySignal()?.allowedSkinIds;
+    const catalogue = this.catalogue();
+    const offered = SKIN_IDS.filter(
+      (id) => (!catalogue || catalogue.includes(id)) && (!policy?.length || policy.includes(id)),
+    );
+    // Si no queda nada que ofrecer (un centro que permite solo mascotas que
+    // este frontend no dibuja), al menos la puesta: un armario vacío no deja
+    // ni volver atrás.
+    return offered.length ? offered : [this.skin()];
   });
 
   readonly allowedAccessories = computed<AccessoryId[]>(() => {
     const allowed = this.policySignal()?.allowedAccessories;
-    if (!allowed?.length) return [...ACCESSORY_IDS];
-    return ACCESSORY_IDS.filter((id) => allowed.includes(id));
+    const supported = this.supportedAccessories();
+    return ACCESSORY_IDS.filter(
+      (id) => (!allowed?.length || allowed.includes(id)) && (!supported || supported.includes(id)),
+    );
   });
+
+  /** Lo que admite la mascota puesta, según el catálogo. `null` = no se sabe. */
+  private readonly supportedAccessories = computed<readonly string[] | null>(
+    () => this.pets()?.find((pet) => pet.id === this.skin())?.supports?.accessories ?? null,
+  );
 
   /** Aplica el `defaultSkinId` del centro cuando el usuario no eligió nada. */
   applyConfig(config: AssistantConfigDto | null): void {
@@ -73,6 +137,13 @@ export class MascotLookService {
     if (this.loaded && this.tenantId === tenantId) return;
     this.loaded = true;
     this.tenantId = tenantId;
+
+    // El catálogo del centro: sin él el armario ofrecería mascotas que el
+    // `PUT /look` rechaza. Si no contesta, se sigue sin filtrar por él.
+    this.api.listPets(tenantId).subscribe({
+      next: (pets) => this.pets.set(pets),
+      error: () => this.pets.set(null),
+    });
 
     this.api.getLook(tenantId).subscribe({
       next: (look) => {
@@ -136,7 +207,8 @@ export class MascotLookService {
     if (!tenantId) return;
     this.api.updateLook(tenantId, { skinId: this.skin(), accessories: this.accessories() }).subscribe({
       // Se queda puesta en este navegador, pero no viaja a otros: hay que decirlo.
-      error: () => this.notifications.warning(this.transloco.translate('assistant.wardrobe_not_saved')),
+      error: (error: HttpErrorResponse) =>
+        this.notifications.warning(this.transloco.translate(whyNotSaved(error))),
     });
   }
 

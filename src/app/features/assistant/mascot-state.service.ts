@@ -9,6 +9,8 @@ import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { problemDetailCode, problemDetailMessage } from '../../core/http/error.interceptor';
 import { MascotLookService } from './mascot/mascot-look.service';
 import { MascotMoodService } from './mascot/mascot-mood.service';
+import { MascotMilestonesService } from './mascot/mascot-milestones.service';
+import { MascotPreferencesService } from './mascot/mascot-preferences.service';
 import { DEFAULT_FILL_TIMING, STILL_TIMING, playFill, playHighlight, playOpen, type FillTiming } from './mascot/fill/animated-fill';
 import { matchPreview, unmatchedPreview, type FillSurface } from './mascot/fill/descriptor';
 import { MascotFillService } from './mascot/fill/mascot-fill.service';
@@ -55,6 +57,8 @@ export class MascotStateService {
   private readonly router = inject(Router);
   private readonly look = inject(MascotLookService);
   private readonly mood = inject(MascotMoodService);
+  private readonly preferences = inject(MascotPreferencesService);
+  private readonly milestones = inject(MascotMilestonesService);
   private readonly fill = inject(MascotFillService);
   private readonly notify = inject(NotificationService);
 
@@ -87,6 +91,8 @@ export class MascotStateService {
   private readonly activePatientId = signal<string | null>(null);
   readonly messages = signal<MascotMessage[]>([]);
   readonly pendingAction = signal<AssistantPendingActionDto | null>(null);
+  /** Lo que alguien dejó escrito para que la persona lo termine. Lo lee el panel. */
+  readonly draft = signal('');
   readonly sending = signal(false);
   readonly resolvingAction = signal(false);
 
@@ -180,6 +186,11 @@ export class MascotStateService {
         this.configLoaded.set(true);
         this.look.applyConfig(config);
         this.look.load();
+        // Lo que recuerda de esta persona, solo si de verdad se la va a ver.
+        if (this.visible()) {
+          this.preferences.load();
+          this.milestones.load();
+        }
         if (!config.enabled) this.open.set(false);
       },
       error: () => {
@@ -207,6 +218,18 @@ export class MascotStateService {
     } else {
       this.openPanel();
     }
+  }
+
+  /**
+   * Abre el panel con el mensaje ya escrito, a medias y sin enviar.
+   *
+   * Es lo que necesita un tip: "Crea una cita con " no es una orden completa,
+   * así que enviarlo sería pedirle a la mascota que adivine. Se deja escrito y
+   * con el cursor al final, que es lo que haría alguien que te pasa el teclado.
+   */
+  openPanelWithDraft(text: string): void {
+    this.draft.set(text);
+    this.openPanel();
   }
 
   openPanel(): void {
@@ -598,6 +621,8 @@ export class MascotStateService {
         // La mascota lo celebra en su propia burbuja, además del chat.
         this.mood.feel('cheer');
         this.mood.say({ text: this.transloco.translate('assistant.note_done'), tone: 'celebrate' });
+        // Acaba de escribir algo: puede haber sido la primera vez de algo.
+        this.milestones.refresh();
         // Y lleva a ver lo que se acaba de crear, si el backend lo pide
         // (`doc/assistant-frontend.md` §5).
         void this.handleUiActions(response.uiActions ?? []);

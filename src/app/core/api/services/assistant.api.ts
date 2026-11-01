@@ -8,7 +8,9 @@ import {
   AssistantActionResponse,
   AssistantConfigDto,
   AssistantMessagePageDto,
+  AssistantMilestoneDto,
   AssistantPetDto,
+  AssistantPreferencesDto,
   AssistantSessionDto,
   AssistantStreamEvent,
   AssistantTurnResponse,
@@ -16,6 +18,7 @@ import {
   ConfirmAssistantActionRequest,
   CreateAssistantSessionRequest,
   UpdateAssistantConfigRequest,
+  UpdateAssistantPreferencesRequest,
   UpdateAssistantUserLookRequest,
 } from '../models/assistant.model';
 import { parseFrame, scanFrames } from './assistant-stream';
@@ -121,6 +124,41 @@ export class AssistantService {
     return this.http.put<AssistantUserLookDto>(`${this.endpoint(tenantId)}/look`, request, {
       context: this.silent,
     });
+  }
+
+  /** Las preferencias de proactividad del usuario actual (`§5.1`). */
+  getPreferences(tenantId: string): Observable<AssistantPreferencesDto> {
+    return this.http.get<AssistantPreferencesDto>(`${this.endpoint(tenantId)}/preferences`, {
+      context: this.silent,
+    });
+  }
+
+  /** Reemplaza las preferencias enteras: hay que mandar siempre los cuatro campos. */
+  updatePreferences(
+    tenantId: string,
+    request: UpdateAssistantPreferencesRequest,
+  ): Observable<AssistantPreferencesDto> {
+    return this.http.put<AssistantPreferencesDto>(
+      `${this.endpoint(tenantId)}/preferences`,
+      request,
+      { context: this.silent },
+    );
+  }
+
+  /** Las primeras veces de esta persona en este centro (`§5.2`). */
+  getMilestones(tenantId: string): Observable<AssistantMilestoneDto[]> {
+    return this.http.get<AssistantMilestoneDto[]>(`${this.endpoint(tenantId)}/milestones`, {
+      context: this.silent,
+    });
+  }
+
+  /** Deja dicho que ese hito ya se celebró. Idempotente. */
+  markMilestoneCelebrated(tenantId: string, code: string): Observable<void> {
+    return this.http.post<void>(
+      `${this.endpoint(tenantId)}/milestones/${encodeURIComponent(code)}/celebrated`,
+      {},
+      { context: this.silent },
+    );
   }
 
   /** Vuelve al look por defecto del tenant. */

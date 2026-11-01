@@ -123,6 +123,39 @@ export interface AssistantPetSupportsDto {
   expressions: string[];
 }
 
+/**
+ * Lo que la mascota recuerda de cada persona para hablar sin que le pregunten
+ * (`doc/mascota-frontend.md` §5.1).
+ *
+ * `silencedTips` son ids opacos que inventa el frontend (`<dominio>.<acción>`):
+ * el backend no los conoce, solo limita la lista a 50 de hasta 64 caracteres.
+ */
+export interface AssistantPreferencesDto {
+  /** Apaga las tres cosas de golpe: tips, oferta de ayuda y celebraciones. */
+  proactiveEnabled: boolean;
+  silencedTips: string[];
+  stuckFormOfferEnabled: boolean;
+  celebrationsEnabled: boolean;
+  updatedAt: string | null;
+}
+
+/**
+ * El `PUT` **reemplaza el objeto entero**: lo que no venga vuelve a su valor
+ * por defecto. De ahí que no sea un `Partial`: hay que mandarlo todo siempre.
+ */
+export type UpdateAssistantPreferencesRequest = Omit<AssistantPreferencesDto, 'updatedAt'>;
+
+/**
+ * Una primera vez de la persona dentro del centro (`doc/mascota-frontend.md`
+ * §5.2). `reachedAt` lo calcula el backend desde sus propios datos: el
+ * frontend no avisa de nada, solo lee y marca lo que ya ha celebrado.
+ */
+export interface AssistantMilestoneDto {
+  code: string;
+  reachedAt: string | null;
+  celebratedAt: string | null;
+}
+
 export interface AssistantMessageDto {
   id: string;
   sessionId: string;

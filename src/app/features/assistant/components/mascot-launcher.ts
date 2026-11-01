@@ -12,6 +12,7 @@ import { TuiButton } from '@taiga-ui/core';
 
 import { MascotFillService } from '../mascot/fill/mascot-fill.service';
 import type { NoteAction } from '../mascot/mascot-mood.service';
+import { StuckFormOfferService } from '../stuck-form-offer.service';
 import { MascotStateService } from '../mascot-state.service';
 import { MascotOrb } from './mascot-orb';
 import { MascotPanel } from './mascot-panel';
@@ -299,6 +300,7 @@ export function beside(target: HTMLElement): { x: number; y: number } {
 export class MascotLauncher implements OnInit {
   readonly state = inject(MascotStateService);
   readonly fill = inject(MascotFillService);
+  private readonly stuck = inject(StuckFormOfferService);
 
   /** Dónde está la mascota ahora mismo respecto de su esquina, px. */
   private readonly travel = signal<{ x: number; y: number } | null>(null);
@@ -335,6 +337,9 @@ export class MascotLauncher implements OnInit {
 
   ngOnInit(): void {
     this.state.loadConfig();
+    // Mira desde aquí, que es donde vive la mascota: si el centro la tiene
+    // apagada, `isBusy` lo ve en `visible()` y no se ofrece nada.
+    this.stuck.start();
   }
 
   /**
