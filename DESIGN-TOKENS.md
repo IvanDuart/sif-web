@@ -1,3 +1,11 @@
+---
+id: design-tokens
+type: submodule-design
+title: Multi-tenant brand theming tokens
+status: draft
+parent: design-guide
+---
+
 # Design Tokens — SIF-WEB UX/UI System
 
 > ⚠️ **Superado (sep 2026).** Los tokens vigentes son los de la *Guía de diseño*

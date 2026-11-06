@@ -1,3 +1,11 @@
+---
+id: assistant-contract
+type: submodule-design
+title: Nutritionist assistant tools contract (Angular)
+status: draft
+parent: assistant-module
+---
+
 # Asistente para nutricionistas — contrato para Angular
 
 > **Estado:** implementadas las peticiones de [`assistant-tools-backend.md`](assistant-tools-backend.md)

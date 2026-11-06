@@ -1,3 +1,11 @@
+---
+id: design-guide
+type: architecture-design
+title: Design guide — visual language and UX rules
+status: draft
+parent: architecture
+---
+
 # Guía de diseño — SaaS para clínicas de nutrición
 
 Instrucciones para que cualquier IA (o persona) diseñe pantallas nuevas coherentes con

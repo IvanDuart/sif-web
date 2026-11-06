@@ -4,12 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**sif-web** is a multi-tenant Angular 21 SPA for managing physiotherapy and nutrition clinics (patient files, body measurements, diet menus, appointment scheduling, revenue, clinic branding). A "tenant" is a clinic/professional; users can belong to multiple tenants, each with one role and a set of RBAC permissions. The backend is a separate Spring Boot service (not in this repo); the frontend consumes its REST API.
+**sif-web** is a multi-tenant Angular 21 SPA for managing nutrition clinics (patient files, body measurements, diet menus, appointment scheduling, revenue, clinic branding). A "tenant" is a clinic/professional; users can belong to multiple tenants, each with one role and a set of RBAC permissions. The backend is a separate Spring Boot service (not in this repo); the frontend consumes its REST API.
 
 - **UI stack:** Taiga UI v5 (`@taiga-ui/*`) for all components, Tailwind CSS for layout/spacing only, Font Awesome 7 icons, Chart.js, FullCalendar, Maskito input masks.
 - **State management:** Angular signals everywhere (`signal`, `computed`, `effect`) — no NgRx/Redux.
 - **Package manager:** npm (node_modules is npm-based, `package-lock.json` is the live lockfile; `pnpm-lock.yaml` is stale).
-- **Design rules are binding:** `DESIGN.md` and `PRODUCT.md` at the repo root define the Emerald/Slate palette, typography (Poppins display + system-ui body), and what is banned (serif fonts, emojis in labels, native `<table>`/switch sliders, mixing Tailwind buttons with `tuiButton`, custom `.data-table` styles). Every table, button, badge, input, and dialog must use the Taiga UI component — see `DESIGN.md` before styling anything.
+- **Design rules are binding:** `design/guia-diseno.md` (spec `design-guide`) is the visual source of truth — warm neutrals, green `#2F5D4F`, Inter + Source Serif 4 — with tokens in `src/styles.less`. `DESIGN.md` (Emerald/Slate, Poppins) is superseded and kept only as history. `PRODUCT.md` is the product goal doc. Every table, button, badge, input, and dialog must use the Taiga UI component.
+- **Specs:** the spec graph (`PRODUCT.md` → `architecture.md` → `src/app/**/SPEC.md`) records the product goal, architecture decisions and module boundaries — consult it before changing a boundary.
 
 ## Commands
 
@@ -84,7 +85,7 @@ ng generate component component-name  # Generate a new Angular component
 
 ### Design tokens & theming
 - `ThemeService` toggles the `dark` class on `<html>` (Tailwind `darkMode: 'class'`) and sets per-tenant brand colors as CSS variables: `--p-primary-*` (Tailwind `primary` palette) and `--tui-primary` / `--tui-background-accent-1` (Taiga tokens). `brandingResolver` calls `themeService.setPrimary()` from tenant branding before the Shell renders.
-- The base Emerald/Slate theme is defined in `src/styles.less` (Tailwind directives + Taiga theme imports + `--p-*` / `--tui-*` token overrides). `tailwind.config.js` maps `surface` (slate ramp) and `primary` (var-driven) colors — use `text-surface-500`, `bg-surface-0`, etc. for neutral styling.
+- The base theme (per `design-guide`) is defined in `src/styles.less` (Tailwind directives + Taiga theme imports + `--p-*` / `--tui-*` token overrides). `tailwind.config.js` maps `surface` (slate ramp) and `primary` (var-driven) colors — use `text-surface-500`, `bg-surface-0`, etc. for neutral styling.
 
 ## Conventions & gotchas
 - **Permissions everywhere**: gate any mutation behind `*appIfPermission="'PERMISSION_CODE'"` (or `PermissionsService.has`) — e.g. `MANAGE_MENU`, `VIEW_USER`, `VIEW_APPOINTMENTS`, `VIEW_REVENUE`, `MANAGE_TENANT_BRANDING`, `MANAGE_TENANT`. Nav items are permission-filtered in `shell.ts` `NAV_ITEMS`.

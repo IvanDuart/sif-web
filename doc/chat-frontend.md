@@ -1,3 +1,11 @@
+---
+id: chat-contract
+type: submodule-design
+title: 1:1 chat backend contract (Angular)
+status: draft
+parent: features-module
+---
+
 # Chat 1:1 — contrato para Angular
 
 > **Estado:** backend implementado en esta rama.

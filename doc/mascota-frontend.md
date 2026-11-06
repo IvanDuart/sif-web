@@ -1,3 +1,11 @@
+---
+id: mascota-contract
+type: submodule-design
+title: Mascot backend contract (Angular)
+status: draft
+parent: assistant-module
+---
+
 # Mascota conversacional — contrato para Angular
 
 > **Estado:** backend v1 implementado.
