@@ -2,10 +2,9 @@
 
 > **Quién lo pide:** frontend (sif-web).
 > **Contra qué:** el contrato vigente en [`assistant-frontend.md`](assistant-frontend.md) §4 y §5.
-> **Estado:** pendiente en el backend. **El frontend ya está listo**: desde la fase F8 no
-> consume nada de lo que aquí se pide retirar, así que el backend puede dejar de mandarlo
-> cuando quiera, sin coordinar despliegues.
-> **Fecha:** 2026-11-07.
+> **Estado: CERRADA (2026-11-07).** El backend aplicó los pasos 1 y 2 en la misma entrega, y
+> el frontend el paso 3. El §6 queda como recordatorio de por qué el orden importaba.
+> **Fecha:** 2026-11-07 (corregido el mismo día).
 
 ---
 
@@ -31,14 +30,11 @@ corregirse en vez de insistir.
 
 ## 3. Lo que el frontend ya no hace
 
-Desde F8, `MascotStateService`:
+Desde F8, con una `pendingAction` el frontend **sólo enseña la tarjeta**. Ya no sale a buscar
+el formulario adivinando su pantalla desde el nombre de la tool, ni lo abre, ni lo rellena,
+ni retira la acción por su cuenta. Eso sí es independiente del backend.
 
-- de `uiActions` sólo atiende `TOAST` (y lee `params.patientId`, ver §4);
-- con una `pendingAction` **sólo enseña la tarjeta**. Ya no sale a buscar el formulario
-  adivinando su pantalla desde el nombre de la tool, ni lo abre, ni lo rellena, ni retira
-  la acción por su cuenta.
-
-Nada de esto necesita que el backend cambie primero: lo que siga llegando se ignora.
+Lo de `uiActions` NO: sigue atendiéndose entero. Ver §6.
 
 ## 4. Lo único que sí necesitamos conservar
 
@@ -60,3 +56,35 @@ cambia de paciente.
 El frontend tiene cobertura de que lo retirado ya no se usa; lo que no podemos probar desde
 aquí es el emisor. Cuando la B4 esté, basta con una conversación real que antes mandaba
 `NAVIGATE`: la mascota tiene que llegar igual a la pantalla, pero llamando a `navigate`.
+
+---
+
+## 6. Por qué hay que coordinarlo (nos equivocamos)
+
+La primera versión de este documento decía que el frontend ya podía ignorar los `uiActions`
+de navegación y que el backend podía retirarlos cuando quisiera. **Es falso, y lo probamos
+rompiéndolo.**
+
+`navigate_to`, `navigate_to_patient`, `open_dialog` y `highlight_field` son **tools de
+servidor** (§7 del contrato). Su único efecto sobre el navegador es el `uiAction` que el
+backend emite al ejecutarlas. Si el frontend deja de atenderlo:
+
+- el modelo llama a `navigate_to_patient`,
+- el backend se la da por ejecutada,
+- el navegador no hace nada,
+- y el modelo responde **«¡Listo! Ya tienes abierta la ficha de Homer Simpson»** con la
+  pantalla sin moverse.
+
+Lo retiramos, pasó exactamente eso, y lo hemos devuelto. El frontend vuelve a atender
+`NAVIGATE`, `OPEN_DIALOG` y `HIGHLIGHT`.
+
+### El orden correcto
+
+1. **Backend:** retira esas cuatro tools del catálogo del modelo, de forma que sólo pueda
+   navegar y abrir por las herramientas de cliente (`navigate`, `open_<id>`, `point_at`),
+   que además le devuelven si salió bien.
+2. **Backend:** deja de emitir los `uiActions` correspondientes.
+3. **Frontend:** retira el código que los atiende.
+
+Entre el 1 y el 3 no se rompe nada: si llega un `uiAction` se sigue atendiendo, y si no
+llega, no hace falta.

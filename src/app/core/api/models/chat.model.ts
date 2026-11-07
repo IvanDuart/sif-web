@@ -62,7 +62,12 @@ export interface ChatMessagePageDto {
 export interface CreateChatThreadRequest {
   /** Obligatorio para profesionales (`MANAGE_CHAT`). */
   patientId?: string | null;
-  /** Sólo se usa del lado del paciente. */
+  /**
+   * Lo manda el paciente, y también el superadministrador: para él es
+   * obligatorio (si falta, `409 error.chat_superadmin_needs_nutritionist`)
+   * porque el valor por defecto lo metería a él en la conversación. Para un
+   * nutricionista es opcional: el hilo se abre consigo mismo.
+   */
   nutritionistId?: string | null;
 }
 

@@ -11,7 +11,8 @@ import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/branding/theme.service';
 import { ConfigService } from '../../core/config/config.service';
 import { PermissionsService } from '../../core/permissions/permissions.service';
-import { TenantMembershipDto } from '../../core/api/models/user.model';
+import { TenantMembershipDto, superAdminMembership } from '../../core/api/models/user.model';
+import { TenantService } from '../../core/api/services/tenant.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AppointmentService } from '../../core/api/services/appointment.api';
 import { AppointmentDto } from '../../core/api/models/appointment.model';
@@ -57,6 +58,9 @@ const NAV_ITEMS: NavItem[] = [
   { labelKey: 'platform_billing', icon: 'fa-solid fa-file-invoice-dollar', route: '/admin/billing', permission: 'MANAGE_TENANT' },
 ];
 
+/** Centros que caben en el desplegable del superadmin; el resto, en `/select-tenant`. */
+const SUPERADMIN_TENANT_PAGE = 50;
+
 @Component({
   selector: 'app-shell',
   standalone: true,
@@ -81,6 +85,7 @@ export class Shell implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   readonly permissionsService = inject(PermissionsService);
   private readonly tenantCtx = inject(TenantContextService);
+  private readonly tenantService = inject(TenantService);
   private readonly appointmentService = inject(AppointmentService);
   private readonly notificationStream = inject(NotificationStreamService);
   readonly chatUnread = inject(ChatUnreadService);
@@ -95,7 +100,23 @@ export class Shell implements OnInit, OnDestroy {
 
   user = this.authService.user;
   activeTenant = this.authService.selectedTenant;
-  tenants = computed(() => this.user()?.memberships ?? []);
+  readonly isSuperAdmin = this.authService.isSuperAdmin;
+
+  /**
+   * El superadministrador no es miembro de ningún centro, así que el
+   * conmutador no puede alimentarse de `memberships`: se trae la primera
+   * página del listado global y deja el resto a `/select-tenant`, que tiene
+   * buscador.
+   */
+  private readonly superAdminTenants = signal<TenantMembershipDto[]>([]);
+  readonly hasMoreTenants = signal(false);
+
+  tenants = computed(() =>
+    this.isSuperAdmin() ? this.superAdminTenants() : (this.user()?.memberships ?? [])
+  );
+
+  /** Al superadmin siempre se le ofrece cambiar, aunque el listado aún no haya llegado. */
+  readonly canSwitchTenant = computed(() => this.isSuperAdmin() || this.tenants().length > 1);
 
   tenantLogoUrl = computed(() => {
     const tenantId = this.activeTenant()?.tenantId;
@@ -143,6 +164,7 @@ export class Shell implements OnInit, OnDestroy {
     this.loadProposals();
     this.listenToNotifications();
     this.chatUnread.refresh();
+    this.loadSuperAdminTenants();
 
     // Se pinta en `app.html`, fuera de `tui-root`: ver `OverlayLayerService`.
     void import('../../features/assistant/components/mascot-launcher').then((module) =>
@@ -152,6 +174,23 @@ export class Shell implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.notificationStream.disconnect();
+  }
+
+  private loadSuperAdminTenants(): void {
+    if (!this.isSuperAdmin()) return;
+
+    this.tenantService.search(0, SUPERADMIN_TENANT_PAGE).subscribe({
+      next: (page) => {
+        this.superAdminTenants.set(
+          (page.content ?? []).map((tenant) => superAdminMembership(tenant.id, tenant.name ?? ''))
+        );
+        this.hasMoreTenants.set((page.page?.totalPages ?? 1) > 1);
+      },
+      error: () => {
+        this.superAdminTenants.set([]);
+        this.hasMoreTenants.set(true);
+      },
+    });
   }
 
   /**
@@ -272,6 +311,9 @@ export class Shell implements OnInit, OnDestroy {
         return this.activeTenant()?.userType === 'PATIENT';
       }
       if (item.permission === 'MANAGE_TENANT') {
+        // El panel de plataforma vive en el centro administrador; el
+        // superadmin llega a él desde cualquiera, porque es suyo.
+        if (this.isSuperAdmin()) return true;
         return this.permissionsService.has('MANAGE_TENANT') && this.tenantCtx.isAdminTenant();
       }
       return this.permissionsService.has(item.permission);
@@ -313,6 +355,7 @@ export class Shell implements OnInit, OnDestroy {
       NUTRITIONIST: 'role_nutritionist',
       USER: 'role_user',
       PATIENT: 'role_user',
+      SUPERADMIN: 'role_superadmin',
     };
     const roleCode = this.tenantCtx.currentMembership()?.roleCode;
     const key = roleCode ? roleKey[roleCode] : undefined;

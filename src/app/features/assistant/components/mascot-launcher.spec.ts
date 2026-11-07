@@ -93,6 +93,7 @@ describe('las acciones de la nota', () => {
               permissions: [],
             }),
             permissions: () => new Set<string>(),
+            hasPermission: () => true,
           },
         },
       ],

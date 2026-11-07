@@ -4,6 +4,7 @@ import { brandingResolver } from './core/branding/branding.resolver';
 import { authGuard } from './core/auth/auth.guard';
 import { adminGuard } from './core/auth/admin.guard';
 import { chatGuard } from './core/auth/chat.guard';
+import { superAdminGuard } from './core/auth/superadmin.guard';
 import { sandboxRoutes } from './features/sandbox/sandbox.routes';
 
 export const routes: Routes = [
@@ -13,6 +14,13 @@ export const routes: Routes = [
     redirectTo: 'dashboard'
   },
   ...sandboxRoutes,
+  // Fuera del `Shell` a propósito: el superadmin llega aquí justo cuando no
+  // tiene centro activo, y el `Shell` no puede pintarse sin uno.
+  {
+    path: 'select-tenant',
+    canActivate: [superAdminGuard],
+    loadComponent: () => import('./features/superadmin/select-tenant.page').then(m => m.default)
+  },
   {
     path: '',
     component: Shell,

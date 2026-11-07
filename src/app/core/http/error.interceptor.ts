@@ -98,10 +98,17 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           router.navigate(['/billing']);
         } else if (problemDetailCode(error) === 'error.clinical_status_read_only') {
           notify.error(transloco.translate('errors.clinical_status_read_only'));
+        } else if (problemDetailCode(error) === 'error.chat_superadmin_read_only') {
+          // El superadmin lee el chat pero no participa. La UI ya le esconde
+          // esas acciones; esto cubre la carrera (p. ej. marcar leído al
+          // volver a la pestaña) sin mandarlo a /not-authorized.
+          notify.error(transloco.translate('errors.chat_superadmin_read_only'));
         } else if (!req.context.get(IGNORE_FORBIDDEN)) {
           notify.error(transloco.translate('errors.forbidden'));
           router.navigate(['/not-authorized']);
         }
+      } else if (error.status === 409 && problemDetailCode(error) === 'error.chat_superadmin_needs_nutritionist') {
+        notify.error(transloco.translate('errors.chat_superadmin_needs_nutritionist'));
       } else if (error.status === 404) {
         if (!req.context.get(IGNORE_NOT_FOUND)) {
           notify.warning(transloco.translate('errors.not_found'));

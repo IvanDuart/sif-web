@@ -835,8 +835,25 @@ export class MascotStateService {
     this.sendNextQueued();
     this.dropStream(bubble);
     this.pushAssistant(turn.assistantMessage);
+    this.takeSubject(turn);
     this.handleUiActions(turn.uiActions ?? []);
     this.offerAction(turn.pendingAction ?? null);
+  }
+
+  /**
+   * De quién habla el backend, al cerrar el turno.
+   *
+   * Antes se deducía del `params.patientId` de los `uiActions` de navegación.
+   * La B4 los retiró, así que **sin esto la mascota pierde el hilo de con
+   * quién está trabajando** en cuanto el modelo cambia de paciente a mitad de
+   * conversación. Viene de la sesión y no de una navegación que podía no
+   * llegar, que además es más fiable (`assistant-contract` §3 y §4).
+   */
+  private takeSubject(turn: AssistantTurnResponse): void {
+    // `undefined` es un backend viejo que no lo manda; `null` es «ninguno», y
+    // ése sí hay que obedecerlo.
+    if (turn.subjectUserId === undefined) return;
+    this.activePatientId.set(turn.subjectUserId);
   }
 
   /**
@@ -996,32 +1013,6 @@ export class MascotStateService {
 
   // ── Navegación controlada ───────────────────────────────────────────
 
-  /**
-   * `uiActions` no son rutas: se traduce `screen` contra una lista blanca.
-   * Cualquier pantalla o acción desconocida se ignora.
-   */
-  /**
-   * Lo que queda de `uiActions`: el aviso, y de quién habla el backend.
-   *
-   * `NAVIGATE`, `OPEN_DIALOG` y `HIGHLIGHT` se retiraron en F8: eso lo hace
-   * ahora el modelo llamando a `navigate`, `open_<id>` y `point_at`, que
-   * además le devuelven si salió bien. Un `uiAction` se mandaba a ciegas y
-   * nadie se enteraba de si había servido para algo.
-   *
-   * El `TOAST` se queda porque no tiene equivalente: es el backend avisando
-   * de algo, no la mascota actuando.
-   */
-  private handleUiActions(actions: AssistantUiActionDto[]): void {
-    for (const action of actions) {
-      // `params.patientId` es el único sitio del contrato por el que el
-      // paciente activo llega hoy al frontend (`assistant-contract` §4).
-      const patientId = action.params?.['patientId'];
-      if (typeof patientId === 'string' && patientId !== '') this.activePatientId.set(patientId);
-
-      if (action.type === 'TOAST') this.showToast(action.params ?? {});
-    }
-  }
-
   /** Quita de la cola lo que ya no se quiera mandar. */
   unqueue(index: number): void {
     this.queued.update((queue) => queue.filter((_, position) => position !== index));
@@ -1047,6 +1038,25 @@ export class MascotStateService {
     // En el siguiente tick: `sending` acaba de bajar y el turno anterior
     // todavía está asentándose.
     setTimeout(() => this.send(next));
+  }
+
+  /**
+   * Lo que queda de `uiActions`: el aviso, y nada más.
+   *
+   * `NAVIGATE`, `OPEN_DIALOG` y `HIGHLIGHT` se retiraron en la fase B4 del
+   * backend, **junto con las cuatro tools de servidor que los emitían**. Eso
+   * es lo que hace seguro quitarlos de aquí: el modelo ya no tiene forma de
+   * pedirlos, así que no puede creerse que navegó sin haber navegado. Ahora
+   * mueve la pantalla con `navigate`, `open_<id>` y `point_at`, que además le
+   * dicen si salió bien.
+   *
+   * El `TOAST` se queda porque no tiene equivalente: es el backend avisando de
+   * algo, no la mascota actuando.
+   */
+  private handleUiActions(actions: AssistantUiActionDto[]): void {
+    for (const action of actions) {
+      if (action.type === 'TOAST') this.showToast(action.params ?? {});
+    }
   }
 
   /** Un aviso corto, que no necesita que el panel esté abierto. */

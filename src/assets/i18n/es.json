@@ -69,7 +69,8 @@
     "no_access": "No tienes acceso a ninguna clínica. Contacta al administrador.",
     "role": "Rol",
     "logout": "Cerrar Sesión",
-    "change_tenant": "Cambiar Clínica"
+    "change_tenant": "Cambiar Clínica",
+    "all_tenants": "Ver todos los centros"
   },
   "users": {
     "first_name": "Nombre",
@@ -172,7 +173,8 @@
     "situation_asymmetry": "Composición corporal: se detectó una asimetría entre extremidades en la última medición.",
     "situation_menu": "Menú activo desde el {{date}}.",
     "situation_empty": "Todavía no hay actividad registrada para este paciente.",
-    "anthropometry": "Antropometría"
+    "anthropometry": "Antropometría",
+    "role_superadmin": "Superadministrador"
   },
   "patients": {
     "title": "Pacientes",
@@ -1434,7 +1436,12 @@
     "no_patients": "No se encontraron pacientes.",
     "open_chat": "Mensajes",
     "error_unsupported_image": "Formato no admitido. Usa JPEG, PNG o WebP.",
-    "error_image_too_large": "La imagen supera los 5 MB."
+    "error_image_too_large": "La imagen supera los 5 MB.",
+    "read_only_notice": "Modo lectura: puedes leer las conversaciones del centro, pero no escribir, marcar como leído ni archivar.",
+    "pick_nutritionist_hint": "Elige primero el profesional que llevará la conversación: tú no puedes ocupar ese lado del hilo.",
+    "search_nutritionist": "Buscar profesional",
+    "no_nutritionists": "No hay profesionales en este centro.",
+    "change_nutritionist": "Cambiar"
   },
   "assistant": {
     "subtitle": "Asistente virtual del centro",
@@ -1674,7 +1681,9 @@
     "assistant_action_already_resolved": "La acción ya se había resuelto.",
     "assistant_action_invalid": "La acción no se pudo validar. Pide de nuevo la operación.",
     "assistant_invalid_tool_arguments": "La acción propuesta no es válida. Pide de nuevo la operación.",
-    "permission_denied": "No tienes permisos para esta acción."
+    "permission_denied": "No tienes permisos para esta acción.",
+    "chat_superadmin_read_only": "Como superadministrador puedes leer las conversaciones, pero no escribir ni archivarlas.",
+    "chat_superadmin_needs_nutritionist": "Indica qué profesional llevará la conversación: tú no puedes ocupar ese lado del hilo."
   },
   "admin": {
     "dashboard_title": "Panel de Administración",
@@ -2479,5 +2488,15 @@
       "cancelled": "Has salido de la pasarela sin pagar. No se ha cobrado nada y la suscripción sigue igual.",
       "back": "Volver a la suscripción"
     }
+  },
+  "superadmin": {
+    "select_tenant_title": "Elige un centro",
+    "select_tenant_subtitle": "Tienes acceso a todos los centros de la plataforma. Se trabaja en uno cada vez; podrás cambiar desde la cabecera.",
+    "search_tenant": "Buscar centro",
+    "no_tenants": "Ningún centro coincide con la búsqueda.",
+    "tenants_failed": "No se ha podido cargar el listado de centros.",
+    "retry": "Reintentar",
+    "enter_tenant": "Entrar en {{name}}",
+    "admin_tenant": "Plataforma"
   }
 }

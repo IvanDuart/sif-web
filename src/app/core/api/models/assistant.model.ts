@@ -286,7 +286,27 @@ export interface AssistantPageContext {
   route: string;
   title?: string;
   forms?: { id: string; title?: string; values: Record<string, unknown> }[];
+  /**
+   * Los formularios que la aplicación tiene y en qué pantalla viven, estén o
+   * no delante.
+   *
+   * Sin esto, desde el panel principal el modelo no sabe que la medición tiene
+   * formulario y lo único que conoce para apuntar un peso es
+   * `create_measurement`. Es lo que le permite ir a buscarlo en vez de
+   * escribir por detrás (`assistant-contract` §3.2).
+   */
+  reachableForms?: ReachableForm[];
   extras?: Record<string, unknown>;
+}
+
+/** Un formulario de la aplicación y cómo llegar hasta él. */
+export interface ReachableForm {
+  /** El mismo id que usan `open_<id>` y `fill_<id>`. */
+  id: string;
+  /** La pantalla que hay que pasarle a `navigate`. */
+  screen: AssistantScreen;
+  /** Hay que resolver el paciente antes de poder ir. */
+  needsPatient: boolean;
 }
 
 /** El cuerpo de `POST .../messages/stream`. */
@@ -304,6 +324,14 @@ export interface AssistantTurnResponse {
   assistantMessage: AssistantMessageDto;
   pendingAction: AssistantPendingActionDto | null;
   uiActions: AssistantUiActionDto[];
+  /**
+   * El paciente activo de la sesión **al cerrar el turno**, o `null`.
+   *
+   * Sustituye al `params.patientId` de los `uiActions` de navegación, que se
+   * retiraron en la B4 del backend. Es además más fiable: sale de la sesión y
+   * no de una navegación que podía no llegar.
+   */
+  subjectUserId?: string | null;
 }
 
 export interface AssistantActionResponse {

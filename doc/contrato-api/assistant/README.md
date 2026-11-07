@@ -11,6 +11,9 @@ Documentaci贸n del asistente conversacional, la mascota y el chat 1:1 paciente鈥
 | [`assistant-tools-backend.md`](assistant-tools-backend.md) | Cat谩logo de tools del asistente y gu铆a de implementaci贸n backend. |
 | [`assistant-backend-peticion.md`](assistant-backend-peticion.md) | Peticiones de protocolo al backend: streaming, tipos de `uiAction`, reanudaci贸n de sesi贸n. |
 | [`assistant-b4-retirar-uiactions-peticion.md`](assistant-b4-retirar-uiactions-peticion.md) | Fase B4: retirar `NAVIGATE`, `OPEN_DIALOG` y `HIGHLIGHT`, que ya hacen las herramientas de cliente. El frontend ya est谩 listo. |
+| [`assistant-sse-espacios-perdidos-peticion.md`](assistant-sse-espacios-perdidos-peticion.md) | Fallo: el streaming pierde un espacio en cada corte y el mensaje se guarda as铆. Con la captura cruda del SSE. |
+| [`assistant-preferir-formulario-peticion.md`](assistant-preferir-formulario-peticion.md) | Que el modelo prefiera `fill_`+`save_` antes que su tool de escritura: la persona quiere ver el formulario, no un resumen. |
+| [`assistant-superficies-ya-existen-aviso.md`](assistant-superficies-ya-existen-aviso.md) | Aviso: el 搂9 del contrato da por ausentes siete superficies de relleno que ya existen. |
 | [`chat-frontend.md`](chat-frontend.md) | Contrato del chat 1:1: hilos, mensajes, adjuntos, SSE y notificaciones push. |
 
 ## Orden de lectura sugerido

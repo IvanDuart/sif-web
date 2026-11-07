@@ -33,6 +33,7 @@ describe('sesión de la mascota con un paciente que no es suyo', () => {
             currentTenantId: () => TENANT,
             currentMembership: () => ({ tenantId: TENANT, roleCode: 'NUTRITIONIST', userType: 'STAFF', permissions: [] }),
             permissions: () => new Set<string>(),
+            hasPermission: () => true,
           },
         },
       ],

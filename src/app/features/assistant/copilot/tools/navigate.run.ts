@@ -54,11 +54,16 @@ export async function runNavigate(
   );
   if (!navigated) return { ok: false, reason: 'tool_error', screen };
 
-  // Se le da un respiro a la pantalla nueva: los formularios se apuntan al
-  // montarse, y declarar el catálogo antes de eso lo devolvería vacío.
+  // Se le da un respiro a la pantalla nueva: lo suyo se apunta al montarse, y
+  // declarar el catálogo antes de eso lo devolvería vacío.
+  //
+  // Se espera también a los OPENERS, no sólo a los formularios montados: en la
+  // ficha de un paciente no hay ningún formulario abierto todavía, y lo que el
+  // modelo necesita saber es que desde aquí puede abrir la medición. Mirando
+  // sólo `surfaces()` esta espera se agotaba entera para nada.
   await fill.wait(SETTLE_MIN_MS);
   const deadline = Date.now() + (SETTLE_MAX_MS - SETTLE_MIN_MS);
-  while (fill.surfaces().length === 0 && Date.now() < deadline) {
+  while (fill.surfaces().length === 0 && fill.allOpeners().length === 0 && Date.now() < deadline) {
     await fill.wait(120);
   }
 

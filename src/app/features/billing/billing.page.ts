@@ -61,7 +61,7 @@ export default class BillingPage implements OnInit {
 
   readonly billing = inject(BillingStatusService);
 
-  readonly canManage = computed(() => this.permissions.permissions().has('VIEW_BILLING'));
+  readonly canManage = computed(() => this.permissions.has('VIEW_BILLING'));
   readonly status = this.billing.status;
   readonly detail = this.billing.statusDetail;
   readonly suspended = this.billing.isSuspended;

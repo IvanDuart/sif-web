@@ -38,6 +38,7 @@ describe('error de un turno de la mascota', () => {
             currentTenantId: () => TENANT,
             currentMembership: () => ({ tenantId: TENANT, roleCode: 'NUTRITIONIST', userType: 'STAFF', permissions: [] }),
             permissions: () => new Set<string>(),
+            hasPermission: () => true,
           },
         },
       ],

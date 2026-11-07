@@ -18,7 +18,7 @@
       </a>
 
       <div class="brand-text">
-        @if (tenants().length > 1) {
+        @if (canSwitchTenant()) {
           <button
             type="button"
             class="brand-tenant"
@@ -116,6 +116,13 @@
               <i class="fa-solid fa-check check-icon" aria-hidden="true"></i>
             }
           </button>
+        }
+        @if (isSuperAdmin()) {
+          <div class="user-menu-divider"></div>
+          <a [routerLink]="'/select-tenant'" class="menu-item-action">
+            <span class="tenant-label">{{ authTranslations()['all_tenants'] }}</span>
+            <i class="fa-solid fa-magnifying-glass check-icon" aria-hidden="true"></i>
+          </a>
         }
       </div>
     </ng-template>
@@ -279,7 +286,7 @@
       }
 
       <div class="mobile-footer">
-        @if (tenants().length > 1) {
+        @if (canSwitchTenant()) {
           <div class="mobile-section-title">{{ authTranslations()['change_tenant'] }}</div>
           @for (tenant of tenants(); track tenant.tenantId) {
             <button type="button" class="menu-item-action" (click)="selectTenant(tenant)">
@@ -288,6 +295,12 @@
                 <i class="fa-solid fa-check check-icon" aria-hidden="true"></i>
               }
             </button>
+          }
+          @if (isSuperAdmin()) {
+            <a [routerLink]="'/select-tenant'" class="menu-item-action" (click)="closeMobileMenu()">
+              <span class="tenant-label">{{ authTranslations()['all_tenants'] }}</span>
+              <i class="fa-solid fa-magnifying-glass check-icon" aria-hidden="true"></i>
+            </a>
           }
           <div class="user-menu-divider"></div>
         }

@@ -16,6 +16,13 @@ export const adminGuard: CanActivateFn = () => {
     return of(router.parseUrl('/not-authorized'));
   }
 
+  // El superadmin llega al panel de plataforma desde cualquier centro: no es
+  // miembro de ninguno, así que no hay `MANAGE_TENANT` ni `adminTenant` de los
+  // que tirar.
+  if (user.superAdmin) {
+    return of(tenantCtx.currentTenantId() ? true : router.parseUrl('/select-tenant'));
+  }
+
   const isAdmin = user.memberships.some(m => m.permissions.includes('MANAGE_TENANT'));
   if (!isAdmin) {
     return of(router.parseUrl('/not-authorized'));

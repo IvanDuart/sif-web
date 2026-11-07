@@ -8,6 +8,7 @@ import { TenantService } from '../../../core/api/services/tenant.api';
 import { Tenant } from '../../../core/api/models/tenant.model';
 import { Page } from '../../../core/api/models/page.model';
 import { AuthService } from '../../../core/auth/auth.service';
+import { superAdminMembership } from '../../../core/api/models/user.model';
 import { NotificationService, ModalService } from '../../../core/ui';
 import { EmptyState } from '../../../shared/ui/empty-state';
 import { CreateTenantDialog } from '../create-tenant.dialog';
@@ -63,7 +64,11 @@ export class AdminDashboardComponent implements OnInit {
 
   private async handleTenantCreated(created: Tenant) {
     const user = await this.authService.refreshUser();
-    const membership = user?.memberships?.find(m => m.tenantId === created.id);
+    // El superadmin nunca queda de alta en el centro que crea: entra con la
+    // membresía sintética, igual que desde la pantalla de selección.
+    const membership = user?.superAdmin
+      ? superAdminMembership(created.id, created.name ?? '')
+      : user?.memberships?.find(m => m.tenantId === created.id);
     if (membership) {
       this.authService.switchTenant(membership);
       this.router.navigate(['/dashboard']);

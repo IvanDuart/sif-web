@@ -23,6 +23,7 @@ import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { ConfirmService, NotificationService } from '../../core/ui';
 import {
   ChatMessageDto,
+  ChatParticipantDto,
   ChatStreamEvent,
   ChatThreadDto,
 } from '../../core/api/models/chat.model';
@@ -78,11 +79,36 @@ export default class ChatConversationPage implements OnInit, OnDestroy {
   readonly otherLastReadId = signal<string | null>(null);
 
   readonly currentUserId = computed(() => this.authService.user()?.id ?? null);
+
+  /**
+   * El superadministrador no ocupa ningún lado de la conversación: puede leer
+   * el hilo, pero escribir, marcar leído o archivar responden `403`
+   * (`error.chat_superadmin_read_only`). Se abre en modo lectura para no
+   * ofrecerle acciones que el backend va a rechazar.
+   */
+  readonly readOnly = computed(() => this.tenantCtx.isSuperAdmin());
   readonly partner = computed(() => this.thread()?.patient ?? null);
   readonly partnerName = computed(() => {
     const patient = this.partner();
-    return patient ? `${patient.firstName} ${patient.lastName}`.trim() : '...';
+    const name = patient ? `${patient.firstName} ${patient.lastName}`.trim() : '...';
+
+    // En modo lectura no hay «el otro»: el superadmin mira la conversación
+    // desde fuera, así que la cabecera nombra a los dos lados.
+    const nutritionist = this.thread()?.nutritionist;
+    if (!this.readOnly() || !nutritionist) return name;
+    return `${name} · ${`${nutritionist.firstName} ${nutritionist.lastName}`.trim()}`;
   });
+
+  /**
+   * Autor de cada mensaje. Las burbujas ajenas pintan iniciales y nombre del
+   * participante, y en modo lectura ambos lados lo son: sin esto, los mensajes
+   * del nutricionista saldrían firmados por el paciente.
+   */
+  senderOf(message: ChatMessageDto): ChatParticipantDto | null {
+    const thread = this.thread();
+    if (!thread) return this.partner();
+    return message.senderId === thread.nutritionist?.id ? thread.nutritionist : thread.patient;
+  }
   readonly partnerInitials = computed(() => initialsOf(this.partner()));
   readonly readThroughIndex = computed(() => {
     const id = this.otherLastReadId();
@@ -311,6 +337,7 @@ export default class ChatConversationPage implements OnInit, OnDestroy {
   // ── Lectura ─────────────────────────────────────────────────────────
 
   private markLatestAsRead(): void {
+    if (this.readOnly()) return;
     const messages = this.messages();
     const last = messages[messages.length - 1];
     if (last) this.markRead(last.id);
@@ -339,7 +366,7 @@ export default class ChatConversationPage implements OnInit, OnDestroy {
   sendText(text: string): void {
     const tenantId = this.tenantCtx.currentTenantId();
     const threadId = this.threadId();
-    if (!tenantId || !threadId || this.sending()) return;
+    if (!tenantId || !threadId || this.sending() || this.readOnly()) return;
 
     this.sending.set(true);
     this.chatMessages.send(tenantId, threadId, { content: text }).subscribe({
@@ -405,7 +432,7 @@ export default class ChatConversationPage implements OnInit, OnDestroy {
   confirmArchive(): void {
     const thread = this.thread();
     const tenantId = this.tenantCtx.currentTenantId();
-    if (!thread || !tenantId || this.archiving()) return;
+    if (!thread || !tenantId || this.archiving() || this.readOnly()) return;
 
     const archived = !thread.archived;
     this.archiving.set(true);

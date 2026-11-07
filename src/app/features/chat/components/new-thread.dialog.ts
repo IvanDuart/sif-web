@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TuiButton, TuiInput, TuiTextfield, TuiDialogContext } from '@taiga-ui/core';
@@ -16,6 +16,11 @@ import { ChatThreadDto } from '../../../core/api/models/chat.model';
  * Selector de paciente para abrir una conversación nueva. El backend devuelve
  * el hilo existente si ya lo hay, así que elegir el mismo paciente dos veces no
  * duplica nada.
+ *
+ * Un nutricionista abre el hilo consigo mismo, así que `nutritionistId` es
+ * opcional. Para un superadministrador es obligatorio —el valor por defecto lo
+ * metería a él dentro de una conversación clínica—, de ahí el paso previo de
+ * elegir profesional.
  */
 @Component({
   selector: 'app-new-thread-dialog',
@@ -42,7 +47,21 @@ export class NewThreadDialog implements OnInit {
   readonly loading = signal(false);
   readonly creatingId = signal<string | null>(null);
 
+  /** El superadmin tiene que nombrar al profesional del hilo (409 si no). */
+  readonly needsNutritionist = computed(() => this.tenantCtx.isSuperAdmin());
+  readonly nutritionist = signal<AppUserDto | null>(null);
+  readonly staffSearchControl = new FormControl('', { nonNullable: true });
+  readonly staffResults = signal<AppUserDto[]>([]);
+  readonly staffLoading = signal(false);
+
+  /** ¿Toca elegir profesional antes que paciente? */
+  readonly pickingNutritionist = computed(
+    () => this.needsNutritionist() && !this.nutritionist()
+  );
+
   ngOnInit(): void {
+    if (this.needsNutritionist()) this.initStaffSearch();
+
     this.searchControl.valueChanges
       .pipe(
         debounceTime(250),
@@ -62,6 +81,53 @@ export class NewThreadDialog implements OnInit {
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  private initStaffSearch(): void {
+    this.staffSearchControl.valueChanges
+      .pipe(
+        debounceTime(250),
+        distinctUntilChanged(),
+        switchMap((term) => this.fetchStaff(term))
+      )
+      .subscribe({
+        next: (users) => this.staffResults.set(users),
+        error: () => this.staffResults.set([]),
+      });
+
+    this.staffLoading.set(true);
+    this.fetchStaff('').subscribe({
+      next: (users) => {
+        this.staffResults.set(users);
+        this.staffLoading.set(false);
+      },
+      error: () => this.staffLoading.set(false),
+    });
+  }
+
+  private fetchStaff(term: string) {
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return of<AppUserDto[]>([]);
+
+    return this.users
+      .getUsersByTenantAndType(tenantId, 'STAFF', {
+        search: term.trim() || undefined,
+        size: 10,
+        sort: ['firstName,ASC'],
+      })
+      .pipe(switchMap((page) => of(page.content ?? [])));
+  }
+
+  chooseNutritionist(user: AppUserDto): void {
+    this.nutritionist.set(user);
+  }
+
+  clearNutritionist(): void {
+    this.nutritionist.set(null);
+  }
+
+  fullName(user: AppUserDto): string {
+    return `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim();
   }
 
   private fetchPatients(term: string) {
@@ -85,9 +151,18 @@ export class NewThreadDialog implements OnInit {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId || this.creatingId()) return;
 
+    const nutritionistId = this.nutritionist()?.id;
+    if (this.needsNutritionist() && !nutritionistId) return;
+
+    // Para un nutricionista se omite: el backend lo resuelve con el usuario
+    // autenticado y mandarlo a `null` no es lo mismo que no mandarlo.
+    const request = nutritionistId
+      ? { patientId: user.id, nutritionistId }
+      : { patientId: user.id };
+
     this.creatingId.set(user.id);
     this.chatThreads
-      .create(tenantId, { patientId: user.id })
+      .create(tenantId, request)
       .subscribe({
         next: (thread) => {
           this.creatingId.set(null);

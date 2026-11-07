@@ -3,7 +3,7 @@ id: chat-frontend-contract
 type: submodule-design
 title: Chat 1:1 — contrato para Angular
 status: draft
-parent: assistant-module
+parent: chat
 ---
 
 # Chat 1:1 — contrato para Angular

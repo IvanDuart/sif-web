@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import type { AuthGuardData } from 'keycloak-angular';
 import Keycloak from 'keycloak-js';
 import { createAuthGuard } from 'keycloak-angular';
@@ -16,6 +16,9 @@ export const authGuard = createAuthGuard(
   ): Promise<boolean | UrlTree> => {
     const keycloak = inject(Keycloak);
     const authService = inject(AuthService);
+    // `inject()` debe resolverse antes del primer `await`: después ya no hay
+    // contexto de inyección.
+    const router = inject(Router);
 
     // 1. Force the user to log in if currently unauthenticated.
     if (!keycloak.authenticated) {
@@ -30,6 +33,13 @@ export const authGuard = createAuthGuard(
       filter(loaded => loaded),
       take(1)
     ));
+
+    // 3. Un superadministrador no tiene centro por defecto: no es miembro de
+    //    ninguno, así que hasta que elija uno no hay contexto de tenant con el
+    //    que pintar nada.
+    if (authService.isSuperAdmin() && !authService.selectedTenant()) {
+      return router.parseUrl('/select-tenant');
+    }
 
     return true;
   }

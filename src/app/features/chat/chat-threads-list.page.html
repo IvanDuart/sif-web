@@ -17,16 +17,28 @@
     </div>
   </header>
 
-  <tui-segmented [activeItemIndex]="filterIndex()" (activeItemIndexChange)="setFilterIndex($event)">
-    <button type="button">{{ t('chat.filter_active') }}</button>
-    <button type="button">
-      {{ t('chat.filter_unread') }}
-      @if (chatUnread.unread() > 0) {
-        <span class="ml-1.5 tabular-nums opacity-70">{{ chatUnread.unread() }}</span>
-      }
-    </button>
-    <button type="button">{{ t('chat.filter_archived') }}</button>
-  </tui-segmented>
+  @if (readOnly()) {
+    <p class="rounded-lg border border-line bg-surface-50 px-3.5 py-2.5 text-[13px] text-surface-500 dark:bg-surface-800 dark:text-surface-400">
+      <i class="fa-solid fa-eye mr-1.5" aria-hidden="true"></i>
+      {{ t('chat.read_only_notice') }}
+    </p>
+
+    <tui-segmented [activeItemIndex]="filterIndex()" (activeItemIndexChange)="setFilterIndex($event)">
+      <button type="button">{{ t('chat.filter_active') }}</button>
+      <button type="button">{{ t('chat.filter_archived') }}</button>
+    </tui-segmented>
+  } @else {
+    <tui-segmented [activeItemIndex]="filterIndex()" (activeItemIndexChange)="setFilterIndex($event)">
+      <button type="button">{{ t('chat.filter_active') }}</button>
+      <button type="button">
+        {{ t('chat.filter_unread') }}
+        @if (chatUnread.unread() > 0) {
+          <span class="ml-1.5 tabular-nums opacity-70">{{ chatUnread.unread() }}</span>
+        }
+      </button>
+      <button type="button">{{ t('chat.filter_archived') }}</button>
+    </tui-segmented>
+  }
 
   @if (loading()) {
     <div class="thread-list" aria-busy="true">
@@ -94,28 +106,30 @@
                 {{ thread.lastMessageAt | date: 'short' }}
               </time>
             }
-            <button
-              type="button"
-              tuiButton
-              appearance="flat"
-              size="s"
-              class="archive-btn"
-              [disabled]="archivingId() === thread.id"
-              (click)="archiveConfirm(thread)"
-              [attr.title]="thread.archived ? t('chat.unarchive') : t('chat.archive')"
-              [attr.aria-label]="(thread.archived ? t('chat.unarchive') : t('chat.archive')) + ': ' + participantName(thread)"
-            >
-              @if (archivingId() === thread.id) {
-                <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
-              } @else {
-                <i
-                  class="fa-solid"
-                  [class.fa-box-archive]="!thread.archived"
-                  [class.fa-box-open]="thread.archived"
-                  aria-hidden="true"
-                ></i>
-              }
-            </button>
+            @if (!readOnly()) {
+              <button
+                type="button"
+                tuiButton
+                appearance="flat"
+                size="s"
+                class="archive-btn"
+                [disabled]="archivingId() === thread.id"
+                (click)="archiveConfirm(thread)"
+                [attr.title]="thread.archived ? t('chat.unarchive') : t('chat.archive')"
+                [attr.aria-label]="(thread.archived ? t('chat.unarchive') : t('chat.archive')) + ': ' + participantName(thread)"
+              >
+                @if (archivingId() === thread.id) {
+                  <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+                } @else {
+                  <i
+                    class="fa-solid"
+                    [class.fa-box-archive]="!thread.archived"
+                    [class.fa-box-open]="thread.archived"
+                    aria-hidden="true"
+                  ></i>
+                }
+              </button>
+            }
           </div>
         </li>
       }

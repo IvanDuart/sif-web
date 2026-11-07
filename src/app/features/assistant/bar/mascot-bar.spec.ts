@@ -6,6 +6,7 @@ import { TranslocoTestingModule } from '@jsverse/transloco';
 import { NG_EVENT_PLUGINS } from '@taiga-ui/event-plugins';
 
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
+import { FIRST_STEPS_KEY } from '../mascot/first-steps';
 import { QuestionService } from '../copilot/question.service';
 import { MascotStateService } from '../mascot-state.service';
 import { MascotBar } from './mascot-bar';
@@ -19,6 +20,9 @@ describe('MascotBar', () => {
     (fixture.nativeElement as HTMLElement).querySelector(selector)?.textContent?.replace(/\s+/g, ' ').trim() ?? null;
 
   beforeEach(() => {
+    // Estos tests miran la tarjeta, no el estreno: las primeras ofertas sólo
+    // salen una vez y aquí estorban.
+    localStorage.setItem(FIRST_STEPS_KEY, '1');
     TestBed.configureTestingModule({
       imports: [
         MascotBar,
@@ -48,6 +52,7 @@ describe('MascotBar', () => {
             currentTenantId: () => 't1',
             currentMembership: () => ({ tenantId: 't1', roleCode: 'NUTRITIONIST', userType: 'STAFF', permissions: [] }),
             permissions: () => new Set<string>(),
+            hasPermission: () => true,
           },
         },
       ],
@@ -57,6 +62,8 @@ describe('MascotBar', () => {
     fixture = TestBed.createComponent(MascotBar);
     fixture.detectChanges();
   });
+
+  afterEach(() => localStorage.removeItem(FIRST_STEPS_KEY));
 
   /** Desplegar la tarjeta, que es lo que hace pulsar la mascota. */
   const openBar = () => {

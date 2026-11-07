@@ -6,6 +6,7 @@ import type { AssistantPageContext } from '../../../core/api/models/assistant.mo
 import type { FieldAccess, FillField, FillSurface } from '../mascot/fill/descriptor';
 import { MascotFillService } from '../mascot/fill/mascot-fill.service';
 import { fitPageContext, serializeValue } from './page-context';
+import { reachableForms } from './reachable-forms';
 import { slugOf } from './tool-names';
 
 /**
@@ -37,13 +38,19 @@ export class PageContextService {
 
     const extras = this.extrasOf();
     const title = this.title.getTitle().trim();
-    return fitPageContext({
+    const fitted = fitPageContext({
       // Sin la query: puede traer ids o búsquedas que el modelo no necesita.
       route: this.router.url.split('?')[0].split('#')[0],
       ...(title ? { title } : {}),
       forms,
       ...(Object.keys(extras).length > 0 ? { extras } : {}),
     });
+
+    // El mapa de formularios va DESPUÉS de recortar y nunca se recorta: es lo
+    // que permite al modelo ir a buscar un formulario que no está delante, y
+    // sin él se queda escribiendo por detrás. El backend tampoco lo cuenta
+    // contra su presupuesto (`assistant-contract` §3.2).
+    return { ...fitted, reachableForms: reachableForms() };
   }
 
   private extrasOf(): Record<string, unknown> {

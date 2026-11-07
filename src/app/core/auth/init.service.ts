@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 import Keycloak from 'keycloak-js';
 import { Router } from '@angular/router';
 import { KEYCLOAK_EVENT_SIGNAL, KeycloakEventType, ReadyArgs, typeEventArgs } from 'keycloak-angular';
-import { AppUserDto, TenantMembershipDto } from '../api/models/user.model';
+import { AppUserDto } from '../api/models/user.model';
 import { firstValueFrom } from 'rxjs';
 import { TranslocoService } from '@jsverse/transloco';
 import {ConfigService} from '../config/config.service';
@@ -58,7 +58,7 @@ export class InitService {
       }
 
       this.#authService.user.set(user);
-      this.setActiveTenant(user.memberships);
+      this.setActiveTenant(user);
       await this.syncLocale();
 
       const currentPath = globalThis.location.pathname;
@@ -92,11 +92,23 @@ export class InitService {
     }
   }
 
-  private setActiveTenant(memberships: TenantMembershipDto[]): void {
+  /**
+   * Un superadministrador tiene acceso a todos los centros sin ser miembro de
+   * ninguno, así que `memberships` le llega vacío: su centro activo se rehace
+   * desde `localStorage` y, si no hay ninguno guardado, `authGuard` lo manda a
+   * la pantalla de selección. Para el resto de usuarios nada cambia.
+   */
+  private setActiveTenant(user: AppUserDto): void {
+    const memberships = user.memberships;
     if (memberships && memberships.length > 0) {
       const prevTenantId = localStorage.getItem("active-tenant");
       const activeTenant = memberships.find(({ tenantId }) => tenantId === prevTenantId) ?? memberships[0];
       this.#authService.selectedTenant.set(activeTenant);
+    } else if (user.superAdmin) {
+      const remembered = this.#authService.restoreSuperAdminTenant();
+      if (remembered) {
+        this.#authService.selectedTenant.set(remembered);
+      }
     }
     this.#authService.isTenantLoaded$.next(true);
   }

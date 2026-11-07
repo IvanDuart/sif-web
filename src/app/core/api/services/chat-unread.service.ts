@@ -23,8 +23,15 @@ export class ChatUnreadService {
   private inFlight = false;
   private pending = false;
 
-  /** ¿El usuario actual puede ver el chat (staff con `MANAGE_CHAT`)? */
+  /**
+   * ¿El usuario actual puede ver el chat (staff con `MANAGE_CHAT`)?
+   *
+   * El superadministrador queda fuera a propósito: lee los hilos del centro
+   * pero no participa en ninguno, así que el backend le devuelve siempre
+   * `unreadCount: 0` y un badge de pendientes sería ruido.
+   */
   get available(): boolean {
+    if (this.tenantCtx.isSuperAdmin()) return false;
     return this.tenantCtx.currentMembership()?.userType === 'STAFF'
       && this.permissions.has('MANAGE_CHAT');
   }

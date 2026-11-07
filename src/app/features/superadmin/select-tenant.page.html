@@ -1,0 +1,87 @@
+<div class="min-h-screen bg-surface-50 px-4 py-10 dark:bg-surface-900" *transloco="let t">
+  <div class="mx-auto flex w-full max-w-2xl flex-col gap-6">
+    <header class="flex flex-col items-center gap-3 text-center">
+      <img src="logo-sif.svg" alt="" class="h-12 w-auto" />
+      <h1 class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0">
+        {{ t('superadmin.select_tenant_title') }}
+      </h1>
+      <p class="max-w-prose text-[13px] text-surface-500 dark:text-surface-400">
+        {{ t('superadmin.select_tenant_subtitle') }}
+      </p>
+    </header>
+
+    <section class="rounded-xl border border-line bg-surface-0 p-4 shadow-sm dark:bg-surface-800">
+      <tui-textfield class="w-full" iconStart="@tui.search">
+        <input
+          tuiInput
+          type="search"
+          [formControl]="searchControl"
+          [placeholder]="t('superadmin.search_tenant')"
+          [attr.aria-label]="t('superadmin.search_tenant')"
+        />
+      </tui-textfield>
+
+      @if (loading()) {
+        <div class="flex flex-col gap-1 pt-4" aria-busy="true">
+          @for (row of [1, 2, 3, 4, 5]; track row) {
+            <div class="flex items-center gap-3 px-3 py-2.5" aria-hidden="true">
+              <span class="h-9 w-9 shrink-0 animate-pulse rounded-full bg-surface-100 dark:bg-surface-700"></span>
+              <span class="h-3.5 w-48 max-w-full animate-pulse rounded bg-surface-100 dark:bg-surface-700"></span>
+            </div>
+          }
+        </div>
+      } @else if (failed()) {
+        <div class="flex flex-col items-center gap-3 py-10 text-center">
+          <i class="fa-solid fa-triangle-exclamation text-2xl text-surface-300" aria-hidden="true"></i>
+          <p class="text-[13px] text-surface-500 dark:text-surface-400">{{ t('superadmin.tenants_failed') }}</p>
+          <button type="button" tuiButton appearance="secondary" size="m" (click)="load()">
+            {{ t('superadmin.retry') }}
+          </button>
+        </div>
+      } @else if (results().length === 0) {
+        <p class="py-10 text-center text-[13px] text-surface-400">
+          {{ t('superadmin.no_tenants') }}
+        </p>
+      } @else {
+        <ul class="flex max-h-[26rem] flex-col gap-1 overflow-y-auto pt-4">
+          @for (tenant of results(); track tenant.id) {
+            <li>
+              <button
+                type="button"
+                class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-surface-100 focus-visible:outline-2 focus-visible:outline-primary-500 disabled:opacity-60 dark:hover:bg-surface-700"
+                [disabled]="!!enteringId()"
+                (click)="enter(tenant)"
+                [attr.aria-label]="t('superadmin.enter_tenant', { name: tenant.name })"
+              >
+                <span
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-700 dark:bg-surface-700 dark:text-surface-100"
+                  aria-hidden="true"
+                >{{ initials(tenant) }}</span>
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate text-sm font-medium text-surface-900 dark:text-surface-0">
+                    {{ tenant.name }}
+                  </span>
+                </span>
+                @if (tenant.adminTenant) {
+                  <span tuiBadge appearance="info">{{ t('superadmin.admin_tenant') }}</span>
+                }
+                @if (enteringId() === tenant.id) {
+                  <i class="fa-solid fa-spinner fa-spin text-surface-400" aria-hidden="true"></i>
+                } @else {
+                  <i class="fa-solid fa-arrow-right text-surface-400" aria-hidden="true"></i>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <div class="flex justify-center">
+      <button type="button" tuiButton appearance="flat" size="m" (click)="logout()">
+        <i class="fa-solid fa-arrow-right-from-bracket mr-1.5" aria-hidden="true"></i>
+        {{ t('auth.logout') }}
+      </button>
+    </div>
+  </div>
+</div>

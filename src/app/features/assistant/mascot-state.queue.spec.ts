@@ -33,6 +33,7 @@ describe('la cola de la mascota', () => {
             currentTenantId: () => 't1',
             currentMembership: () => ({ tenantId: 't1', roleCode: 'NUTRITIONIST', userType: 'STAFF', permissions: [] }),
             permissions: () => new Set<string>(),
+            hasPermission: () => true,
           },
         },
       ],

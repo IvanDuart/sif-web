@@ -82,6 +82,7 @@ describe('un archivo en la conversación', () => {
             currentTenantId: () => TENANT,
             currentMembership: () => ({ tenantId: TENANT, roleCode: 'NUTRITIONIST', userType: 'STAFF', permissions: [] }),
             permissions: () => new Set<string>(),
+            hasPermission: () => true,
           },
         },
         { provide: NotificationService, useValue: avisos },

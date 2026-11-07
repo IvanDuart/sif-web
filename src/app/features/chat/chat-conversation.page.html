@@ -20,23 +20,25 @@
       </div>
     </div>
 
-    <button
-      type="button"
-      tuiButton
-      appearance="flat"
-      size="m"
-      class="head-action"
-      [disabled]="archiving()"
-      (click)="confirmArchive()"
-      [attr.title]="thread()?.archived ? t('chat.unarchive') : t('chat.archive')"
-      [attr.aria-label]="thread()?.archived ? t('chat.unarchive') : t('chat.archive')"
-    >
-      @if (archiving()) {
-        <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
-      } @else {
-        <i class="fa-solid" [class.fa-box-archive]="!thread()?.archived" [class.fa-box-open]="thread()?.archived" aria-hidden="true"></i>
-      }
-    </button>
+    @if (!readOnly()) {
+      <button
+        type="button"
+        tuiButton
+        appearance="flat"
+        size="m"
+        class="head-action"
+        [disabled]="archiving()"
+        (click)="confirmArchive()"
+        [attr.title]="thread()?.archived ? t('chat.unarchive') : t('chat.archive')"
+        [attr.aria-label]="thread()?.archived ? t('chat.unarchive') : t('chat.archive')"
+      >
+        @if (archiving()) {
+          <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+        } @else {
+          <i class="fa-solid" [class.fa-box-archive]="!thread()?.archived" [class.fa-box-open]="thread()?.archived" aria-hidden="true"></i>
+        }
+      </button>
+    }
   </header>
 
   <div #scrollHost class="chat-scroll" [attr.aria-label]="t('chat.messages_label', { name: partnerName() })">
@@ -74,8 +76,8 @@
 
         <app-chat-message-bubble
           [message]="message"
-          [participant]="partner()"
-          [own]="message.senderId === currentUserId()"
+          [participant]="senderOf(message)"
+          [own]="!readOnly() && message.senderId === currentUserId()"
           [read]="isRead(message, i)"
           (refreshAttachment)="refreshAttachment($event)"
           (remove)="confirmDelete($event)"
@@ -84,7 +86,14 @@
     }
   </div>
 
-  @if (thread()?.archived) {
+  @if (readOnly()) {
+    <div class="archived-bar">
+      <p>
+        <i class="fa-solid fa-eye mr-1.5" aria-hidden="true"></i>
+        {{ t('chat.read_only_notice') }}
+      </p>
+    </div>
+  } @else if (thread()?.archived) {
     <div class="archived-bar">
       <p>
         <i class="fa-solid fa-box-archive mr-1.5" aria-hidden="true"></i>

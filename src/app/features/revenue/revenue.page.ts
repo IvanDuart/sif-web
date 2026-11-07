@@ -86,6 +86,8 @@ export default class RevenuePage implements OnInit, OnDestroy {
   currentUser = this.authService.user;
 
   isAdmin = computed(() => {
+    // El superadmin no tiene `memberships` de las que derivarlo.
+    if (this.tenantCtx.isSuperAdmin()) return true;
     const u = this.currentUser();
     if (!u) return false;
     return u.memberships?.some(m => m.permissions.includes('MANAGE_TENANT')) ?? false;

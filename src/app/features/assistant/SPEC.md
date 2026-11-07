@@ -66,17 +66,27 @@ so a tool the model was offered is always a tool the browser can run:
 - `navigate` goes only to the closed list in `copilot/screen-routes.ts`, and reaches a patient's
   record only when told which patient. `open_` and `navigate` answer with the new catalogue,
   because both change what can be done next.
-The **old model is gone** (F8). `uiActions` keeps only `TOAST`, which has no equivalent — it is the
+The **old model is gone**. `uiActions` keeps only `TOAST`, which has no equivalent — it is the
 backend warning about something, not the mascot acting. `NAVIGATE`, `OPEN_DIALOG` and `HIGHLIGHT`
 are now `navigate`, `open_<id>` and `point_at`, which differ in the one way that matters: they tell
-the model whether it worked. A `uiAction` went out blind.
+the model whether it worked. A `uiAction` went out blind — and that is not theory: we retired the
+handling while the backend still had the four server tools that produced it, and the mascot started
+answering "there you go, the record is open" with the screen unmoved. The backend retired tools and
+emission together (its phase B4) before we removed the handling.
+
+The active patient therefore comes from **`subjectUserId` on the turn**, not from a navigation's
+`params.patientId`. Losing it means the mascot keeps working on the wrong record without anyone
+noticing, so `mascot-state.subject.spec.ts` guards it.
+
+`pageContext.reachableForms` tells the model which forms the app has and on which screen, whether or
+not they are in front of it. Without it, from the dashboard `fill_measurement` is never declared, so
+from where the model stands **the measurement has no form** and the only way it knows to record a
+weight is the server's `create_measurement` — the person ends up confirming a card instead of seeing
+what gets saved. It was not choosing badly; it was choosing with what we gave it.
 
 A `pendingAction` now only **offers the card**. It no longer sends the mascot off to find the form
-by guessing its screen from the tool's name, open it and fill it. If something on screen needs
-filling the model asks for it with `fill_` and reads the result; if the write is the backend's, the
-person confirms here and the backend does it. The request for the backend to stop emitting the
-retired actions is `assistant-b4-retirar-uiactions-peticion.md`; nothing here waits on it, because
-whatever still arrives is ignored.
+by guessing its screen from the tool's name. Reaching a form that is not on screen is the model's
+job now: `navigate` to its screen, `open_<id>`, `fill_`, `save_`.
 
 Everything the mascot waits an answer for goes through **one tray** (`QuestionService`): the write
 it proposes (`confirm_action`), a question from the model (`ask_user`) and the warning before

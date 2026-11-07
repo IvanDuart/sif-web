@@ -8,11 +8,16 @@ import { TenantContextService } from '../tenant/tenant-context.service';
  * El chat 1:1 es una herramienta del nutricionista: sólo STAFF con
  * `MANAGE_CHAT`. Los pacientes lo usan desde la app móvil, así que un acceso
  * directo por URL vuelve al panel en vez de mostrar una pantalla vacía.
+ *
+ * El superadministrador entra en modo lectura (ve todos los hilos del centro
+ * pero no escribe ni archiva), así que también pasa.
  */
 export const chatGuard: CanActivateFn = () => {
   const permissions = inject(PermissionsService);
   const tenantCtx = inject(TenantContextService);
   const router = inject(Router);
+
+  if (tenantCtx.isSuperAdmin()) return true;
 
   const isStaff = tenantCtx.currentMembership()?.userType === 'STAFF';
   if (isStaff && permissions.has('MANAGE_CHAT')) return true;

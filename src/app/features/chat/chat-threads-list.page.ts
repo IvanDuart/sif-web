@@ -57,7 +57,17 @@ export default class ChatThreadsListPage implements OnInit {
   readonly size = 25;
   readonly page = signal(0);
 
+  /**
+   * El superadministrador ve todos los hilos del centro pero no participa en
+   * ninguno: archivar responde `403` y `unreadCount` llega siempre a `0`, así
+   * que el filtro de no leídos tampoco tendría sentido.
+   */
+  readonly readOnly = computed(() => this.tenantCtx.isSuperAdmin());
+
   readonly filterIndex = computed(() => {
+    // En modo lectura el segmento de «no leídos» no se pinta, así que
+    // «archivados» pasa a ocupar la posición 1.
+    if (this.readOnly()) return this.filter() === 'archived' ? 1 : 0;
     switch (this.filter()) {
       case 'unread': return 1;
       case 'archived': return 2;
@@ -78,7 +88,9 @@ export default class ChatThreadsListPage implements OnInit {
   }
 
   setFilterIndex(index: number): void {
-    const next: ChatThreadFilter = index === 1 ? 'unread' : index === 2 ? 'archived' : 'active';
+    const next: ChatThreadFilter = this.readOnly()
+      ? (index === 1 ? 'archived' : 'active')
+      : (index === 1 ? 'unread' : index === 2 ? 'archived' : 'active');
     if (this.filter() === next) return;
     this.filter.set(next);
     this.page.set(0);
@@ -147,7 +159,7 @@ export default class ChatThreadsListPage implements OnInit {
 
   toggleArchive(thread: ChatThreadSummaryDto): void {
     const tenantId = this.tenantCtx.currentTenantId();
-    if (!tenantId || this.archivingId()) return;
+    if (!tenantId || this.archivingId() || this.readOnly()) return;
 
     const archived = !thread.archived;
     this.archivingId.set(thread.id);

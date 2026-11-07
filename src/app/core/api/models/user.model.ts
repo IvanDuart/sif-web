@@ -40,6 +40,32 @@ export interface TenantMembershipDto {
   roleCode: string;
   permissions: string[];
   userType?: UserType;
+  /** Estado clínico del paciente en ese centro (solo para `PATIENT`). */
+  clinicalStatus?: ClinicalStatus | null;
+}
+
+/** `roleCode` sintético del superadministrador: el backend no lo emite. */
+export const SUPERADMIN_ROLE_CODE = 'SUPERADMIN';
+
+/**
+ * Un superadministrador entra en cualquier centro sin ser miembro de ninguno,
+ * así que `memberships` le llega vacío. Para que el resto de la aplicación
+ * siga leyendo el centro activo de un único sitio (`AuthService.selectedTenant`),
+ * le fabricamos la membresía al elegir centro.
+ *
+ * - `userType: 'STAFF'` porque usa las herramientas del profesional, no las del
+ *   paciente; sin esto el menú lateral le ofrecería «Mi dieta» y «Evolución».
+ * - `permissions: []` a propósito: los suyos no se derivan de aquí, los concede
+ *   `TenantContextService.hasPermission()` por el flag `superAdmin`.
+ */
+export function superAdminMembership(tenantId: string, tenantName: string): TenantMembershipDto {
+  return {
+    tenantId,
+    tenantName,
+    roleCode: SUPERADMIN_ROLE_CODE,
+    permissions: [],
+    userType: 'STAFF',
+  };
 }
 
 export interface UserTenantProfileDto {
@@ -118,6 +144,12 @@ export interface AppUserDto {
   phone?: string | null;
   createdAt: string;
   memberships: TenantMembershipDto[];
+  /**
+   * Superadministrador de plataforma. Siempre viene en `GET /users/me` y en
+   * `GET /tenant/{id}/users/me`, nunca en los listados de usuarios de un centro.
+   * Si es `true`, `memberships` suele estar vacio aunque tenga acceso total.
+   */
+  superAdmin?: boolean;
   enabled?: boolean;
   roleCode?: string;
   roleName?: string;

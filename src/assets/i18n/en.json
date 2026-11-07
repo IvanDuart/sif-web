@@ -69,7 +69,8 @@
     "no_access": "You do not have access to any clinic. Contact the administrator.",
     "role": "Role",
     "logout": "Logout",
-    "change_tenant": "Change Clinic"
+    "change_tenant": "Change Clinic",
+    "all_tenants": "See all clinics"
   },
   "users": {
     "first_name": "First Name",
@@ -172,7 +173,8 @@
     "situation_asymmetry": "Body composition: an inter-limb asymmetry was detected in the latest measurement.",
     "situation_menu": "Active menu since {{date}}.",
     "situation_empty": "No activity recorded for this patient yet.",
-    "anthropometry": "Anthropometry"
+    "anthropometry": "Anthropometry",
+    "role_superadmin": "Superadmin"
   },
   "patients": {
     "title": "Patients",
@@ -1374,7 +1376,12 @@
     "no_patients": "No patients found.",
     "open_chat": "Messages",
     "error_unsupported_image": "Unsupported format. Use JPEG, PNG or WebP.",
-    "error_image_too_large": "The image exceeds 5 MB."
+    "error_image_too_large": "The image exceeds 5 MB.",
+    "read_only_notice": "Read-only mode: you can read the clinic conversations, but not write, mark as read or archive them.",
+    "pick_nutritionist_hint": "Pick the professional who will own the conversation first: you cannot take that side of the thread.",
+    "search_nutritionist": "Search professional",
+    "no_nutritionists": "There are no professionals in this clinic.",
+    "change_nutritionist": "Change"
   },
   "assistant": {
     "subtitle": "Virtual clinic assistant",
@@ -1614,7 +1621,9 @@
     "assistant_action_already_resolved": "The action had already been resolved.",
     "assistant_action_invalid": "The action could not be validated. Ask for the operation again.",
     "assistant_invalid_tool_arguments": "The proposed action is not valid. Ask for the operation again.",
-    "permission_denied": "You do not have permission for this action."
+    "permission_denied": "You do not have permission for this action.",
+    "chat_superadmin_read_only": "As a superadmin you can read conversations, but not write to or archive them.",
+    "chat_superadmin_needs_nutritionist": "Name the professional who will own the conversation: you cannot take that side of the thread."
   },
   "admin": {
     "dashboard_title": "Admin Dashboard",
@@ -2479,5 +2488,15 @@
       "cancelled": "You left the gateway without paying. Nothing was charged and the subscription is unchanged.",
       "back": "Back to subscription"
     }
+  },
+  "superadmin": {
+    "select_tenant_title": "Pick a clinic",
+    "select_tenant_subtitle": "You have access to every clinic on the platform. You work on one at a time; you can switch from the header.",
+    "search_tenant": "Search clinic",
+    "no_tenants": "No clinic matches your search.",
+    "tenants_failed": "The clinic list could not be loaded.",
+    "retry": "Retry",
+    "enter_tenant": "Enter {{name}}",
+    "admin_tenant": "Platform"
   }
 }

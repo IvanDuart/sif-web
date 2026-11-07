@@ -51,6 +51,7 @@ describe('herramientas de pantalla de la mascota', () => {
             currentTenantId: () => TENANT,
             currentMembership: () => ({ tenantId: TENANT, roleCode: 'NUTRITIONIST', userType: 'STAFF', permissions: [] }),
             permissions: () => new Set<string>(),
+            hasPermission: () => true,
           },
         },
       ],
