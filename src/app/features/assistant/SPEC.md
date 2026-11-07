@@ -5,7 +5,7 @@ title: assistant — conversational assistant ("mascota")
 status: draft
 parent: architecture
 depends-on: [core-module]
-references: [mascota-contract, assistant-contract]
+references: [mascota-contract, assistant-frontend-contract]
 ---
 
 # assistant ("mascota")
@@ -15,7 +15,7 @@ references: [mascota-contract, assistant-contract]
 This module is a conversational assistant for staff, shown as an animated mascot (orb, panel, action
 cards, wardrobe/looks, moods, milestones, tips). It talks to the backend assistant API, which uses
 Gemini behind it, through `core/api` (`assistant.api`, `assistant-stream`). The backend contracts
-are `mascota-contract` and `assistant-contract`.
+are `mascota-contract` and `assistant-frontend-contract`.
 
 Its core rule is **nothing is written without an explicit yes from the person**. That yes comes
 through one of two paths:
@@ -30,7 +30,7 @@ through one of two paths:
 
 It never diagnoses, prescribes or interprets lab results (see `product`).
 
-**Client tools** (`copilot/`, contract `assistant-contract` §3.2). On the streaming endpoint, every
+**Client tools** (`copilot/`, contract `assistant-frontend-contract` §3.2). On the streaming endpoint, every
 turn sends three things:
 
 - `clientTools`: the tools this screen can run, built from the registered surfaces, openers and

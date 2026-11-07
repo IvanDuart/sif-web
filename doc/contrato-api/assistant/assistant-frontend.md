@@ -3,7 +3,7 @@ id: assistant-frontend-contract
 type: submodule-design
 title: Asistente para nutricionistas — contrato para Angular
 status: draft
-parent: ai
+parent: assistant-module
 ---
 
 # Asistente para nutricionistas — contrato para Angular

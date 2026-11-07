@@ -3,7 +3,7 @@ id: mascota-frontend-contract
 type: submodule-design
 title: Mascota del asistente — contrato para Angular
 status: draft
-parent: ai
+parent: assistant-module
 ---
 
 # Mascota conversacional — contrato para Angular
