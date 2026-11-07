@@ -1563,7 +1563,9 @@
     "pause": "Pause",
     "do_now": "Do this now",
     "queue_placeholder": "Add another instruction…",
-    "resume": "Resume"
+    "resume": "Resume",
+    "wardrobe": "Change look",
+    "hide": "Hide"
   },
   "errors": {
     "not_authorized_title": "403",

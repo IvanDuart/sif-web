@@ -809,6 +809,21 @@ boneyard-skeleton {
 /* — Lo que escribe la mascota (`features/assistant/mascot/fill`) —
    Se marca mientras es suyo y se desmarca en cuanto la persona lo toca, para
    que se vea de un vistazo qué ha puesto ella y qué queda por revisar. */
+/* El ancho de la tarjeta de la mascota. Lo comparten la barra y el FAB: el
+   FAB se acopla al borde izquierdo de la tarjeta, así que los dos tienen que
+   medirla igual o la mascota se queda flotando fuera. */
+:root {
+  --mascot-gap: 24px;
+  --mascot-card-w: min(560px, calc(100vw - 48px));
+}
+
+@media (max-width: 640px) {
+  :root {
+    --mascot-gap: 16px;
+    --mascot-card-w: calc(100vw - 32px);
+  }
+}
+
 [data-mascot-written] {
   position: relative;
   border-radius: 8px;

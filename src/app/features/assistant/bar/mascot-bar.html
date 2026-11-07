@@ -1,4 +1,5 @@
-<div class="bar" *transloco="let t">
+@if (state.barOpen()) {
+<div class="bar" id="mascot-bar" *transloco="let t">
   @if (trayOpen()) {
     <!-- El historial, cuando se pide: la conversación entera no cabe en la tarjeta. -->
     <div class="tray">
@@ -19,22 +20,10 @@
   }
 
   <!-- Una sola tarjeta: lo que dice, lo que hay que contestar y dónde se
-       escribe. La mascota se monta sobre su borde izquierdo. -->
-  <div class="card" [class.card--pill]="pill()">
-    <button
-      type="button"
-      class="card__orb"
-      [attr.aria-label]="t('assistant.open', { name: state.name() })"
-      (click)="toggleTray()"
-    >
-      <app-mascot-orb
-        [mode]="state.orbMode()"
-        [skin]="state.skin()"
-        [accessories]="state.accessories()"
-        size="s"
-      />
-    </button>
-
+       escribe. La mascota NO se pinta aquí: es el FAB, que se acopla a este
+       borde izquierdo. Así sigue siendo la misma de siempre y puede irse a
+       recorrer un formulario sin dejar de ser ella.  -->
+  <div #card class="card" [class.card--pill]="pill()">
     <div class="card__body">
       <app-catalog-debug />
 
@@ -46,6 +35,16 @@
             <i class="fa-solid fa-xmark" aria-hidden="true"></i>
           </button>
         </div>
+      }
+
+      @if (state.pendingAction(); as action) {
+        <!-- La escritura que hay que confirmar, con su vista previa. -->
+        <app-mascot-action-card
+          [action]="action"
+          [busy]="state.resolvingAction()"
+          (confirmed)="state.confirmAction($event)"
+          (cancelled)="state.rejectAction($event)"
+        />
       }
 
       @if (asking()) {
@@ -98,7 +97,7 @@
         </div>
       }
 
-      <div class="input">
+      <div #inputRow class="input">
         <textarea
           #input
           rows="1"
@@ -116,11 +115,47 @@
               <i class="fa-solid fa-xmark" aria-hidden="true"></i>
             </button>
           </span>
-        } @else {
+        } @else if (!working()) {
           <label class="icon" [attr.aria-label]="t('assistant.attach')">
             <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
             <input type="file" hidden (change)="onFile($event)" />
           </label>
+        }
+
+        @if (!working()) {
+          <!-- El armario y el plegar la tarjeta: se quitan mientras trabaja,
+               que es cuando sólo importan la pausa y el detener. -->
+          <button
+            type="button"
+            class="icon"
+            [attr.aria-label]="t('assistant.wardrobe')"
+            (click)="state.openWardrobe()"
+          >
+            <!-- Un armario: dos puertas con sus pomos y las patas en las que
+                 se apoya. Va dibujado porque `fa-wardrobe` es de Font Awesome
+                 Pro y aquí está la Free: con la clase puesta saldría un hueco. -->
+            <svg
+              class="icon__svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="4" y="3" width="16" height="16" rx="2" />
+              <path d="M12 3v16M10 11h.01M14 11h.01M6 19v2M18 19v2" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="icon"
+            [attr.aria-label]="t('assistant.hide')"
+            (click)="hide()"
+          >
+            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+          </button>
         }
 
         <button
@@ -136,3 +171,4 @@
     </div>
   </div>
 </div>
+}

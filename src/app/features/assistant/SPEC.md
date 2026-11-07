@@ -110,11 +110,35 @@ Pointing and pressing (`copilot/pointing.ts`):
 running. It is tracing only: the request is the page's own, with the same permissions, guards and
 backend validation, and the mascot never calls a write endpoint itself.
 
-**The bottom bar** (`bar/`) replaces the floating panel, behind the temporary local flag
-`localStorage['mascot-bar']` while both coexist. It is anchored at the bottom, centred, at most
-640px wide, and above `--bottom-nav-h` on phones, so it leaves the form the mascot is working on
-visible — which the panel covered. The mascot docks at its left edge **and replaces the FAB**: with
-the bar on there is one mascot on screen, not two.
+**The conversation** lives in `bar/`, which replaced the floating panel entirely — there is no
+second chat UI. Closed, all that shows is the mascot in the bottom-right corner, where the chat has
+always been. Open, a card grows leftwards from that same corner, so it leaves the form the mascot is
+working on visible, which the panel covered.
+
+It is **one card**, not a bar with things stacked on it: what the mascot says, what it is waiting an
+answer for, the write it wants confirmed and where you write to it are the same place, because they
+are the same conversation. At rest the card shrinks to a pill with only the field. It opens when you
+press the mascot, and by itself whenever something cannot wait — a question, a pending write, a turn
+in flight (`MascotStateService.barOpen`).
+
+The card **unrolls from the right**, from where the mascot stands, over 500ms: appearing all at once
+gave no clue where it came from. The mascot travels on the same curve and duration, so it reads as
+if it were pushing the card open. Neither happens under `prefers-reduced-motion`.
+
+The mascot itself is **not drawn by the bar**: it is the launcher's FAB, which docks astride the
+card's left edge, centred on **the row that matters** — what it is saying or doing if there is one,
+otherwise the row you type in. That point is *measured* (`bar/bar-dock.ts`, published as
+`--mascot-dock-*`), not worked out from constants: what the card holds changes its height all the
+time, and a computed position leaves the mascot floating outside as soon as a new row appears.
+Keeping one orb is what lets it leave the card to walk a form, carry its notes and catch dropped
+files, exactly as before.
+
+Next to the field sit attach, wardrobe and fold-away, and they disappear while it works, when the
+only things that matter are pause and stop.
+
+Pause and stop sit next to what it is doing, not next to what you type, and while it works the
+field's placeholder says what you write will be queued. Closing a question with the ✕ answers "no" —
+hiding it would leave the turn waiting for an answer nobody can give.
 
 - `stripKind()` decides what the status line shows, with a fixed priority: `confirm` > `choice` >
   `paused` > `acting` > `thinking` > `reply`. Anything awaiting an answer wins, because until it is

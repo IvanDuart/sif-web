@@ -14,10 +14,8 @@ import { MascotFillService } from '../mascot/fill/mascot-fill.service';
 import type { NoteAction } from '../mascot/mascot-mood.service';
 import { StuckFormOfferService } from '../stuck-form-offer.service';
 import { MascotStateService } from '../mascot-state.service';
-import { barEnabled } from '../bar/bar-preference';
 import { MascotBar } from '../bar/mascot-bar';
 import { MascotOrb } from './mascot-orb';
-import { MascotPanel } from './mascot-panel';
 import { MascotWardrobe } from './mascot-wardrobe';
 
 /** Lo que mide el FAB y lo que guarda de su esquina (lo mismo que su CSS). */
@@ -51,23 +49,13 @@ export function beside(target: HTMLElement): { x: number; y: number } {
 @Component({
   selector: 'app-mascot-launcher',
   standalone: true,
-  imports: [TranslocoDirective, TuiButton, MascotBar, MascotOrb, MascotPanel, MascotWardrobe],
+  imports: [TranslocoDirective, TuiButton, MascotBar, MascotOrb, MascotWardrobe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (state.visible() && bar()) {
-      <!-- La barra sustituye al panel Y al FAB: una sola mascota en pantalla. -->
+    @if (state.visible()) {
+      <!-- La conversación entera. La mascota no va dentro: va aquí abajo, y se
+           acopla a su borde izquierdo. -->
       <app-mascot-bar />
-
-      @if (state.wardrobeOpen()) {
-        <app-mascot-wardrobe (closed)="state.closeWardrobe()" />
-      }
-    }
-
-    @if (state.visible() && !bar()) {
-      @if (state.open()) {
-        <div class="mascot-backdrop" aria-hidden="true" (click)="state.closePanel()"></div>
-        <app-mascot-panel />
-      }
 
       @if (state.wardrobeOpen()) {
         <app-mascot-wardrobe (closed)="state.closeWardrobe()" />
@@ -116,6 +104,7 @@ export function beside(target: HTMLElement): { x: number; y: number } {
       <button
         type="button"
         class="mascot-fab"
+        [class.mascot-fab--docked]="state.barOpen() && !fill.filling()"
         [class.mascot-fab--open]="state.open() && !fill.filling()"
         [class.mascot-fab--travelling]="travelling()"
         [class.mascot-fab--catching]="catching()"
@@ -125,7 +114,7 @@ export function beside(target: HTMLElement): { x: number; y: number } {
         [style.transform]="travelTransform()"
         [style.--mascot-hop]="fill.hopMs() + 'ms'"
         [attr.aria-expanded]="state.open()"
-        aria-controls="mascot-panel"
+        aria-controls="mascot-bar"
         [attr.aria-label]="state.open() ? t('assistant.close') : t('assistant.open', { name: state.name() })"
         *transloco="let t"
       >
@@ -168,8 +157,8 @@ export function beside(target: HTMLElement): { x: number; y: number } {
 
     .mascot-fab {
       position: fixed;
-      right: 24px;
-      bottom: 24px;
+      right: var(--mascot-gap, 24px);
+      bottom: calc(var(--bottom-nav-h, 0px) + var(--mascot-gap, 24px));
       z-index: 300;
       display: grid;
       place-items: center;
@@ -195,6 +184,29 @@ export function beside(target: HTMLElement): { x: number; y: number } {
       }
     }
 
+    /* Con la tarjeta desplegada, la mascota se monta a caballo sobre su borde
+       izquierdo, en la fila que importa. El punto lo MIDE la barra y lo deja
+       en --mascot-dock-*: la tarjeta cambia de alto con lo que lleve dentro, y
+       una posición deducida de constantes la dejaría flotando fuera.
+
+       Va al mismo ritmo que la tarjeta se desenrolla (500ms, misma curva), que
+       es lo que hace que parezca que la empuja ella. Viajando NO se acopla: se
+       va al campo. */
+    .mascot-fab.mascot-fab--docked:not(.mascot-fab--travelling) {
+      right: var(--mascot-dock-right, var(--mascot-gap, 24px));
+      bottom: var(--mascot-dock-bottom, calc(var(--bottom-nav-h, 0px) + var(--mascot-gap, 24px)));
+      transition:
+        right var(--mascot-bar-in, 500ms) cubic-bezier(0.2, 0.7, 0.2, 1),
+        bottom var(--mascot-bar-in, 500ms) cubic-bezier(0.2, 0.7, 0.2, 1),
+        transform var(--motion-duration-fast, 150ms) var(--motion-ease-out, ease-out);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .mascot-fab.mascot-fab--docked:not(.mascot-fab--travelling) {
+        transition: none;
+      }
+    }
+
     .mascot-backdrop {
       display: none;
     }
@@ -202,8 +214,8 @@ export function beside(target: HTMLElement): { x: number; y: number } {
     /* La nota que la mascota dice por su cuenta, sobre su cabeza. */
     .mascot-note {
       position: fixed;
-      right: 24px;
-      bottom: 96px;
+      right: var(--mascot-gap, 24px);
+      bottom: calc(var(--bottom-nav-h, 0px) + 96px);
       z-index: 301;
       display: flex;
       flex-direction: column;
@@ -322,8 +334,6 @@ export function beside(target: HTMLElement): { x: number; y: number } {
 })
 export class MascotLauncher implements OnInit {
   readonly state = inject(MascotStateService);
-  /** La barra de abajo, mientras conviva con el panel (`bar/bar-preference.ts`). */
-  protected readonly bar = barEnabled;
   readonly fill = inject(MascotFillService);
   private readonly stuck = inject(StuckFormOfferService);
 

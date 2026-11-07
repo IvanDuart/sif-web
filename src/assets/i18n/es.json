@@ -1623,7 +1623,9 @@
     "pause": "Pausar",
     "do_now": "Hacer ahora",
     "queue_placeholder": "Añade otra instrucción…",
-    "resume": "Reanudar"
+    "resume": "Reanudar",
+    "wardrobe": "Cambiar de aspecto",
+    "hide": "Ocultar"
   },
   "errors": {
     "not_authorized_title": "403",

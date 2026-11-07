@@ -1,7 +1,9 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
+  afterRenderEffect,
   computed,
   inject,
   signal,
@@ -13,9 +15,10 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { CatalogDebug } from '../copilot/catalog-debug';
 import { ToolRunnerService } from '../copilot/tool-runner.service';
 import { MascotFillService } from '../mascot/fill/mascot-fill.service';
-import { MascotOrb } from '../components/mascot-orb';
+import { MascotActionCard } from '../components/mascot-action-card';
 import { MascotRichText } from '../components/mascot-rich-text';
 import { MascotStateService } from '../mascot-state.service';
+import { dockPoint, publishDock } from './bar-dock';
 import { stripKind } from './strip-kind';
 
 /** Lo que crece el campo antes de hacer scroll (4 líneas). */
@@ -31,13 +34,15 @@ const MAX_INPUT_PX = 92;
  * porque son la misma conversación. En reposo se encoge a una pastilla con
  * solo el campo.
  *
- * La mascota se acopla aquí **y sustituye al FAB**: una sola mascota en
- * pantalla, no dos.
+ * La mascota **no se pinta aquí**: es el FAB de siempre, que se acopla a este
+ * borde izquierdo (`--mascot-card-w`). Así sigue siendo una sola mascota en
+ * pantalla, con su viaje a los campos, sus notas y su arrastre, y la tarjeta
+ * se limita a dejarle el hueco.
  */
 @Component({
   selector: 'app-mascot-bar',
   standalone: true,
-  imports: [CatalogDebug, FormsModule, TranslocoDirective, MascotOrb, MascotRichText],
+  imports: [CatalogDebug, FormsModule, TranslocoDirective, MascotActionCard, MascotRichText],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './mascot-bar.html',
   styleUrl: './mascot-bar.scss',
@@ -55,6 +60,16 @@ export class MascotBar {
   private readonly dismissed = signal('');
 
   private readonly input = viewChild<ElementRef<HTMLTextAreaElement>>('input');
+  private readonly card = viewChild<ElementRef<HTMLElement>>('card');
+  /**
+   * La fila a la que se acopla la mascota: SIEMPRE la de escribir.
+   *
+   * La tarjeta está anclada abajo y crece hacia arriba, así que esta fila es
+   * la única que no se mueve. Acoplarse a lo que dice —como hace alkimia—
+   * dejaba a la mascota subiendo y bajando con cada respuesta, y una mascota
+   * que da saltos cada vez que contesta cansa de mirar.
+   */
+  private readonly inputRow = viewChild<ElementRef<HTMLElement>>('inputRow');
 
   /** Lo último que dijo la mascota. */
   private readonly reply = computed(() => {
@@ -110,12 +125,51 @@ export class MascotBar {
 
   /** En reposo y sin nada que contar, la tarjeta se encoge a una pastilla. */
   protected readonly pill = computed(
-    () => !this.working() && !this.asking() && this.said() === '' && this.state.queued().length === 0,
+    () =>
+      !this.working() &&
+      !this.asking() &&
+      this.said() === '' &&
+      this.state.pendingAction() === null &&
+      this.state.queued().length === 0,
   );
 
   protected readonly canSend = computed(() => this.text().trim() !== '' || this.state.attachment() !== null);
 
   protected readonly history = computed(() => this.state.messages());
+
+  constructor() {
+    // La tarjeta cambia de alto con lo que lleve dentro, así que se mide cada
+    // vez en vez de deducirlo: una mascota colocada con constantes se queda
+    // flotando fuera en cuanto aparece una fila nueva.
+    const measure = () => {
+      const card = this.card()?.nativeElement;
+      const row = this.inputRow()?.nativeElement;
+      if (!card || !row) return publishDock(null);
+      publishDock(
+        // `clientWidth`, no `innerWidth`: éste último cuenta la barra de
+        // desplazamiento, y un `position: fixed` con `right` no. Son los 15 px
+        // que dejaban a la mascota al lado del borde en vez de encima.
+        dockPoint(card.getBoundingClientRect(), row.getBoundingClientRect(), {
+          width: document.documentElement.clientWidth,
+          height: document.documentElement.clientHeight,
+        }),
+      );
+    };
+
+    afterRenderEffect(() => {
+      // Leerlos aquí es lo que hace que se vuelva a medir cuando cambian: lo
+      // que la tarjeta lleva dentro es justo lo que le cambia el alto.
+      const watched = [this.kind(), this.said(), this.state.queued().length, this.pill()];
+      if (watched.length > 0) measure();
+    });
+
+    const onResize = () => measure();
+    window.addEventListener('resize', onResize);
+    inject(DestroyRef).onDestroy(() => {
+      window.removeEventListener('resize', onResize);
+      publishDock(null);
+    });
+  }
 
   protected grow(): void {
     const area = this.input()?.nativeElement;
@@ -157,6 +211,12 @@ export class MascotBar {
       return;
     }
     this.dismissed.set(this.reply());
+  }
+
+  /** Plegar la tarjeta y dejar sólo la mascota en su esquina. */
+  protected hide(): void {
+    this.dismissed.set(this.reply());
+    this.state.closePanel();
   }
 
   protected toggleTray(): void {

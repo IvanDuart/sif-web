@@ -1,23 +1,20 @@
-/* La barra de abajo: una tarjeta con la mascota montada sobre el borde
-   izquierdo. Sigue `design-guide`: neutros cálidos, el verde del centro,
-   Inter, sombra sólo en lo que flota. */
+/* La barra de abajo: una tarjeta que crece hacia la IZQUIERDA desde la misma
+   esquina donde vive la mascota. Sigue `design-guide`: neutros cálidos, el
+   verde del centro, Inter, sombra sólo en lo que flota. */
 
 :host {
   position: fixed;
-  left: 0;
-  right: 0;
-  /* En móvil va SOBRE la barra de navegación, no encima de ella. */
-  bottom: calc(var(--bottom-nav-h, 0px) + 16px);
-  z-index: 1000;
+  /* Anclada a la esquina de siempre, la del chat de toda la vida. */
+  right: var(--mascot-gap, 24px);
+  bottom: calc(var(--bottom-nav-h, 0px) + var(--mascot-gap, 24px));
+  left: auto;
+  z-index: 299;
   display: block;
+  width: var(--mascot-card-w, 560px);
   pointer-events: none;
 }
 
 .bar {
-  max-width: 620px;
-  /* El hueco de la izquierda es donde asoma la mascota. */
-  margin: 0 auto;
-  padding: 0 16px 0 40px;
   pointer-events: auto;
 }
 
@@ -29,29 +26,34 @@
   border-radius: 20px;
   box-shadow: var(--shadow-float, 0 1px 2px rgb(31 29 26 / 4%), 0 8px 24px rgb(31 29 26 / 6%));
   transition: border-radius 160ms ease;
+  /* Se desenrolla desde la derecha, desde donde está la mascota, en vez de
+     aparecer de golpe: así se entiende de dónde sale. `backwards` y no `both`,
+     porque un `clip-path` que se queda puesto al acabar corta la sombra. */
+  animation: mascot-bar-in var(--mascot-bar-in, 500ms) cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+@keyframes mascot-bar-in {
+  from {
+    clip-path: inset(0 0 0 86% round 20px);
+    opacity: 0.3;
+  }
+
+  to {
+    clip-path: inset(0 0 0 0 round 20px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card { animation: none; }
 }
 
 /* En reposo sólo está el campo: una pastilla, no un panel. */
 .card--pill { border-radius: 999px; }
 
-/* La mascota asoma por fuera del borde izquierdo, a caballo sobre él. */
-.card__orb {
-  position: absolute;
-  left: -26px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1;
-  padding: 0;
-  border: none;
-  background: none;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: top 160ms ease;
-}
-
 .card__body {
-  /* Deja sitio a la mitad de la mascota que entra en la tarjeta. */
-  padding-left: 30px;
+  /* El hueco de la mascota, que se acopla encima de este borde. */
+  padding-left: 38px;
 }
 
 /* ── Lo que dice ──────────────────────────────────────────────── */
@@ -228,6 +230,12 @@
 
 .icon:hover { background: var(--sunken, #f4f2ee); color: var(--ink-2); }
 
+/* Los iconos dibujados a mano miden como los de la tipografía. */
+.icon__svg {
+  width: 16px;
+  height: 16px;
+}
+
 .icon--tiny { width: 24px; height: 24px; font-size: 12px; }
 
 .icon--send {
@@ -335,10 +343,6 @@
   color: var(--ink-1);
 }
 
-@media (width <= 480px) {
-  .bar { padding: 0 10px 0 34px; }
-
-  .card__orb { left: -22px; }
-
-  .card__body { padding-left: 26px; }
+@media (width <= 640px) {
+  .card__body { padding-left: 34px; }
 }

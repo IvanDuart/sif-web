@@ -58,9 +58,26 @@ describe('MascotBar', () => {
     fixture.detectChanges();
   });
 
+  /** Desplegar la tarjeta, que es lo que hace pulsar la mascota. */
+  const openBar = () => {
+    state.open.set(true);
+    fixture.detectChanges();
+  };
+
   const el = (selector: string) => (fixture.nativeElement as HTMLElement).querySelector(selector);
 
+  it('cerrada no hay tarjeta: sólo queda la mascota en su esquina', () => {
+    expect(el('.card')).toBeNull();
+  });
+
+  it('se despliega sola cuando hay algo que no puede esperar', () => {
+    state.sending.set(true);
+    fixture.detectChanges();
+    expect(el('.card')).not.toBeNull();
+  });
+
   it('en reposo la tarjeta se encoge a una pastilla, sin nada más', () => {
+    openBar();
     expect(el('.card--pill')).not.toBeNull();
     expect(el('.say')).toBeNull();
     expect(el('.doing')).toBeNull();
@@ -75,6 +92,7 @@ describe('MascotBar', () => {
   });
 
   it('mientras trabaja, el campo dice que lo que escribas se encola', () => {
+    openBar();
     expect((el('textarea') as HTMLTextAreaElement).placeholder).toBe('Pídeme algo…');
     state.sending.set(true);
     fixture.detectChanges();
@@ -82,6 +100,7 @@ describe('MascotBar', () => {
   });
 
   it('pausar y detener están junto a lo que hace, no junto a lo que escribes', () => {
+    openBar();
     expect(el('.icon--pause')).toBeNull();
     state.sending.set(true);
     fixture.detectChanges();
@@ -127,13 +146,48 @@ describe('MascotBar', () => {
   });
 
   it('la cola se ve, con qué hacer con cada cosa', () => {
+    openBar();
     state.queued.set(['y apunta la analítica']);
     fixture.detectChanges();
     expect(text('.queued__text')).toBe('y apunta la analítica');
     expect(text('.queued__act')).not.toBeNull();
   });
 
+  it('pulsar la mascota abre, pero NO cierra: para eso está el botón de plegar', () => {
+    // `toggle` sólo hace algo con el asistente encendido para este centro.
+    state.config.set({ enabled: true } as never);
+    state.toggle();
+    expect(state.open()).toBeTrue();
+    // Otra pulsación no la cierra: cerrarla podría tirar una respuesta a
+    // medio leer, y convertiría cada clic en una apuesta.
+    state.toggle();
+    expect(state.open()).toBeTrue();
+  });
+
+  it('el botón de plegar sí cierra', () => {
+    openBar();
+    (el('.icon[aria-label="assistant.hide"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(state.open()).toBeFalse();
+  });
+
+  it('el armario se abre desde la barra', () => {
+    openBar();
+    (el('.icon[aria-label="assistant.wardrobe"]') as HTMLButtonElement).click();
+    expect(state.wardrobeOpen()).toBeTrue();
+  });
+
+  it('el armario y el plegar desaparecen mientras trabaja', () => {
+    openBar();
+    expect(el('.icon[aria-label="assistant.wardrobe"]')).not.toBeNull();
+    state.sending.set(true);
+    fixture.detectChanges();
+    expect(el('.icon[aria-label="assistant.wardrobe"]')).toBeNull();
+    expect(el('.icon[aria-label="assistant.hide"]')).toBeNull();
+  });
+
   it('enviar está apagado hasta que hay algo que enviar', () => {
+    openBar();
     expect((el('.icon--send') as HTMLButtonElement).disabled).toBeTrue();
     (fixture.componentInstance as unknown as { text: { set(v: string): void } }).text.set('hola');
     fixture.detectChanges();

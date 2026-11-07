@@ -130,6 +130,18 @@ export class MascotStateService {
   readonly sending = signal(false);
   /** Lo que se escribió mientras la mascota estaba ocupada, en orden. */
   readonly queued = signal<string[]>([]);
+
+  /**
+   * Si la tarjeta de la barra está desplegada.
+   *
+   * Se abre al pulsar la mascota, y sola cuando hay algo que no puede
+   * esperar: una pregunta, una escritura que confirmar o un turno en marcha.
+   * Lo consultan la barra (para pintarse) y el FAB (para acoplarse a su borde
+   * izquierdo), así que vive aquí y no en la barra.
+   */
+  readonly barOpen = computed(
+    () => this.open() || this.sending() || this.pendingAction() !== null || this.questions.current() !== null,
+  );
   readonly resolvingAction = signal(false);
 
   /**
@@ -308,13 +320,17 @@ export class MascotStateService {
     this.loadConfig();
   }
 
+  /**
+   * Pulsar la mascota **abre**, y punto. No cierra.
+   *
+   * Cerrar la conversación es cosa del botón de plegar, que está para eso. La
+   * mascota es el sitio al que se va a pedir algo, y que ese mismo sitio la
+   * cerrara convertía cada pulsación en una apuesta sobre en qué estado
+   * estaba, además de poder tirar una respuesta a medio leer.
+   */
   toggle(): void {
-    if (!this.visible()) return;
-    if (this.open()) {
-      this.closePanel();
-    } else {
-      this.openPanel();
-    }
+    if (!this.visible() || this.open()) return;
+    this.openPanel();
   }
 
   /**
