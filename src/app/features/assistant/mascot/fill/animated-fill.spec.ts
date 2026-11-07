@@ -215,6 +215,7 @@ describe('relleno animado de la mascota', () => {
     const opener: FillOpener = {
       id: 'measurement',
       tools: ['create_measurement'],
+      screen: 'DASHBOARD',
       trigger: '[data-mascot-open="measurement"]',
     };
 
@@ -408,6 +409,7 @@ describe('relleno animado de la mascota', () => {
     const opener: FillOpener = {
       id: 'schedule',
       tools: ['create_schedule'],
+      screen: 'DASHBOARD',
       reveal: ['[data-mascot-reveal="tab"]', '[data-mascot-reveal="subtab"]'],
       trigger: '[data-mascot-open="schedule"]',
     };
@@ -475,7 +477,7 @@ describe('relleno animado de la mascota', () => {
 
   describe('abrir un formulario por su nombre', () => {
     it('lo encuentra por el id que manda un OPEN_DIALOG', () => {
-      const opener: FillOpener = { id: 'schedule', tools: ['create_schedule'], trigger: 'button' };
+      const opener: FillOpener = { id: 'schedule', screen: 'DASHBOARD', tools: ['create_schedule'], trigger: 'button' };
       TestBed.runInInjectionContext(() => fill.registerOpener(opener));
 
       expect(fill.openerFor('schedule')).toBe(opener);
@@ -489,6 +491,7 @@ describe('relleno animado de la mascota', () => {
         fill.registerOpener({
           id: 'measurement',
           tools: ['create_measurement', 'update_measurement'],
+          screen: 'DASHBOARD',
           trigger: '[data-mascot-open="measurement"]',
         }),
       );

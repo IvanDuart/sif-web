@@ -1,4 +1,4 @@
-import { goToElement, preferredTiming } from '../../mascot/fill/animated-fill';
+import { goToElement, preferredTiming, pressFirstVisible } from '../../mascot/fill/animated-fill';
 import type { FieldAccess, FillSurface } from '../../mascot/fill/descriptor';
 import type { MascotFillService } from '../../mascot/fill/mascot-fill.service';
 import type { CursorService } from '../cursor.service';
@@ -91,6 +91,21 @@ export async function runSave(
   if (signal.aborted) return { ok: false, reason: 'user_declined' };
   // Cinturón además del tirante: `save_` no se declara para estos formularios.
   if (surface.noSave) return { ok: false, reason: 'unknown_tool' };
+
+  // Un formulario por pasos sólo monta el activo: tras rellenar, el Guardar
+  // puede no estar en el DOM todavía. Se va a buscar antes de darlo por
+  // imposible, porque rendirse aquí manda al modelo a escribir por detrás.
+  if (!findSubmit(surface.id) && surface.saveReveal) {
+    const steps = typeof surface.saveReveal === 'string' ? [surface.saveReveal] : surface.saveReveal;
+    fill.begin();
+    try {
+      for (const step of steps) {
+        if (!(await pressFirstVisible(step, preferredTiming(), fill))) break;
+      }
+    } finally {
+      fill.end();
+    }
+  }
 
   const button = findSubmit(surface.id);
   if (!button) return { ok: false, reason: 'control_gone' };

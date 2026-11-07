@@ -14,9 +14,16 @@ parent: architecture
 
 - **Identity and tenant context.** Keycloak wiring, `InitService`, `AuthService` (user and selected
   tenant signals), `TenantContextService`, and the guards (`authGuard`, `adminGuard`, `chatGuard`).
-  `authGuard` waits for the tenant to load before it lets navigation through.
+  `authGuard` waits for the tenant to load before it lets navigation through. **Angular does not
+  chain a route's `canActivate` array** — it subscribes to every guard at once and combines the
+  results (`prioritizedGuardValue` is a `combineLatest`). A guard listed after `authGuard` therefore
+  does *not* inherit its wait: on a cold refresh it runs while user, tenant and permissions are
+  still empty, and whatever it decides there is final. Any guard that reads that state must go
+  through `afterTenantLoaded()` (`core/auth/tenant-ready.ts`).
 - **Permissions.** `PermissionsService.has(code)`, the `*appIfPermission` directive and
-  `permission.guard`.
+  `permission.guard`. Always go through `has()`, never through the raw `permissions()` set: a
+  platform superadmin belongs to no tenant and its synthetic membership carries `permissions: []`,
+  so reading the set directly locks it out of everything.
 - **Backend access.** Typed models (`api/models/`) and one client per backend resource
   (`api/services/*.api.ts`). Each client takes `tenantId` as its first argument and builds
   `${apiUrl}/tenant/{tenantId}/…`. The SSE channels (menus, notifications, chat, assistant) all go

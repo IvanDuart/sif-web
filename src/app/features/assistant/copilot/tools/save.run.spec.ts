@@ -163,6 +163,32 @@ describe('runSave', () => {
     expect(result['missingRequired']).toEqual(['date']);
   });
 
+  it('un formulario por pasos abre su último paso para llegar al Guardar', async () => {
+    // Como la medición: el Guardar vive en el paso 4 y el relleno acabó en el 2.
+    host.innerHTML = '<button data-paso-4>4</button>';
+    const porPasos = { ...SURFACE, saveReveal: '[data-paso-4]' };
+    host.querySelector('button')!.addEventListener('click', () => {
+      const guardar = document.createElement('button');
+      // Con texto: un botón vacío puede medir cero y no contaría como visible.
+      guardar.textContent = 'Guardar';
+      guardar.setAttribute('data-mascot-submit', 'measurement');
+      guardar.addEventListener('click', () => writes.last.set({ ok: true, status: 201 }));
+      host.appendChild(guardar);
+    });
+    register(porPasos);
+    const pending = run(porPasos);
+    await waitForQuestion();
+    questions.answer(YES);
+    expect(await pending).toEqual({ ok: true, saved: true });
+  });
+
+  it('si ni abriendo el paso aparece, se dice; no se pulsa a ciegas', async () => {
+    host.innerHTML = '<button data-paso-4>4</button>';
+    const porPasos = { ...SURFACE, saveReveal: '[data-paso-4]' };
+    register(porPasos);
+    expect(await run(porPasos)).toEqual({ ok: false, reason: 'control_gone' });
+  });
+
   it('sin botón de guardar no se busca uno cualquiera por la página', async () => {
     host.innerHTML = '<button>Otro botón primario</button>';
     register();

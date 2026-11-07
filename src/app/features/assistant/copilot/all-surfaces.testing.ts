@@ -6,6 +6,7 @@ import { CALENDAR_NOTE_SURFACE } from '../mascot/fill/surfaces/calendar-note.sur
 import { clinicalStatusSurface } from '../mascot/fill/surfaces/clinical-status.surface';
 import { holidaySurface } from '../mascot/fill/surfaces/holiday.surface';
 import { mealSurface } from '../mascot/fill/surfaces/meal.surface';
+import { mealTemplateSurface } from '../mascot/fill/surfaces/meal-template.surface';
 import { MEASUREMENT_SURFACE } from '../mascot/fill/surfaces/measurement.surface';
 import { MENU_RENAME_SURFACE } from '../mascot/fill/surfaces/menu-rename.surface';
 import { menuTemplateSurface } from '../mascot/fill/surfaces/menu-template.surface';
@@ -13,6 +14,7 @@ import { PATIENT_EVENT_SURFACE } from '../mascot/fill/surfaces/patient-event.sur
 import { PATIENT_PROFILE_SURFACE } from '../mascot/fill/surfaces/patient-profile.surface';
 import { scheduleAssignmentSurface } from '../mascot/fill/surfaces/schedule-assignment.surface';
 import { scheduleSurface } from '../mascot/fill/surfaces/schedule.surface';
+import { TEMPLATE_SURFACE } from '../mascot/fill/surfaces/template.surface';
 import { tenantProfileSurface } from '../mascot/fill/surfaces/tenant-profile.surface';
 
 const options = (...labels: string[]) => () => labels.map((label) => ({ label, value: label.toLowerCase() }));
@@ -35,11 +37,13 @@ export function allSurfaces(): FillSurface[] {
     clinicalStatusSurface({ statuses: options('Activo', 'Baja') } as never),
     holidaySurface({ types: options('Nacional', 'Local') } as never),
     mealSurface({ days: options('Lunes', 'Martes'), mealTypes: options('Desayuno', 'Comida') } as never),
+    mealTemplateSurface({ days: options('Lunes', 'Martes'), mealTypes: options('Comida', 'Cena') }),
     MEASUREMENT_SURFACE,
     MENU_RENAME_SURFACE,
     menuTemplateSurface({ templates: options('Mediterránea') } as never),
     PATIENT_EVENT_SURFACE,
     PATIENT_PROFILE_SURFACE,
+    TEMPLATE_SURFACE,
     scheduleAssignmentSurface({ schedules: options('Mañanas') } as never),
     scheduleSurface({ days: options('Lunes', 'Martes'), blocks: () => 0 } as never),
     tenantProfileSurface({

@@ -74,5 +74,6 @@ export function tenantProfileSurface(options: TenantProfileOptions): FillSurface
 export const TENANT_PROFILE_OPENER: FillOpener = {
   id: 'tenant-profile',
   tools: ['update_tenant_profile'],
+  screen: 'SETTINGS',
   trigger: SETTINGS_ADDRESS_TAB,
 };

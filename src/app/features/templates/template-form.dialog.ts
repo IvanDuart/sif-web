@@ -7,6 +7,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { MenuTemplateService, CreateMenuTemplateRequest, CreateMealTemplateRequest } from '../../core/api/services/menu-template.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { MenuTemplate } from '../../core/api/models/menu-template.model';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { formAccess } from '../assistant/mascot/fill/descriptor';
+import { TEMPLATE_SURFACE } from '../assistant/mascot/fill/surfaces/template.surface';
 
 export interface TemplateFormDialogInput {
   initialMeals?: CreateMealTemplateRequest[];
@@ -31,6 +34,12 @@ export class TemplateFormDialog implements OnInit {
     name: ['', Validators.required],
     description: ['']
   });
+
+  constructor() {
+    // La mascota puede rellenar esta plantilla y pulsar su Guardar; mientras
+    // el diálogo esté vivo, `fill_template` y `save_template` se le ofrecen.
+    inject(MascotFillService).register(TEMPLATE_SURFACE, formAccess(this.form));
+  }
 
   ngOnInit() {
     const initialData = this.context.data;

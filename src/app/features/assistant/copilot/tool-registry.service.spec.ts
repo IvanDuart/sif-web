@@ -89,7 +89,7 @@ describe('ToolRegistryService', () => {
 
   it('`open_` solo se ofrece de lo que no está ya abierto', () => {
     TestBed.runInInjectionContext(() =>
-      fill.registerOpener({ id: 'measurement', tools: [], trigger: '[data-open]' }),
+      fill.registerOpener({ id: 'measurement', screen: 'DASHBOARD', tools: [], trigger: '[data-open]' }),
     );
     expect(names()).toEqual(['open_measurement']);
     expect(registry.runFor('open_measurement')).not.toBeNull();

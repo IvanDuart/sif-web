@@ -240,7 +240,8 @@ async function reveal(
 }
 
 /** Va hasta el primer botón visible que encaje y lo pulsa. */
-async function pressFirstVisible(
+/** Pulsa el primero que se vea de ese selector: una pestaña, un paso. */
+export async function pressFirstVisible(
   selector: string,
   timing: FillTiming,
   fill: MascotFillService,

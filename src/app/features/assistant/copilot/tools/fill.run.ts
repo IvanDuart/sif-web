@@ -3,6 +3,7 @@ import type { MascotFillService } from '../../mascot/fill/mascot-fill.service';
 import type { CursorService } from '../cursor.service';
 import type { ToolResult } from '../client-tool.model';
 import { matchArgs } from '../fill-args';
+import { runOpen } from './open.run';
 
 /** Lo que se espera a que el formulario cargue sus datos (`FillSurface.ready`). */
 const READY_WAIT_MS = 3000;
@@ -23,7 +24,19 @@ export async function runFill(
   args: Record<string, unknown>,
   { fill, cursor, signal }: { fill: MascotFillService; cursor: CursorService; signal: AbortSignal },
 ): Promise<ToolResult> {
-  const mounted = await fill.waitForId(surfaceId, READY_WAIT_MS);
+  let mounted = await fill.waitForId(surfaceId, READY_WAIT_MS);
+
+  // No está abierto, pero esta pantalla sabe abrirlo: se abre y se sigue.
+  //
+  // El modelo debería haber llamado antes a `open_<id>`, pero olvidarse es un
+  // paso de más, no un error: rendirse aquí le devuelve `surface_gone` y lo
+  // manda a escribir por detrás, que es justo lo que no queremos. Abrirlo es
+  // exactamente lo que `open_<id>` haría.
+  if (!mounted && fill.openerFor(surfaceId)) {
+    const opened = await runOpen(surfaceId, { fill, signal, catalog: () => undefined });
+    if (opened.ok) mounted = await fill.waitForId(surfaceId, READY_WAIT_MS);
+  }
+
   if (!mounted) return { ok: false, reason: 'surface_gone' };
   if (signal.aborted) return { ok: false, reason: 'user_declined' };
 

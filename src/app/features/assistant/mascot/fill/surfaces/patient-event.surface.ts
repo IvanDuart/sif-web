@@ -26,5 +26,7 @@ export const PATIENT_EVENT_OPENER: FillOpener = {
   id: 'patient-event',
   tools: ['create_patient_event'],
   reveal: ['[data-mascot-reveal="tab-patient_events"]'],
+  screen: 'PATIENT_PROFILE',
+  needsPatient: true,
   trigger: '[data-mascot-open="patient-event"]',
 };

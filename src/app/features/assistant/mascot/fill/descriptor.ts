@@ -1,5 +1,7 @@
 import type { FormGroup } from '@angular/forms';
 
+import type { AssistantScreen } from '../../../../core/api/models/assistant.model';
+
 /**
  * Lo que la mascota puede rellenar de un formulario (el `descriptor.ts` de
  * alkimia, `core/copilot/descriptor.ts`).
@@ -116,6 +118,16 @@ export interface FillSurface {
    * botón de sitio.
    */
   noSave?: boolean;
+  /**
+   * Qué hay que pulsar para que el botón de guardar esté en pantalla.
+   *
+   * Lo mismo que `FillField.reveal`, pero para el Guardar. Un formulario por
+   * pasos sólo monta el paso activo, así que tras rellenar los campos el botón
+   * **no existe en el DOM**: la medición se queda en el paso 2 y `save_` no
+   * encuentra nada que pulsar. Sin esto, el modelo da por imposible el
+   * formulario y se va a escribir por detrás, que es justo lo que no queremos.
+   */
+  saveReveal?: string | readonly string[];
 }
 
 /**
@@ -332,6 +344,25 @@ export function rowField(list: FillList, field: FillField, index: number): FillF
 export interface FillOpener {
   /** La superficie que abre: el mismo `id` que ella. */
   id: string;
+  /**
+   * En qué pantalla está este botón.
+   *
+   * Va aquí, pegado al opener, y no en una tabla aparte: una lista paralela
+   * acaba prometiendo formularios en pantallas donde no hay nada que pulsar,
+   * y entonces la mascota navega, no encuentra el botón y se rinde. De aquí
+   * sale `pageContext.reachableForms`.
+   */
+  /**
+   * **Sin pantalla** significa «sólo se llega estando ya aquí»: las comidas de
+   * una plantilla viven en `/templates/:id`, y no se puede navegar hasta ahí
+   * sin saber qué plantilla. El botón se sigue ofreciendo cuando se está en la
+   * página, pero no se promete desde fuera: prometer un sitio al que no se
+   * puede ir es lo que hace que la mascota navegue, no encuentre nada y se
+   * rinda.
+   */
+  screen?: AssistantScreen;
+  /** Hay que resolver el paciente antes de poder llegar. */
+  needsPatient?: boolean;
   /** Las tools cuyo `pendingAction` se atiende abriendo este formulario. */
   tools: readonly string[];
   /**

@@ -59,5 +59,7 @@ export function appointmentSurface(options: AppointmentOptions): FillSurface {
 export const APPOINTMENT_OPENER: FillOpener = {
   id: 'appointment',
   tools: ['create_appointment', 'reschedule_appointment'],
+  screen: 'PATIENT_PROFILE',
+  needsPatient: true,
   trigger: '[data-mascot-open="appointment"]',
 };

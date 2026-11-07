@@ -33,5 +33,7 @@ export const ASSIGN_NUTRITIONIST_OPENER: FillOpener = {
   id: 'assign-nutritionist',
   tools: ['assign_nutritionist'],
   reveal: ['[data-mascot-reveal="tab-profile"]'],
+  screen: 'PATIENT_PROFILE',
+  needsPatient: true,
   trigger: '[data-mascot-open="assign-nutritionist"]',
 };

@@ -83,8 +83,14 @@ export class BillingStatusService {
 
   readonly paidUntil = computed(() => this.statusDetail()?.paidUntil ?? null);
 
-  /** Solo quien puede actuar sobre la suscripción ve el aviso. */
-  readonly canManageBilling = computed(() => this.permissions.permissions().has('VIEW_BILLING'));
+  /**
+   * Solo quien puede actuar sobre la suscripción ve el aviso.
+   *
+   * Vía `PermissionsService.has()` y no leyendo el conjunto de permisos: un
+   * superadministrador no es miembro de ningún centro y su membresía sintética
+   * llega con `permissions: []`, así que mirar el conjunto lo dejaría fuera.
+   */
+  readonly canManageBilling = computed(() => this.permissions.has('VIEW_BILLING'));
 
   /** El banner se pinta para `TRIAL`, `PAST_DUE` y `CANCELLED`, nunca para el resto. */
   readonly showBanner = computed(() => {

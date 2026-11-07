@@ -41,5 +41,6 @@ export const APPOINTMENT_TYPE_OPENER: FillOpener = {
   id: 'appointment-type',
   tools: ['create_appointment_type', 'update_appointment_type'],
   reveal: [SETTINGS_APPOINTMENT_TYPES_TAB],
+  screen: 'SETTINGS',
   trigger: '[data-mascot-open="appointment-type"]',
 };

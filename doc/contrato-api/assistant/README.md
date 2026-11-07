@@ -14,6 +14,7 @@ Documentación del asistente conversacional, la mascota y el chat 1:1 paciente�
 | [`assistant-sse-espacios-perdidos-peticion.md`](assistant-sse-espacios-perdidos-peticion.md) | Fallo: el streaming pierde un espacio en cada corte y el mensaje se guarda así. Con la captura cruda del SSE. |
 | [`assistant-preferir-formulario-peticion.md`](assistant-preferir-formulario-peticion.md) | Que el modelo prefiera `fill_`+`save_` antes que su tool de escritura: la persona quiere ver el formulario, no un resumen. |
 | [`assistant-superficies-ya-existen-aviso.md`](assistant-superficies-ya-existen-aviso.md) | Aviso: el §9 del contrato da por ausentes siete superficies de relleno que ya existen. |
+| [`assistant-reachableforms-tools-peticion.md`](assistant-reachableforms-tools-peticion.md) | `reachableForms` ya dice qué escritura de servidor cubre cada formulario: la regla del prompt puede dejar de fiarse del parecido entre nombres. |
 | [`chat-frontend.md`](chat-frontend.md) | Contrato del chat 1:1: hilos, mensajes, adjuntos, SSE y notificaciones push. |
 
 ## Orden de lectura sugerido

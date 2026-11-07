@@ -15,6 +15,8 @@ import { IfPermissionDirective } from '../../core/permissions/if-permission.dire
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { NotificationService, ModalService, ConfirmService } from '../../core/ui';
 import { MealTemplateFormDialog, MealTemplateFormDialogInput } from './meal-template-form.dialog';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { MEAL_TEMPLATE_OPENER } from '../assistant/mascot/fill/surfaces/meal-template.surface';
 import { InstantiateTemplateDialog, InstantiateTemplateDialogInput } from './instantiate-template.dialog';
 import { Menu } from '../../core/api/models/menu.model';
 import { ALL_DAYS, MEAL_ORDER, MEAL_TYPES } from '../menus/menu.constants';
@@ -40,6 +42,12 @@ export default class TemplateDetailPage implements OnInit {
   private readonly confirm = inject(ConfirmService);
   private readonly transloco = inject(TranslocoService);
   private readonly permissionsService = inject(PermissionsService);
+
+  constructor() {
+    // Desde la rejilla de la plantilla, la mascota sabe abrir el diálogo de
+    // añadir comida: es lo que le permite llenarla tras crearla.
+    inject(MascotFillService).registerOpener(MEAL_TEMPLATE_OPENER);
+  }
   private readonly brandingStore = inject(BrandingStore);
 
   template = signal<MenuTemplate | null>(null);

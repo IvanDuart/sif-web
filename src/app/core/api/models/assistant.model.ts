@@ -15,6 +15,7 @@ export type AssistantScreen =
   | 'AGENDA'
   | 'DASHBOARD'
   | 'MENUS'
+  | 'TEMPLATES'
   | 'SHOPPING_LIST'
   | 'EVOLUTION'
   | 'REVENUE'
@@ -307,6 +308,19 @@ export interface ReachableForm {
   screen: AssistantScreen;
   /** Hay que resolver el paciente antes de poder ir. */
   needsPatient: boolean;
+  /**
+   * Las tools de escritura de servidor que este formulario cubre.
+   *
+   * Es el eslabón que faltaba. Sin esto el modelo tiene que adivinar que
+   * «reagendar» se hace en el formulario llamado `appointment`: con
+   * `measurement` ↔ `create_measurement` el parecido lo salva, pero
+   * `appointment` ↔ `reschedule_appointment` no se parece en nada y acaba
+   * llamando a la tool de servidor sin mirar el formulario.
+   *
+   * Vacío significa que **no hay tool de servidor** para esto y el formulario
+   * es el único camino (las plantillas de menú).
+   */
+  tools: readonly string[];
 }
 
 /** El cuerpo de `POST .../messages/stream`. */

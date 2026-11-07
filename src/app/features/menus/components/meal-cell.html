@@ -89,7 +89,7 @@
     <div class="menu-table__empty">
       <span>{{ t(i18nPrefix() + '.free_day_short') }}</span>
       @if (canManage()) {
-        <button tuiIconButton appearance="flat" size="xs" type="button" (click)="add.emit()" [title]="t(i18nPrefix() + '.add_meal_short')">
+        <button tuiIconButton appearance="flat" size="xs" type="button" [attr.data-mascot-open]="openId()" (click)="add.emit()" [title]="t(i18nPrefix() + '.add_meal_short')">
           <i class="fa-solid fa-plus"></i>
         </button>
       }

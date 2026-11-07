@@ -25,6 +25,7 @@ export const NAVIGABLE_SCREENS: readonly AssistantScreen[] = [
   'APPOINTMENTS',
   'PATIENT_APPOINTMENTS',
   'MENUS',
+  'TEMPLATES',
   'MENU',
   'PATIENT_MENU',
   'SHOPPING_LIST',
@@ -67,6 +68,8 @@ export function routeForScreen(
       return searchable('/patients');
     case 'MENUS':
       return searchable('/menus');
+    case 'TEMPLATES':
+      return searchable('/templates');
     case 'AGENDA':
     case 'APPOINTMENTS':
     case 'PATIENT_APPOINTMENTS':

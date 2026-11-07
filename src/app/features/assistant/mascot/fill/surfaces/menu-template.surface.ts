@@ -50,5 +50,7 @@ export const MENU_TEMPLATE_OPENER: FillOpener = {
   id: 'menu-template',
   tools: ['create_menu_from_template'],
   reveal: ['[data-mascot-reveal="tab-menus"]'],
+  screen: 'PATIENT_MENU',
+  needsPatient: true,
   trigger: '[data-mascot-open="menu-template"]',
 };

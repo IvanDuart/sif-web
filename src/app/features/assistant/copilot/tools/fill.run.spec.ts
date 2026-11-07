@@ -65,6 +65,23 @@ describe('runFill', () => {
     expect(result).toEqual({ ok: false, reason: 'surface_gone' });
   });
 
+  it('si no está abierto pero esta pantalla sabe abrirlo, lo abre y sigue', async () => {
+    // Olvidarse de `open_` es un paso de menos, no un error: rendirse aquí
+    // manda al modelo a escribir por detrás.
+    host.innerHTML = '<button data-abrir>Registrar medición</button>';
+    TestBed.runInInjectionContext(() =>
+      fill.registerOpener({ id: 'measurement', tools: [], screen: 'PATIENT_MEASUREMENTS', trigger: '[data-abrir]' }),
+    );
+    host.querySelector('button')!.addEventListener('click', () => {
+      host.innerHTML += '<input formcontrolname="weightKg" />';
+      register(surface());
+    });
+
+    const result = await run({ weightKg: 70 });
+    expect(result.ok).withContext(String(result['reason'])).toBeTrue();
+    expect(values['weightKg']).toBe('70');
+  });
+
   it('un formulario que aún carga se espera, no se da por ausente', async () => {
     let loaded = false;
     register(surface({ ready: () => loaded }));

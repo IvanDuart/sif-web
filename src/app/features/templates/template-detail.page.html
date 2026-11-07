@@ -71,6 +71,7 @@
                         [draft]="editingDescription()"
                         i18nPrefix="template_detail"
                         (draftChange)="editingDescription.set($event)"
+                        openId="meal-template"
                         (add)="addMeal(day, mealType)"
                         (edit)="onEditMeal(getMeal(day, mealType)!)"
                         (remove)="deleteMeal(getMeal(day, mealType)!)"

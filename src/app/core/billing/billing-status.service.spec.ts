@@ -49,6 +49,7 @@ describe('el estado de la suscripción del centro', () => {
   let api: jasmine.SpyObj<BillingService>;
   let tenantId: ReturnType<typeof signal<string | null>>;
   let permissions: ReturnType<typeof signal<Set<string>>>;
+  let superAdmin: ReturnType<typeof signal<boolean>>;
 
   function build(): BillingStatusService {
     return TestBed.inject(BillingStatusService);
@@ -59,6 +60,7 @@ describe('el estado de la suscripción del centro', () => {
     api.status.and.returnValue(of(detailOf('TRIAL')));
     tenantId = signal<string | null>('t1');
     permissions = signal<Set<string>>(new Set(['VIEW_BILLING']));
+    superAdmin = signal(false);
 
     TestBed.configureTestingModule({
       providers: [
@@ -68,8 +70,13 @@ describe('el estado de la suscripción del centro', () => {
           useValue: { currentTenantId: tenantId as unknown as Signal<string | null> },
         },
         {
+          // `has()` y no el conjunto: es por donde pasa el superadministrador,
+          // que no tiene membresía de la que derivar permisos.
           provide: PermissionsService,
-          useValue: { permissions: permissions as unknown as Signal<Set<string>> },
+          useValue: {
+            permissions: permissions as unknown as Signal<Set<string>>,
+            has: (code: string) => superAdmin() || permissions().has(code),
+          },
         },
       ],
     });
@@ -149,6 +156,19 @@ describe('el estado de la suscripción del centro', () => {
     expect(service.showBanner()).toBeFalse();
     // El estado sí se conoce: la pantalla de suspensión lo necesita.
     expect(service.status()).toBe('TRIAL');
+  });
+
+  it('cuenta al superadministrador como gestor aunque su membresía no traiga permisos', () => {
+    // No es miembro de ningún centro: su membresía sintética llega vacía y el
+    // conjunto de permisos no dice nada de él.
+    permissions.set(new Set());
+    superAdmin.set(true);
+
+    const service = build();
+    TestBed.tick();
+
+    expect(api.status).toHaveBeenCalledTimes(1);
+    expect(service.showBanner()).toBeTrue();
   });
 
   it('tira el detalle del centro anterior al cambiar de centro', () => {

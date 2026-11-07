@@ -25,6 +25,8 @@ export function toNumber(raw: string): number | null {
 
 export const MEASUREMENT_SURFACE: FillSurface = {
   id: 'measurement',
+  // El Guardar vive en el paso 4 y el relleno puede acabar en cualquiera.
+  saveReveal: '[data-mascot-reveal="measurement-step-4"]',
   tools: ['create_measurement', 'update_measurement'],
   fields: [
     metric('weightKg', 1, ['weight', 'peso', 'pesoKg']),
@@ -71,5 +73,7 @@ export const MEASUREMENT_SURFACE: FillSurface = {
 export const MEASUREMENT_OPENER: FillOpener = {
   id: MEASUREMENT_SURFACE.id,
   tools: MEASUREMENT_SURFACE.tools,
+  screen: 'PATIENT_MEASUREMENTS',
+  needsPatient: true,
   trigger: '[data-mascot-open="measurement"]',
 };

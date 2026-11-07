@@ -42,5 +42,7 @@ export function clinicalStatusSurface(options: ClinicalStatusOptions): FillSurfa
 export const CLINICAL_STATUS_OPENER: FillOpener = {
   id: 'clinical-status',
   tools: ['update_clinical_status'],
+  screen: 'PATIENT_PROFILE',
+  needsPatient: true,
   trigger: '[data-mascot-open="clinical-status"]',
 };

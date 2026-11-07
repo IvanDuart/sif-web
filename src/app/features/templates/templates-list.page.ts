@@ -17,6 +17,8 @@ import { EmptyState } from '../../shared/ui/empty-state';
 import { PaginationFooter } from '../../shared/ui/pagination-footer';
 import { NotificationService, ModalService, ConfirmService } from '../../core/ui';
 import { TemplateFormDialog } from './template-form.dialog';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { TEMPLATE_OPENER } from '../assistant/mascot/fill/surfaces/template.surface';
 import { TemplateUploadDialog } from './template-upload.dialog';
 import { InstantiateTemplateDialog, InstantiateTemplateDialogInput } from './instantiate-template.dialog';
 
@@ -34,6 +36,12 @@ export default class TemplatesListPage implements OnInit {
   private readonly confirm = inject(ConfirmService);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
+
+  constructor() {
+    // Desde aquí la mascota sabe abrir el diálogo de nueva plantilla, así que
+    // puede llegar a él navegando desde cualquier otra pantalla.
+    inject(MascotFillService).registerOpener(TEMPLATE_OPENER);
+  }
 
   templates = signal<MenuTemplate[]>([]);
   loading = signal(false);

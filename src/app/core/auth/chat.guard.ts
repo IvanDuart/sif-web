@@ -1,8 +1,10 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { CanActivateFn, Router, UrlTree } from '@angular/router';
 
 import { PermissionsService } from '../permissions/permissions.service';
 import { TenantContextService } from '../tenant/tenant-context.service';
+import { AuthService } from './auth.service';
+import { afterTenantLoaded } from './tenant-ready';
 
 /**
  * El chat 1:1 es una herramienta del nutricionista: sólo STAFF con
@@ -15,12 +17,17 @@ import { TenantContextService } from '../tenant/tenant-context.service';
 export const chatGuard: CanActivateFn = () => {
   const permissions = inject(PermissionsService);
   const tenantCtx = inject(TenantContextService);
+  const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (tenantCtx.isSuperAdmin()) return true;
+  // Igual que `adminGuard`: sin esperar a que cargue el centro, un refresco en
+  // frío lee una membresía vacía y rebota al panel.
+  return afterTenantLoaded<boolean | UrlTree>(authService, () => {
+    if (tenantCtx.isSuperAdmin()) return true;
 
-  const isStaff = tenantCtx.currentMembership()?.userType === 'STAFF';
-  if (isStaff && permissions.has('MANAGE_CHAT')) return true;
+    const isStaff = tenantCtx.currentMembership()?.userType === 'STAFF';
+    if (isStaff && permissions.has('MANAGE_CHAT')) return true;
 
-  return router.createUrlTree(['/dashboard']);
+    return router.createUrlTree(['/dashboard']);
+  });
 };

@@ -61,5 +61,6 @@ export const SCHEDULE_OPENER: FillOpener = {
   id: 'schedule',
   tools: ['create_schedule', 'update_schedule'],
   reveal: scheduleReveal('schedules'),
+  screen: 'SETTINGS_SCHEDULES',
   trigger: '[data-mascot-open="schedule"]',
 };

@@ -27,5 +27,12 @@ ni con un sí. La tarjeta de confirmar sigue siendo la respuesta correcta ahí.
 
 Todos viajan ya en `pageContext.reachableForms`, así que el modelo puede ir a buscarlos.
 
+**Añadida además (2026-11-07) la que sí faltaba:** `template`, la plantilla de menú del centro
+(`/templates`). No la teníamos, y por eso pedir «créame una plantilla» sólo conseguía que la
+mascota explicara cómo hacerlo. Ahora se rellena y se guarda como cualquier otra. Ojo: no hay
+tool de servidor equivalente —el catálogo tiene `get_menu_templates` y
+`create_menu_from_template`, pero ninguna que cree la plantilla—, así que **este formulario es
+el único camino**. Va con la pantalla `TEMPLATES`, nueva en `reachableForms`.
+
 **Qué pedimos:** sólo que actualicéis ese párrafo del §9 cuando toquéis el documento, para
 que no induzca a pensar que hay que resolverlo por la tarjeta. Nada más.

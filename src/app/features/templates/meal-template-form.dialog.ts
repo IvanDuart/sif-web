@@ -8,6 +8,9 @@ import { MenuTemplateService, UpdateMealTemplateRequest } from '../../core/api/s
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { MealTemplate } from '../../core/api/models/menu-template.model';
 import { ALL_DAYS as DAY_VALUES, MEAL_TYPES as MEAL_VALUES } from '../menus/menu.constants';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { formAccess } from '../assistant/mascot/fill/descriptor';
+import { mealTemplateSurface } from '../assistant/mascot/fill/surfaces/meal-template.surface';
 
 export interface MealTemplateFormDialogInput {
   templateId: string;
@@ -70,6 +73,13 @@ export class MealTemplateFormDialog {
   mealTypeStringify = (value: string): string => this.mealTypes().find(m => m.value === value)?.label ?? value;
 
   constructor() {
+    // Las comidas de una plantilla se añaden una a una desde la rejilla; sin
+    // esto la mascota creaba la plantilla y la dejaba vacía.
+    inject(MascotFillService).register(
+      mealTemplateSurface({ days: () => this.days(), mealTypes: () => this.mealTypes() }),
+      formAccess(this.form),
+    );
+
     const data = this.context.data;
     this.templateId = data.templateId;
 

@@ -52,5 +52,6 @@ export const SCHEDULE_ASSIGNMENT_OPENER: FillOpener = {
   id: 'schedule-assignment',
   tools: ['assign_schedule', 'update_schedule_assignment'],
   reveal: scheduleReveal('assignments'),
+  screen: 'SETTINGS_ASSIGNMENTS',
   trigger: '[data-mascot-open="schedule-assignment"]',
 };

@@ -35,6 +35,13 @@ export class MealCell {
   draft = input('');
   /** `diet_detail` en menús, `template_detail` en plantillas. */
   i18nPrefix = input.required<string>();
+  /**
+   * Qué formulario abre el botón de añadir, para la mascota.
+   *
+   * Va por `input` y no fijo porque la misma celda sirve para el menú de un
+   * paciente y para una plantilla del centro, y son formularios distintos.
+   */
+  openId = input<string | null>(null);
   /** Calorías de la comida, si hay datos nutricionales. */
   kcal = input<number | null>(null);
   /**

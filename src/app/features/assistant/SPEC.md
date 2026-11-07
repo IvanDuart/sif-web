@@ -79,7 +79,15 @@ The active patient therefore comes from **`subjectUserId` on the turn**, not fro
 noticing, so `mascot-state.subject.spec.ts` guards it.
 
 `pageContext.reachableForms` tells the model which forms the app has and on which screen, whether or
-not they are in front of it. Without it, from the dashboard `fill_measurement` is never declared, so
+not they are in front of it. It is **derived from the openers**, each of which declares the screen
+its button lives on — never a parallel table. A table drifts: ours said the appointment form lived
+on `PATIENT_APPOINTMENTS`, which routes to the agenda, where there is no button to press at all. The
+mascot would navigate there, find nothing and give up — worse than never offering the route. Forms
+nothing can open (a menu's meal, renaming, a calendar note) are left out for the same reason.
+
+If the model calls `fill_<id>` for a form that is not open and this screen knows how to open it, the
+fill opens it and carries on. Forgetting `open_<id>` is a missing step, not an error; answering
+`surface_gone` would send the model off to write behind the person's back. Without it, from the dashboard `fill_measurement` is never declared, so
 from where the model stands **the measurement has no form** and the only way it knows to record a
 weight is the server's `create_measurement` — the person ends up confirming a card instead of seeing
 what gets saved. It was not choosing badly; it was choosing with what we gave it.

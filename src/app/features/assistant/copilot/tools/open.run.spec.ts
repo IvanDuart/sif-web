@@ -8,7 +8,7 @@ describe('runOpen', () => {
   let fill: MascotFillService;
   let host: HTMLElement;
 
-  const OPENER: FillOpener = { id: 'measurement', tools: ['create_measurement'], trigger: '[data-open]' };
+  const OPENER: FillOpener = { id: 'measurement', screen: 'DASHBOARD', tools: ['create_measurement'], trigger: '[data-open]' };
   const SURFACE: FillSurface = { id: 'measurement', tools: [], fields: [{ key: 'weightKg', kind: 'number', from: [] }] };
 
   const catalog = () => [{ name: 'fill_measurement' }];

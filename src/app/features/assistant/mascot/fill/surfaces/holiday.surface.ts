@@ -48,5 +48,6 @@ export const HOLIDAY_OPENER: FillOpener = {
   id: 'holiday',
   tools: ['create_holiday'],
   reveal: scheduleReveal('holidays'),
+  screen: 'SETTINGS_HOLIDAYS',
   trigger: '[data-mascot-open="holiday"]',
 };
