@@ -8,30 +8,67 @@ parent: assistant-module
 
 # Mascota conversacional — contrato para Angular
 
-> **Estado:** backend v1 implementado.
+> **Estado:** implementado. Este documento cubre la configuración de la mascota, sesión,
+> conversación, preferencias e hitos. El catálogo de tools y pantallas vigente está en
+> [`assistant-frontend.md`](assistant-frontend.md). El asistente es **solo para personal**
+> con `MANAGE_PATIENT_PROFILE`; ya no existe el modo paciente (`SELF`).
 > **Base:** `context-path` `/api`.
 > **Autenticación:** `Authorization: Bearer <JWT>`.
-> **Regla de oro:** ninguna escritura se aplica sin `pending_action` confirmada.
+> **Regla de oro:** ninguna escritura se aplica sin una confirmación explícita de la
+> persona. Desde la fase B2 esa confirmación puede llegar por dos vías (ver §1.1).
 
 ---
 
 ## 1. Resumen
 
-La mascota es un asistente administrativo:
+La mascota es la cara del asistente administrativo del personal del centro:
 
-- Ayuda a completar el perfil y la anamnesis.
+- Ayuda a completar el perfil y la anamnesis de los pacientes.
 - Propone registrar mediciones.
 - Permite navegar a pantallas conocidas.
 - Responde en el idioma del usuario.
 - **No** diagnostica, no prescribe y no interpreta analíticas.
 
-Toda escritura sigue este ciclo:
+### 1.1 Cómo se confirma una escritura
+
+> **Cambio de regla (fase B2, 2026-11-07).** Hasta ahora este documento decía que
+> «ninguna escritura se aplica sin `pending_action` confirmada». Lo que no cambia es que
+> **siempre hay un sí explícito de una persona**. Lo que cambia es que ese sí ya no tiene
+> por qué darse en la tarjeta de acción pendiente.
+
+Hay dos caminos, y los dos terminan en alguien diciendo que sí:
+
+**1. La escritura la hace el backend** (crear una cita, registrar una medición desde la
+conversación, configurar el centro). Sigue habiendo `pending_action`:
 
 ```text
-mensaje → Gemini propone una acción → pendingAction
-        → el usuario confirma → se escribe
-        → o el usuario rechaza → no se escribe
+mensaje → Gemini propone → pendingAction
+        → la persona confirma → se escribe
+        → o la rechaza → no se escribe
 ```
+
+La diferencia es que ahora **el turno no se corta ahí**. Si hay canal hacia el navegador,
+la tarjeta sale como herramienta de cliente `confirm_action`, el turno se suspende y,
+conteste lo que conteste, el modelo lee el desenlace y sigue trabajando. Antes la mascota
+perdía el hilo a mitad de una tarea de varios pasos.
+
+Los endpoints `POST /actions/{id}/confirm` y `/reject` **siguen funcionando igual** y
+despiertan al turno que estuviera esperando: una confirmación hecha desde otra pestaña,
+desde la app móvil o desde la tarjeta de siempre vale exactamente igual.
+
+**2. La escritura la hace la pantalla** (`fill_` + `save_`). La petición HTTP la manda la
+página con los permisos y guards de siempre; la mascota solo rellena y pulsa. Aquí el sí
+se da en la tarjeta de guardado, antes de pulsar.
+
+No hay lista de formularios excluidos: la puerta es la confirmación, no una lista negra.
+Lo que no cambia en ningún caso son los `@PreAuthorize`, los guards y las validaciones
+del backend, que no distinguen —ni tienen por qué— si quien pulsó fue una persona o la
+mascota.
+
+> **Trazabilidad.** Como esa petición es indistinguible de una hecha a mano, el frontend
+> debe añadirle la cabecera `X-Assistant-Write: <sessionId>` cuando la origine una
+> herramienta de la mascota. No es un control de seguridad —el cliente puede omitirla—
+> sino lo que permite responder después a «¿quién puso esto aquí?».
 
 ---
 
@@ -339,11 +376,12 @@ Se añaden:
 POST /api/tenant/{tenantId}/assistant/sessions
 Content-Type: application/json
 
-{ "mode": "SELF", "subjectUserId": null, "screen": "PROFILE" }
+{ "subjectUserId": null, "screen": "PROFILE" }
 ```
 
-- `SELF`: el usuario habla por sí mismo.
-- `STAFF`: el profesional actúa sobre un paciente. Exige `subjectUserId` y `MANAGE_PATIENT_PROFILE`.
+- Exige `MANAGE_PATIENT_PROFILE`.
+- `subjectUserId` es opcional: con paciente, la sesión trabaja sobre su ficha (debe estar en la
+  cartera visible del profesional); sin él, es la sesión general (panel del día).
 - Si hay una sesión activa del mismo usuario y subject, se reutiliza.
 
 Respuesta:
@@ -354,7 +392,6 @@ Respuesta:
   "consentRequired": true,
   "greeting": "¡Hola! Soy Nuti. ¿Te ayudo a completar tu perfil?",
   "expiresAt": "2026-10-30T10:00:00Z",
-  "mode": "SELF",
   "subjectUserId": "uuid"
 }
 ```
@@ -378,8 +415,30 @@ Content-Type: application/json
 DELETE /api/tenant/{tenantId}/assistant/sessions/{sessionId}
 ```
 
-- Respuesta `204`.
+- Respuesta `204`. **El endpoint sigue existiendo**; no se retira.
 - No borra el historial.
+- **Sí borra los adjuntos** de esa sesión, objetos de MinIO incluidos (§4.3):
+  son datos clínicos en una conversación efímera.
+- La expiración automática hace lo mismo: una tarea cada 5 minutos
+  (`app.assistant.expire-check-ms`) pasa a `EXPIRED` las sesiones sin actividad
+  y borra sus adjuntos. El TTL es de **24 h renovables**
+  (`ASSISTANT_SESSION_TTL_HOURS`): cualquier actividad en la sesión lo reinicia.
+
+**No cerréis la sesión al cambiar de ficha.** No hace falta y cuesta el adjunto:
+
+- Las sesiones ya están indexadas por `(tenant, usuario, subjectUserId)`. Un
+  `POST /sessions` con otro `subjectUserId` **no toca la anterior**: devuelve o
+  crea otra distinta. No hay restricción de unicidad ni límite de sesiones
+  abiertas por usuario, así que **varias sesiones activas a la vez no estorban**.
+- Volver a la ficha anterior devuelve esa misma sesión, con su historial y su
+  PDF intactos. Cerrar y reabrir es, literalmente, perder trabajo a cambio de
+  nada.
+- Reservad el `DELETE` para cuando la persona cierra la conversación a
+  propósito. Ahí el borrado es lo que ha pedido y no hace falta avisar.
+- Ojo con la comprobación de sesión obsoleta: el `subjectUserId` de una sesión
+  **también lo cambia la mascota** cuando el usuario dice «vamos a la ficha de
+  Frink». El paciente activo lo manda el backend; comparad contra lo que
+  devuelve la sesión, no contra lo que creía el frontend.
 
 ---
 
@@ -408,6 +467,7 @@ bloqueante es un `404` llega como evento `error` con el mismo `code`
 (`error.assistant_attachment_not_found`). Y ese código es el mismo para un
 adjunto inexistente, de otra sesión o de otro tenant: a propósito, no se
 distingue "no existe" de "no es tuyo".
+
 
 Respuesta con texto y, opcionalmente, una acción pendiente:
 
@@ -478,6 +538,10 @@ file: <binario>
 
 Después se envía el mensaje de siempre con `attachmentId` (§4.1), y el
 `assistantMessage` del turno lo devuelve en `attachment` con esa misma forma.
+**Vale por streaming igual que bloqueante**: los dos endpoints aceptan el mismo
+cuerpo `{ "content": "...", "attachmentId": "uuid" }` y entran en el mismo
+servicio, así que el turno con adjunto —el más lento, porque el modelo tiene que
+leer el archivo— no pierde los `delta`. Ver `assistant-frontend.md` §3.1.
 En los mensajes que no tienen adjunto —incluidos todos los del asistente—
 `attachment` es `null`.
 
@@ -520,12 +584,10 @@ valor es bueno, malo o preocupante.
 - Hereda el `subjectUserId` de la sesión, para que una auditoría posterior sepa
   de qué paciente era el PDF.
 - **Muere con la conversación.** Cerrar la sesión (§3.3) y la expiración
-  automática borran también los objetos de MinIO. No hay un `DELETE` de
-  adjuntos aparte: el cierre de la sesión **es** ese borrado. El
-  `DELETE /sessions/{id}` del §3.3 sigue existiendo tal cual.
-  <!-- Corregido el 2026-11-01: la frase original decía "No hay
-  `DELETE /sessions/{id}`", que contradecía al §3.3. Confirmado por backend al
-  responder `mascota-adjuntos-preguntas-backend.md` §2. -->
+  automática borran también los objetos de MinIO. No hay un `DELETE` de adjuntos
+  aparte: ese borrado va dentro del cierre de la sesión. (La redacción anterior
+  decía «no hay `DELETE /sessions/{id}`» y era una errata: ese endpoint existe,
+  se documenta en §3.3 y no se retira.)
 - Por eso **cambiar de ficha de paciente no cierra la sesión**: las sesiones van
   por `(tenant, usuario, paciente)` y no hay límite de abiertas, así que pedir
   la de otro paciente no toca la anterior. El `DELETE` es solo para cuando la
@@ -661,21 +723,8 @@ POST /api/tenant/{tenantId}/assistant/pending-actions/{actionId}/reject
 
 ## 7. Tools disponibles
 
-| Tool | Tipo | Efecto |
-|---|---|---|
-| `get_profile` | Lectura | Campos permitidos del perfil. |
-| `get_missing_fields` | Lectura | Campos relevantes que faltan. |
-| `get_latest_measurement` | Lectura | Última medición. |
-| `get_upcoming_appointments` | Lectura | Próximas citas. |
-| `get_active_menu_summary` | Lectura | Menú activo. |
-| `get_tenant_info` | Lectura | Centro, idioma, zona horaria. |
-| `update_profile` | Escritura | Propone datos básicos. |
-| `update_anamnesis` | Escritura | Propone anamnesis. |
-| `create_measurement` | Escritura | Propone medición. |
-| `update_locale` | Escritura | Propone idioma/zona horaria. |
-| `navigate_to` | Navegación | Devuelve `uiActions`. |
-
-Pantallas permitidas: `PROFILE`, `ANAMNESIS`, `MEASUREMENTS`, `MENU`, `APPOINTMENTS`, `DIARY`.
+El catálogo vigente (57 tools) y la lista de pantallas permitidas están en
+[`assistant-frontend.md` §7](assistant-frontend.md).
 
 ---
 
@@ -708,7 +757,7 @@ Pantallas permitidas: `PROFILE`, `ANAMNESIS`, `MEASUREMENTS`, `MENU`, `APPOINTME
 | `error.assistant_unavailable` | 503 | Gemini no responde. |
 | `error.assistant_action_not_found` | 404 | Acción inexistente o de otro usuario. |
 | `error.assistant_action_expired` | 409 | Acción caducada. |
-| `error.assistant_action_already_resolved` | 409 | Acción ya resuelta con otra clave. |
+| `error.assistant_action_already_resolved` | 409 | Confirmar una acción ya rechazada o rechazar una ya aplicada. Una clave de idempotencia distinta devuelve `error.assistant_action_invalid`. |
 | `error.assistant_action_invalid` | 409/422 | Payload inválido o clave incorrecta. |
 | `error.assistant_invalid_tool_arguments` | 422 | Argumentos de tool inválidos. |
 | `error.assistant_pet_not_found` | 422 | `skinId` no existe en el catálogo. |
@@ -719,7 +768,7 @@ Pantallas permitidas: `PROFILE`, `ANAMNESIS`, `MEASUREMENTS`, `MENU`, `APPOINTME
 | `error.assistant_attachment_too_large` | 413 | Supera el límite de 10 MB. |
 | `error.assistant_attachment_unsupported` | 422 | Tipo que el modelo no lee. Admitidos: JPEG, PNG, WebP y PDF. |
 | `error.assistant_milestone_not_found` | 404 | `code` de hito desconocido. |
-| `error.permission_denied` | 403 | Modo `STAFF` sin `MANAGE_PATIENT_PROFILE`. |
+| `error.permission_denied` | 403 | Abrir sesión o enviar mensajes sin `MANAGE_PATIENT_PROFILE`. |
 
 ---
 

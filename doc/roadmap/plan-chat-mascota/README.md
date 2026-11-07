@@ -13,6 +13,8 @@
 |---|---|---|
 | [`plan-chat.md`](plan-chat.md) | Chat 1:1 paciente–nutricionista con texto, imágenes en MinIO, SSE, push y no leídos. | 3–4 semanas |
 | [`plan-mascota.md`](plan-mascota.md) | Asistente conversacional con mascota en Angular y motor en Java/Gemini que propone y confirma el rellenado de campos. | 8–10 semanas |
+| [`plan-copiloto-alkimia.md`](plan-copiloto-alkimia.md) | Adaptar el copiloto de alkimia-app: herramientas en el cliente, guardar con confirmación, barra inferior y vida de la mascota. | ≈ 4 sem backend · ≈ 12 sem frontend |
+| [`plan-copiloto-implementacion.md`](plan-copiloto-implementacion.md) | Plan de implementación del frontend por fases (F0–F8) contra el contrato B0–B3 del backend: tareas, ficheros, tests y criterios de «hecho». | ≈ 10–11 sem frontend |
 
 Los dos planes son **independientes entre sí**. Comparten infraestructura (MinIO, SSE, notificaciones, permisos), pero ninguno bloquea al otro. Se pueden ejecutar en paralelo si hay equipo suficiente.
 

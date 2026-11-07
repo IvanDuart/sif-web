@@ -10,6 +10,10 @@ parent: assistant-module
 
 > **Estado:** implementadas las peticiones de [`assistant-tools-backend.md`](assistant-tools-backend.md)
 > y [`assistant-backend-peticion.md`](assistant-backend-peticion.md).
+> **Permisos de los endpoints:** abrir sesión, `sessions/latest`, enviar mensaje (normal y
+> streaming) y subir adjuntos exigen `MANAGE_PATIENT_PROFILE`. Historial, consentimiento, cerrar
+> sesión y confirmar/rechazar acciones solo exigen ser miembro del tenant (la propiedad de la
+> sesión/acción se comprueba en el servicio).
 > **Base:** `context-path` `/api`.
 > **Autenticación:** `Authorization: Bearer <JWT>`.
 
@@ -111,6 +115,18 @@ Content-Type: application/json
 { "content": "Cambia la cita de Ana al jueves a las 10" }
 ```
 
+El cuerpo es **el mismo** que el del endpoint bloqueante, adjunto incluido:
+
+```json
+{ "content": "¿Me pasas estos valores a la ficha?", "attachmentId": "uuid" }
+```
+
+`attachmentId` es opcional y se omite cuando no hay adjunto. Los dos endpoints
+entran en el mismo método de servicio, así que **el turno con adjunto se manda
+por streaming como cualquier otro**: no hay que invertir la regla ni caer al
+bloqueante, que es justo el turno en el que más se notaría perder los `delta`.
+El adjunto se sube antes (ver `mascota-frontend.md` §4.3).
+
 | `event` | `data` | Cuándo |
 |---|---|---|
 | `delta` | `{ "text": "trozo de texto" }` | N veces, según va generando |
@@ -127,7 +143,310 @@ Content-Type: application/json
 - `code` usa los mismos valores que el endpoint bloqueante
   (`error.assistant_session_closed`, `error.assistant_consent_required`,
   `error.assistant_unavailable`…).
+- **Los errores del stream no son códigos HTTP.** La respuesta HTTP ya se envió
+  con `200` cuando el stream se abrió, así que lo que en el bloqueante sería un
+  `404` llega aquí como evento `error` con ese mismo `code`. Un `attachmentId`
+  inexistente, de otra sesión o de otro tenant da los tres el mismo
+  `error.assistant_attachment_not_found` —a propósito: no se distingue "no
+  existe" de "no es tuyo"—, igual que el bloqueante responde `404` en los tres
+  casos. Un único camino de error, con el `code` como discriminante.
 - **El endpoint bloqueante se queda** como camino de respaldo si el stream se corta.
+
+---
+
+## 3.2 Herramientas que ejecuta el navegador
+
+> **Estado:** fases B0 a B3 implementadas. El transporte, el contexto, las
+> confirmaciones y el historial están cerrados; el catálogo concreto de `fill_`,
+> `save_`, `ask_user` y compañía lo define el frontend (ver el plan en
+> `doc/roadmap/plan-mascota-copiloto/`).
+
+Hasta ahora el modelo mandaba `uiActions` y no se enteraba de nada: si el campo existía,
+si el formulario aceptó el valor o si alguien guardó. Con las herramientas de cliente, el
+navegador **declara lo que sabe hacer en la pantalla actual**, el modelo las llama y
+recibe su resultado dentro del mismo turno.
+
+```text
+Angular                       Backend                          Gemini
+POST .../messages/stream  ──►  prompt + tools de servidor
+  { content, clientTools }     + clientTools del navegador  ──►  function_call
+                          ◄──  event: client_tool                fill_patient_profile
+                               (el turno queda SUSPENDIDO)
+ejecuta en el DOM
+POST .../runs/{runId}/tool-results ►  reanuda  ────────────────►  sigue
+                          ◄──  delta… / client_tool… / done
+```
+
+### Declarar el catálogo
+
+Solo lo acepta el endpoint **de streaming**: es el único con un canal abierto por el que
+mandar una llamada y esperar la respuesta. El bloqueante ignora `clientTools`.
+
+```json
+{
+  "content": "Apunta 70 kg en la ficha de Ana",
+  "clientTools": [
+    {
+      "name": "fill_patient_profile",
+      "description": "Rellena la ficha del paciente abierta en pantalla",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "peso": { "type": "number", "description": "Peso en kg" },
+          "sexo": { "type": "string", "enum": ["M", "F"] }
+        },
+        "required": ["peso"]
+      }
+    }
+  ]
+}
+```
+
+El catálogo se manda **en cada turno**, porque depende de la pantalla. Lo que no cumpla
+el contrato se descarta en silencio: la herramienta simplemente no se le ofrece al
+modelo, sin error ni aviso.
+
+| Regla | Valor |
+|---|---|
+| Nombres permitidos | prefijos `fill_`, `edit_`, `open_`, `save_`, `action_`; y `point_at`, `show_around`, `press`, `ask_user`, `navigate` |
+| Forma del nombre | `^[a-z][a-z0-9_]{2,48}$` |
+| Herramientas por turno | 40 |
+| Esquema (JSON serializado) | 2 KB |
+| `description` | 300 caracteres, en una sola línea |
+| Anidamiento del esquema | 3 niveles |
+| Propiedades por objeto | 60 |
+| Tipos del esquema | `object`, `string`, `number`, `integer`, `boolean`, `array`, más `enum`, `items`, `required` y `description` |
+
+También se descarta una herramienta que **se llame igual que una de servidor**: si
+coinciden, manda la de servidor.
+
+> `echo` está en la lista blanca como sonda del contrato: devuelve lo que se le pasa y
+> sirve para comprobar el viaje de ida y vuelta sin montar media pantalla.
+
+### El evento `client_tool`
+
+```text
+event: client_tool
+data: {"runId":"uuid","callId":"uuid","name":"fill_patient_profile","args":{"peso":70}}
+```
+
+Al recibirlo, el turno **queda suspendido**: no llegará ningún `delta` más hasta que se
+conteste. Mientras tanto el backend manda `ping` cada 20 s para que ningún proxy dé la
+conexión por muerta.
+
+### Devolver el resultado
+
+```http
+POST /api/tenant/{tenantId}/assistant/runs/{runId}/tool-results
+Content-Type: application/json
+
+{ "callId": "uuid", "result": { "ok": true, "written": ["peso"], "rejected": [] } }
+```
+
+- Responde `202` y **no devuelve nada**: la continuación viaja por el SSE ya abierto.
+- Responde `204` si el turno ya no espera esa llamada (respuesta duplicada, o la de un
+  paso anterior que llegó tarde). No es un error, pero ese resultado no se usa.
+- Responde `404` si el `runId` no existe, expiró o **es de otra persona**. Es a
+  propósito: un `403` confirmaría que ese identificador es real.
+- El contenido de `result` lo decide el frontend. Por convenio lleva `ok` y, si algo
+  falló, `reason`. Se recorta a partir de 16 KB.
+- El `POST` puede entrar por **cualquier nodo** del backend, no hace falta afinidad de
+  sesión con el que tiene el SSE abierto.
+
+### Plazos
+
+| Herramienta | Plazo |
+|---|---|
+| Mecánicas (`fill_`, `edit_`, `open_`, `navigate`, `point_at`, `show_around`) | 60 s |
+| Las que esperan a una persona (`ask_user`, `press`, `save_`) | 15 min |
+| Turno completo, esperas incluidas | 20 min |
+
+El plazo lo decide el backend por el nombre de la herramienta; el cliente no puede
+pedirlo. Si vence, el modelo recibe `{"ok": false, "reason": "tool_timeout"}` y **el
+turno sigue**: lo explica o intenta otra cosa. No es un error del stream.
+
+### Detener el turno
+
+```http
+DELETE /api/tenant/{tenantId}/assistant/runs/{runId}
+```
+
+Responde `204`. El turno se corta en la siguiente frontera —no hace falta que esté
+suspendido— y llega un evento `stopped` con `{ "runId": "uuid" }` en lugar de `done`.
+Lo ya escrito se queda escrito, y los tokens gastados cuentan para la cuota.
+
+Cerrar el SSE por las bravas tiene el mismo efecto: el backend lo detecta por el latido
+y suelta el turno.
+
+### Qué hay en pantalla (`pageContext`)
+
+Sin esto el modelo puede llamar a `edit_appointment_notes`, pero no sabe qué pone ahora
+mismo en esas notas: tendría que reescribir el campo entero a ciegas en vez de cambiar
+una frase.
+
+```json
+{
+  "content": "Cambia la frase de la analítica por 'trae la de abril'",
+  "pageContext": {
+    "route": "/pacientes/123/citas/9",
+    "title": "Cita de Ana García",
+    "forms": [
+      {
+        "id": "appointment",
+        "title": "Datos de la cita",
+        "values": { "notas": "Trae analítica de marzo.", "tipo": null }
+      }
+    ],
+    "extras": { "diaSeleccionado": "2026-11-10" }
+  }
+}
+```
+
+- `forms[].id` es **el mismo identificador** que usa `fill_<id>` / `save_<id>`.
+- Un valor ausente o `null` se le presenta al modelo como `(vacío)`.
+- Llega como **mensaje de usuario delimitado**, nunca dentro del prompt del sistema: ahí
+  dentro hay notas y observaciones que escribió una persona.
+
+**Presupuesto: 22 000 caracteres.** Cuando no cabe, se recorta en este orden:
+
+1. Primero los `extras`.
+2. Después, si aún no cabe, los `forms` — con tope duro, aunque son lo último que se
+   toca porque `edit_` necesita copiar fragmentos literales.
+
+Un valor suelto de más de 4 000 caracteres se corta con `…(cortado)`. Si algo se
+recortó, el bloque lo dice y el modelo tiene instrucciones de preguntar en vez de
+suponer.
+
+### Cambiar de pantalla a mitad de turno
+
+Cuando una herramienta cambia de pantalla (`navigate`), el catálogo declarado al empezar
+el turno deja de valer: esos formularios ya no están. El navegador devuelve los de la
+pantalla nueva **en el propio resultado**:
+
+```json
+{
+  "ok": true,
+  "route": "/pacientes/123/mediciones",
+  "clientTools": [
+    { "name": "fill_measurement", "description": "...", "parameters": { "type": "object" } }
+  ]
+}
+```
+
+Se revalidan con las mismas reglas: venir dentro de un resultado no los hace de fiar.
+
+### Presupuesto y bucles
+
+- **30 pasos de cliente** por petición, aparte de las vueltas de tools de servidor. Al
+  agotarse, el modelo recibe `step_budget_exhausted` y debe cerrar hablando.
+- **La misma herramienta con los mismos argumentos tres veces seguidas corta el turno**
+  (`repeated_call`). Un modelo pequeño en una cadena larga se atasca repitiendo, y
+  esperar a que se agote el contador sale caro y deja a la persona mirando cómo no pasa
+  nada. Cambiar un solo argumento basta para que no cuente como bucle.
+
+### Cuota
+
+El límite diario pasó a medirse en **tokens**, no solo en turnos, porque un turno de
+treinta pasos puede costar dos órdenes de magnitud más que uno de los de antes. Los dos
+límites siguen vigentes y cualquiera de ellos devuelve `429` con
+`error.assistant_quota_exceeded`.
+
+### `confirm_action`: la tarjeta, sin cortar el turno
+
+Esta herramienta **no se declara**: la emite el backend cuando el modelo propone una
+escritura de servidor. El navegador solo tiene que saber pintarla y contestar.
+
+```text
+event: client_tool
+data: {
+  "runId": "uuid", "callId": "uuid", "name": "confirm_action",
+  "args": {
+    "actionId": "uuid",
+    "toolName": "create_measurement",
+    "summary": "Registrar 70 kg",
+    "question": "¿Quieres que lo registre?",
+    "idempotencyKey": "key-1",
+    "expiresAt": "2026-11-07T12:15:00Z",
+    "preview": [ { "label": "Peso", "value": "70 kg" } ]
+  }
+}
+```
+
+Se contesta como cualquier otra herramienta de cliente:
+
+```json
+{ "callId": "uuid", "result": { "confirmed": true } }
+```
+
+Qué pasa después, y qué lee el modelo:
+
+| Respuesta | Qué hace el backend | Qué lee el modelo |
+|---|---|---|
+| `{"confirmed": true}` | Aplica la acción | `{ok: true, status, entityType, entityId, message}` |
+| `{"confirmed": false}` | La marca rechazada | `{ok: false, reason: "declined"}` |
+| Nadie contesta en 15 min | **Nada**: ni aplica ni descarta | `{ok: false, reason: "no_answer"}` |
+| La acción ya caducó | Nada | `{ok: false, reason: "ASSISTANT_ACTION_EXPIRED"}` |
+
+**El turno no se corta en ninguno de esos casos.** El modelo lee el desenlace y sigue, que
+es lo que permite encadenar «crea la cita y anota que trae analítica» sin volver a empezar.
+
+Si nadie contesta, la propuesta **sigue viva** con su propio plazo: se puede confirmar
+después aunque el turno haya terminado.
+
+> `POST /actions/{id}/confirm` y `/reject` siguen existiendo sin cambios, y además
+> **despiertan al turno** que estuviera esperando. Confirmar desde otra pestaña, desde la
+> app móvil o desde la tarjeta de siempre funciona igual; la respuesta llega con
+> `"answeredBy": "card"`. El endpoint bloqueante (`/messages`, sin SSE) conserva el
+> comportamiento de antes: devuelve `pendingAction` y termina el turno.
+
+### Qué queda en el historial
+
+No todos los pasos se guardan, y los que se guardan no llevan valores.
+
+| Herramienta | ¿Deja fila en el historial? |
+|---|---|
+| `fill_`, `edit_`, `save_`, `action_`, `press` | Sí |
+| `point_at`, `show_around`, `navigate`, `open_`, `ask_user` | No |
+
+De cada fila se conservan el desenlace (`ok`, `reason`, `saved`) y los **nombres** de los
+campos (`written`, `rejected`, `missing_required`), nunca lo que se escribió en ellos: el
+peso o la anamnesis ya están guardados donde les toca, y repetirlos aquí sería una
+segunda copia de datos clínicos.
+
+A partir de **10 filas por turno**, el resto se agrega en una sola con el nombre
+`client_steps_summary` y la forma `{steps, tools, outcomes}`.
+
+### Un turno que quedó colgado
+
+Si alguien recarga la página con la mascota trabajando, el SSE se corta y ese turno se
+queda esperando una respuesta que ya no va a llegar — ocupando un hilo hasta que venza su
+plazo. Al retomar la conversación:
+
+```http
+GET /api/tenant/{tenantId}/assistant/sessions/latest
+```
+
+```json
+{ "sessionId": "uuid", "consentRequired": false, "pendingRunId": "uuid" }
+```
+
+`pendingRunId` solo aparece cuando hay uno vivo. **Hay que detenerlo** con
+`DELETE /assistant/runs/{runId}` antes de mandar un mensaje nuevo. Reconectar el SSE a un
+turno en curso no está soportado.
+
+### Marcar las escrituras de la mascota
+
+Cuando una herramienta de cliente provoque una petición de escritura (`POST`, `PUT`,
+`PATCH`, `DELETE`), hay que añadirle:
+
+```http
+X-Assistant-Write: <sessionId>
+```
+
+No es un control de seguridad: el backend no cambia nada en función de ella y una
+cabecera mal formada se ignora sin romper la petición. Es lo que deja rastro de que ese
+cambio lo originó la mascota, porque por lo demás la petición es idéntica a la que haría
+una persona a mano.
 
 ---
 

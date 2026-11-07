@@ -22,7 +22,7 @@ sif-web is a multi-tenant SaaS web application for running nutrition clinics. A 
 - Diet menus: build and assign menus and meals, reusable menu templates (including uploaded templates), and shopping lists derived from menus.
 - Agenda: appointments, appointment types and pricing, centre schedules and holidays, calendar notes, appointment proposals from patients.
 - Clinic operations: staff management, revenue metrics, 1:1 chat between nutritionist and patient.
-- Assistant ("mascota"): a conversational assistant for staff that proposes actions and fills forms on screen; the user always confirms and saves (see `assistant-module`).
+- Assistant ("mascota"): a conversational assistant for staff that proposes actions and works the screen for them (fills forms, points, asks, presses and saves); nothing is written without an explicit yes from the person, and the assistant never writes to the backend on its own (see `assistant-module`).
 - Clinic branding: per-tenant logo, primary colour and language; platform admins create tenants.
 - In-app help.
 
