@@ -1,6 +1,6 @@
 import type { FillOpener, FillSurface } from '../descriptor';
 import type { PickOption } from './parse';
-import { pickLabel } from './parse';
+import { pickLabel, choicesOf } from './parse';
 
 /**
  * Asignar una plantilla de menú al paciente
@@ -36,6 +36,7 @@ export function menuTemplateSurface(options: MenuTemplateOptions): FillSurface {
         kind: 'choice',
         from: ['templateId', 'template', 'plantilla', 'templateName'],
         // El combobox guarda el nombre de la plantilla, no su id.
+        ...choicesOf(() => options.templates()),
         parse: (raw) => pickLabel(options.templates(), raw),
       },
       { key: 'name', kind: 'text', from: ['name', 'nombre', 'menuName'] },

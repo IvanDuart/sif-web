@@ -1,3 +1,4 @@
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -337,6 +338,19 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
     } else if (api.view.type === 'timeGridDay') {
       api.changeView(this.currentView() === 'timeGridDay' ? 'timeGridWeek' : this.currentView());
     }
+  }
+
+  constructor() {
+    // Qué está mirando la persona en la agenda: lo que el modelo necesita para
+    // entender «el martes» o «la semana que viene».
+    inject(MascotFillService).provideExtras('agenda', () => ({
+      view: this.currentView(),
+      range: this.rangeLabel(),
+      // En fecha local: el ISO es UTC y en España la semana empezaría el domingo.
+      // `to` es el último día que se ve (el `end` de FullCalendar es exclusivo).
+      from: this.weekStart ? this.toLocalDateStr(new Date(this.weekStart)) : null,
+      to: this.weekEnd ? this.toLocalDateStr(new Date(new Date(this.weekEnd).getTime() - 1)) : null,
+    }));
   }
 
   ngOnInit() {

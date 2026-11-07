@@ -12,6 +12,7 @@ import {
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { NotificationService } from '../../core/ui';
 import { MascotStateService } from './mascot-state.service';
+import { noHungRun } from './mascot-state.testing';
 
 /** Un archivo de mentira con el tipo y el tamaño que digamos. */
 function fileOf(name: string, type: string, size = 1024): File {
@@ -103,6 +104,7 @@ describe('un archivo en la conversación', () => {
     for (const open of http.match((r) => r.url.includes('/messages') && r.method === 'GET')) {
       open.flush({ items: [] });
     }
+    noHungRun(http);
   };
 
   /** Deja un archivo subido y esperando. */
@@ -137,17 +139,20 @@ describe('un archivo en la conversación', () => {
   it('el mensaje lo nombra, y va por streaming como cualquier otro', () => {
     attachPdf();
     state.send('¿Me pasas estos valores?');
+    noHungRun(http);
 
     const turn = http.expectOne((r) => r.url.endsWith('/messages/stream') && r.method === 'POST');
-    expect(turn.request.body).toEqual({
-      content: '¿Me pasas estos valores?',
-      attachmentId: 'adj-1',
-    });
+    expect(turn.request.body.content).toBe('¿Me pasas estos valores?');
+    expect(turn.request.body.attachmentId).toBe('adj-1');
+    // El contexto de pantalla viaja siempre; las herramientas, solo si las hay.
+    expect(turn.request.body.pageContext.route).toBeDefined();
+    expect(turn.request.body.clientTools).toBeUndefined();
   });
 
   it('se gasta al enviarlo: el siguiente mensaje ya no lo lleva', () => {
     attachPdf();
     state.send('Toma');
+    noHungRun(http);
 
     expect(state.attachment()).toBeNull();
     // Y queda en la burbuja de quien lo mandó.
@@ -158,6 +163,7 @@ describe('un archivo en la conversación', () => {
   it('un archivo sin nada escrito también es un mensaje', () => {
     attachPdf();
     state.send('');
+    noHungRun(http);
 
     http.expectOne((r) => r.url.endsWith('/messages/stream') && r.method === 'POST');
   });
@@ -178,6 +184,7 @@ describe('un archivo en la conversación', () => {
   it('renueva la URL firmada cuando la imagen ya no carga', () => {
     attachPdf();
     state.send('Toma');
+    noHungRun(http);
     http.expectOne((r) => r.url.endsWith('/messages/stream') && r.method === 'POST');
 
     state.refreshAttachmentUrl('adj-1');

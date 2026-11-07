@@ -1446,6 +1446,8 @@
     "suggestions": "Sugerencias",
     "input_placeholder": "Escribe tu mensaje…",
     "send": "Enviar",
+    "stop": "Detener respuesta",
+    "stopped": "(respuesta detenida)",
     "disclaimer": "Asistente virtual. No sustituye a tu nutricionista.",
     "action_title": "Acción pendiente",
     "action_hint": "Nada se guarda hasta que confirmes. Puedes revisarlo antes.",

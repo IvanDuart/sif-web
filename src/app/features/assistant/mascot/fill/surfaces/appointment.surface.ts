@@ -1,6 +1,6 @@
 import type { FillOpener, FillSurface } from '../descriptor';
 import type { PickOption } from './parse';
-import { pickOption, toDay, toTime } from './parse';
+import { pickOption, toDay, toTime, choicesOf } from './parse';
 
 export type { PickOption } from './parse';
 export { pickOption, toDay, toTime } from './parse';
@@ -26,18 +26,21 @@ export function appointmentSurface(options: AppointmentOptions): FillSurface {
         key: 'patientId',
         kind: 'choice',
         from: ['patientId', 'patient', 'paciente', 'patientName'],
+        ...choicesOf(() => options.patients(), { people: true }),
         parse: (raw) => pickOption(options.patients(), raw),
       },
       {
         key: 'nutritionistId',
         kind: 'choice',
         from: ['nutritionistId', 'nutritionist', 'nutricionista', 'professional'],
+        ...choicesOf(() => options.nutritionists(), { people: true }),
         parse: (raw) => pickOption(options.nutritionists(), raw),
       },
       {
         key: 'typeId',
         kind: 'choice',
         from: ['typeId', 'type', 'tipo', 'appointmentType'],
+        ...choicesOf(() => options.types()),
         parse: (raw) => pickOption(options.types(), raw),
       },
       { key: 'date', kind: 'date', from: ['date', 'fecha', 'startDate', 'scheduledAt'], parse: toDay },

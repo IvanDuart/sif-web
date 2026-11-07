@@ -6,6 +6,7 @@ import { TranslocoTestingModule } from '@jsverse/transloco';
 
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { MascotStateService } from './mascot-state.service';
+import { noHungRun } from './mascot-state.testing';
 
 /**
  * El error de un turno en streaming. El backend manda su código dentro del
@@ -55,6 +56,7 @@ describe('error de un turno de la mascota', () => {
     state.send(text);
     http.expectOne((r) => r.url.endsWith(`/api/tenant/${TENANT}/assistant/sessions`) && r.method === 'POST')
       .flush({ sessionId: 's1', consentRequired: false, greeting: '', subjectUserId: null });
+    noHungRun(http);
   }
 
   /** Responde el stream con un único marco de error, como el backend. */

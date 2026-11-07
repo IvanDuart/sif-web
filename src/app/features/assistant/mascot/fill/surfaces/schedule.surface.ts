@@ -1,6 +1,6 @@
 import type { FillList, FillOpener, FillSurface } from '../descriptor';
 import type { PickOption } from './parse';
-import { pickLabel, toHexColor, toTime } from './parse';
+import { pickLabel, toHexColor, toTime, choicesOf } from './parse';
 import { scheduleReveal } from './settings-section';
 
 /**
@@ -33,6 +33,7 @@ export function scheduleSurface(options: ScheduleOptions): FillSurface {
         kind: 'choice',
         from: ['dayOfWeek', 'day', 'dia', 'diaSemana', 'weekday'],
         // El desplegable guarda la etiqueta ("Lunes"), no el número.
+        ...choicesOf(() => options.days()),
         parse: (raw) => pickLabel(options.days(), raw),
       },
       { key: 'startTime', kind: 'time', from: ['startTime', 'start', 'desde', 'horaInicio'], parse: toTime },

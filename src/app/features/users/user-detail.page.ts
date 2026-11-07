@@ -247,10 +247,24 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     fillService.registerOpener(PATIENT_EVENT_OPENER);
     fillService.registerOpener(MENU_TEMPLATE_OPENER);
 
+    // Qué ficha tiene abierta la persona. Solo el id y el tipo: el nombre y lo
+    // clínico no hacen falta para que el modelo sepa de quién se habla.
+    fillService.provideExtras('patient', () => {
+      const open = this.user();
+      return open ? { id: open.id, userType: open.userType } : null;
+    });
+
     // La anamnesis la puede rellenar la mascota. Esta pantalla no tiene botón
     // de guardar —se guarda sola—, así que una escritura definitiva dispara su
     // propio guardado; las intermedias del tecleo no.
-    fillService.register(PATIENT_PROFILE_SURFACE, {
+    fillService.register(
+      {
+        ...PATIENT_PROFILE_SURFACE,
+        // La anamnesis es dato clínico: solo viaja al modelo cuando la persona
+        // está mirando esa pestaña (o las pautas, que comparten la superficie).
+        contextual: () => ['patient_profile', 'fixed_guidelines'].includes(this.activeTabId()),
+      },
+      {
       get: (key) =>
         key === 'observations'
           ? this.editObservations()
@@ -266,7 +280,8 @@ export default class UserDetailPage implements OnInit, OnDestroy {
         this.editProfileData.update((data) => ({ ...data, [key]: value ?? null }));
         if (!options?.silent) this.persistProfile();
       },
-    });
+      },
+    );
 
     // Subscribe to theme changes and rebuild chart when theme toggles
     effect(() => {

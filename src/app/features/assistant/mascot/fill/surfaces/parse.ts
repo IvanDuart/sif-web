@@ -1,5 +1,7 @@
 import { TuiDay, TuiTime } from '@taiga-ui/cdk';
 
+import type { FillField } from '../descriptor';
+
 /**
  * De lo que dice el asistente a lo que espera el formulario.
  *
@@ -14,6 +16,24 @@ import { TuiDay, TuiTime } from '@taiga-ui/cdk';
 export interface PickOption {
   label: string;
   value: string;
+}
+
+/**
+ * Lo que un campo de elección cuenta de sí: sus etiquetas (para enumerarlas en
+ * la herramienta) y cómo pasar de su valor a la etiqueta (para el contexto).
+ */
+export function choicesOf(
+  list: () => readonly PickOption[],
+  { people = false }: { people?: boolean } = {},
+): Pick<FillField, 'options' | 'valueLabel' | 'people'> {
+  return {
+    options: () => list().map((option) => option.label),
+    valueLabel: (value) => {
+      const raw = value === null || value === undefined ? '' : String(value);
+      return list().find((option) => option.value === raw || option.label === raw)?.label ?? null;
+    },
+    ...(people ? { people: true } : {}),
+  };
 }
 
 /** Sin acentos, sin mayúsculas y sin espacios de sobra: como se comparan los nombres. */

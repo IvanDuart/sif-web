@@ -103,6 +103,8 @@ export interface AssistantSessionDto {
   greeting: string;
   expiresAt: string;
   subjectUserId: string | null;
+  /** Un turno que se quedó vivo (recarga a mitad): hay que detenerlo antes de enviar. */
+  pendingRunId?: string | null;
 }
 
 /**
@@ -256,7 +258,47 @@ export type AssistantStreamEvent =
   | { kind: 'delta'; text: string }
   | { kind: 'tool'; name: string }
   | { kind: 'done'; turn: AssistantTurnResponse }
-  | { kind: 'error'; error: string; code: string | null };
+  | { kind: 'error'; error: string; code: string | null }
+  /** El turno se suspende hasta que el navegador conteste (`assistant-contract` §3.2). */
+  | { kind: 'client_tool'; call: AssistantClientToolCall }
+  /** El turno se cortó con `DELETE /runs/{runId}`: llega en lugar de `done`. */
+  | { kind: 'stopped'; runId: string };
+
+/** Una herramienta que el modelo quiere ejecutar en la pantalla. */
+export interface AssistantClientToolCall {
+  runId: string;
+  callId: string;
+  name: string;
+  args: Record<string, unknown>;
+}
+
+/** Una herramienta que el navegador declara para este turno. */
+export interface AssistantClientToolDecl {
+  name: string;
+  /** Una sola línea, ≤ 300 caracteres. */
+  description: string;
+  /** JSON Schema (≤ 2 KB serializado). */
+  parameters: Record<string, unknown>;
+}
+
+/** Lo que hay en pantalla, para que el modelo sepa qué pone ya en cada campo. */
+export interface AssistantPageContext {
+  route: string;
+  title?: string;
+  forms?: { id: string; title?: string; values: Record<string, unknown> }[];
+  extras?: Record<string, unknown>;
+}
+
+/** El cuerpo de `POST .../messages/stream`. */
+export interface AssistantStreamRequest {
+  content: string;
+  attachmentId?: string | null;
+  clientTools?: AssistantClientToolDecl[];
+  pageContext?: AssistantPageContext;
+}
+
+/** Cómo acabó el envío de un resultado. */
+export type ToolResultDelivery = 'accepted' | 'ignored' | 'gone';
 
 export interface AssistantTurnResponse {
   assistantMessage: AssistantMessageDto;

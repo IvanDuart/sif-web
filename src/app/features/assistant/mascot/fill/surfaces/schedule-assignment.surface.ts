@@ -1,6 +1,6 @@
 import type { FillOpener, FillSurface } from '../descriptor';
 import type { PickOption } from './parse';
-import { pickLabel, toDay } from './parse';
+import { pickLabel, toDay, choicesOf } from './parse';
 import { scheduleReveal } from './settings-section';
 
 /**
@@ -27,6 +27,7 @@ export function scheduleAssignmentSurface(options: AssignmentOptions): FillSurfa
         kind: 'choice',
         from: ['scheduleId', 'schedule', 'jornada', 'scheduleName'],
         // El desplegable guarda el nombre de la jornada, no su id.
+        ...choicesOf(() => options.schedules()),
         parse: (raw) => pickLabel(options.schedules(), raw),
       },
       {

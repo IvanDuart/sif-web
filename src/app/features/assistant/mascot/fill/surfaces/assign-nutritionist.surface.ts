@@ -1,6 +1,6 @@
 import type { FillOpener, FillSurface } from '../descriptor';
 import type { PickOption } from './parse';
-import { pickOption } from './parse';
+import { pickOption, choicesOf } from './parse';
 
 /**
  * A qué nutricionista se asigna el paciente
@@ -21,6 +21,7 @@ export function assignNutritionistSurface(options: AssignNutritionistOptions): F
         key: 'nutritionistId',
         kind: 'choice',
         from: ['nutritionistId', 'nutritionist', 'nutricionista', 'professional', 'name'],
+        ...choicesOf(() => options.nutritionists(), { people: true }),
         parse: (raw) => pickOption(options.nutritionists(), raw),
       },
     ],

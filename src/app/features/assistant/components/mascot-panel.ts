@@ -19,7 +19,6 @@ import {
 } from '../../../core/api/models/assistant.model';
 import { MascotStateService } from '../mascot-state.service';
 import { MascotActionCard } from './mascot-action-card';
-import { MascotOrb } from './mascot-orb';
 import { MascotQuickReplies } from './mascot-quick-replies';
 import { MascotRichText } from './mascot-rich-text';
 
@@ -36,7 +35,6 @@ import { MascotRichText } from './mascot-rich-text';
     TuiButton,
     TuiInput,
     TuiTextfield,
-    MascotOrb,
     MascotActionCard,
     MascotQuickReplies,
     MascotRichText,

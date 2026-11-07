@@ -36,6 +36,22 @@ export interface FillField {
   anchor?: string;
   /** Del texto que manda el backend al valor que espera el formulario. */
   parse?: (raw: string) => unknown;
+  /**
+   * Las etiquetas entre las que se elige, para decírselas al modelo. Solo las
+   * lleva un `choice` cuyas opciones se conocen al declarar el formulario.
+   */
+  options?: () => readonly string[];
+  /**
+   * Del valor que guarda el control (un id) a la etiqueta que ve la persona.
+   * El modelo habla en etiquetas: sin esto, el contexto le diría `8f3c…` en
+   * vez de a quién se refiere.
+   */
+  valueLabel?: (value: unknown) => string | null;
+  /**
+   * Elige a una persona. Sus opciones no se enumeran en la declaración de la
+   * herramienta: son nombres, y en un buscador solo son los últimos resultados.
+   */
+  people?: boolean;
 }
 
 /**
@@ -76,6 +92,13 @@ export interface FillSurface {
    * mascota sigue esperando en vez de rellenar.
    */
   ready?(): boolean;
+  /**
+   * Si sus valores van al contexto del modelo en este momento. Una anamnesis
+   * entera no debe viajar con cada mensaje mientras la persona mira otra
+   * pestaña: sin esto el formulario se cuenta como abierto, sin valores.
+   * Por defecto, siempre.
+   */
+  contextual?(): boolean;
 }
 
 /** Cómo se lee y se escribe un campo, sea lo que sea el formulario por dentro. */

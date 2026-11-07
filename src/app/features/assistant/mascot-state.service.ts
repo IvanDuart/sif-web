@@ -2,7 +2,7 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
-import { Observable, catchError, finalize, firstValueFrom, of, shareReplay, tap, throwError } from 'rxjs';
+import { Observable, Subscription, catchError, finalize, firstValueFrom, map, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
 
 import { AssistantService } from '../../core/api/services/assistant.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
@@ -17,6 +17,11 @@ import { MascotFillService } from './mascot/fill/mascot-fill.service';
 import { resolveFillRoute, routeForTool } from './mascot/fill/surfaces/routes';
 import { NotificationService } from '../../core/ui';
 import type { MascotMode } from './mascot/mascot-life.service';
+import { ToolRegistryService } from './copilot/tool-registry.service';
+import { ConfirmationService } from './copilot/confirmation.service';
+import { PageContextService } from './copilot/page-context.service';
+import { StepLimiter } from './copilot/step-limiter.service';
+import { ToolRunnerService } from './copilot/tool-runner.service';
 import {
   AssistantActionResponse,
   AssistantAttachmentDto,
@@ -39,6 +44,8 @@ export interface MascotMessage {
   /** El archivo que iba con él, si lo llevaba. */
   attachment?: AssistantAttachmentDto | null;
   createdAt: string;
+  /** La persona cortó la respuesta: lo que hay es solo lo que llegó. */
+  stopped?: boolean;
 }
 
 /** Lo que se le da al formulario para montar tras un `uiAction` que navega. */
@@ -73,6 +80,11 @@ export class MascotStateService {
   private readonly milestones = inject(MascotMilestonesService);
   private readonly fill = inject(MascotFillService);
   private readonly notify = inject(NotificationService);
+  private readonly tools = inject(ToolRegistryService);
+  private readonly runner = inject(ToolRunnerService);
+  private readonly limiter = inject(StepLimiter);
+  private readonly pageContext = inject(PageContextService);
+  private readonly confirmations = inject(ConfirmationService);
 
   readonly config = signal<AssistantConfigDto | null>(null);
   readonly configLoaded = signal(false);
@@ -107,6 +119,22 @@ export class MascotStateService {
   readonly draft = signal('');
   readonly sending = signal(false);
   readonly resolvingAction = signal(false);
+
+  /**
+   * El turno en vuelo, para poder cortarlo. `turnSeq` invalida también el
+   * turno que aún espera a la sesión: si cambia, ese envío ya no sale.
+   */
+  private turn: Subscription | null = null;
+  private turnBubble: string | null = null;
+  private turnSeq = 0;
+
+  /**
+   * El run del backend del turno en curso. Llega con el primer `client_tool`
+   * y es lo que hace falta para detenerlo de verdad (`DELETE /runs/{runId}`).
+   */
+  readonly activeRunId = signal<string | null>(null);
+  /** Pasos de pantalla que lleva la petición en curso («Paso n»). */
+  readonly clientSteps = this.limiter.used;
 
   /**
    * El archivo ya subido esperando al mensaje que lo lleve. Se sube en cuanto
@@ -164,10 +192,19 @@ export class MascotStateService {
   private loadingConfig = false;
   private sessionRequest: Observable<AssistantSessionDto | null> | null = null;
   private historyLoadedFor: string | null = null;
+  /** La comprobación del turno colgado, una por sesión y compartida. */
+  private hungRunCheck: { sessionId: string; done: Observable<void> } | null = null;
   private localId = 0;
   private welcomed = false;
 
   constructor() {
+    // Una escritura que el backend propone dentro del turno (`confirm_action`)
+    // se pinta en la misma tarjeta de siempre.
+    effect(() => {
+      const waiting = this.confirmations.waiting();
+      if (waiting) this.pendingAction.set(waiting);
+    });
+
     // Al cambiar de tenant o de rol, la mascota se recalcula: un paciente no la
     // ve, y al volver a un rol permitido se recarga la configuración.
     effect(() => {
@@ -406,13 +443,21 @@ export class MascotStateService {
     // Se gasta al enviarlo: el siguiente mensaje ya no lo lleva.
     this.attachment.set(null);
 
+    const seq = ++this.turnSeq;
+    this.limiter.reset();
     this.ensureSession().subscribe((session) => {
+      if (seq !== this.turnSeq) return;
       if (!session) {
         this.sending.set(false);
         return;
       }
 
-      this.streamTurn(tenantId, session.sessionId, text, attachment?.id ?? null);
+      // Un turno que se quedó colgado (recarga a mitad) se suelta antes de
+      // hablar: no se puede reconectar a él y seguiría ocupando el backend.
+      this.releaseHungRun(tenantId, session.sessionId).subscribe(() => {
+        if (seq !== this.turnSeq) return;
+        this.streamTurn(tenantId, session.sessionId, text, attachment?.id ?? null);
+      });
     });
   }
 
@@ -497,13 +542,28 @@ export class MascotStateService {
     attachmentId: string | null = null,
   ): void {
     const bubble = this.nextLocalId();
+    this.turnBubble = bubble;
     let painted = '';
     let settled = false;
+    // Cualquier evento demuestra que este backend tiene el stream: a partir de
+    // ahí el turno ya está en marcha y reenviarlo por el bloqueante lo haría dos
+    // veces. Un `client_tool` suele llegar sin texto delante.
+    let started = false;
 
-    this.api.streamMessage(tenantId, sessionId, text, attachmentId).subscribe({
+    const request = {
+      content: text,
+      attachmentId,
+      clientTools: this.tools.catalog(),
+      pageContext: this.pageContext.build(),
+    };
+    this.turn = this.api.streamMessage(tenantId, sessionId, request).subscribe({
       next: (event) => {
+        started = true;
         switch (event.kind) {
           case 'delta':
+            // Si hablaba mientras había una tarjeta, el turno ya siguió sin ella
+            // (se confirmó desde otra pestaña).
+            this.releaseCard();
             painted += event.text;
             this.paintStream(bubble, painted);
             break;
@@ -514,13 +574,34 @@ export class MascotStateService {
             this.mood.say({ text: this.transloco.translate('assistant.tool_running'), tone: 'neutral', ms: 2600 });
             break;
 
+          case 'client_tool':
+            if (event.call.name !== 'confirm_action') this.releaseCard();
+            this.activeRunId.set(event.call.runId);
+            void this.runner.handle(tenantId, event.call).then((delivery) => {
+              // El backend ya no espera este turno: no llegará nada más.
+              if (delivery === 'gone' && !settled && this.turnBubble === bubble) {
+                settled = true;
+                this.endRun(bubble);
+              }
+            });
+            break;
+
+          case 'stopped':
+            settled = true;
+            this.endRun(bubble);
+            break;
+
           case 'done':
             settled = true;
+            this.releaseCard();
+            this.activeRunId.set(null);
             this.settleTurn(bubble, event.turn);
             break;
 
           case 'error':
             settled = true;
+            this.activeRunId.set(null);
+            this.runner.cancel();
             this.dropStream(bubble);
             this.sending.set(false);
             this.applyTurnErrorCode(event.code);
@@ -530,11 +611,13 @@ export class MascotStateService {
       },
       error: (error: HttpErrorResponse) => {
         if (settled) return;
+        this.activeRunId.set(null);
+        this.runner.cancel();
         // Si se cortó sin haber pintado nada, lo más probable es que este
         // backend no tenga el stream: se reintenta por el camino de siempre.
         // Si ya había texto, NO se reintenta: el backend ya procesó el turno y
         // reenviarlo lo haría dos veces.
-        if (painted === '') {
+        if (!started) {
           // El adjunto va también por el camino de respaldo: ya está subido,
           // así que no hay que volver a subirlo, solo nombrarlo.
           this.sendBlocking(tenantId, sessionId, text, attachmentId);
@@ -548,6 +631,8 @@ export class MascotStateService {
         if (settled) return;
         // Se cerró sin `done`: lo pintado se queda, pero no hay `uiActions` ni
         // escritura que atender.
+        this.activeRunId.set(null);
+        this.runner.cancel();
         this.sending.set(false);
         if (painted === '') this.pushSystem(this.transloco.translate('errors.unexpected'));
       },
@@ -561,7 +646,8 @@ export class MascotStateService {
     text: string,
     attachmentId: string | null = null,
   ): void {
-    this.api.sendMessage(tenantId, sessionId, text, attachmentId).subscribe({
+    this.turnBubble = null;
+    this.turn = this.api.sendMessage(tenantId, sessionId, text, attachmentId).subscribe({
       next: (turn) => {
         this.sending.set(false);
         this.pushAssistant(turn.assistantMessage);
@@ -589,6 +675,87 @@ export class MascotStateService {
       next[at] = { ...next[at], content };
       return next;
     });
+  }
+
+  /**
+   * Corta la respuesta en curso. Lo ya pintado se queda marcado como
+   * detenido; las `uiActions` y la escritura pendiente de ese turno no se
+   * aplican. El backend puede terminar el turno igualmente, y entonces el
+   * historial lo traerá entero al recargar.
+   */
+  stop(): void {
+    if (!this.sending()) return;
+    this.turnSeq += 1;
+    this.turn?.unsubscribe();
+    this.turn = null;
+    // Una tarjeta esperando se retira también del servidor: sin turno, nadie
+    // podría confirmarla ya.
+    const card = this.confirmations.waiting();
+    this.runner.cancel();
+    if (card) this.rejectQuietly(card);
+
+    // Cerrar el SSE ya basta para que el backend suelte el turno (lo detecta
+    // por el latido), pero con el run a mano se le dice al momento.
+    const runId = this.activeRunId();
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (runId && tenantId) this.api.stopRun(tenantId, runId).subscribe({ error: () => undefined });
+    this.activeRunId.set(null);
+
+    const bubble = this.turnBubble;
+    this.turnBubble = null;
+    if (bubble) this.markStopped(bubble);
+    this.sending.set(false);
+  }
+
+  /** El turno terminó sin `done` (`stopped`, o el backend lo perdió). */
+  private endRun(bubble: string): void {
+    this.releaseCard();
+    this.activeRunId.set(null);
+    this.runner.cancel();
+    this.turn?.unsubscribe();
+    this.turn = null;
+    if (this.turnBubble === bubble) this.turnBubble = null;
+    this.markStopped(bubble);
+    this.sending.set(false);
+  }
+
+  /**
+   * El turno siguió sin la tarjeta: deja de estar vinculada. Si sigue en
+   * pantalla se resolverá por REST, que es lo que permite confirmarla después
+   * aunque el turno haya terminado.
+   */
+  private releaseCard(): void {
+    this.confirmations.release();
+  }
+
+  private markStopped(bubble: string): void {
+    this.messages.update((current) =>
+      current.map((item) => (item.id === bubble ? { ...item, stopped: true } : item))
+    );
+  }
+
+  /**
+   * Detiene el turno que quedó vivo en esta sesión, si lo hay. Solo lo cuenta
+   * `GET /sessions/latest`; si no responde, se sigue: lo peor que pasa es que
+   * el backend tarde en soltar el turno viejo. Se mira una vez por sesión,
+   * antes del primer envío.
+   */
+  private releaseHungRun(tenantId: string, sessionId: string): Observable<void> {
+    if (this.hungRunCheck?.sessionId !== sessionId) {
+      const done = this.api.latestSession(tenantId, this.activePatientId()).pipe(
+        switchMap((latest) =>
+          latest.sessionId === sessionId && latest.pendingRunId
+            ? this.api.stopRun(tenantId, latest.pendingRunId)
+            : of(undefined),
+        ),
+        // Sin sesión viva (404), sin endpoint o run ya caducado: nada que soltar.
+        catchError(() => of(undefined)),
+        map(() => undefined),
+        shareReplay(1),
+      );
+      this.hungRunCheck = { sessionId, done };
+    }
+    return this.hungRunCheck.done;
   }
 
   private dropStream(id: string): void {
@@ -721,6 +888,16 @@ export class MascotStateService {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId || this.resolvingAction()) return;
 
+    // Dentro del turno el sí viaja como resultado de la herramienta; el
+    // backend aplica la acción y el modelo sigue con lo que toque.
+    if (this.confirmations.isLinked(action.id)) {
+      this.pendingAction.set(null);
+      this.confirmations.answer(true);
+      this.mood.feel('cheer');
+      this.milestones.refresh();
+      return;
+    }
+
     this.resolvingAction.set(true);
     // La clave original, tal cual: el backend hace la operación idempotente.
     this.api.confirm(tenantId, action.id, action.idempotencyKey).subscribe({
@@ -749,6 +926,12 @@ export class MascotStateService {
   rejectAction(action: AssistantPendingActionDto): void {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId || this.resolvingAction()) return;
+
+    if (this.confirmations.isLinked(action.id)) {
+      this.pendingAction.set(null);
+      this.confirmations.answer(false);
+      return;
+    }
 
     this.resolvingAction.set(true);
     this.api.reject(tenantId, action.id).subscribe({
@@ -1188,6 +1371,7 @@ export class MascotStateService {
     this.pendingAction.set(null);
     this.consentRequired.set(false);
     this.historyLoadedFor = null;
+    this.hungRunCheck = null;
     if (closePanel) this.open.set(false);
   }
 

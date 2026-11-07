@@ -1,6 +1,6 @@
 import type { FillOpener, FillSurface } from '../descriptor';
 import type { PickOption } from './parse';
-import { pickOption } from './parse';
+import { pickOption, choicesOf } from './parse';
 
 /**
  * El estado clínico del paciente (`users/clinical-status.dialog`).
@@ -24,6 +24,7 @@ export function clinicalStatusSurface(options: ClinicalStatusOptions): FillSurfa
         key: 'clinicalStatus',
         kind: 'choice',
         from: ['clinicalStatus', 'status', 'estado'],
+        ...choicesOf(() => options.statuses()),
         parse: (raw) => pickOption(options.statuses(), raw),
       },
       { key: 'reason', kind: 'text', from: ['reason', 'motivo', 'razon', 'notes'] },

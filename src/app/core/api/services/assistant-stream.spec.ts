@@ -92,5 +92,31 @@ describe('stream del asistente', () => {
       // `data: x` y `data:x` son el mismo dato; un segundo espacio ya es texto.
       expect(parseFrame('event: delta\ndata:{"text":" hola"}')).toEqual({ kind: 'delta', text: ' hola' });
     });
+
+    it('lee la herramienta de cliente con sus argumentos', () => {
+      const frame = 'event: client_tool\ndata: {"runId":"r1","callId":"c1","name":"fill_measurement","args":{"peso":70}}';
+      expect(parseFrame(frame)).toEqual({
+        kind: 'client_tool',
+        call: { runId: 'r1', callId: 'c1', name: 'fill_measurement', args: { peso: 70 } },
+      });
+    });
+
+    it('una herramienta sin argumentos llega con un objeto vacío', () => {
+      const frame = 'event: client_tool\ndata: {"runId":"r1","callId":"c1","name":"echo","args":null}';
+      expect(parseFrame(frame)).toEqual({ kind: 'client_tool', call: { runId: 'r1', callId: 'c1', name: 'echo', args: {} } });
+    });
+
+    it('descarta una herramienta sin run o sin llamada', () => {
+      expect(parseFrame('event: client_tool\ndata: {"callId":"c1","name":"echo"}')).toBeNull();
+      expect(parseFrame('event: client_tool\ndata: {"runId":"r1","name":"echo"}')).toBeNull();
+    });
+
+    it('lee el turno detenido', () => {
+      expect(parseFrame('event: stopped\ndata: {"runId":"r1"}')).toEqual({ kind: 'stopped', runId: 'r1' });
+    });
+
+    it('ignora el latido mientras el turno espera', () => {
+      expect(parseFrame('event: ping\ndata: {}')).toBeNull();
+    });
   });
 });

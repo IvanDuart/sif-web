@@ -272,9 +272,12 @@ export function beside(target: HTMLElement): { x: number; y: number } {
         bottom: calc(var(--bottom-nav-h, 60px) + 14px + env(safe-area-inset-bottom, 0px));
       }
 
+      /* Con el panel abierto se sienta, en pequeño, sobre su borde de arriba:
+         el chat sigue saliendo de ella. */
       .mascot-fab--open {
-        opacity: 0;
-        pointer-events: none;
+        bottom: calc(86dvh + 4px);
+        width: 50px;
+        height: 50px;
       }
 
       .mascot-note {

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpContext, HttpEventType, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpContext, HttpErrorResponse, HttpEventType, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Observable, catchError, map, of, throwError } from 'rxjs';
 
 import { ConfigService } from '../../config/config.service';
 import { IGNORE_FORBIDDEN, IGNORE_NOT_FOUND, SILENT_ERROR } from '../../http/error.interceptor';
@@ -14,6 +14,8 @@ import {
   AssistantPreferencesDto,
   AssistantSessionDto,
   AssistantStreamEvent,
+  AssistantStreamRequest,
+  ToolResultDelivery,
   AssistantTurnResponse,
   AssistantUserLookDto,
   ConfirmAssistantActionRequest,
@@ -212,9 +214,12 @@ export class AssistantService {
    * Es de sólo lectura y silenciosa: si no hay sesión viva responde 404 y el
    * panel sigue como estaba.
    */
-  latestSession(tenantId: string): Observable<AssistantSessionDto> {
+  latestSession(tenantId: string, subjectUserId?: string | null): Observable<AssistantSessionDto> {
+    // Las sesiones van por paciente: sin él, el backend busca la que no tiene.
+    const params = subjectUserId ? new HttpParams().set('subjectUserId', subjectUserId) : undefined;
     return this.http.get<AssistantSessionDto>(`${this.endpoint(tenantId)}/sessions/latest`, {
       context: this.silent,
+      params,
     });
   }
 
@@ -259,9 +264,13 @@ export class AssistantService {
   streamMessage(
     tenantId: string,
     sessionId: string,
-    content: string,
-    attachmentId?: string | null,
+    request: AssistantStreamRequest,
   ): Observable<AssistantStreamEvent> {
+    const body: AssistantStreamRequest = { content: request.content };
+    if (request.attachmentId) body.attachmentId = request.attachmentId;
+    if (request.clientTools?.length) body.clientTools = request.clientTools;
+    if (request.pageContext) body.pageContext = request.pageContext;
+
     return new Observable<AssistantStreamEvent>((subscriber) => {
       let consumed = 0;
 
@@ -277,7 +286,7 @@ export class AssistantService {
       const inner = this.http
         // Los dos endpoints leen el mismo cuerpo, así que el turno con adjunto
         // va por streaming como cualquier otro (`mascota-frontend.md` §4.1).
-        .post(`${this.endpoint(tenantId)}/sessions/${sessionId}/messages/stream`, attachmentId ? { content, attachmentId } : { content }, {
+        .post(`${this.endpoint(tenantId)}/sessions/${sessionId}/messages/stream`, body, {
           context: this.silent,
           headers: new HttpHeaders({ Accept: 'text/event-stream' }),
           observe: 'events',
@@ -296,6 +305,38 @@ export class AssistantService {
 
       return () => inner.unsubscribe();
     });
+  }
+
+  /**
+   * Devuelve el resultado de una herramienta de cliente (`assistant-contract`
+   * §3.2). La continuación del turno llega por el SSE ya abierto, no aquí.
+   *
+   * - `202` → `accepted`.
+   * - `204` → `ignored`: duplicado o tardío; no es un error.
+   * - `404` → `gone`: el run no existe, caducó o no es de esta persona.
+   */
+  postToolResult(
+    tenantId: string,
+    runId: string,
+    callId: string,
+    result: Record<string, unknown>,
+  ): Observable<ToolResultDelivery> {
+    return this.http
+      .post(`${this.endpoint(tenantId)}/runs/${runId}/tool-results`, { callId, result }, {
+        context: this.silent,
+        observe: 'response',
+      })
+      .pipe(
+        map((response): ToolResultDelivery => (response.status === 204 ? 'ignored' : 'accepted')),
+        catchError((error: unknown) =>
+          error instanceof HttpErrorResponse && error.status === 404 ? of<ToolResultDelivery>('gone') : throwError(() => error),
+        ),
+      );
+  }
+
+  /** Corta un turno en la siguiente frontera; llega `stopped` por el SSE. */
+  stopRun(tenantId: string, runId: string): Observable<void> {
+    return this.http.delete<void>(`${this.endpoint(tenantId)}/runs/${runId}`, { context: this.silent });
   }
 
   history(

@@ -85,6 +85,20 @@ export function parseFrame(raw: string): AssistantStreamEvent | null {
     }
     case 'done':
       return isTurn(payload) ? { kind: 'done', turn: payload as unknown as AssistantTurnResponse } : null;
+    case 'client_tool': {
+      const { runId, callId, name: toolName, args } = payload;
+      if (typeof runId !== 'string' || typeof callId !== 'string' || typeof toolName !== 'string') return null;
+      const safeArgs = typeof args === 'object' && args !== null && !Array.isArray(args)
+        ? (args as Record<string, unknown>)
+        : {};
+      return { kind: 'client_tool', call: { runId, callId, name: toolName, args: safeArgs } };
+    }
+    case 'stopped': {
+      const runId = payload['runId'];
+      return typeof runId === 'string' ? { kind: 'stopped', runId } : null;
+    }
+    // `ping` (cada 20 s mientras el turno espera) cae en el `default`: solo
+    // mantiene viva la conexión.
     case 'error':
       return {
         kind: 'error',

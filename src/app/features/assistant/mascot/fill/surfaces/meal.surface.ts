@@ -1,6 +1,6 @@
 import type { FillSurface } from '../descriptor';
 import type { PickOption } from './parse';
-import { pickOption } from './parse';
+import { pickOption, choicesOf } from './parse';
 
 /**
  * Una comida del menú (`menus/meal-form.dialog`).
@@ -35,12 +35,14 @@ export function mealSurface(options: MealOptions): FillSurface {
         kind: 'choice',
         from: ['dayOfWeek', 'day', 'dia'],
         // Los dos desplegables son `tuiSelect`: guardan el valor, no la etiqueta.
+        ...choicesOf(() => options.days()),
         parse: (raw) => pickOption(options.days(), raw),
       },
       {
         key: 'mealType',
         kind: 'choice',
         from: ['mealType', 'meal', 'tipo', 'tipoComida'],
+        ...choicesOf(() => options.mealTypes()),
         parse: (raw) => pickOption(options.mealTypes(), raw),
       },
       { key: 'description', kind: 'text', from: ['description', 'descripcion', 'texto'] },

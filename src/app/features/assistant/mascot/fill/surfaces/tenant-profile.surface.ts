@@ -1,6 +1,6 @@
 import type { FillOpener, FillSurface } from '../descriptor';
 import type { PickOption } from './parse';
-import { pickLabel } from './parse';
+import { pickLabel, choicesOf } from './parse';
 import { SETTINGS_ADDRESS_TAB } from './settings-section';
 
 /**
@@ -43,18 +43,21 @@ export function tenantProfileSurface(options: TenantProfileOptions): FillSurface
         key: 'countryDisplay',
         kind: 'choice',
         from: ['countryCode', 'country', 'pais'],
+        ...choicesOf(() => options.countries()),
         parse: (raw) => pickLabel(options.countries(), raw),
       },
       {
         key: 'stateDisplay',
         kind: 'choice',
         from: ['stateCode', 'state', 'provincia', 'region'],
+        ...choicesOf(() => options.states()),
         parse: (raw) => pickLabel(options.states(), raw),
       },
       {
         key: 'cityDisplay',
         kind: 'choice',
         from: ['city', 'ciudad', 'localidad'],
+        ...choicesOf(() => options.cities()),
         parse: (raw) => pickLabel(options.cities(), raw),
       },
       { key: 'address', kind: 'text', from: ['address', 'direccion', 'calle', 'street'] },

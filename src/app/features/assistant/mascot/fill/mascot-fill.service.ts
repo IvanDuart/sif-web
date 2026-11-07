@@ -21,6 +21,7 @@ export interface MountedSurface {
 export class MascotFillService {
   private readonly mounted = new Map<string, MountedSurface>();
   private readonly openers = new Map<string, FillOpener>();
+  private readonly extras = new Map<string, () => unknown>();
 
   // ── El viaje ────────────────────────────────────────────────────────
 
@@ -51,6 +52,30 @@ export class MascotFillService {
       // al cerrarse y abrirse no deben borrarse el registro el uno al otro.
       if (this.mounted.get(surface.id)?.surface === surface) this.mounted.delete(surface.id);
     });
+  }
+
+  /** Los formularios que hay montados ahora mismo, listos o no. */
+  surfaces(): readonly MountedSurface[] {
+    return [...this.mounted.values()];
+  }
+
+  /**
+   * Lo que una pantalla cuenta de sí misma al mandar un mensaje (el día que se
+   * está mirando, el paciente abierto…). Se apunta mientras la página viva.
+   * Se llama desde un contexto de inyección, como `register`.
+   */
+  provideExtras(key: string, read: () => unknown): void {
+    this.extras.set(key, read);
+    inject(DestroyRef).onDestroy(() => {
+      if (this.extras.get(key) === read) this.extras.delete(key);
+    });
+  }
+
+  /** Los extras de las pantallas vivas, ya leídos. */
+  readExtras(): Record<string, unknown> {
+    const out: Record<string, unknown> = {};
+    for (const [key, read] of this.extras) out[key] = read();
+    return out;
   }
 
   /**

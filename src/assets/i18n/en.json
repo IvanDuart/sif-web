@@ -1386,6 +1386,8 @@
     "suggestions": "Suggestions",
     "input_placeholder": "Write your message…",
     "send": "Send",
+    "stop": "Stop response",
+    "stopped": "(response stopped)",
     "disclaimer": "Virtual assistant. It does not replace your nutritionist.",
     "action_title": "Pending action",
     "action_hint": "Nothing is saved until you confirm. You can review it first.",

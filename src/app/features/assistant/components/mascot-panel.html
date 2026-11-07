@@ -16,13 +16,6 @@
     </p>
   }
   <header class="mascot-head">
-    <app-mascot-orb
-      [mode]="state.orbMode()"
-      [skin]="state.skin()"
-      [accessories]="state.accessories()"
-      size="m"
-      [mirror]="true"
-    />
     <div class="min-w-0 flex-1">
       <p id="mascot-title" class="mascot-name">{{ state.name() }}</p>
       <p class="mascot-sub">{{ t('assistant.subtitle') }}</p>
@@ -73,7 +66,6 @@
     } @else {
       @if (showGreeting()) {
         <div class="msg">
-          <app-mascot-orb [skin]="state.skin()" [accessories]="state.accessories()" size="s" [decorative]="true" [still]="true" />
           <p class="bubble"><app-mascot-rich-text [text]="state.greeting()" /></p>
         </div>
       }
@@ -84,9 +76,6 @@
           [class.msg--user]="message.role === 'USER'"
           [class.msg--system]="message.role === 'SYSTEM'"
         >
-          @if (message.role !== 'USER') {
-            <app-mascot-orb [skin]="state.skin()" [accessories]="state.accessories()" size="s" [decorative]="true" [still]="true" />
-          }
           <p class="bubble">
             @if (message.role === 'SYSTEM') {
               <i class="fa-solid fa-circle-exclamation mr-1.5" aria-hidden="true"></i>
@@ -113,6 +102,9 @@
               </a>
             }
             <app-mascot-rich-text [text]="message.content" />
+            @if (message.stopped) {
+              <span class="bubble__stopped">{{ t('assistant.stopped') }}</span>
+            }
           </p>
         </div>
       }
@@ -128,7 +120,6 @@
 
       @if (state.sending()) {
         <div class="msg">
-          <app-mascot-orb [skin]="state.skin()" [accessories]="state.accessories()" size="s" [decorative]="true" mode="thinking" />
           <p class="bubble bubble--typing" [attr.aria-label]="t('assistant.thinking')">
             <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
           </p>
@@ -200,18 +191,32 @@
             [disabled]="state.sending()"
           />
         </tui-textfield>
-        <button
-          type="button"
-          tuiButton
-          appearance="primary"
-          size="m"
-          [disabled]="state.sending() || state.uploading() || (!text().trim() && !state.attachment())"
-          (click)="submit()"
-          [attr.aria-label]="t('assistant.send')"
-          [attr.title]="t('assistant.send')"
-        >
-          <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
-        </button>
+        @if (state.sending()) {
+          <button
+            type="button"
+            tuiButton
+            appearance="secondary"
+            size="m"
+            (click)="state.stop()"
+            [attr.aria-label]="t('assistant.stop')"
+            [attr.title]="t('assistant.stop')"
+          >
+            <i class="fa-solid fa-stop" aria-hidden="true"></i>
+          </button>
+        } @else {
+          <button
+            type="button"
+            tuiButton
+            appearance="primary"
+            size="m"
+            [disabled]="state.uploading() || (!text().trim() && !state.attachment())"
+            (click)="submit()"
+            [attr.aria-label]="t('assistant.send')"
+            [attr.title]="t('assistant.send')"
+          >
+            <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+          </button>
+        }
       </div>
     }
 

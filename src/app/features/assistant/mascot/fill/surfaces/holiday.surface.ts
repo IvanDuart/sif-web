@@ -1,6 +1,6 @@
 import type { FillOpener, FillSurface } from '../descriptor';
 import type { PickOption } from './parse';
-import { pickLabel, toDay } from './parse';
+import { pickLabel, toDay, choicesOf } from './parse';
 import { scheduleReveal } from './settings-section';
 
 /**
@@ -36,6 +36,7 @@ export function holidaySurface(options: HolidayOptions): FillSurface {
         kind: 'choice',
         from: ['type', 'tipo', 'holidayType'],
         // El desplegable guarda la etiqueta traducida ("Nacional"), no el enum.
+        ...choicesOf(() => options.types()),
         parse: (raw) => pickLabel(options.types(), raw),
       },
     ],
