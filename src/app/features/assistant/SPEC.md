@@ -66,8 +66,17 @@ so a tool the model was offered is always a tool the browser can run:
 - `navigate` goes only to the closed list in `copilot/screen-routes.ts`, and reaches a patient's
   record only when told which patient. `open_` and `navigate` answer with the new catalogue,
   because both change what can be done next.
-- While the old model is still live, a turn can carry both a `fill_` and the backend's proposal
-  for the same form. The form is filled once: the second one only offers the card.
+The **old model is gone** (F8). `uiActions` keeps only `TOAST`, which has no equivalent — it is the
+backend warning about something, not the mascot acting. `NAVIGATE`, `OPEN_DIALOG` and `HIGHLIGHT`
+are now `navigate`, `open_<id>` and `point_at`, which differ in the one way that matters: they tell
+the model whether it worked. A `uiAction` went out blind.
+
+A `pendingAction` now only **offers the card**. It no longer sends the mascot off to find the form
+by guessing its screen from the tool's name, open it and fill it. If something on screen needs
+filling the model asks for it with `fill_` and reads the result; if the write is the backend's, the
+person confirms here and the backend does it. The request for the backend to stop emitting the
+retired actions is `assistant-b4-retirar-uiactions-peticion.md`; nothing here waits on it, because
+whatever still arrives is ignored.
 
 Everything the mascot waits an answer for goes through **one tray** (`QuestionService`): the write
 it proposes (`confirm_action`), a question from the model (`ask_user`) and the warning before
@@ -117,7 +126,11 @@ working on visible, which the panel covered.
 
 It is **one card**, not a bar with things stacked on it: what the mascot says, what it is waiting an
 answer for, the write it wants confirmed and where you write to it are the same place, because they
-are the same conversation. At rest the card shrinks to a pill with only the field. It opens when you
+are the same conversation. At rest the card shrinks to a pill with only the field. Before anything else it carries the
+**consent**: without that yes, `send()` drops the message, so it has to be visible above the field
+rather than somewhere the person has to go looking, and the send button stays disabled while it is
+pending instead of swallowing what was typed. The greeting and the centre's suggested prompts show
+until there is a conversation to show in their place. It opens when you
 press the mascot, and by itself whenever something cannot wait — a question, a pending write, a turn
 in flight (`MascotStateService.barOpen`).
 
@@ -126,15 +139,58 @@ gave no clue where it came from. The mascot travels on the same curve and durati
 if it were pushing the card open. Neither happens under `prefers-reduced-motion`.
 
 The mascot itself is **not drawn by the bar**: it is the launcher's FAB, which docks astride the
-card's left edge, centred on **the row that matters** — what it is saying or doing if there is one,
-otherwise the row you type in. That point is *measured* (`bar/bar-dock.ts`, published as
-`--mascot-dock-*`), not worked out from constants: what the card holds changes its height all the
-time, and a computed position leaves the mascot floating outside as soon as a new row appears.
-Keeping one orb is what lets it leave the card to walk a form, carry its notes and catch dropped
-files, exactly as before.
+card's left edge, always centred on **the row you type in**. The card is anchored at the bottom and
+grows upward, so that row is the one thing that never moves — docking to whatever it happens to be
+saying (as alkimia does) had the mascot bobbing up and down with every reply. The point is
+*measured* (`bar/bar-dock.ts`, published as `--mascot-dock-*`) rather than worked out from
+constants, because the card's width still varies. Keeping one orb is what lets it leave the card to
+walk a form, carry its notes and catch dropped files, exactly as before.
+
+**Life and charm** (F7), each piece pure where it can be and silent under `prefers-reduced-motion`:
+
+- `mascot/placement.ts` decides where the mascot stands to work a field: to its left, where it
+  covers least; at the *first line* of a tall textarea rather than its middle, which in a ten-line
+  field falls well below where the typing is; and out of the way of anything it must not cover — a
+  toast, an open dialog. It is geometry only, so the awkward cases are tested without a DOM.
+- `copilot/route-veil.ts` veils a page change the mascot makes. A navigation the person asked for,
+  they expect; one the model asked for swaps the screen underneath them. The veil gives that half
+  second of warning and hides the layout jump of a page mounting. It takes no clicks and never traps
+  focus, and if the navigation throws it lifts anyway — a screen left covered is worse than the error.
+- `mascot/mascot-follow.ts` has it accompany a change of section: it **looks** at the menu entry that
+  was picked, crouches, and jumps when the new screen is in. It crouches *before* it jumps, which is
+  what makes it read as a jump and not a bounce. Moving *within* a section — opening a patient's
+  record, switching tabs — does not count, or it would hop at every click. It stays out of the way
+  while the mascot is working a form: that is where it should be looking.
+- `copilot/insert-reveal.ts` brings rows the mascot adds in **one at a time**. Filling a schedule can
+  create five at once; arriving together the table jumps and there is no telling what was added or in
+  what order.
+- `mascot/first-steps.ts` offers three concrete things the first time, filtered by what the person
+  may actually do. They **write the draft and do not send it**: an offer that runs itself teaches
+  people not to read.
+- `mascot/skins/personalities.ts` gives each fruit a character. `agentMotion` already received the
+  skin and never used it, so all seven reacted identically — a mascot you can choose that always
+  does the same is not a choice, it is a colour. Now the pineapple turns its back instead of showing
+  the 💢, the melon just huffs and deflates, the broccoli only blushes. The table is data, not a `switch` in the
+  engine, so adding a fruit is one row.
+- `mascot/mascot-hero.ts` is the easter egg: Alt plus three clicks and it crouches, takes off and
+  **crosses the whole window** — up and away, a beat on the far side, then a dive home — with a cape
+  in its fruit's colour. The path is worked out from the window size, not from constants, so it
+  crosses the same thing on a laptop and on a large monitor: everything. **One shared gesture, no
+  per-skin costume** — seven new drawings to maintain for something almost nobody sees was not worth
+  it. The Alt click is caught in the capture phase and stopped, so it never reaches the orb: if it
+  opened the conversation the mascot would dock to the card on the first click and the other two
+  would land on empty space, which is exactly why it never used to fly. Off with
+  `localStorage['mascot-hero'] = '0'`; a backend column to hide a joke would be out of proportion.
+- `mascot/mascot-secrets.ts` installs `window.nuti` **only** in dev mode, so setting a skin or
+  opening the wardrobe costs one line instead of reproducing a state by hand.
+
+Pressing the mascot **opens** the conversation and never closes it: closing is the fold-away
+button's job. Otherwise every press would be a bet on which state it was in, and could throw away a
+half-read reply.
 
 Next to the field sit attach, wardrobe and fold-away, and they disappear while it works, when the
-only things that matter are pause and stop.
+only things that matter are pause and stop. The wardrobe icon is drawn inline: `fa-wardrobe` and
+`fa-light` are Font Awesome Pro, and this project ships Free, where that class renders nothing.
 
 Pause and stop sit next to what it is doing, not next to what you type, and while it works the
 field's placeholder says what you write will be queued. Closing a question with the ✕ answers "no" —
@@ -177,5 +233,5 @@ applied. When a `runId` is known, stopping also sends `DELETE /runs/{runId}`.
   `data-mascot-*` attributes in the DOM (`-field`, `-point`, `-submit`) and from screen-declared
   actions. Like the rest of the module, it never imports a feature page.
 - **Outbound:** depends only on `core` (API, tenant context, permissions, UI services). It never
-  imports feature pages; it reaches screens through routes (`surfaces/routes.ts`) and registered
-  surfaces.
+  imports feature pages; it reaches screens through `copilot/screen-routes.ts` (the closed list
+  `navigate` may go to) and registered surfaces.

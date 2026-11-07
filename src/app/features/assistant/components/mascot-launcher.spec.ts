@@ -17,12 +17,18 @@ function fieldAt(left: number, top: number, width = 200, height = 40): HTMLEleme
   return element;
 }
 
-/** Dónde acaba la mascota en la pantalla, deshaciendo el desplazamiento desde su esquina. */
+/**
+ * Dónde acaba la mascota en la pantalla, deshaciendo el desplazamiento desde
+ * su esquina.
+ *
+ * `clientWidth` y no `innerWidth`: éste cuenta la barra de desplazamiento, y
+ * un `position: fixed` con `right` no la cuenta.
+ */
 function landsAt(target: HTMLElement): { left: number; top: number } {
   const { x, y } = beside(target);
   return {
-    left: window.innerWidth - 24 - ORB + x,
-    top: window.innerHeight - 24 - ORB + y,
+    left: document.documentElement.clientWidth - 24 - ORB + x,
+    top: document.documentElement.clientHeight - 24 - ORB + y,
   };
 }
 

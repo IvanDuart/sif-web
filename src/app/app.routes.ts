@@ -90,6 +90,25 @@ export const routes: Routes = [
         path: 'revenue',
         loadComponent: () => import('./features/revenue/revenue.page').then(m => m.default)
       },
+      // Las rutas concretas van antes que 'billing': con `pathMatch` por
+      // prefijo, 'billing' tragaría 'billing/success' y dejaría el segmento
+      // sobrante sin ruta.
+      {
+        path: 'billing/success',
+        data: { outcome: 'success' },
+        loadComponent: () => import('./features/billing/billing-return.page').then(m => m.default)
+      },
+      {
+        path: 'billing/cancel',
+        data: { outcome: 'cancel' },
+        loadComponent: () => import('./features/billing/billing-return.page').then(m => m.default)
+      },
+      // Sin `permissionGuard`: un centro suspendido manda aquí a cualquiera, y
+      // quien no pueda gestionar la suscripción ve a quién avisar.
+      {
+        path: 'billing',
+        loadComponent: () => import('./features/billing/billing.page').then(m => m.default)
+      },
       {
         path: 'settings',
         loadComponent: () => import('./features/settings/branding-settings.page').then(m => m.default)
@@ -108,6 +127,16 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () => import('./features/admin/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent)
+      },
+      // La ruta con parámetro va primero: 'billing' a secas no la cubre y, al
+      // revés, se tragaría el segmento del centro.
+      {
+        path: 'billing/:tenantId',
+        loadComponent: () => import('./features/admin/billing/admin-billing-detail.page').then(m => m.default)
+      },
+      {
+        path: 'billing',
+        loadComponent: () => import('./features/admin/billing/admin-billing-list.page').then(m => m.default)
       }
     ]
   },

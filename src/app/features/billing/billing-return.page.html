@@ -1,0 +1,47 @@
+<div class="mx-auto flex max-w-xl flex-col items-center gap-5 py-16 text-center" *transloco="let t">
+  @switch (state()) {
+    @case ('checking') {
+      <tui-loader size="xl" />
+      <h1 class="font-display text-xl font-bold text-surface-900 dark:text-surface-0">
+        {{ t('billing.return.checking_title') }}
+      </h1>
+      <p class="text-sm leading-relaxed text-surface-500 dark:text-surface-400">
+        {{ t('billing.return.checking') }}
+      </p>
+    }
+
+    @case ('active') {
+      <i class="fa-solid fa-circle-check text-4xl text-ok" aria-hidden="true"></i>
+      <h1 class="font-display text-xl font-bold text-surface-900 dark:text-surface-0">
+        {{ t('billing.return.success_title') }}
+      </h1>
+      <p class="text-sm leading-relaxed text-surface-500 dark:text-surface-400">
+        {{ t('billing.return.success') }}
+      </p>
+    }
+
+    @case ('pending') {
+      <i class="fa-solid fa-clock text-4xl text-warn" aria-hidden="true"></i>
+      <h1 class="font-display text-xl font-bold text-surface-900 dark:text-surface-0">
+        {{ t('billing.return.pending_title') }}
+      </h1>
+      <p class="text-sm leading-relaxed text-surface-500 dark:text-surface-400">
+        {{ t('billing.return.pending') }}
+      </p>
+    }
+
+    @case ('cancelled') {
+      <i class="fa-solid fa-circle-xmark text-4xl text-surface-400" aria-hidden="true"></i>
+      <h1 class="font-display text-xl font-bold text-surface-900 dark:text-surface-0">
+        {{ t('billing.return.cancelled_title') }}
+      </h1>
+      <p class="text-sm leading-relaxed text-surface-500 dark:text-surface-400">
+        {{ t('billing.return.cancelled') }}
+      </p>
+    }
+  }
+
+  <a tuiButton appearance="primary" size="m" routerLink="/billing" class="mt-2">
+    {{ t('billing.return.back') }}
+  </a>
+</div>

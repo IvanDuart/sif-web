@@ -10,6 +10,7 @@ Documentaci贸n del asistente conversacional, la mascota y el chat 1:1 paciente鈥
 | [`assistant-frontend.md`](assistant-frontend.md) | Contrato del asistente para nutricionistas: pantallas, tools, streaming SSE, `uiActions` y `pendingAction`. |
 | [`assistant-tools-backend.md`](assistant-tools-backend.md) | Cat谩logo de tools del asistente y gu铆a de implementaci贸n backend. |
 | [`assistant-backend-peticion.md`](assistant-backend-peticion.md) | Peticiones de protocolo al backend: streaming, tipos de `uiAction`, reanudaci贸n de sesi贸n. |
+| [`assistant-b4-retirar-uiactions-peticion.md`](assistant-b4-retirar-uiactions-peticion.md) | Fase B4: retirar `NAVIGATE`, `OPEN_DIALOG` y `HIGHLIGHT`, que ya hacen las herramientas de cliente. El frontend ya est谩 listo. |
 | [`chat-frontend.md`](chat-frontend.md) | Contrato del chat 1:1: hilos, mensajes, adjuntos, SSE y notificaciones push. |
 
 ## Orden de lectura sugerido

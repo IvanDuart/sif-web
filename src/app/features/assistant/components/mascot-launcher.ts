@@ -1,45 +1,59 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
+  ElementRef,
   OnInit,
+  afterRenderEffect,
   computed,
   effect,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { TuiButton } from '@taiga-ui/core';
 
 import { MascotFillService } from '../mascot/fill/mascot-fill.service';
+import { ORB, orbBeside, travelFrom } from '../mascot/placement';
+import { MascotLookService } from '../mascot/mascot-look.service';
+import { MascotMoodService } from '../mascot/mascot-mood.service';
+import { HERO_REST, HeroSecret, heroEnabled, heroSteps, heroTransform, type HeroPose } from '../mascot/mascot-hero';
+import { MascotFollowService } from '../mascot/mascot-follow.service';
+import { poseTransform } from '../mascot/mascot-follow';
+import { SECRET_HELP, installSecrets } from '../mascot/mascot-secrets';
+import type { SkinId } from '../mascot/skins/types';
+
+export { ORB };
 import type { NoteAction } from '../mascot/mascot-mood.service';
 import { StuckFormOfferService } from '../stuck-form-offer.service';
 import { MascotStateService } from '../mascot-state.service';
 import { MascotBar } from '../bar/mascot-bar';
+import { RouteVeil } from '../copilot/route-veil.component';
 import { MascotOrb } from './mascot-orb';
 import { MascotWardrobe } from './mascot-wardrobe';
 
-/** Lo que mide el FAB y lo que guarda de su esquina (lo mismo que su CSS). */
-export const ORB = 62;
-const REST_RIGHT = 24;
-const REST_BOTTOM = 24;
-/** Lo que deja entre ella y el campo. */
-const GAP = 14;
+/** Lo que deja de margen con lo que no debe tapar. */
+const AVOID = '[tuiAlert], tui-alert, tui-toast, [role="dialog"]';
 
 /**
  * Dónde se pone la mascota para atender a ese campo, respecto de su esquina.
- * A su izquierda si cabe —es donde menos tapa— y si no, a su derecha; siempre
- * dentro de la pantalla.
+ *
+ * La geometría vive en `mascot/placement.ts`, que es pura y está probada
+ * aparte; aquí sólo se leen del DOM el campo, la ventana y lo que no hay que
+ * tapar.
  */
 export function beside(target: HTMLElement): { x: number; y: number } {
-  const rect = target.getBoundingClientRect();
-  const restLeft = window.innerWidth - REST_RIGHT - ORB;
-  const restTop = window.innerHeight - REST_BOTTOM - ORB;
+  const viewport = { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight };
+  const avoid = Array.from(document.querySelectorAll<HTMLElement>(AVOID))
+    .filter((element) => !element.contains(target))
+    .map((element) => element.getBoundingClientRect())
+    .filter((box) => box.width > 0 && box.height > 0)
+    .map((box) => ({ left: box.left, top: box.top, width: box.width, height: box.height }));
 
-  const left = rect.left - GAP - ORB;
-  const wanted = left >= 8 ? left : rect.right + GAP;
-  const x = Math.min(Math.max(wanted, 8), window.innerWidth - ORB - 8);
-  const y = Math.min(Math.max(rect.top + rect.height / 2 - ORB / 2, 8), window.innerHeight - ORB - 8);
-  return { x: x - restLeft, y: y - restTop };
+  const rect = target.getBoundingClientRect();
+  const spot = orbBeside({ left: rect.left, top: rect.top, width: rect.width, height: rect.height }, viewport, avoid);
+  return travelFrom(spot, viewport);
 }
 
 /**
@@ -49,10 +63,13 @@ export function beside(target: HTMLElement): { x: number; y: number } {
 @Component({
   selector: 'app-mascot-launcher',
   standalone: true,
-  imports: [TranslocoDirective, TuiButton, MascotBar, MascotOrb, MascotWardrobe],
+  imports: [TranslocoDirective, TuiButton, MascotBar, MascotOrb, MascotWardrobe, RouteVeil],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (state.visible()) {
+      <!-- El suelo que cambia cuando ella navega; ella se queda encima. -->
+      <app-route-veil />
+
       <!-- La conversación entera. La mascota no va dentro: va aquí abajo, y se
            acopla a su borde izquierdo. -->
       <app-mascot-bar />
@@ -104,20 +121,28 @@ export function beside(target: HTMLElement): { x: number; y: number } {
       <button
         type="button"
         class="mascot-fab"
-        [class.mascot-fab--docked]="state.barOpen() && !fill.filling()"
+        [class.mascot-fab--docked]="state.barOpen() && !fill.filling() && !flying()"
         [class.mascot-fab--open]="state.open() && !fill.filling()"
         [class.mascot-fab--travelling]="travelling()"
         [class.mascot-fab--catching]="catching()"
+        #fab
         (dragover)="onDragOver($event)"
         (dragleave)="catching.set(false)"
         (drop)="onDrop($event)"
-        [style.transform]="travelTransform()"
+        [style.transform]="fabTransform()"
+        [style.--mascot-pose]="fabEase()"
         [style.--mascot-hop]="fill.hopMs() + 'ms'"
         [attr.aria-expanded]="state.open()"
         aria-controls="mascot-bar"
         [attr.aria-label]="state.open() ? t('assistant.close') : t('assistant.open', { name: state.name() })"
         *transloco="let t"
       >
+        @if (hero().cape > 0) {
+          <!-- La capa es del color de su fruta: ni disfraz nuevo ni dibujo
+               que mantener, que para un huevo de pascua sería mucho pedir. -->
+          <span class="mascot-cape" aria-hidden="true" [style.opacity]="hero().cape"></span>
+        }
+
         <app-mascot-orb
           [mode]="state.orbMode()"
           [skin]="state.skin()"
@@ -172,7 +197,9 @@ export function beside(target: HTMLElement): { x: number; y: number } {
       background: none;
       filter: drop-shadow(0 4px 8px rgb(31 29 26 / 0.22)) drop-shadow(0 1px 2px rgb(31 29 26 / 0.14));
       cursor: pointer;
-      transition: transform var(--motion-duration-fast, 150ms) var(--motion-ease-out, ease-out);
+      /* La coreografía manda su propia duración y curva; sin ella, el hover. */
+      transition: transform var(--mascot-pose, var(--motion-duration-fast, 150ms) var(--motion-ease-out, ease-out));
+      transform-origin: 50% 92%;
 
       &:hover {
         transform: translateY(-2px);
@@ -205,6 +232,21 @@ export function beside(target: HTMLElement): { x: number; y: number } {
       .mascot-fab.mascot-fab--docked:not(.mascot-fab--travelling) {
         transition: none;
       }
+    }
+
+    /* La capa del héroe: el color de su fruta, detrás de ella. */
+    .mascot-cape {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      z-index: -1;
+      width: 46px;
+      height: 42px;
+      transform: translateX(-50%);
+      border-radius: 0 0 50% 50% / 0 0 70% 70%;
+      background: linear-gradient(180deg, var(--tui-primary, #2f5d4f), transparent);
+      transition: opacity 240ms ease-out;
+      pointer-events: none;
     }
 
     .mascot-backdrop {
@@ -308,7 +350,22 @@ export function beside(target: HTMLElement): { x: number; y: number } {
         bottom: calc(var(--bottom-nav-h, 60px) + 84px + env(safe-area-inset-bottom, 0px));
       }
 
-      .mascot-backdrop {
+      /* La capa del héroe: el color de su fruta, detrás de ella. */
+    .mascot-cape {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      z-index: -1;
+      width: 46px;
+      height: 42px;
+      transform: translateX(-50%);
+      border-radius: 0 0 50% 50% / 0 0 70% 70%;
+      background: linear-gradient(180deg, var(--tui-primary, #2f5d4f), transparent);
+      transition: opacity 240ms ease-out;
+      pointer-events: none;
+    }
+
+    .mascot-backdrop {
         display: block;
         position: fixed;
         inset: 0;
@@ -334,6 +391,11 @@ export function beside(target: HTMLElement): { x: number; y: number } {
 })
 export class MascotLauncher implements OnInit {
   readonly state = inject(MascotStateService);
+  private readonly look = inject(MascotLookService);
+  private readonly mood = inject(MascotMoodService);
+  /** Acompaña el cambio de sección: mira, se agacha y salta. */
+  private readonly follow = inject(MascotFollowService);
+
   readonly fill = inject(MascotFillService);
   private readonly stuck = inject(StuckFormOfferService);
 
@@ -345,10 +407,86 @@ export class MascotLauncher implements OnInit {
     return at ? `translate(${at.x.toFixed(1)}px, ${at.y.toFixed(1)}px)` : '';
   });
 
+  /**
+   * Lo mismo, con la rutina de acompañar el cambio de sección encima.
+   *
+   * El viaje va primero y el gesto después, así que al mirar hacia el menú se
+   * asoma desde donde esté, no desde su esquina. El bocadillo usa el viaje a
+   * secas: lo que dice no da saltos.
+   */
+  /** Volando, el vuelo manda: ni acompaña secciones ni se acopla a la tarjeta. */
+  protected readonly flying = computed(() => this.hero() !== HERO_REST);
+
+  protected readonly fabTransform = computed(() => {
+    const flight = this.hero();
+    if (flight !== HERO_REST) return heroTransform(flight);
+    return poseTransform(this.follow.pose(), this.travel());
+  });
+
+  /** Cómo llega a la pose: lo dice la propia coreografía, y el vuelo manda sobre ella. */
+  protected readonly fabEase = computed(() =>
+    this.hero() === HERO_REST ? this.follow.pose().ease : this.hero().ease,
+  );
+
+  /** Dónde va el vuelo del huevo de pascua. */
+  protected readonly hero = signal<HeroPose>(HERO_REST);
+  private readonly secret = new HeroSecret();
+  private heroTimers: ReturnType<typeof setTimeout>[] = [];
+
+  private readonly fab = viewChild<ElementRef<HTMLElement>>('fab');
+
+  /**
+   * Alt + tres clics seguidos y despega.
+   *
+   * Se escucha en CAPTURA y se corta el evento: con Alt, el clic no llega al
+   * orbe y no abre la conversación. Si la abriera, la mascota se iría al borde
+   * de la tarjeta en el primer clic y los otros dos caerían en el vacío — que
+   * es justo por lo que el huevo de pascua no salía nunca.
+   */
+  private watchHero(onCleanup: (fn: () => void) => void): void {
+    const fab = this.fab()?.nativeElement;
+    if (!fab) return;
+    const onClick = (event: MouseEvent) => {
+      if (!event.altKey) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (!this.secret.press(event, Date.now())) return;
+      if (!heroEnabled() || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      this.flyHero();
+    };
+    fab.addEventListener('click', onClick, true);
+    onCleanup(() => fab.removeEventListener('click', onClick, true));
+  }
+
+  private flyHero(): void {
+    this.heroTimers.forEach(clearTimeout);
+    const viewport = {
+      width: document.documentElement.clientWidth,
+      height: document.documentElement.clientHeight,
+    };
+    this.heroTimers = heroSteps(viewport).map(([ms, pose]) =>
+      setTimeout(() => this.hero.set(pose ?? HERO_REST), ms),
+    );
+  }
+
   /** Viaja: también de vuelta, para que el regreso a su esquina sea el mismo viaje. */
   protected readonly travelling = signal(false);
 
   constructor() {
+    // Sólo en desarrollo: poner una skin o abrir el armario desde la consola
+    // cuesta una línea, en vez de cinco clics cada vez que se prueba algo.
+    const forget = installSecrets({
+      help: () => [...SECRET_HELP],
+      wardrobe: () => this.state.openWardrobe(),
+      skin: (id) => this.look.setSkin(id as SkinId),
+      say: (text) => void this.mood.say({ text, tone: 'neutral' }),
+      bar: (open) => (open ? this.state.openPanel() : this.state.closePanel()),
+    });
+    inject(DestroyRef).onDestroy(forget);
+
+    // El botón no existe hasta que se pinta, y puede volver a crearse.
+    afterRenderEffect((onCleanup) => this.watchHero(onCleanup));
+
     // El campo se mueve mientras llega (el scroll suave, la entrada del
     // diálogo), así que se le sigue cada frame en vez de medirlo una vez.
     effect((onCleanup) => {

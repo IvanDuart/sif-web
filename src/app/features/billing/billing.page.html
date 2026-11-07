@@ -1,0 +1,254 @@
+<div class="space-y-6 pb-4" *transloco="let t">
+  <!-- ═══════════ Cabecera ═══════════ -->
+  <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+    <div class="min-w-0">
+      <h1
+        class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]"
+      >
+        {{ t('billing.title') }}
+      </h1>
+      <p class="mt-1.5 max-w-[65ch] text-[13px] leading-relaxed text-surface-500 dark:text-surface-400">
+        {{ t('billing.subtitle') }}
+      </p>
+    </div>
+
+    @if (status()) {
+      <div class="flex items-center gap-2 lg:ml-auto">
+        <span tuiBadge [appearance]="statusAppearance(status())" size="l">{{ statusLabel() }}</span>
+      </div>
+    }
+  </header>
+
+  @if (!canManage()) {
+    <!-- Sin VIEW_BILLING no hay nada que gestionar: solo a quién avisar. -->
+    <app-empty-state
+      icon="fa-solid fa-lock"
+      [title]="suspended() ? t('billing.suspended.title') : t('billing.no_permission_title')"
+      [description]="suspended() ? t('billing.suspended.contact_admin') : t('billing.no_permission')"
+    />
+  } @else {
+    @if (suspended()) {
+      <!-- ═══════════ Centro suspendido ═══════════ -->
+      <section
+        class="rounded-2xl border border-err/25 bg-err-soft px-5 py-6 sm:px-7 sm:py-8"
+        role="alert"
+      >
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+          <i class="fa-solid fa-circle-exclamation mt-0.5 text-2xl text-err" aria-hidden="true"></i>
+          <div class="min-w-0 flex-1">
+            <h2 class="font-display text-xl font-bold text-err">{{ t('billing.suspended.title') }}</h2>
+            <p class="mt-2 max-w-[60ch] text-sm leading-relaxed text-surface-700 dark:text-surface-300">
+              {{ t('billing.suspended.description') }}
+            </p>
+            <div class="mt-5 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                tuiButton
+                appearance="primary"
+                size="m"
+                [disabled]="busy()"
+                (click)="openCheckout()"
+              >
+                <i class="fa-solid fa-credit-card mr-1" aria-hidden="true"></i>
+                {{ t('billing.actions.pay') }}
+              </button>
+              @if (price()) {
+                <span class="text-[13px] tabular-nums text-surface-500 dark:text-surface-400">
+                  {{ t('billing.price_per_month', { price: price() }) }}
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- ═══════════ Estado de la suscripción ═══════════ -->
+    <section class="data-card p-5 sm:p-6">
+      @if (billing.loading() && !detail()) {
+        <tui-loader size="l" [overlay]="true">
+          <div class="h-28"></div>
+        </tui-loader>
+      } @else {
+        <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="min-w-0">
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+              {{ t('billing.fields.status') }}
+            </p>
+            <p class="mt-1 text-sm font-medium text-surface-900 dark:text-surface-0">
+              {{ statusLabel() }}
+            </p>
+            @if (countdownKey(); as key) {
+              <p class="mt-1 text-[13px] text-surface-500 dark:text-surface-400">
+                {{ t(key, { days: detail()?.daysLeft, date: countdownDate() | date: 'longDate' }) }}
+              </p>
+            }
+          </div>
+
+          <div class="min-w-0">
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+              {{ t('billing.fields.price') }}
+            </p>
+            <p class="mt-1 text-sm font-medium tabular-nums text-surface-900 dark:text-surface-0">
+              @if (isExempt()) {
+                {{ t('billing.exempt_short') }}
+              } @else {
+                {{ price() ?? '—' }}
+                <span class="text-surface-500 dark:text-surface-400">{{ t('billing.per_month') }}</span>
+              }
+            </p>
+          </div>
+
+          <div class="min-w-0">
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+              {{ t('billing.fields.payment_method') }}
+            </p>
+            <p class="mt-1 text-sm font-medium tabular-nums text-surface-900 dark:text-surface-0">
+              {{ cardLabel() ?? t('billing.no_payment_method') }}
+            </p>
+          </div>
+
+          <div class="min-w-0">
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+              {{ t('billing.fields.billing_email') }}
+            </p>
+            <p class="mt-1 truncate text-sm font-medium text-surface-900 dark:text-surface-0">
+              {{ detail()?.billingEmail ?? '—' }}
+            </p>
+          </div>
+        </div>
+
+        @if (detail()?.cancelAtPeriodEnd && detail()?.paidUntil) {
+          <p class="mt-5 rounded-lg bg-sunken px-3 py-2 text-[13px] text-surface-600 dark:text-surface-300">
+            <i class="fa-solid fa-circle-info mr-1.5" aria-hidden="true"></i>
+            {{ t('billing.cancel_scheduled', { date: detail()?.paidUntil | date: 'longDate' }) }}
+          </p>
+        }
+
+        @if (!isExempt()) {
+          <div class="mt-6 flex flex-wrap items-center gap-2.5 border-t border-line pt-5">
+            @if (primaryActionKey(); as actionKey) {
+              <button
+                type="button"
+                tuiButton
+                appearance="primary"
+                size="m"
+                [disabled]="busy()"
+                (click)="primaryAction()"
+              >
+                {{ t(actionKey) }}
+              </button>
+            }
+
+            @if (status() === 'ACTIVE' || status() === 'PAST_DUE' || status() === 'CANCELLED') {
+              <button
+                type="button"
+                tuiButton
+                appearance="secondary"
+                size="m"
+                [disabled]="busy()"
+                (click)="openPortal()"
+              >
+                <i class="fa-solid fa-arrow-up-right-from-square mr-1" aria-hidden="true"></i>
+                {{ t('billing.actions.portal') }}
+              </button>
+            }
+
+            @if (status() === 'ACTIVE' && !detail()?.cancelAtPeriodEnd) {
+              <button
+                type="button"
+                tuiButton
+                appearance="flat"
+                size="m"
+                class="ml-auto"
+                [disabled]="busy()"
+                (click)="cancelSubscription()"
+              >
+                {{ t('billing.actions.cancel') }}
+              </button>
+            }
+          </div>
+        } @else {
+          <p class="mt-5 text-[13px] text-surface-500 dark:text-surface-400">
+            {{ t('billing.exempt_description') }}
+          </p>
+        }
+      }
+    </section>
+
+    <!-- ═══════════ Facturas ═══════════ -->
+    <section class="space-y-3">
+      <h2 class="font-display text-lg font-bold text-surface-900 dark:text-surface-0">
+        {{ t('billing.invoices.title') }}
+      </h2>
+
+      @if (invoices().length === 0 && !invoicesLoading()) {
+        <div class="table-wrapper">
+          <app-empty-state
+            icon="fa-solid fa-file-invoice"
+            [title]="t('billing.invoices.empty_title')"
+            [description]="t('billing.invoices.empty')"
+          />
+        </div>
+      } @else {
+        <div class="table-wrapper" [class.opacity-60]="invoicesLoading()">
+          <table [attr.aria-label]="t('billing.invoices.title')" tuiTable class="w-full">
+            <thead>
+              <tr>
+                <th tuiTh scope="col">{{ t('billing.invoices.number') }}</th>
+                <th tuiTh scope="col">{{ t('billing.invoices.period') }}</th>
+                <th tuiTh scope="col">{{ t('billing.invoices.total') }}</th>
+                <th tuiTh scope="col">{{ t('common.status') }}</th>
+                <th tuiTh scope="col" class="w-16">
+                  <span class="sr-only">{{ t('common.actions') }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody tuiTbody>
+              @for (invoice of invoices(); track invoice.id) {
+                <tr tuiTr>
+                  <td tuiTd class="font-medium tabular-nums">{{ invoice.number ?? '—' }}</td>
+                  <td tuiTd class="tabular-nums text-surface-600 dark:text-surface-300">
+                    {{ invoice.periodStart | date: 'shortDate' }} — {{ invoice.periodEnd | date: 'shortDate' }}
+                  </td>
+                  <td tuiTd class="tabular-nums">
+                    {{ formatMoney(invoice.totalCents, invoice.currency) }}
+                  </td>
+                  <td tuiTd>
+                    <span tuiBadge [appearance]="invoiceAppearance(invoice.status)">
+                      {{ t('billing.invoices.status.' + invoice.status) }}
+                    </span>
+                  </td>
+                  <td tuiTd>
+                    <button
+                      type="button"
+                      tuiIconButton
+                      appearance="flat"
+                      size="s"
+                      iconStart="@tui.download"
+                      [disabled]="downloadingInvoiceId() === invoice.id"
+                      [attr.aria-label]="t('billing.invoices.download')"
+                      [attr.title]="t('billing.invoices.download')"
+                      (click)="downloadInvoice(invoice)"
+                    ></button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (invoicesTotal() > invoicesPageSize) {
+          <app-pagination-footer
+            [page]="invoicesPage()"
+            [size]="invoicesPageSize"
+            [total]="invoicesTotal()"
+            [busy]="invoicesLoading()"
+            (prev)="loadInvoices(invoicesPage() - 1)"
+            (next)="loadInvoices(invoicesPage() + 1)"
+          />
+        }
+      }
+    </section>
+  }
+</div>

@@ -1,3 +1,5 @@
+import { BillingStatus } from './billing.model';
+
 /**
  * `MANUAL`: la comida es texto libre (el modo de siempre).
  * `BEDCA`: la comida se compone con alimentos del catálogo y su gramaje.
@@ -45,7 +47,23 @@ export type TenantPreferencesPatch = Partial<TenantPreferences> & {
   gemini_api_key?: string;
 };
 
-export interface Tenant {
+/**
+ * Campos de facturación que el backend serializa en `JsonViews.List` y
+ * `JsonViews.Full` del tenant (Fase 0B). Los ids de Stripe no se exponen.
+ */
+export interface TenantBillingFields {
+  billingStatus?: BillingStatus;
+  billingExempt?: boolean;
+  trialEndsAt?: string;
+  paidUntil?: string;
+  graceEndsAt?: string;
+  suspendedAt?: string;
+  subscriptionPriceCents?: number;
+  billingEmail?: string;
+  cancelAtPeriodEnd?: boolean;
+}
+
+export interface Tenant extends TenantBillingFields {
   id: string;
   name: string;
   cif: string;

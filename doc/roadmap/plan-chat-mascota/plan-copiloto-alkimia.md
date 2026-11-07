@@ -1,5 +1,8 @@
 # Plan — Adaptar el copiloto de alkimia a sif-web
 
+> **Estado: TERMINADO (2026-11-07).** El desglose ejecutable y lo que se hizo de verdad están en
+> [`plan-copiloto-implementacion.md`](plan-copiloto-implementacion.md).
+
 > **Origen:** `alkimia-app/src/core/copilot/` (React 19 + assistant-ui + AG-UI). Son unos 170 ficheros y 14 000 líneas sin contar tests.
 > **Destino:** `src/app/features/assistant/` (Angular 21, signals, Taiga UI) y el backend Spring Boot del asistente (`AssistantConversationService`, Gemini).
 > **Decisiones tomadas (noviembre de 2026):**

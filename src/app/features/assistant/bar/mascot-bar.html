@@ -27,6 +27,34 @@
     <div class="card__body">
       <app-catalog-debug />
 
+      @if (state.consentRequired()) {
+        <!-- Sin el sí a esto no se habla con el asistente: `send()` descarta
+             el mensaje, así que tiene que verse ANTES del campo y no después. -->
+        <div class="consent">
+          <p class="consent__title">{{ t('assistant.consent_title') }}</p>
+          <p class="consent__text">{{ state.consentText() }}</p>
+          <div class="answers">
+            <button type="button" class="chip" (click)="state.declineConsent()">
+              {{ t('assistant.consent_decline') }}
+            </button>
+            <button
+              type="button"
+              class="chip chip--primary"
+              [disabled]="state.sending()"
+              (click)="state.acceptConsent()"
+            >
+              {{ t('assistant.consent_accept') }}
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (greeting(); as hello) {
+        <div class="say">
+          <div class="say__text"><app-mascot-rich-text [text]="hello" /></div>
+        </div>
+      }
+
       @if (said(); as text) {
         <!-- Lo que acaba de decir, entero y donde se lee: no por una rendija. -->
         <div class="say" [class.say--danger]="dangerous()">
@@ -45,6 +73,19 @@
           (confirmed)="state.confirmAction($event)"
           (cancelled)="state.rejectAction($event)"
         />
+      }
+
+      @if (firstSteps().length > 0 && !working()) {
+        <!-- La primera vez: tres cosas concretas que pedirle. Escriben el
+             borrador y NO lo envían: lo lee la persona y envía ella. -->
+        <div class="first">
+          <p class="first__title">{{ t('assistant.first_title') }}</p>
+          <div class="answers">
+            @for (step of firstSteps(); track step.key) {
+              <button type="button" class="chip" (click)="useFirstStep(step)">{{ t(step.key) }}</button>
+            }
+          </div>
+        </div>
       }
 
       @if (asking()) {
@@ -93,6 +134,15 @@
                 <i class="fa-solid fa-xmark" aria-hidden="true"></i>
               </button>
             </div>
+          }
+        </div>
+      }
+
+      @if (prompts().length > 0) {
+        <!-- Lo que el centro sugiere preguntar; se envían tal cual. -->
+        <div class="answers">
+          @for (prompt of prompts(); track prompt) {
+            <button type="button" class="chip" (click)="state.send(prompt)">{{ prompt }}</button>
           }
         </div>
       }

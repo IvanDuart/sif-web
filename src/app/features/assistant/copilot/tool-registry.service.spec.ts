@@ -3,7 +3,6 @@ import { TestBed } from '@angular/core/testing';
 import { MascotFillService } from '../mascot/fill/mascot-fill.service';
 import { MAX_TOOLS } from './catalog-rules';
 import type { ClientTool } from './client-tool.model';
-import { ECHO_DEBUG_KEY } from './tools/echo.run';
 import { ToolRegistryService } from './tool-registry.service';
 
 describe('ToolRegistryService', () => {
@@ -17,22 +16,15 @@ describe('ToolRegistryService', () => {
   });
 
   beforeEach(() => {
-    localStorage.removeItem(ECHO_DEBUG_KEY);
     spyOn(console, 'warn');
     registry = TestBed.inject(ToolRegistryService);
     fill = TestBed.inject(MascotFillService);
   });
 
-  afterEach(() => {
-    localStorage.removeItem(ECHO_DEBUG_KEY);
-  });
-
   const names = () => registry.catalog().map((decl) => decl.name);
 
-  it('sin nada registrado no declara herramientas: echo es solo de depuración', () => {
+  it('sin nada registrado y sin formularios, no declara nada', () => {
     expect(names()).toEqual([]);
-    localStorage.setItem(ECHO_DEBUG_KEY, '1');
-    expect(names()).toEqual(['echo']);
   });
 
   it('una herramienta que se registra se declara, y al quitarla desaparece', () => {

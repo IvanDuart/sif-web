@@ -14,6 +14,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
 import { CatalogDebug } from '../copilot/catalog-debug';
 import { ToolRunnerService } from '../copilot/tool-runner.service';
+import { FirstStepsService, type FirstStep } from '../mascot/first-steps';
 import { MascotFillService } from '../mascot/fill/mascot-fill.service';
 import { MascotActionCard } from '../components/mascot-action-card';
 import { MascotRichText } from '../components/mascot-rich-text';
@@ -52,6 +53,10 @@ export class MascotBar {
   private readonly fill = inject(MascotFillService);
   private readonly runner = inject(ToolRunnerService);
   private readonly transloco = inject(TranslocoService);
+  private readonly firstStepsService = inject(FirstStepsService);
+
+  /** Lo que se le puede pedir la primera vez, si es la primera vez. */
+  protected readonly firstSteps = this.firstStepsService.steps;
 
   protected readonly text = signal('');
   /** El historial, abierto a mano desde la mascota. */
@@ -126,6 +131,10 @@ export class MascotBar {
   /** En reposo y sin nada que contar, la tarjeta se encoge a una pastilla. */
   protected readonly pill = computed(
     () =>
+      !this.state.consentRequired() &&
+      this.greeting() === '' &&
+      this.prompts().length === 0 &&
+      this.firstSteps().length === 0 &&
       !this.working() &&
       !this.asking() &&
       this.said() === '' &&
@@ -133,7 +142,19 @@ export class MascotBar {
       this.state.queued().length === 0,
   );
 
-  protected readonly canSend = computed(() => this.text().trim() !== '' || this.state.attachment() !== null);
+  protected readonly canSend = computed(
+    () => !this.state.consentRequired() && (this.text().trim() !== '' || this.state.attachment() !== null),
+  );
+
+  /** El saludo, mientras no haya conversación que enseñar en su lugar. */
+  protected readonly greeting = computed(() =>
+    this.state.consentRequired() || this.state.messages().length > 0 ? '' : this.state.greeting(),
+  );
+
+  /** Lo que el centro sugiere preguntar, hasta que hay conversación. */
+  protected readonly prompts = computed(() =>
+    this.state.consentRequired() || this.state.messages().length > 0 ? [] : this.state.suggestedPrompts(),
+  );
 
   protected readonly history = computed(() => this.state.messages());
 
@@ -217,6 +238,16 @@ export class MascotBar {
   protected hide(): void {
     this.dismissed.set(this.reply());
     this.state.closePanel();
+  }
+
+  /** Escribe la oferta en el campo; enviarla es cosa de la persona. */
+  protected useFirstStep(step: FirstStep): void {
+    this.firstStepsService.dismiss();
+    this.text.set(this.transloco.translate(step.draftKey));
+    queueMicrotask(() => {
+      this.grow();
+      this.input()?.nativeElement.focus();
+    });
   }
 
   protected toggleTray(): void {

@@ -1,26 +1,18 @@
-import { HttpInterceptorFn, HttpErrorResponse, HttpContextToken } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { TranslocoService } from '@jsverse/transloco';
 import Keycloak from 'keycloak-js';
 import { Router } from '@angular/router';
 import { NotificationService } from '../ui';
+import { TENANT_SUSPENDED_CODE } from '../api/models/billing.model';
+import { BillingStatusService } from '../billing/billing-status.service';
+import { IGNORE_FORBIDDEN, IGNORE_NOT_FOUND, SILENT_ERROR } from './http-context.tokens';
 
-export const IGNORE_NOT_FOUND = new HttpContextToken<boolean>(() => false);
-
-/**
- * Opt out of the global error toast for a request so the caller can present its
- * own UI (e.g. an inline form error or a confirm-and-retry dialog). Side effects
- * like token refresh (401) and redirects (403) still apply.
- */
-export const SILENT_ERROR = new HttpContextToken<boolean>(() => false);
-
-/**
- * Opt out of the global 403 redirect. Pensado para funciones que tratan sus
- * propios 403 (p. ej. la mascota: «IA no habilitada», «falta consentimiento»)
- * y no deben expulsar al usuario de la pantalla.
- */
-export const IGNORE_FORBIDDEN = new HttpContextToken<boolean>(() => false);
+// Re-exportados desde `http-context.tokens.ts`: la definición vive allí para
+// romper el ciclo de imports con los servicios de API, pero el resto de la app
+// los sigue importando desde aquí.
+export { IGNORE_NOT_FOUND, SILENT_ERROR, IGNORE_FORBIDDEN } from './http-context.tokens';
 
 interface ProblemDetailBody {
   type?: unknown;
@@ -31,6 +23,7 @@ interface ProblemDetailBody {
   code?: unknown;
   traceId?: unknown;
   fieldErrors?: unknown;
+  renewalUrl?: unknown;
   error?: unknown;
 }
 
@@ -65,6 +58,15 @@ export function problemDetailCode(error: HttpErrorResponse | null | undefined): 
   return typeof code === 'string' && code.length > 0 ? code : null;
 }
 
+/** URL de renovación que acompaña al `403 TENANT_SUSPENDED`. */
+export function problemDetailRenewalUrl(error: HttpErrorResponse | null | undefined): string | null {
+  if (!error) return null;
+  const body = bodyOf(error);
+  if (!body) return null;
+  const url = body.renewalUrl;
+  return typeof url === 'string' && url.length > 0 ? url : null;
+}
+
 /** `traceId` del `ProblemDetail`, para mostrarlo en soporte o logs. */
 export function problemDetailTraceId(error: HttpErrorResponse | null | undefined): string | null {
   if (!error) return null;
@@ -79,6 +81,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const notify = inject(NotificationService);
   const router = inject(Router);
   const transloco = inject(TranslocoService);
+  const billing = inject(BillingStatusService);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -87,7 +90,13 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           keycloak.login();
         });
       } else if (error.status === 403) {
-        if (problemDetailCode(error) === 'error.clinical_status_read_only') {
+        if (problemDetailCode(error) === TENANT_SUSPENDED_CODE) {
+          // La suspensión por impago no es un problema de permisos: ni toast
+          // genérico, ni /not-authorized, ni cerrar sesión. El centro va a su
+          // pantalla de pago, que es la única que sigue respondiendo.
+          billing.markSuspended(problemDetailRenewalUrl(error));
+          router.navigate(['/billing']);
+        } else if (problemDetailCode(error) === 'error.clinical_status_read_only') {
           notify.error(transloco.translate('errors.clinical_status_read_only'));
         } else if (!req.context.get(IGNORE_FORBIDDEN)) {
           notify.error(transloco.translate('errors.forbidden'));

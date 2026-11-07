@@ -21,6 +21,7 @@ import {
 } from '../../core/api/services/notification-stream.service';
 import { ChatUnreadService } from '../../core/api/services/chat-unread.service';
 import { NotificationService } from '../../core/ui';
+import { BillingBanner } from './billing-banner';
 import { globalLoadingSignal } from '../../core/http/loading.interceptor';
 import { OverlayLayerService } from '../overlay-layer.service';
 
@@ -29,6 +30,12 @@ interface NavItem {
   icon: string;
   route: string;
   permission?: string;
+  /**
+   * Marca el destino como activo solo en su ruta exacta. Lo necesitan los
+   * destinos que son prefijo de otro (`/admin` lo es de `/admin/billing`): sin
+   * esto se encenderían los dos a la vez.
+   */
+  exact?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -44,8 +51,10 @@ const NAV_ITEMS: NavItem[] = [
   { labelKey: 'shopping_list', icon: 'fa-solid fa-cart-shopping', route: '/shopping-lists', permission: 'VIEW_MENU' },
   { labelKey: 'evolution', icon: 'fa-solid fa-chart-line', route: '/evolution', permission: 'VIEW_EVOLUTION' },
   { labelKey: 'templates', icon: 'fa-solid fa-clipboard-list', route: '/templates', permission: 'MANAGE_TEMPLATE' },
+  { labelKey: 'billing', icon: 'fa-solid fa-credit-card', route: '/billing', permission: 'VIEW_BILLING' },
   { labelKey: 'settings', icon: 'fa-solid fa-gear', route: '/settings', permission: 'MANAGE_TENANT_BRANDING' },
-  { labelKey: 'admin', icon: 'fa-solid fa-shield-halved', route: '/admin', permission: 'MANAGE_TENANT' },
+  { labelKey: 'admin', icon: 'fa-solid fa-shield-halved', route: '/admin', permission: 'MANAGE_TENANT', exact: true },
+  { labelKey: 'platform_billing', icon: 'fa-solid fa-file-invoice-dollar', route: '/admin/billing', permission: 'MANAGE_TENANT' },
 ];
 
 @Component({
@@ -58,7 +67,8 @@ const NAV_ITEMS: NavItem[] = [
     TuiProgressBar,
     TuiAvatar,
     ...TuiDropdown,
-    TuiHint
+    TuiHint,
+    BillingBanner
   ],
   templateUrl: './shell.html',
   styleUrls: ['./shell.scss']
@@ -283,7 +293,8 @@ export class Shell implements OnInit, OnDestroy {
    */
   private static readonly MOBILE_PRIORITY = [
     '/dashboard', '/my-diet', '/shopping-lists', '/evolution', '/appointments',
-    '/chat/threads', '/patients', '/revenue', '/staff', '/templates', '/settings', '/admin',
+    '/chat/threads', '/patients', '/revenue', '/staff', '/templates', '/settings', '/billing',
+    '/admin', '/admin/billing',
   ];
 
   readonly bottomNavItems = computed<NavItem[]>(() => {

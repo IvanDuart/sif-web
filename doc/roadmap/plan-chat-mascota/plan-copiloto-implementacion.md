@@ -3,6 +3,8 @@
 > **Qué es:** el desglose ejecutable de [`plan-copiloto-alkimia.md`](plan-copiloto-alkimia.md), con tareas, ficheros, tests y criterio de «hecho».
 > **Contrato vigente:** `doc/contrato-api/assistant/assistant-frontend.md` §3.2 y `doc/contrato-api/assistant/mascota-frontend.md` §1.1. Las fases B0–B3 del backend están implementadas; la B4 (retirada de `uiActions`) sigue pendiente.
 > **Regla para cada fase:** se entrega en su propia rama/PR con `npm run build`, `npm run lint` y `npm test -- --include=src/app/features/assistant/**` en verde. El modelo antiguo (`uiActions` + `pendingAction` por el endpoint bloqueante) **sigue funcionando hasta F8**.
+> **Estado: TERMINADO (2026-11-07).** Las ocho fases F0–F8 están hechas. Lo único que queda fuera del frontend es la **B4 del backend** (dejar de emitir `uiActions` de navegación), pedida en `doc/contrato-api/assistant/assistant-b4-retirar-uiactions-peticion.md`; no bloquea nada porque lo que llegue se ignora.
+>
 > **Re-baseline:** 2026-11-07, con F0, F1 y F2 cerradas. Lo que sigue parte del código que hay hoy en `src/app/features/assistant/`, no del plan original.
 
 ---
@@ -56,6 +58,11 @@ Estas desviaciones son decisiones tomadas, no deuda. Importan porque F3–F8 par
 | **F6** | Barra inferior en lugar del panel | 12 d | F4; en paralelo a F5 |
 | **F7** | Vida y encanto | 8 d | F6 |
 | **F8** | Retirada del modelo antiguo y cierre de specs | 2 d | F5 y F7 |
+
+**Todas hechas.** Queda abierta la deuda **D3**: nada de F3 a F5 se ha probado de punta a punta
+contra el backend real, con el modelo llamando a `fill_` y `save_` y leyendo el resultado. F8 ha
+retirado el camino antiguo, que era lo único verificado contra el servidor, así que esa prueba ya
+no tiene red debajo.
 | | | **≈ 43 d (≈ 8–9 sem)** | |
 
 F4 baja de 8 a 7 días porque `confirm_action` ya está (Δ1), pero sube por el marcado de D2. F3 sube de 8 a 9 por D1, D3, D4 y D6.

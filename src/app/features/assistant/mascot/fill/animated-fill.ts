@@ -1,3 +1,4 @@
+import { revealRows } from '../../copilot/insert-reveal';
 import type { FieldAccess, FillField, FillList, FillOpener, FillSurface, FillValue } from './descriptor';
 import type { MascotFillService } from './mascot-fill.service';
 
@@ -265,6 +266,7 @@ async function growList(
   fill: MascotFillService,
 ): Promise<boolean> {
   const { list, rows } = grow;
+  const started = list.size();
   while (list.size() < rows) {
     if (fill.skipRequested) return false;
     const before = list.size();
@@ -273,6 +275,9 @@ async function growList(
     // Si pulsar no añadió nada, seguir sería un bucle infinito.
     if (list.size() <= before) return false;
   }
+  // Las filas nuevas entran una a una: de golpe la tabla pega un salto y no
+  // hay forma de ver qué se ha añadido ni en qué orden.
+  if (list.size() > started) revealRows(list.key, started, list.size());
   return true;
 }
 

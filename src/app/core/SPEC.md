@@ -23,8 +23,13 @@ parent: architecture
   through `sse-stream.ts`. It renews the JWT before each (re)connect, waits 3 s before reconnecting
   after a drop, and closes for good on 403/404, because retrying a permission denial would never
   succeed.
-- **HTTP interceptors.** auth, error and loading (see `architecture` for the order and the error
-  mapping).
+- **HTTP interceptors.** auth, billing, error and loading (see `architecture` for the order and the
+  error mapping).
+- **Billing status.** `BillingStatusService` (`core/billing/`) keeps the tenant's subscription state
+  in signals. `billingInterceptor` feeds it the `X-Billing-*` headers that ride on every
+  `/api/tenant/**` response, so the banner costs no extra request; `GET /billing/status` is only
+  fetched when those headers say the state changed. A `403 TENANT_SUSPENDED` marks it suspended and
+  sends the user to `/billing`, the one area that still answers.
 - **Runtime config** (`ConfigService`, reading `window.ENV`), **i18n** (`AppLangService`, Transloco
   loader) and **branding** (`ThemeService`, `brandingResolver`, branding store).
 - **UI wrappers.** `NotificationService`, `ModalService` and `ConfirmService` (`core/ui`) are the
@@ -35,5 +40,8 @@ parent: architecture
 - May depend on Angular, Taiga, Keycloak, Transloco and `shared/`. Never imports from `features/` or
   `layout/`.
 - API clients carry no UI concerns. The only exception is per-request context tokens such as
-  `IGNORE_NOT_FOUND`, which tell the global error interceptor what to do with that request.
+  `IGNORE_NOT_FOUND`, which tell the global error interceptor what to do with that request. Those
+  tokens live in `core/http/http-context.tokens.ts`, not in the interceptor: the error interceptor
+  depends on API-facing services (billing status), and the import cycle would leave the tokens
+  uninitialised.
 - Holds no feature state. Feature-specific stores live with their feature.

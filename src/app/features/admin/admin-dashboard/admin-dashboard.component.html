@@ -7,6 +7,10 @@
       <p class="mt-1.5 text-[13px] text-surface-400">{{ t('admin.dashboard_subtitle') }}</p>
     </div>
     <div class="flex flex-wrap items-center gap-2.5 lg:ml-auto">
+      <a tuiButton appearance="secondary" size="m" routerLink="/admin/billing">
+        <i class="fa-solid fa-file-invoice-dollar mr-1" aria-hidden="true"></i>
+        {{ t('admin.billing.title') }}
+      </a>
       <button
         tuiButton
         appearance="primary"

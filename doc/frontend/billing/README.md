@@ -4,7 +4,9 @@ Implementación Angular de facturación y suscripciones.
 
 ## Documentos
 
-Esta carpeta está reservada para guías de implementación frontend de facturación.
+- [`suscripcion-frontend.md`](suscripcion-frontend.md) — implementación de la Fase 0B:
+  estado por cabeceras, `403 TENANT_SUSPENDED`, banner, pantalla de suscripción, facturas
+  y panel de superadmin.
 
 ## Contrato backend
 

@@ -15,6 +15,7 @@ import { map } from 'rxjs/operators';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { assistantWriteInterceptor } from './features/assistant/copilot/assistant-write.interceptor';
+import { billingInterceptor } from './core/http/billing.interceptor';
 import { errorInterceptor } from './core/http/error.interceptor';
 import { loadingInterceptor } from './core/http/loading.interceptor';
 import { mascotWritesInterceptor } from './features/assistant/mascot/mascot-writes.interceptor';
@@ -72,6 +73,10 @@ export const appConfig: ApplicationConfig = {
         // Antes del de errores: marca la petición al salir, y así la marca
         // está puesta pase lo que pase después.
         assistantWriteInterceptor,
+        // Antes del de errores: el 403 de un centro suspendido trae las
+        // cabeceras `X-Billing-*`, y conviene haberlas leído ya cuando el
+        // interceptor de errores decida a dónde mandar al usuario.
+        billingInterceptor,
         errorInterceptor,
         loadingInterceptor,
         mascotWritesInterceptor,

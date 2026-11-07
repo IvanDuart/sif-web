@@ -54,9 +54,12 @@ flowchart TD
 - **Runtime config, not build config.** URLs and Keycloak settings come from `window.ENV`. The Docker
   entrypoint `sed`-replaces placeholders in `index.html`, so a single bundle serves every environment
   (nginx, SPA fallback).
-- **One HTTP pipeline.** `authInterceptor` → `errorInterceptor` → `loadingInterceptor` →
-  `mascotWritesInterceptor`. Errors are mapped once, globally (401 refresh, 403 redirect, 404
-  warning unless `IGNORE_NOT_FOUND`, otherwise a toast). Pages don't re-toast HTTP errors.
+- **One HTTP pipeline.** `authInterceptor` → `assistantWriteInterceptor` → `billingInterceptor` →
+  `errorInterceptor` → `loadingInterceptor` → `mascotWritesInterceptor`. Errors are mapped once,
+  globally (401 refresh, 403 redirect, 404 warning unless `IGNORE_NOT_FOUND`, otherwise a toast).
+  Pages don't re-toast HTTP errors. Two 403s are *not* a permission problem and get their own
+  branch: `error.clinical_status_read_only` (toast, no redirect) and `TENANT_SUSPENDED` (straight to
+  `/billing`, no toast, no logout).
 - **Taiga UI for every control, Tailwind for layout only.** Visual tokens live in `src/styles.less`
   and follow `design-guide`. Multi-tenant brand theming (`--brand-primary`) follows `design-tokens`.
 - **i18n with Transloco** (`es` default, `en`). Taiga's own language is kept in sync with it.

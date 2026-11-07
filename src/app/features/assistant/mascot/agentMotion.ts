@@ -1,4 +1,5 @@
 import { BELOW_FEET, FEET, Motion, inf, rise, swing } from './motionCore';
+import { personalityOf, type AngryMove, type HappyBits, type HappyMove, type Personality } from './skins/personalities';
 import type { SkinId } from './skins/types';
 
 /**
@@ -112,12 +113,46 @@ function sleep(m: Motion): void {
   );
 }
 
-function blush(m: Motion): void {
-  const hearts = m.$('heart');
+/** Lo que flota a su alrededor cuando algo le gusta, según quién sea. */
+function happyBits(m: Motion, bits: HappyBits): void {
+  const float = (name: string) =>
+    m.$(name).forEach((piece, n) => rise(m, piece, 2200, n * 320, (n - 1) * 4, -16));
+  if (bits === 'heart' || bits === 'both') float('heart');
+  if (bits === 'star' || bits === 'both') float('star');
+}
+
+/** Cómo se mueve el cuerpo al alegrarse. */
+function happyMove(m: Motion, move: HappyMove): void {
+  m.set(m.turner, 'transform-origin', BELOW_FEET);
+  switch (move) {
+    case 'sway':
+      m.anim(m.turner, swing(4), { duration: 2400, iterations: inf, easing: 'ease-in-out' });
+      break;
+    case 'hop':
+      m.anim(
+        m.turner,
+        [{ transform: 'translateY(0)' }, { transform: 'translateY(-5px)' }, { transform: 'translateY(0)' }],
+        { duration: 620, iterations: inf, easing: 'ease-in-out' },
+      );
+      break;
+    case 'preen':
+      // Se mece despacio y se deja mirar: no tiene prisa.
+      m.anim(m.turner, swing(7), { duration: 3600, iterations: inf, easing: 'ease-in-out' });
+      break;
+    case 'still':
+      // Se alegra por dentro: sólo las mejillas.
+      break;
+  }
+}
+
+function blush(m: Motion, who: Personality): void {
+  const bits = who.happy.bits;
   if (!m.on) {
-    hearts.forEach((heart) => m.set(heart, 'opacity', '0.9'));
+    if (bits === 'heart' || bits === 'both') m.$('heart').forEach((piece) => m.set(piece, 'opacity', '0.9'));
+    if (bits === 'star' || bits === 'both') m.$('star').forEach((piece) => m.set(piece, 'opacity', '0.9'));
     return;
   }
+  // Las mejillas son de todas: sonrojarse lo hace cualquiera.
   m.eyes.forEach((eye) =>
     m.anim(
       eye.cheek,
@@ -128,24 +163,85 @@ function blush(m: Motion): void {
       { duration: 260, easing: 'ease-out', fill: 'backwards' },
     ),
   );
-  m.set(m.turner, 'transform-origin', BELOW_FEET);
-  m.anim(m.turner, swing(4), { duration: 2400, iterations: inf, easing: 'ease-in-out' });
-  hearts.forEach((heart, n) => rise(m, heart, 2200, n * 320, (n - 1) * 4, -16));
+  happyMove(m, who.happy.move);
+  happyBits(m, bits);
 }
 
-function angry(m: Motion): void {
-  m.$('mark').forEach((mark) =>
-    m.anim(mark, [{ transform: 'scale(1)' }, { transform: 'scale(1.25)' }, { transform: 'scale(1)' }], {
-      duration: 600,
-      iterations: inf,
-      easing: 'ease-in-out',
-    }),
-  );
-  m.anim(
-    m.orb,
-    [{ transform: 'translateX(-2px)' }, { transform: 'translateX(2px)' }, { transform: 'translateX(-2px)' }],
-    { duration: 140, iterations: inf, easing: 'ease-in-out' },
-  );
+/** Cómo se enfada el cuerpo, según quién sea. */
+function angryMove(m: Motion, move: AngryMove): void {
+  m.set(m.turner, 'transform-origin', BELOW_FEET);
+  switch (move) {
+    case 'shake':
+      m.anim(
+        m.orb,
+        [{ transform: 'translateX(-2px)' }, { transform: 'translateX(2px)' }, { transform: 'translateX(-2px)' }],
+        { duration: 140, iterations: inf, easing: 'ease-in-out' },
+      );
+      break;
+    case 'tremble':
+      // No sabe estarse quieta ni para enfadarse.
+      m.anim(
+        m.orb,
+        [{ transform: 'translate(-1px,1px)' }, { transform: 'translate(1px,-1px)' }, { transform: 'translate(-1px,1px)' }],
+        { duration: 90, iterations: inf, easing: 'linear' },
+      );
+      break;
+    case 'turn':
+      // La barbilla alta y apartada: «no te estoy mirando».
+      //
+      // NO se gira con `rotateY`: la mascota es un dibujo plano y su cara está
+      // pintada, así que al girarla sigue viéndose, sólo que del revés. Lo que
+      // parecía darte la espalda parecía un fallo.
+      m.anim(
+        m.turner,
+        [
+          { transform: 'rotate(0deg) translateX(0)' },
+          { transform: 'rotate(-9deg) translateX(-4px)' },
+        ],
+        { duration: 460, fill: 'forwards', easing: 'ease-out' },
+      );
+      break;
+    case 'shrink':
+      m.anim(m.turner, [{ transform: 'scale(1)' }, { transform: 'scale(.88)' }], {
+        duration: 420,
+        fill: 'forwards',
+        easing: 'ease-out',
+      });
+      break;
+    case 'pout':
+      m.anim(
+        m.turner,
+        [{ transform: 'rotate(0deg)' }, { transform: 'rotate(-6deg)' }, { transform: 'rotate(0deg)' }],
+        { duration: 1800, iterations: inf, easing: 'ease-in-out' },
+      );
+      break;
+    case 'sigh':
+      // Un resoplido: se hincha y se desinfla. Ni enfadarse le quita la calma.
+      m.anim(
+        m.turner,
+        [
+          { transform: 'scale(1, 1)' },
+          { transform: 'scale(1.06, 0.95)', offset: 0.35 },
+          { transform: 'scale(0.97, 1.02)', offset: 0.7 },
+          { transform: 'scale(1, 1)' },
+        ],
+        { duration: 2200, iterations: inf, easing: 'ease-in-out' },
+      );
+      break;
+  }
+}
+
+function angry(m: Motion, who: Personality): void {
+  if (who.angry.mark) {
+    m.$('mark').forEach((mark) =>
+      m.anim(mark, [{ transform: 'scale(1)' }, { transform: 'scale(1.25)' }, { transform: 'scale(1)' }], {
+        duration: 600,
+        iterations: inf,
+        easing: 'ease-in-out',
+      }),
+    );
+  }
+  angryMove(m, who.angry.move);
   m.$('puff').forEach((puff, n) =>
     m.anim(
       puff,
@@ -284,10 +380,10 @@ export function startMotion(orb: HTMLElement, scene: Scene, skin: SkinId, still:
       dizzy(m);
       break;
     case 'blush':
-      blush(m);
+      blush(m, personalityOf(skin));
       break;
     case 'angry':
-      angry(m);
+      angry(m, personalityOf(skin));
       break;
     case 'phone':
       phone(m);

@@ -1,8 +1,8 @@
 /** Las familias que el backend acepta por prefijo (`ClientToolValidator`). */
 export type ToolFamily = 'fill' | 'edit' | 'open' | 'save' | 'action';
 
-/** Los nombres sueltos que acepta. `echo` es la sonda del contrato. */
-export const FIXED_TOOLS = ['point_at', 'show_around', 'press', 'ask_user', 'navigate', 'echo'] as const;
+/** Los nombres sueltos que acepta el backend, sin prefijo de familia. */
+export const FIXED_TOOLS = ['point_at', 'show_around', 'press', 'ask_user', 'navigate'] as const;
 
 /** Lo que el backend exige de un nombre; lo que no cumpla se descarta **sin aviso**. */
 export const TOOL_NAME = /^[a-z][a-z0-9_]{2,48}$/;

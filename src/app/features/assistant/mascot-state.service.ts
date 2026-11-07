@@ -11,14 +11,12 @@ import { MascotLookService } from './mascot/mascot-look.service';
 import { MascotMoodService } from './mascot/mascot-mood.service';
 import { MascotMilestonesService } from './mascot/mascot-milestones.service';
 import { MascotPreferencesService } from './mascot/mascot-preferences.service';
-import { playFill, playHighlight, playOpen, preferredTiming, type FillTiming } from './mascot/fill/animated-fill';
-import { matchPreview, unmatchedPreview, type FillSurface } from './mascot/fill/descriptor';
+import { preferredTiming, type FillTiming } from './mascot/fill/animated-fill';
 import { MascotFillService } from './mascot/fill/mascot-fill.service';
-import { resolveFillRoute, routeForTool } from './mascot/fill/surfaces/routes';
-import { NAVIGABLE_SCREENS, routeForScreen, type ScreenRoute } from './copilot/screen-routes';
-import { fillTools } from './copilot/schema';
+import { NAVIGABLE_SCREENS } from './copilot/screen-routes';
 import { InteractionToolsService } from './copilot/interaction-tools.service';
 import { CursorService } from './copilot/cursor.service';
+import { RouteVeilService } from './copilot/route-veil';
 import { QuestionService } from './copilot/question.service';
 import { runNavigate } from './copilot/tools/navigate.run';
 import { NotificationService } from '../../core/ui';
@@ -54,10 +52,6 @@ export interface MascotMessage {
   stopped?: boolean;
 }
 
-/** Lo que se le da al formulario para montar tras un `uiAction` que navega. */
-const SURFACE_WAIT_MS = 1500;
-/** Lo que se le da a un diálogo recién abierto para montar y apuntarse. */
-const OPENED_SURFACE_WAIT_MS = 2500;
 
 /**
  * El código del 403 del asistente: la ficha no es de quien pregunta. Lo
@@ -92,6 +86,7 @@ export class MascotStateService {
   private readonly pageContext = inject(PageContextService);
   private readonly confirmations = inject(ConfirmationService);
   readonly cursor = inject(CursorService);
+  private readonly veil = inject(RouteVeilService);
   /** Solo por inyectarlo se declaran `ask_user`, `point_at`, `show_around` y `press`. */
   private readonly interactions = inject(InteractionToolsService);
   readonly questions = inject(QuestionService);
@@ -247,6 +242,7 @@ export class MascotStateService {
           signal,
           catalog: () => this.tools.catalog(),
           closePanel: () => this.closePanel(),
+          veil: this.veil,
         }),
     });
 
@@ -716,8 +712,8 @@ export class MascotStateService {
       next: (turn) => {
         this.sending.set(false);
         this.pushAssistant(turn.assistantMessage);
-        void this.handleUiActions(turn.uiActions ?? []);
-        void this.offerAction(turn.pendingAction ?? null);
+        this.handleUiActions(turn.uiActions ?? []);
+        this.offerAction(turn.pendingAction ?? null);
       },
       error: (error: HttpErrorResponse) => {
         this.sending.set(false);
@@ -839,8 +835,8 @@ export class MascotStateService {
     this.sendNextQueued();
     this.dropStream(bubble);
     this.pushAssistant(turn.assistantMessage);
-    void this.handleUiActions(turn.uiActions ?? []);
-    void this.offerAction(turn.pendingAction ?? null);
+    this.handleUiActions(turn.uiActions ?? []);
+    this.offerAction(turn.pendingAction ?? null);
   }
 
   /**
@@ -850,109 +846,19 @@ export class MascotStateService {
    * que revisa y guarda con el botón del propio formulario. Si no hay
    * formulario, se pide confirmación como siempre.
    */
-  private async offerAction(action: AssistantPendingActionDto | null): Promise<void> {
-    if (!action) {
-      this.pendingAction.set(null);
-      return;
-    }
-
-    // Mientras el modelo antiguo conviva con las herramientas de cliente, un
-    // mismo turno puede traer las dos cosas: un `fill_` que ya escribió en el
-    // formulario y, detrás, la propuesta del backend para el mismo. Rellenar
-    // otra vez pisaría lo que la persona haya corregido entre medias, así que
-    // solo se ofrece la tarjeta.
-    if (this.alreadyFilledByTool(action.toolName)) {
-      this.pendingAction.set(action);
-      return;
-    }
-
-    const timing = this.fillTiming();
-
-    // De quién es la escritura, antes de mirar lo que hay en pantalla: si es
-    // de otro paciente, el formulario que está abierto es el de la ficha
-    // equivocada y escribir en él guardaría las medidas de uno en la ficha de
-    // otro.
-    const patientId = await this.actionPatientId(action);
-    if (patientId && patientId !== this.currentSubjectUserId()) {
-      await this.goToForm(action.toolName, patientId);
-    }
-
-    let mounted = await this.fill.waitForTool(action.toolName, SURFACE_WAIT_MS);
-
-    // Ni el formulario ni su botón están aquí: habrá que ir a su pantalla. La
-    // propuesta NO trae navegación (el backend manda su `NAVIGATE` al aplicar,
-    // ya confirmada la acción), así que si no va la mascota no va nadie, y
-    // pedir "cambia el horario" desde el panel principal se quedaba siempre en
-    // la tarjeta de confirmar.
-    if (!mounted && !this.fill.openerForTool(action.toolName)) {
-      await this.goToForm(action.toolName, patientId ?? this.subjectPatientId());
-      mounted = await this.fill.waitForTool(action.toolName, SURFACE_WAIT_MS);
-    }
-
-    // No está en pantalla, pero esta pantalla sabe abrirlo: la mascota va hasta
-    // el botón y lo pulsa ella. Sin esto, pedir una medición con el diálogo
-    // cerrado se quedaba siempre en la tarjeta de confirmar.
-    if (!mounted) {
-      const opener = this.fill.openerForTool(action.toolName);
-      if (opener) {
-        this.closePanel();
-        this.fill.begin();
-        try {
-          if (await playOpen(opener, timing, this.fill)) {
-            mounted = await this.fill.waitForTool(action.toolName, OPENED_SURFACE_WAIT_MS);
-          }
-        } finally {
-          // Si no llegó a abrirse, la mascota vuelve a su sitio; si sí, el
-          // relleno retoma el viaje justo después, sin soltarla.
-          if (!mounted) this.fill.end();
-        }
-      }
-    }
-
-    const values = mounted ? matchPreview(mounted.surface, action.preview) : [];
-    if (mounted) this.warnPreviewDrift(action, mounted.surface);
-    if (!mounted || values.length === 0) {
-      this.pendingAction.set(action);
-      return;
-    }
-
-    // Se retira antes de escribir: lo que vale es lo que quede en el
-    // formulario, y una acción viva en el backend podría escribir lo mismo otra vez.
-    this.rejectQuietly(action);
-    this.closePanel();
-    const report = await playFill(mounted.surface, mounted.access, values, this.fill, timing);
-
-    if (report.written.length === 0) {
-      this.pushAssistantText(this.transloco.translate('assistant.fill_failed'));
-      return;
-    }
-    this.mood.feel('cheer');
-    this.mood.say({
-      text: this.transloco.translate('assistant.fill_done', { count: String(report.written.length) }),
-      tone: 'celebrate',
-    });
-    this.pushAssistantText(this.transloco.translate('assistant.fill_review'));
-  }
-
   /**
-   * El formulario está en pantalla y el backend nombra campos que no reconoce.
+   * Lo que el asistente quiere escribir: se ofrece la tarjeta y decide la
+   * persona.
    *
-   * A la persona no se le dice nada —la tarjeta de confirmar sigue haciendo su
-   * trabajo—, pero sin esto el contrato se rompe en silencio y nadie se entera
-   * hasta que un nutricionista nota que la mascota ha dejado de rellenar. Los
-   * nombres están fijados en `doc/contrato-api/assistant/assistant-frontend.md` §6.
+   * Hasta F8 la mascota salía a buscar el formulario, adivinando su pantalla
+   * desde el nombre de la tool, lo abría y lo rellenaba ella. Ya no hace
+   * falta y además era peor: el modelo no se enteraba de nada de eso. Ahora,
+   * si hay que rellenar algo en pantalla lo pide él con `fill_` y lee el
+   * resultado; y si la escritura es suya, se confirma aquí y escribe el
+   * backend.
    */
-  private warnPreviewDrift(action: AssistantPendingActionDto, surface: FillSurface): void {
-    const orphans = unmatchedPreview(surface, action.preview);
-    if (orphans.length === 0) return;
-
-    const total = action.preview.filter((item) => item.value !== '').length;
-    const scope = orphans.length === total ? 'ninguno' : `${orphans.length} de ${total}`;
-    console.warn(
-      `[mascota] "${action.toolName}" → formulario "${surface.id}": no reconoce ${scope} de los campos del preview.`,
-      `Sin reconocer: ${orphans.join(', ')}.`,
-      'El contrato de nombres está en doc/contrato-api/assistant/assistant-frontend.md §6.',
-    );
+  private offerAction(action: AssistantPendingActionDto | null): void {
+    this.pendingAction.set(action);
   }
 
   /** Retira la acción sin contarlo en el chat: lo que cuenta es el relleno. */
@@ -992,7 +898,7 @@ export class MascotStateService {
         this.milestones.refresh();
         // Y lleva a ver lo que se acaba de crear, si el backend lo pide
         // (`doc/contrato-api/assistant/assistant-frontend.md` §5).
-        void this.handleUiActions(response.uiActions ?? []);
+        this.handleUiActions(response.uiActions ?? []);
       },
       error: (error: HttpErrorResponse) => {
         this.resolvingAction.set(false);
@@ -1094,47 +1000,25 @@ export class MascotStateService {
    * `uiActions` no son rutas: se traduce `screen` contra una lista blanca.
    * Cualquier pantalla o acción desconocida se ignora.
    */
-  private async handleUiActions(actions: AssistantUiActionDto[]): Promise<void> {
-    // De paso se apunta de quién habla el backend: `params.patientId` es el
-    // único sitio del contrato por el que el paciente activo llega hoy al
-    // frontend (`doc/contrato-api/assistant/assistant-frontend.md` §4).
+  /**
+   * Lo que queda de `uiActions`: el aviso, y de quién habla el backend.
+   *
+   * `NAVIGATE`, `OPEN_DIALOG` y `HIGHLIGHT` se retiraron en F8: eso lo hace
+   * ahora el modelo llamando a `navigate`, `open_<id>` y `point_at`, que
+   * además le devuelven si salió bien. Un `uiAction` se mandaba a ciegas y
+   * nadie se enteraba de si había servido para algo.
+   *
+   * El `TOAST` se queda porque no tiene equivalente: es el backend avisando
+   * de algo, no la mascota actuando.
+   */
+  private handleUiActions(actions: AssistantUiActionDto[]): void {
     for (const action of actions) {
+      // `params.patientId` es el único sitio del contrato por el que el
+      // paciente activo llega hoy al frontend (`assistant-contract` §4).
       const patientId = action.params?.['patientId'];
       if (typeof patientId === 'string' && patientId !== '') this.activePatientId.set(patientId);
-    }
 
-    // La navegación primero, y una sola: cambia la pantalla debajo de las
-    // demás, así que abrir un formulario o señalar un campo sólo tiene sentido
-    // una vez que se ha llegado.
-    for (const action of actions) {
-      if (action.type !== 'NAVIGATE') continue;
-      const route = this.routeFor(action);
-      if (!route) continue;
-
-      this.closePanel();
-      await this.router.navigate(route.commands, { queryParams: route.queryParams });
-      break;
-    }
-
-    // Y después TODAS las demás, no la primera: el backend manda el aviso y la
-    // navegación en el mismo turno (`doc/contrato-api/assistant/assistant-frontend.md` §5).
-    for (const action of actions) {
-      switch (action.type) {
-        case 'TOAST':
-          this.showToast(action.params ?? {});
-          break;
-        // Abrir un formulario sin escribir en él ("ábreme una medición").
-        case 'OPEN_DIALOG':
-          await this.openDialog(action.target);
-          break;
-        // Señalar un campo mientras lo explica.
-        case 'HIGHLIGHT':
-          await this.highlightField(action.target);
-          break;
-        default:
-          // `NAVIGATE` ya está, y lo desconocido se ignora en silencio.
-          break;
-      }
+      if (action.type === 'TOAST') this.showToast(action.params ?? {});
     }
   }
 
@@ -1178,87 +1062,9 @@ export class MascotStateService {
     }
   }
 
-  /**
-   * Señala un campo de un formulario que esté en pantalla. Si no hay ninguno
-   * que se llame así, se ignora como cualquier otro `target` desconocido.
-   */
-  private async highlightField(target: string | undefined): Promise<void> {
-    if (!target) return;
-    const found = this.fill.fieldNamed(target);
-    if (!found) return;
-
-    this.closePanel();
-    await playHighlight(found.surface, found.field, this.fillTiming(), this.fill);
-  }
-
-  /**
-   * Si una herramienta de cliente ya rellenó en este turno el formulario que
-   * esta propuesta quiere rellenar.
-   */
-  private alreadyFilledByTool(toolName: string): boolean {
-    const mounted = this.fill.forTool(toolName);
-    if (!mounted) return false;
-    return fillTools(mounted.surface).some((tool) => this.runner.alreadyRan(tool.decl.name));
-  }
-
   /** Quien no quiera movimiento ve lo mismo, pero sin viaje ni tecleo. */
   private fillTiming(): FillTiming {
     return preferredTiming();
-  }
-
-  /**
-   * Va a la pantalla donde se rellena esa tool, si la mascota sabe cuál es.
-   * Espera a que la página monte, porque lo siguiente es buscar allí el
-   * formulario o el botón que lo abre.
-   */
-  private async goToForm(toolName: string, patientId: string | null): Promise<void> {
-    const known = routeForTool(toolName);
-    if (!known) return;
-    const route = resolveFillRoute(known, patientId);
-    if (!route) return;
-
-    const url = this.router.createUrlTree(route.commands, { queryParams: route.queryParams });
-    if (this.router.isActive(url, { paths: 'exact', queryParams: 'subset', fragment: 'ignored', matrixParams: 'ignored' })) {
-      return;
-    }
-
-    this.closePanel();
-    await this.router.navigate(route.commands, { queryParams: route.queryParams });
-  }
-
-  /** El paciente del que va la conversación: el que diga el backend o, si no, el de la ficha abierta. */
-  private subjectPatientId(): string | null {
-    return this.activePatientId() ?? this.session()?.subjectUserId ?? this.currentSubjectUserId();
-  }
-
-  /**
-   * De quién es esta escritura. Sólo para las tools que se rellenan en una
-   * ficha; para las del centro no hay paciente y devuelve `null`.
-   *
-   * Se mira en este orden, de lo más fiable a lo menos:
-   *
-   * 1. Lo que trae la propia propuesta. El backend lo tiene (lo comprueba al
-   *    confirmar) y es lo único que no se puede quedar viejo.
-   * 2. El paciente activo que ya conocíamos (de abrir la sesión o de un
-   *    `uiAction` anterior).
-   * 3. Preguntándoselo al backend: si la persona nombró a alguien, se habrá
-   *    fijado con `set_active_patient` después de crear la sesión y nuestra
-   *    copia no se ha enterado.
-   * 4. La ficha que esté abierta, como siempre.
-   */
-  private async actionPatientId(action: AssistantPendingActionDto): Promise<string | null> {
-    if (!routeForTool(action.toolName)?.needsPatient) return null;
-
-    const stated = action.subjectUserId ?? action.patientId ?? null;
-    if (stated) {
-      this.activePatientId.set(stated);
-      return stated;
-    }
-
-    const known = this.activePatientId() ?? this.session()?.subjectUserId ?? null;
-    if (known) return known;
-
-    return (await this.refreshActivePatient()) ?? this.currentSubjectUserId();
   }
 
   /**
@@ -1281,31 +1087,6 @@ export class MascotStateService {
       // Sin sesión viva (404) o sin endpoint: se sigue con lo que haya.
       return null;
     }
-  }
-
-  /** Lleva a la mascota hasta el botón que abre ese formulario y lo pulsa. */
-  private async openDialog(target: string | undefined): Promise<void> {
-    if (!target) return;
-    const opener = this.fill.openerFor(target);
-    if (!opener) return;
-
-    const timing = this.fillTiming();
-    this.closePanel();
-    this.fill.begin();
-    try {
-      await playOpen(opener, timing, this.fill);
-    } finally {
-      this.fill.end();
-    }
-  }
-
-  /**
-   * El asistente es para nutricionistas: las pantallas de paciente se abren
-   * siempre dentro de su ficha (`/users/:id`). Las heredadas sin `patientId`
-   * caen en la sección global equivalente.
-   */
-  private routeFor(action: AssistantUiActionDto): ScreenRoute | null {
-    return routeForScreen(action.screen, action.params ?? {});
   }
 
   // ── Mensajes y errores ──────────────────────────────────────────────

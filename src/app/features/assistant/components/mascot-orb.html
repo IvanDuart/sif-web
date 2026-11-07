@@ -213,11 +213,15 @@
       </svg>
     </span>
 
-    @if (showCheeks()) {
+    <!-- Lo que flota alrededor. Se dibuja según la escena Y según quién sea
+         esta fruta (`skins/personalities.ts`): una pieza que el movimiento no
+         va a animar no debe estar en el DOM, o se queda ahí parada. Eso es lo
+         que dejaba a la piña con un 💢 congelado. -->
+    @if (showCheeks() && wantsHearts()) {
       <i data-o="heart" class="mascot-heart" style="left: 42px; top: -4px; font-size: 11px">♥</i>
       <i data-o="heart" class="mascot-heart" style="left: 28px; top: -8px; font-size: 8px">♥</i>
     }
-    @if (life()?.kind === 'dizzy') {
+    @if (life()?.kind === 'dizzy' || (showCheeks() && wantsStars())) {
       <i data-o="star" class="mascot-star">★</i>
       <i data-o="star" class="mascot-star">★</i>
       <i data-o="star" class="mascot-star">★</i>
@@ -231,7 +235,9 @@
       <span data-o="phone" class="mascot-phone"><i></i></span>
     }
     @if (life()?.kind === 'angry') {
-      <span data-o="mark" class="mascot-mark">💢</span>
+      @if (wantsMark()) {
+        <span data-o="mark" class="mascot-mark">💢</span>
+      }
       <i data-o="puff" class="mascot-puff"></i>
       <i data-o="puff" class="mascot-puff"></i>
     }

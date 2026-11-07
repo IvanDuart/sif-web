@@ -1,0 +1,118 @@
+<div class="space-y-6 pb-4" *transloco="let t">
+  <!-- ═══════════ Cabecera ═══════════ -->
+  <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+    <div class="min-w-0">
+      <h1
+        class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]"
+      >
+        {{ t('admin.billing.title') }}
+      </h1>
+      <p class="mt-1.5 text-[13px] tabular-nums text-surface-400">
+        {{ t('admin.billing.count', { total: total() }) }}
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2.5 lg:ml-auto">
+      <button type="button" tuiButton appearance="secondary" size="m" routerLink="/admin">
+        <i class="fa-solid fa-arrow-left mr-1" aria-hidden="true"></i>
+        {{ t('admin.billing.back_to_tenants') }}
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════ Filtros ═══════════ -->
+  <div class="flex flex-wrap items-center gap-3">
+    <tui-textfield class="w-full sm:w-80" iconStart="@tui.search">
+      <input
+        tuiInput
+        type="search"
+        [formControl]="searchControl"
+        [placeholder]="t('admin.billing.search_placeholder')"
+      />
+    </tui-textfield>
+
+    <tui-textfield class="w-full sm:w-56" tuiChevron [stringify]="statusStringify">
+      <label tuiLabel for="billingStatusFilter">{{ t('common.status') }}</label>
+      <input id="billingStatusFilter" tuiSelect [formControl]="statusControl" />
+      <tui-data-list-wrapper *tuiDropdown [items]="statusOptions" [itemContent]="statusStringify" />
+    </tui-textfield>
+
+    @if (hasFilters()) {
+      <button type="button" tuiButton appearance="flat" size="s" (click)="clearFilters()">
+        {{ t('admin.billing.clear_filters') }}
+      </button>
+    }
+  </div>
+
+  <!-- ═══════════ Listado ═══════════ -->
+  @if (tenants().length === 0 && !loading()) {
+    <div class="table-wrapper">
+      <app-empty-state
+        icon="fa-solid fa-file-invoice-dollar"
+        [title]="hasFilters() ? t('admin.billing.no_results_title') : t('admin.billing.empty_title')"
+        [description]="hasFilters() ? t('admin.billing.no_results') : t('admin.billing.empty')"
+      />
+    </div>
+  } @else {
+    <div class="table-wrapper" [class.opacity-60]="loading()">
+      <table [attr.aria-label]="t('admin.billing.title')" tuiTable class="w-full">
+        <thead>
+          <tr>
+            <th tuiTh scope="col">{{ t('admin.billing.tenant') }}</th>
+            <th tuiTh scope="col">{{ t('common.status') }}</th>
+            <th tuiTh scope="col">{{ t('billing.fields.price') }}</th>
+            <th tuiTh scope="col">{{ t('admin.billing.milestone') }}</th>
+            <th tuiTh scope="col">{{ t('admin.billing.stripe') }}</th>
+          </tr>
+        </thead>
+        <tbody tuiTbody>
+          @for (tenant of tenants(); track tenant.tenantId) {
+            <tr tuiTr class="cursor-pointer" (click)="open(tenant)">
+              <td tuiTd class="font-medium">
+                {{ tenant.tenantName }}
+                @if (tenant.cancelAtPeriodEnd) {
+                  <span class="ml-2 text-[11px] uppercase tracking-wide text-surface-400">
+                    {{ t('admin.billing.cancel_pending') }}
+                  </span>
+                }
+              </td>
+              <td tuiTd>
+                <span tuiBadge [appearance]="statusAppearance(tenant.billingStatus)">
+                  {{ t('billing.status.' + tenant.billingStatus) }}
+                </span>
+                @if (tenant.billingExempt) {
+                  <span tuiBadge appearance="info" class="ml-1.5">{{ t('billing.exempt_short') }}</span>
+                }
+              </td>
+              <td tuiTd class="tabular-nums">
+                {{ formatMoney(tenant.priceCents, tenant.currency) }}
+              </td>
+              <td tuiTd class="tabular-nums text-surface-600 dark:text-surface-300">
+                {{ (milestone(tenant) | date: 'shortDate') ?? '—' }}
+              </td>
+              <td tuiTd>
+                @if (tenant.stripeCustomerId) {
+                  <i class="fa-solid fa-circle-check text-ok" [attr.title]="tenant.stripeCustomerId" aria-hidden="true"></i>
+                  <span class="sr-only">{{ t('admin.billing.stripe_linked') }}</span>
+                } @else {
+                  <span class="text-surface-400">—</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (total() > pageSize) {
+      <app-pagination-footer
+        [page]="page()"
+        [size]="pageSize"
+        [total]="total()"
+        [busy]="loading()"
+        (prev)="load(page() - 1)"
+        (next)="load(page() + 1)"
+      />
+    }
+  }
+</div>

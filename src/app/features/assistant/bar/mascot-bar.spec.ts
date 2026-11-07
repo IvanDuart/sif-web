@@ -153,6 +153,36 @@ describe('MascotBar', () => {
     expect(text('.queued__act')).not.toBeNull();
   });
 
+  describe('el consentimiento', () => {
+    beforeEach(() => {
+      state.consentRequired.set(true);
+      openBar();
+    });
+
+    it('se ve, y es lo primero: sin él `send()` descarta el mensaje en silencio', () => {
+      expect(el('.consent')).not.toBeNull();
+    });
+
+    it('mientras falta, enviar está apagado: nada de tragarse el mensaje', () => {
+      (fixture.componentInstance as unknown as { text: { set(v: string): void } }).text.set('hola');
+      fixture.detectChanges();
+      expect((el('.icon--send') as HTMLButtonElement).disabled).toBeTrue();
+    });
+
+    it('aceptar y rechazar están conectados', () => {
+      const accept = spyOn(state, 'acceptConsent');
+      const decline = spyOn(state, 'declineConsent');
+      (el('.consent .chip--primary') as HTMLButtonElement).click();
+      expect(accept).toHaveBeenCalled();
+      (el('.consent .chip:not(.chip--primary)') as HTMLButtonElement).click();
+      expect(decline).toHaveBeenCalled();
+    });
+
+    it('mientras falta no se saluda ni se sugiere nada', () => {
+      expect(el('.say')).toBeNull();
+    });
+  });
+
   it('pulsar la mascota abre, pero NO cierra: para eso está el botón de plegar', () => {
     // `toggle` sólo hace algo con el asistente encendido para este centro.
     state.config.set({ enabled: true } as never);

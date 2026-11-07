@@ -24,7 +24,7 @@ describe('reglas del backend para lo que se declara', () => {
   });
 
   it('acepta los nombres sueltos del contrato', () => {
-    for (const name of ['point_at', 'show_around', 'press', 'ask_user', 'navigate', 'echo']) {
+    for (const name of ['point_at', 'show_around', 'press', 'ask_user', 'navigate', 'navigate']) {
       expect(declProblem(decl({ name }))).toBeNull();
     }
   });

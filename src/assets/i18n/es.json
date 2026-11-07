@@ -56,10 +56,12 @@
     "my_diet": "Mi Dieta",
     "templates": "Plantillas",
     "shopping_list": "Lista de la Compra",
+    "billing": "Facturación",
     "settings": "Configuración",
     "revenue": "Métricas",
     "evolution": "Evolución",
     "admin": "Administración",
+    "platform_billing": "Facturación (plataforma)",
     "help": "Ayuda"
   },
   "auth": {
@@ -1625,7 +1627,16 @@
     "queue_placeholder": "Añade otra instrucción…",
     "resume": "Reanudar",
     "wardrobe": "Cambiar de aspecto",
-    "hide": "Ocultar"
+    "hide": "Ocultar",
+    "navigating": "Un momento, voy a la pantalla…",
+    "navigating_to": "Un momento, voy a {{place}}…",
+    "first_title": "¿Por dónde empezamos?",
+    "first_appointment": "Agendar una cita",
+    "first_appointment_draft": "Agéndale una cita de seguimiento a ",
+    "first_measurement": "Registrar una medición",
+    "first_measurement_draft": "Apunta el peso de hoy de ",
+    "first_menu": "Preparar un menú",
+    "first_menu_draft": "Prepárame un menú semanal para "
   },
   "errors": {
     "not_authorized_title": "403",
@@ -1690,7 +1701,79 @@
     "dialog_city": "Ciudad",
     "dialog_info_title": "Inicialización automática",
     "dialog_info": "El nuevo centro se creará con la configuración base: idioma y preferencias por defecto, tipos de cita iniciales, horario estándar y tu usuario como administrador. No es necesario configurarlo desde cero.",
-    "dialog_submit": "Crear centro"
+    "dialog_submit": "Crear centro",
+    "billing": {
+      "title": "Facturación",
+      "count": "{{total}} centros",
+      "back_to_tenants": "Centros",
+      "back_to_list": "Facturación",
+      "search_placeholder": "Buscar por nombre o email…",
+      "filter_all": "Todos los estados",
+      "clear_filters": "Quitar filtros",
+      "tenant": "Centro",
+      "milestone": "Próximo hito",
+      "stripe": "Stripe",
+      "stripe_linked": "Con cliente en Stripe",
+      "cancel_pending": "Cancelación programada",
+      "empty_title": "Todavía no hay centros",
+      "empty": "Aquí aparecerá la suscripción de cada centro de la plataforma.",
+      "no_results_title": "Sin resultados",
+      "no_results": "Ningún centro coincide con el filtro. Prueba con otro estado o otra búsqueda.",
+      "stripe_section": "Stripe y fechas",
+      "customer_id": "Cliente de Stripe",
+      "subscription_id": "Suscripción de Stripe",
+      "trial_ends": "Fin de la prueba",
+      "paid_until": "Pagado hasta",
+      "grace_ends": "Fin de la gracia",
+      "suspended_at": "Suspendido el",
+      "config_section": "Configuración",
+      "exempt_label": "Centro exento de pago",
+      "exempt_help": "Un centro exento nunca llega a tener suscripción en Stripe. Marcarlo exige dejar dicho el motivo.",
+      "price_eur": "Precio (€/mes)",
+      "trial_days": "Días de prueba",
+      "price_help": "El precio solo afecta a suscripciones nuevas: las que ya existen conservan su precio en Stripe. Los días de prueba solo se aplican si el centro está en prueba o se le concede una nueva.",
+      "reason": "Motivo",
+      "reason_required": "Escribe el motivo antes de suspender un centro.",
+      "reason_required_exempt": "Marcar el centro como exento exige un motivo.",
+      "override_section": "Acciones manuales",
+      "override_title": "Acción manual",
+      "override_help": "Quedan registradas con tu usuario y el motivo que escribas aquí.",
+      "actions": {
+        "trial": "Conceder prueba",
+        "suspend": "Suspender centro",
+        "reactivate": "Reactivar centro"
+      },
+      "confirm": {
+        "trial": "¿Conceder {{days}} días de prueba a este centro?",
+        "suspend": "¿Suspender «{{tenant}}»? Perderá el acceso a todo salvo a su pantalla de pago.",
+        "reactivate": "¿Reactivar el acceso de este centro?"
+      },
+      "toast": {
+        "saved": "Configuración de facturación guardada.",
+        "trial_started": "Periodo de prueba concedido.",
+        "suspended": "Centro suspendido.",
+        "reactivated": "Centro reactivado."
+      },
+      "events_section": "Histórico",
+      "events_empty_title": "Sin movimientos",
+      "events_empty": "Aquí aparecerán los cambios de estado, los cobros y las acciones manuales.",
+      "open_in_stripe": "Abrir en Stripe",
+      "events": {
+        "TRIAL_STARTED": "Prueba iniciada",
+        "TRIAL_ENDING": "La prueba está a punto de terminar",
+        "TRIAL_ENDED": "Prueba terminada",
+        "CHECKOUT_COMPLETED": "Pago completado",
+        "PAYMENT_SUCCEEDED": "Cobro correcto",
+        "PAYMENT_FAILED": "Cobro fallido",
+        "GRACE_STARTED": "Periodo de gracia iniciado",
+        "GRACE_ENDING": "El periodo de gracia está a punto de terminar",
+        "SUSPENDED": "Centro suspendido",
+        "REACTIVATED": "Centro reactivado",
+        "CANCELLED": "Suscripción cancelada",
+        "EXEMPTED": "Centro marcado como exento",
+        "MANUAL_OVERRIDE": "Cambio manual del superadmin"
+      }
+    }
   },
   "shopping_list": {
     "title": "Lista de la Compra",
@@ -2288,5 +2371,113 @@
   "template_preview": {
     "title": "Comidas de la plantilla",
     "empty_description": "Esta plantilla todavía no tiene platos, así que el menú del paciente se creará vacío."
+  },
+  "billing": {
+    "title": "Suscripción",
+    "subtitle": "Estado de la suscripción del centro, método de pago y facturas.",
+    "per_month": "/mes",
+    "price_per_month": "{{price}} al mes",
+    "exempt_short": "Exento",
+    "exempt_description": "Este centro está exento de pago: no hay nada que contratar ni que renovar.",
+    "no_payment_method": "Sin método de pago",
+    "no_permission_title": "Sin acceso a la facturación",
+    "no_permission": "No tienes permiso para gestionar la suscripción de este centro. Pídeselo al administrador.",
+    "cancel_scheduled": "La suscripción está cancelada: mantienes el acceso hasta el {{date}}.",
+    "status": {
+      "TRIAL": "Periodo de prueba",
+      "ACTIVE": "Activa",
+      "PAST_DUE": "Pago pendiente",
+      "SUSPENDED": "Suspendida",
+      "EXEMPT": "Exenta",
+      "CANCELLED": "Cancelada"
+    },
+    "fields": {
+      "status": "Estado",
+      "price": "Precio",
+      "payment_method": "Método de pago",
+      "billing_email": "Email de facturación"
+    },
+    "countdown": {
+      "trial_one": "Te queda 1 día de prueba",
+      "trial_other": "Te quedan {{days}} días de prueba",
+      "trial_date": "La prueba termina el {{date}}",
+      "grace_one": "Te queda 1 día para regularizar el pago",
+      "grace_other": "Te quedan {{days}} días para regularizar el pago",
+      "grace_date": "Tienes hasta el {{date}} para regularizar el pago",
+      "paid_until_one": "Te queda 1 día de acceso",
+      "paid_until_other": "Te quedan {{days}} días de acceso",
+      "paid_until_date": "Acceso hasta el {{date}}"
+    },
+    "actions": {
+      "add_payment": "Añadir método de pago",
+      "update_card": "Actualizar la tarjeta",
+      "pay": "Pagar",
+      "manage": "Gestionar la suscripción",
+      "reactivate": "Reactivar",
+      "portal": "Abrir el portal de pago",
+      "cancel": "Cancelar la suscripción",
+      "cancel_confirm": "Sí, cancelar"
+    },
+    "confirm": {
+      "cancel": "¿Cancelar la suscripción? Mantendrás el acceso hasta el final del periodo pagado.",
+      "cancel_until": "¿Cancelar la suscripción? Mantendrás el acceso hasta el {{date}}."
+    },
+    "toast": {
+      "cancelled": "Suscripción cancelada. Mantienes el acceso hasta el final del periodo pagado.",
+      "reactivated": "Suscripción reactivada."
+    },
+    "banner": {
+      "trial": "Estás en periodo de prueba",
+      "trial_ending_one": "Tu prueba termina mañana",
+      "trial_ending_other": "Tu prueba termina en {{days}} días",
+      "past_due": "No hemos podido cobrar la suscripción",
+      "past_due_one": "No hemos podido cobrar. Te queda 1 día",
+      "past_due_other": "No hemos podido cobrar. Te quedan {{days}} días",
+      "cancelled": "La suscripción está cancelada",
+      "cancelled_until": "Acceso hasta el {{date}}",
+      "cta_add_payment": "Añadir método de pago",
+      "cta_update_card": "Actualizar la tarjeta",
+      "cta_reactivate": "Reactivar"
+    },
+    "suspended": {
+      "title": "El centro está suspendido",
+      "description": "La suscripción ha caducado y el acceso al resto de la aplicación está bloqueado. Al completar el pago se restablece de inmediato.",
+      "contact_admin": "La suscripción del centro ha caducado y el acceso está bloqueado. Contacta con el administrador del centro para reactivarla."
+    },
+    "invoices": {
+      "title": "Facturas",
+      "number": "Número",
+      "period": "Periodo",
+      "total": "Total",
+      "download": "Descargar PDF",
+      "empty_title": "Todavía no hay facturas",
+      "empty": "Aquí aparecerán las facturas de la suscripción en cuanto se emita la primera.",
+      "status": {
+        "DRAFT": "Borrador",
+        "OPEN": "Pendiente",
+        "PAID": "Pagada",
+        "VOID": "Anulada",
+        "UNCOLLECTIBLE": "Incobrable"
+      }
+    },
+    "errors": {
+      "TENANT_SUSPENDED": "La suscripción ha caducado. Renueva para recuperar el acceso.",
+      "BILLING_DISABLED": "La facturación no está configurada en este entorno.",
+      "BILLING_EXEMPT_TENANT": "Este centro está exento de pago: no hay nada que contratar.",
+      "BILLING_CHECKOUT_NOT_ALLOWED": "El estado actual no permite contratar. Usa el portal de pago para cambiar la tarjeta.",
+      "BILLING_INVALID_TRANSITION": "Esa acción no es compatible con el estado actual de la suscripción.",
+      "BILLING_CUSTOMER_REQUIRED": "Todavía no hay un método de pago asociado al centro."
+    },
+    "return": {
+      "checking_title": "Confirmando el pago",
+      "checking": "Estamos comprobando el pago con la pasarela. Tarda un par de segundos.",
+      "success_title": "Suscripción activada",
+      "success": "El pago se ha registrado y el centro tiene el acceso completo.",
+      "pending_title": "El pago aún se está procesando",
+      "pending": "La pasarela todavía no nos ha confirmado el cobro. Si en unos minutos sigue igual, revisa el método de pago o contacta con soporte.",
+      "cancelled_title": "No se ha completado el pago",
+      "cancelled": "Has salido de la pasarela sin pagar. No se ha cobrado nada y la suscripción sigue igual.",
+      "back": "Volver a la suscripción"
+    }
   }
 }

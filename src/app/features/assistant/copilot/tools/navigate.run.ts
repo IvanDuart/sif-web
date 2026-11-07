@@ -2,6 +2,7 @@ import type { Router } from '@angular/router';
 
 import type { MascotFillService } from '../../mascot/fill/mascot-fill.service';
 import type { ToolResult } from '../client-tool.model';
+import type { RouteVeilService } from '../route-veil';
 import { routeForScreen } from '../screen-routes';
 
 /** Lo que se le da a la pantalla nueva para montar y apuntar sus formularios. */
@@ -24,12 +25,15 @@ export async function runNavigate(
     signal,
     catalog,
     closePanel,
+    veil,
   }: {
     router: Router;
     fill: MascotFillService;
     signal: AbortSignal;
     catalog: () => unknown;
     closePanel: () => void;
+    /** Para que la pantalla no cambie de golpe debajo de quien mira. */
+    veil: RouteVeilService;
   },
 ): Promise<ToolResult> {
   if (signal.aborted) return { ok: false, reason: 'user_declined' };
@@ -45,7 +49,9 @@ export async function runNavigate(
   // El panel tapa la pantalla a la que se va: si la mascota va a enseñar algo
   // allí, lo primero es dejarlo ver.
   closePanel();
-  const navigated = await router.navigate(route.commands, { queryParams: route.queryParams });
+  const navigated = await veil.during(screen, () =>
+    router.navigate(route.commands, { queryParams: route.queryParams }),
+  );
   if (!navigated) return { ok: false, reason: 'tool_error', screen };
 
   // Se le da un respiro a la pantalla nueva: los formularios se apuntan al

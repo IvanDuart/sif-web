@@ -1,0 +1,320 @@
+<div class="space-y-6 pb-4" *transloco="let t">
+  <!-- ═══════════ Cabecera ═══════════ -->
+  <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+    <div class="min-w-0">
+      <a
+        routerLink="/admin/billing"
+        class="text-[13px] font-medium text-surface-500 hover:text-surface-700 dark:hover:text-surface-200"
+      >
+        <i class="fa-solid fa-arrow-left mr-1" aria-hidden="true"></i>
+        {{ t('admin.billing.back_to_list') }}
+      </a>
+      <h1
+        class="mt-1 font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]"
+      >
+        {{ billing()?.tenantName ?? '—' }}
+      </h1>
+    </div>
+
+    @if (billing(); as data) {
+      <div class="flex flex-wrap items-center gap-2 lg:ml-auto">
+        <span tuiBadge [appearance]="statusAppearance(data.billingStatus)" size="l">
+          {{ t('billing.status.' + data.billingStatus) }}
+        </span>
+        @if (data.billingExempt) {
+          <span tuiBadge appearance="info" size="l">{{ t('billing.exempt_short') }}</span>
+        }
+        @if (data.cancelAtPeriodEnd) {
+          <span tuiBadge appearance="neutral" size="l">{{ t('admin.billing.cancel_pending') }}</span>
+        }
+      </div>
+    }
+  </header>
+
+  @if (loading() && !billing()) {
+    <tui-loader size="l" [overlay]="true"><div class="h-40"></div></tui-loader>
+  } @else if (billing(); as data) {
+    <!-- ═══════════ Datos de Stripe y fechas ═══════════ -->
+    <section class="data-card p-5 sm:p-6">
+      <h2 class="font-display text-base font-bold text-surface-900 dark:text-surface-0">
+        {{ t('admin.billing.stripe_section') }}
+      </h2>
+
+      <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="min-w-0">
+          <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+            {{ t('admin.billing.customer_id') }}
+          </p>
+          <p class="mt-1 truncate font-mono text-[13px] text-surface-900 dark:text-surface-0">
+            {{ data.stripeCustomerId ?? '—' }}
+          </p>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+            {{ t('admin.billing.subscription_id') }}
+          </p>
+          <p class="mt-1 truncate font-mono text-[13px] text-surface-900 dark:text-surface-0">
+            {{ data.stripeSubscriptionId ?? '—' }}
+          </p>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+            {{ t('admin.billing.trial_ends') }}
+          </p>
+          <p class="mt-1 tabular-nums text-[13px] text-surface-900 dark:text-surface-0">
+            {{ (data.trialEndsAt | date: 'longDate') ?? '—' }}
+          </p>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+            {{ t('admin.billing.paid_until') }}
+          </p>
+          <p class="mt-1 tabular-nums text-[13px] text-surface-900 dark:text-surface-0">
+            {{ (data.paidUntil | date: 'longDate') ?? '—' }}
+          </p>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+            {{ t('admin.billing.grace_ends') }}
+          </p>
+          <p class="mt-1 tabular-nums text-[13px] text-surface-900 dark:text-surface-0">
+            {{ (data.graceEndsAt | date: 'longDate') ?? '—' }}
+          </p>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+            {{ t('admin.billing.suspended_at') }}
+          </p>
+          <p class="mt-1 tabular-nums text-[13px] text-surface-900 dark:text-surface-0">
+            {{ (data.suspendedAt | date: 'longDate') ?? '—' }}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ Configuración ═══════════ -->
+    <section class="data-card p-5 sm:p-6">
+      <h2 class="font-display text-base font-bold text-surface-900 dark:text-surface-0">
+        {{ t('admin.billing.config_section') }}
+      </h2>
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="mt-4 space-y-5">
+        <label class="flex items-center gap-3">
+          <input tuiSwitch type="checkbox" formControlName="billingExempt" />
+          <span class="text-sm text-surface-900 dark:text-surface-0">
+            {{ t('admin.billing.exempt_label') }}
+          </span>
+        </label>
+        <p class="-mt-3 max-w-[70ch] text-[13px] leading-relaxed text-surface-500 dark:text-surface-400">
+          {{ t('admin.billing.exempt_help') }}
+        </p>
+
+        <div class="grid gap-4 sm:grid-cols-3">
+          <tui-textfield>
+            <label tuiLabel for="billingPrice">{{ t('admin.billing.price_eur') }}</label>
+            <input id="billingPrice" tuiInput type="number" min="0" step="0.01" formControlName="price" />
+          </tui-textfield>
+
+          <tui-textfield>
+            <label tuiLabel for="billingTrialDays">{{ t('admin.billing.trial_days') }}</label>
+            <input id="billingTrialDays" tuiInput type="number" min="0" formControlName="trialDays" />
+          </tui-textfield>
+
+          <tui-textfield>
+            <label tuiLabel for="billingEmail">{{ t('billing.fields.billing_email') }}</label>
+            <input id="billingEmail" tuiInput type="email" formControlName="billingEmail" />
+          </tui-textfield>
+        </div>
+
+        <tui-textfield>
+          <label tuiLabel for="billingReason">{{ t('admin.billing.reason') }}</label>
+          <input id="billingReason" tuiInput formControlName="reason" />
+        </tui-textfield>
+
+        @if (form.errors?.['reasonRequired'] && form.touched) {
+          <p class="text-[13px] font-medium text-err">{{ t('admin.billing.reason_required_exempt') }}</p>
+        }
+
+        <p class="max-w-[70ch] text-[13px] leading-relaxed text-surface-500 dark:text-surface-400">
+          {{ t('admin.billing.price_help') }}
+        </p>
+
+        <div class="flex items-center gap-2.5 border-t border-line pt-5">
+          <button type="submit" tuiButton appearance="primary" size="m" [disabled]="busy()">
+            {{ t('common.save') }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ═══════════ Overrides manuales ═══════════ -->
+    <section class="data-card p-5 sm:p-6">
+      <h2 class="font-display text-base font-bold text-surface-900 dark:text-surface-0">
+        {{ t('admin.billing.override_section') }}
+      </h2>
+      <p class="mt-1 max-w-[70ch] text-[13px] leading-relaxed text-surface-500 dark:text-surface-400">
+        {{ t('admin.billing.override_help') }}
+      </p>
+
+      <form [formGroup]="overrideForm" class="mt-4 grid gap-4 sm:grid-cols-[8rem_1fr]">
+        <tui-textfield>
+          <label tuiLabel for="overrideDays">{{ t('admin.billing.trial_days') }}</label>
+          <input id="overrideDays" tuiInput type="number" min="1" formControlName="days" />
+        </tui-textfield>
+
+        <tui-textfield>
+          <label tuiLabel for="overrideReason">{{ t('admin.billing.reason') }}</label>
+          <input id="overrideReason" tuiInput formControlName="reason" />
+        </tui-textfield>
+      </form>
+
+      <div class="mt-5 flex flex-wrap items-center gap-2.5 border-t border-line pt-5">
+        <button type="button" tuiButton appearance="secondary" size="m" [disabled]="busy()" (click)="startTrial()">
+          {{ t('admin.billing.actions.trial') }}
+        </button>
+
+        @if (isSuspended()) {
+          <button type="button" tuiButton appearance="primary" size="m" [disabled]="busy()" (click)="reactivate()">
+            {{ t('admin.billing.actions.reactivate') }}
+          </button>
+        } @else {
+          <button
+            type="button"
+            tuiButton
+            appearance="flat-destructive"
+            size="m"
+            class="ml-auto"
+            [disabled]="busy()"
+            (click)="suspend()"
+          >
+            {{ t('admin.billing.actions.suspend') }}
+          </button>
+        }
+      </div>
+    </section>
+
+    <!-- ═══════════ Eventos ═══════════ -->
+    <section class="space-y-3">
+      <h2 class="font-display text-lg font-bold text-surface-900 dark:text-surface-0">
+        {{ t('admin.billing.events_section') }}
+      </h2>
+
+      @if (events().length === 0) {
+        <div class="table-wrapper">
+          <app-empty-state
+            icon="fa-solid fa-clock-rotate-left"
+            [title]="t('admin.billing.events_empty_title')"
+            [description]="t('admin.billing.events_empty')"
+          />
+        </div>
+      } @else {
+        <ul class="data-card divide-y divide-line p-0">
+          @for (event of events(); track event.id) {
+            <li class="flex items-start gap-3 px-5 py-3.5">
+              <i [class]="eventIcon(event.type)" class="mt-0.5 shrink-0" aria-hidden="true"></i>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-surface-900 dark:text-surface-0">
+                  {{ eventLabel(event.type) }}
+                </p>
+                @if (eventMetadata(event); as metadata) {
+                  <p class="mt-0.5 truncate font-mono text-[12px] text-surface-500 dark:text-surface-400">
+                    {{ metadata }}
+                  </p>
+                }
+              </div>
+              <time
+                class="shrink-0 tabular-nums text-[12px] text-surface-400"
+                [attr.datetime]="event.occurredAt"
+              >
+                {{ event.occurredAt | date: 'short' }}
+              </time>
+            </li>
+          }
+        </ul>
+
+        @if (eventsTotal() > pageSize) {
+          <app-pagination-footer
+            [page]="eventsPage()"
+            [size]="pageSize"
+            [total]="eventsTotal()"
+            (prev)="loadEvents(eventsPage() - 1)"
+            (next)="loadEvents(eventsPage() + 1)"
+          />
+        }
+      }
+    </section>
+
+    <!-- ═══════════ Facturas ═══════════ -->
+    <section class="space-y-3">
+      <h2 class="font-display text-lg font-bold text-surface-900 dark:text-surface-0">
+        {{ t('billing.invoices.title') }}
+      </h2>
+
+      @if (invoices().length === 0) {
+        <div class="table-wrapper">
+          <app-empty-state
+            icon="fa-solid fa-file-invoice"
+            [title]="t('billing.invoices.empty_title')"
+            [description]="t('billing.invoices.empty')"
+          />
+        </div>
+      } @else {
+        <div class="table-wrapper">
+          <table [attr.aria-label]="t('billing.invoices.title')" tuiTable class="w-full">
+            <thead>
+              <tr>
+                <th tuiTh scope="col">{{ t('billing.invoices.number') }}</th>
+                <th tuiTh scope="col">{{ t('billing.invoices.period') }}</th>
+                <th tuiTh scope="col">{{ t('billing.invoices.total') }}</th>
+                <th tuiTh scope="col">{{ t('common.status') }}</th>
+                <th tuiTh scope="col" class="w-16">
+                  <span class="sr-only">{{ t('common.actions') }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody tuiTbody>
+              @for (invoice of invoices(); track invoice.id) {
+                <tr tuiTr>
+                  <td tuiTd class="font-medium tabular-nums">{{ invoice.number ?? '—' }}</td>
+                  <td tuiTd class="tabular-nums text-surface-600 dark:text-surface-300">
+                    {{ invoice.periodStart | date: 'shortDate' }} — {{ invoice.periodEnd | date: 'shortDate' }}
+                  </td>
+                  <td tuiTd class="tabular-nums">{{ formatMoney(invoice.totalCents, invoice.currency) }}</td>
+                  <td tuiTd>
+                    <span tuiBadge appearance="neutral">
+                      {{ t('billing.invoices.status.' + invoice.status) }}
+                    </span>
+                  </td>
+                  <td tuiTd>
+                    @if (invoice.hostedInvoiceUrl) {
+                      <a
+                        [href]="invoice.hostedInvoiceUrl"
+                        target="_blank"
+                        rel="noopener"
+                        class="text-surface-500 hover:text-surface-800 dark:hover:text-surface-100"
+                        [attr.title]="t('admin.billing.open_in_stripe')"
+                      >
+                        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                        <span class="sr-only">{{ t('admin.billing.open_in_stripe') }}</span>
+                      </a>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (invoicesTotal() > pageSize) {
+          <app-pagination-footer
+            [page]="invoicesPage()"
+            [size]="pageSize"
+            [total]="invoicesTotal()"
+            (prev)="loadInvoices(invoicesPage() - 1)"
+            (next)="loadInvoices(invoicesPage() + 1)"
+          />
+        }
+      }
+    </section>
+  }
+</div>

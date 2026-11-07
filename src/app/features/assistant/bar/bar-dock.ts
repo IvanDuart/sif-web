@@ -1,3 +1,5 @@
+import { ORB } from '../mascot/placement';
+
 /**
  * Dónde se acopla la mascota dentro de la tarjeta.
  *
@@ -11,8 +13,6 @@
  * mirando, y la mascota mira hacia donde mira ella.
  */
 
-/** El lado del botón de la mascota (`.mascot-fab`). */
-const ORB = 62;
 /** Lo que la mascota entra dentro de la tarjeta por su borde izquierdo. */
 const BITE = 24;
 

@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
-import { ECHO_DEBUG_KEY } from './copilot/tools/echo.run';
+import { ToolRegistryService } from './copilot/tool-registry.service';
 import { MascotStateService } from './mascot-state.service';
 import { noHungRun } from './mascot-state.testing';
 
@@ -21,7 +21,6 @@ describe('herramientas de cliente de la mascota', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
-    localStorage.setItem(ECHO_DEBUG_KEY, '1');
     TestBed.configureTestingModule({
       imports: [
         TranslocoTestingModule.forRoot({
@@ -48,12 +47,17 @@ describe('herramientas de cliente de la mascota', () => {
     spyOn(state as unknown as { currentSubjectUserId: () => string | null }, 'currentSubjectUserId')
       .and.returnValue(null);
     state.config.set({ enabled: true } as never);
+
+    // La sonda del transporte la registra el propio test. Antes había una
+    // herramienta `echo` en la aplicación sólo para esto; una sonda no tiene
+    // por qué viajar en el paquete de producción para que se pueda probar.
+    TestBed.inject(ToolRegistryService).register({
+      decl: { name: 'action_probe', description: 'Devuelve lo que se le da', parameters: { type: 'object' } },
+      run: async (args) => ({ ok: true, echo: args['text'] }),
+    });
   });
 
-  afterEach(() => {
-    localStorage.removeItem(ECHO_DEBUG_KEY);
-    http.verify();
-  });
+  afterEach(() => http.verify());
 
   function openSession(): void {
     http.expectOne((r) => r.url.endsWith(`${BASE}/sessions`) && r.method === 'POST')
@@ -66,7 +70,7 @@ describe('herramientas de cliente de la mascota', () => {
     stream.event({ type: HttpEventType.DownloadProgress, loaded: text.length, partialText: text } as never);
   }
 
-  const ECHO_CALL = 'event: client_tool\ndata: {"runId":"r1","callId":"c1","name":"echo","args":{"text":"hola"}}\n\n';
+  const ECHO_CALL = 'event: client_tool\ndata: {"runId":"r1","callId":"c1","name":"action_probe","args":{"text":"hola"}}\n\n';
 
   it('declara su catálogo en el cuerpo del stream', () => {
     state.send('Llama a echo');
@@ -74,7 +78,7 @@ describe('herramientas de cliente de la mascota', () => {
 
     const stream = http.expectOne((r) => r.url.endsWith('/messages/stream'));
     expect(stream.request.body.content).toBe('Llama a echo');
-    expect(stream.request.body.clientTools.map((tool: { name: string }) => tool.name)).toContain('echo');
+    expect(stream.request.body.clientTools.map((tool: { name: string }) => tool.name)).toContain('action_probe');
     stream.flush('');
   });
 

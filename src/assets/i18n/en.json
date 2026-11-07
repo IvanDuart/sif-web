@@ -56,10 +56,12 @@
     "my_diet": "My Diet",
     "templates": "Templates",
     "shopping_list": "Shopping List",
+    "billing": "Billing",
     "settings": "Settings",
     "revenue": "Metrics",
     "evolution": "Evolution",
     "admin": "Administration",
+    "platform_billing": "Platform billing",
     "help": "Help"
   },
   "auth": {
@@ -1565,7 +1567,16 @@
     "queue_placeholder": "Add another instruction…",
     "resume": "Resume",
     "wardrobe": "Change look",
-    "hide": "Hide"
+    "hide": "Hide",
+    "navigating": "One moment, heading to the screen…",
+    "navigating_to": "One moment, heading to {{place}}…",
+    "first_title": "Where shall we start?",
+    "first_appointment": "Book an appointment",
+    "first_appointment_draft": "Book a follow-up appointment for ",
+    "first_measurement": "Record a measurement",
+    "first_measurement_draft": "Record today's weight for ",
+    "first_menu": "Prepare a menu",
+    "first_menu_draft": "Prepare a weekly menu for "
   },
   "errors": {
     "not_authorized_title": "403",
@@ -1630,7 +1641,79 @@
     "dialog_city": "City",
     "dialog_info_title": "Automatic initialization",
     "dialog_info": "The new center will be created with the base configuration: default language and preferences, initial appointment types, standard schedule and your user as administrator. No need to set it up from scratch.",
-    "dialog_submit": "Create center"
+    "dialog_submit": "Create center",
+    "billing": {
+      "title": "Billing",
+      "count": "{{total}} clinics",
+      "back_to_tenants": "Clinics",
+      "back_to_list": "Billing",
+      "search_placeholder": "Search by name or email…",
+      "filter_all": "All statuses",
+      "clear_filters": "Clear filters",
+      "tenant": "Clinic",
+      "milestone": "Next milestone",
+      "stripe": "Stripe",
+      "stripe_linked": "Has a Stripe customer",
+      "cancel_pending": "Cancellation scheduled",
+      "empty_title": "No clinics yet",
+      "empty": "Every clinic's subscription will show up here.",
+      "no_results_title": "No matches",
+      "no_results": "No clinic matches the filter. Try another status or search.",
+      "stripe_section": "Stripe and dates",
+      "customer_id": "Stripe customer",
+      "subscription_id": "Stripe subscription",
+      "trial_ends": "Trial ends",
+      "paid_until": "Paid until",
+      "grace_ends": "Grace ends",
+      "suspended_at": "Suspended on",
+      "config_section": "Configuration",
+      "exempt_label": "Clinic exempt from payment",
+      "exempt_help": "An exempt clinic never gets a Stripe subscription. Marking one requires a reason.",
+      "price_eur": "Price (€/month)",
+      "trial_days": "Trial days",
+      "price_help": "The price only affects new subscriptions: existing ones keep their Stripe price. Trial days only apply if the clinic is on a trial or is granted a new one.",
+      "reason": "Reason",
+      "reason_required": "Write the reason before suspending a clinic.",
+      "reason_required_exempt": "Marking the clinic as exempt requires a reason.",
+      "override_section": "Manual actions",
+      "override_title": "Manual action",
+      "override_help": "They are recorded with your user and the reason you write here.",
+      "actions": {
+        "trial": "Grant trial",
+        "suspend": "Suspend clinic",
+        "reactivate": "Reactivate clinic"
+      },
+      "confirm": {
+        "trial": "Grant {{days}} trial days to this clinic?",
+        "suspend": "Suspend “{{tenant}}”? It will lose access to everything but its payment screen.",
+        "reactivate": "Reactivate this clinic's access?"
+      },
+      "toast": {
+        "saved": "Billing configuration saved.",
+        "trial_started": "Trial granted.",
+        "suspended": "Clinic suspended.",
+        "reactivated": "Clinic reactivated."
+      },
+      "events_section": "History",
+      "events_empty_title": "No activity",
+      "events_empty": "Status changes, charges and manual actions will show up here.",
+      "open_in_stripe": "Open in Stripe",
+      "events": {
+        "TRIAL_STARTED": "Trial started",
+        "TRIAL_ENDING": "Trial about to end",
+        "TRIAL_ENDED": "Trial ended",
+        "CHECKOUT_COMPLETED": "Checkout completed",
+        "PAYMENT_SUCCEEDED": "Payment succeeded",
+        "PAYMENT_FAILED": "Payment failed",
+        "GRACE_STARTED": "Grace period started",
+        "GRACE_ENDING": "Grace period about to end",
+        "SUSPENDED": "Clinic suspended",
+        "REACTIVATED": "Clinic reactivated",
+        "CANCELLED": "Subscription cancelled",
+        "EXEMPTED": "Clinic marked as exempt",
+        "MANUAL_OVERRIDE": "Manual superadmin change"
+      }
+    }
   },
   "shopping_list": {
     "title": "Shopping List",
@@ -2288,5 +2371,113 @@
   "template_preview": {
     "title": "Template meals",
     "empty_description": "This template has no meals yet, so the patient's menu will be created empty."
+  },
+  "billing": {
+    "title": "Subscription",
+    "subtitle": "Subscription status, payment method and invoices for this clinic.",
+    "per_month": "/month",
+    "price_per_month": "{{price}} per month",
+    "exempt_short": "Exempt",
+    "exempt_description": "This clinic is exempt from payment: there is nothing to subscribe to or renew.",
+    "no_payment_method": "No payment method",
+    "no_permission_title": "No access to billing",
+    "no_permission": "You don't have permission to manage this clinic's subscription. Ask your administrator.",
+    "cancel_scheduled": "The subscription is cancelled: you keep access until {{date}}.",
+    "status": {
+      "TRIAL": "Trial",
+      "ACTIVE": "Active",
+      "PAST_DUE": "Payment due",
+      "SUSPENDED": "Suspended",
+      "EXEMPT": "Exempt",
+      "CANCELLED": "Cancelled"
+    },
+    "fields": {
+      "status": "Status",
+      "price": "Price",
+      "payment_method": "Payment method",
+      "billing_email": "Billing email"
+    },
+    "countdown": {
+      "trial_one": "1 day left in your trial",
+      "trial_other": "{{days}} days left in your trial",
+      "trial_date": "Your trial ends on {{date}}",
+      "grace_one": "1 day left to settle the payment",
+      "grace_other": "{{days}} days left to settle the payment",
+      "grace_date": "You have until {{date}} to settle the payment",
+      "paid_until_one": "1 day of access left",
+      "paid_until_other": "{{days}} days of access left",
+      "paid_until_date": "Access until {{date}}"
+    },
+    "actions": {
+      "add_payment": "Add payment method",
+      "update_card": "Update card",
+      "pay": "Pay now",
+      "manage": "Manage subscription",
+      "reactivate": "Reactivate",
+      "portal": "Open payment portal",
+      "cancel": "Cancel subscription",
+      "cancel_confirm": "Yes, cancel"
+    },
+    "confirm": {
+      "cancel": "Cancel the subscription? You'll keep access until the end of the paid period.",
+      "cancel_until": "Cancel the subscription? You'll keep access until {{date}}."
+    },
+    "toast": {
+      "cancelled": "Subscription cancelled. You keep access until the end of the paid period.",
+      "reactivated": "Subscription reactivated."
+    },
+    "banner": {
+      "trial": "You're on a trial",
+      "trial_ending_one": "Your trial ends tomorrow",
+      "trial_ending_other": "Your trial ends in {{days}} days",
+      "past_due": "We couldn't charge your subscription",
+      "past_due_one": "We couldn't charge you. 1 day left",
+      "past_due_other": "We couldn't charge you. {{days}} days left",
+      "cancelled": "The subscription is cancelled",
+      "cancelled_until": "Access until {{date}}",
+      "cta_add_payment": "Add payment method",
+      "cta_update_card": "Update card",
+      "cta_reactivate": "Reactivate"
+    },
+    "suspended": {
+      "title": "This clinic is suspended",
+      "description": "The subscription has expired and access to the rest of the app is blocked. Completing the payment restores it right away.",
+      "contact_admin": "The clinic's subscription has expired and access is blocked. Contact the clinic administrator to reactivate it."
+    },
+    "invoices": {
+      "title": "Invoices",
+      "number": "Number",
+      "period": "Period",
+      "total": "Total",
+      "download": "Download PDF",
+      "empty_title": "No invoices yet",
+      "empty": "Subscription invoices will show up here as soon as the first one is issued.",
+      "status": {
+        "DRAFT": "Draft",
+        "OPEN": "Open",
+        "PAID": "Paid",
+        "VOID": "Void",
+        "UNCOLLECTIBLE": "Uncollectible"
+      }
+    },
+    "errors": {
+      "TENANT_SUSPENDED": "The subscription has expired. Renew it to regain access.",
+      "BILLING_DISABLED": "Billing is not configured in this environment.",
+      "BILLING_EXEMPT_TENANT": "This clinic is exempt from payment: there is nothing to subscribe to.",
+      "BILLING_CHECKOUT_NOT_ALLOWED": "The current status doesn't allow checkout. Use the payment portal to change the card.",
+      "BILLING_INVALID_TRANSITION": "That action isn't compatible with the current subscription status.",
+      "BILLING_CUSTOMER_REQUIRED": "There is no payment method linked to this clinic yet."
+    },
+    "return": {
+      "checking_title": "Confirming your payment",
+      "checking": "We're checking the payment with the gateway. It takes a couple of seconds.",
+      "success_title": "Subscription active",
+      "success": "The payment went through and the clinic has full access.",
+      "pending_title": "The payment is still processing",
+      "pending": "The gateway hasn't confirmed the charge yet. If it stays like this for a few minutes, check the payment method or contact support.",
+      "cancelled_title": "Payment not completed",
+      "cancelled": "You left the gateway without paying. Nothing was charged and the subscription is unchanged.",
+      "back": "Back to subscription"
+    }
   }
 }

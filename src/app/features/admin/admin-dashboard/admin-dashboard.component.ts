@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TuiButton } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
@@ -16,7 +16,7 @@ import { formatInstant } from '../../../shared/utils/date';
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [TranslocoDirective, TuiButton, TuiBadge, TuiTable, EmptyState],
+  imports: [TranslocoDirective, RouterLink, TuiButton, TuiBadge, TuiTable, EmptyState],
   templateUrl: './admin-dashboard.component.html'
 })
 export class AdminDashboardComponent implements OnInit {

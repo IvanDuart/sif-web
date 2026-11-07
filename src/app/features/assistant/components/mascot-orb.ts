@@ -14,6 +14,7 @@ import {
 } from '@angular/core';
 
 import { startBlink, startMotion, type Condition, type MoodKind, type Scene } from '../mascot/agentMotion';
+import { personalityOf } from '../mascot/skins/personalities';
 import { MascotLifeService, type MascotLife, type MascotMode } from '../mascot/mascot-life.service';
 import { MascotMoodService } from '../mascot/mascot-mood.service';
 import { ARCH, EYE_CX, EYE_CY, EYE_H, EYE_W, FACES, K, OPEN, SHUT, type EyeState } from '../mascot/skins/faces';
@@ -117,6 +118,17 @@ export class MascotOrb {
   readonly conditions = this.moodService.conditions;
 
   /** Lo que se anima: primero lo que hace por su cuenta, luego lo que siente, luego una condición. */
+  /** Quién es esta fruta: decide qué le flota alrededor (`skins/personalities.ts`). */
+  private readonly who = computed(() => personalityOf(this.skin()));
+
+  protected readonly wantsHearts = computed(
+    () => this.who().happy.bits === 'heart' || this.who().happy.bits === 'both',
+  );
+  protected readonly wantsStars = computed(
+    () => this.who().happy.bits === 'star' || this.who().happy.bits === 'both',
+  );
+  protected readonly wantsMark = computed(() => this.who().angry.mark);
+
   readonly scene = computed<Scene | null>(() => {
     const life = this.life();
     // `peek` sólo cambia los ojos; no tiene animación propia.

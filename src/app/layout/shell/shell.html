@@ -41,7 +41,7 @@
           class="nav-item"
           [routerLink]="item.route"
           routerLinkActive="active-link"
-          [routerLinkActiveOptions]="{ exact: false }"
+          [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
           [attr.title]="compactNav() ? navLabel(item) : null"
         >
           <i [class]="item.icon" aria-hidden="true"></i>
@@ -184,6 +184,7 @@
 
   <!-- ═══════════ Contenido ═══════════ -->
   <main id="main-content" class="content-viewport">
+    <app-billing-banner />
     <router-outlet></router-outlet>
   </main>
 
@@ -194,7 +195,7 @@
         class="bottom-nav-item"
         [routerLink]="item.route"
         routerLinkActive="active-link"
-        [routerLinkActiveOptions]="{ exact: false }"
+        [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
       >
         <i [class]="item.icon" aria-hidden="true"></i>
         <span>{{ navLabel(item) }}</span>
@@ -252,7 +253,7 @@
               class="mobile-nav-link"
               [routerLink]="item.route"
               routerLinkActive="active-link"
-              [routerLinkActiveOptions]="{ exact: false }"
+              [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
               (click)="closeMobileMenu()"
             >
               <i [class]="item.icon" aria-hidden="true"></i>

@@ -4,7 +4,6 @@ import type { AssistantClientToolDecl } from '../../../core/api/models/assistant
 import { MAX_TOOLS, cleanDescription, declProblem } from './catalog-rules';
 import type { ClientTool, ToolRun } from './client-tool.model';
 import { ScreenToolsService } from './screen-tools.service';
-import { ECHO_TOOL } from './tools/echo.run';
 
 /**
  * Las herramientas que el navegador sabe ejecutar en la pantalla actual
@@ -17,7 +16,7 @@ import { ECHO_TOOL } from './tools/echo.run';
 @Injectable({ providedIn: 'root' })
 export class ToolRegistryService {
   private readonly screen = inject(ScreenToolsService);
-  private readonly tools = new Map<string, ClientTool>([[ECHO_TOOL.decl.name, ECHO_TOOL]]);
+  private readonly tools = new Map<string, ClientTool>();
   private readonly warned = new Set<string>();
 
   /** Registra una herramienta; devuelve cómo quitarla. */
