@@ -19,7 +19,7 @@ import { scheduleSurface } from './schedule.surface';
  * del backend lo vigila `unmatchedPreview()`, que avisa por consola cuando
  * llega un nombre que no reconocemos.
  *
- * Las tablas están en `doc/assistant-frontend.md` §6, que es el contrato
+ * Las tablas están en `doc/contrato-api/assistant/assistant-frontend.md` §6, que es el contrato
  * vigente desde que el backend entregó la v2. **Si cambia una, cambia la otra.**
  */
 
@@ -57,7 +57,7 @@ describe('contrato del preview', () => {
 
     it('rellena esta tool', () => {
       // `update_measurement` todavía no existe en el backend; el formulario ya
-      // la espera (`doc/assistant-tools-backend.md` §8).
+      // la espera (`doc/contrato-api/assistant/assistant-tools-backend.md` §8).
       expect(MEASUREMENT_SURFACE.tools).toContain('create_measurement');
     });
 

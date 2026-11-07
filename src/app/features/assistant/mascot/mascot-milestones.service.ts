@@ -10,7 +10,7 @@ import { MascotMoodService } from './mascot-mood.service';
 import { MascotPreferencesService } from './mascot-preferences.service';
 
 /**
- * Las primeras veces, celebradas una sola vez (`doc/mascota-frontend.md` §5.2).
+ * Las primeras veces, celebradas una sola vez (`doc/contrato-api/mascot/mascota-frontend.md` §5.2).
  *
  * Quién decide que algo es la primera vez: **el backend**, desde sus propios
  * datos. Es la diferencia entre celebrar una primera vez de verdad y celebrar

@@ -6,7 +6,7 @@ import { KCAL, sumNutrient } from './food.model';
  * `GET /menu/{id}/nutrition`. Si esto se rompe, el nutricionista pauta con
  * calorías equivocadas.
  *
- * Nota sobre el ejemplo de `doc/menus-estructurados-bedca-frontend.md`: sus
+ * Nota sobre el ejemplo de `doc/frontend/menus/menus-estructurados-bedca-frontend.md`: sus
  * números no son consistentes entre secciones (la sección 5 da 111,5679
  * kcal/100 g para el arroz integral hervido y la 6.2 usa 112,5679; ninguna de
  * las dos combinada con 145,0287 del pollo da los 263,69 kcal que afirma —

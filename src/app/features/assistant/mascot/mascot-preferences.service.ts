@@ -9,7 +9,7 @@ import { TenantContextService } from '../../../core/tenant/tenant-context.servic
 
 /**
  * Lo que la mascota recuerda de cada persona: qué le has dicho que no vuelva a
- * decirte (`doc/mascota-frontend.md` §5.1).
+ * decirte (`doc/contrato-api/mascot/mascota-frontend.md` §5.1).
  *
  * Manda el backend, pero el navegador guarda copia. No es un capricho: la
  * decisión de "no me lo digas más" tiene que valer **ahora**, aunque el `PUT`

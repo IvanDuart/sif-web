@@ -356,4 +356,4 @@ P6            ->  depende de P4 (recetas), T21 (MinIO) y P2 (nutrientes)
 - [ ] Diario y adherencia v1 operativos, con fotos en MinIO.
 - [ ] PDF de menú enriquecido y almacenado en MinIO.
 - [ ] Tests pasan y aplicación compila.
-- [ ] `doc/breaking-changes.md` actualizado.
+- [ ] `doc/contrato-api/breaking-changes.md` actualizado.

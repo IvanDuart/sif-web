@@ -8,7 +8,7 @@ import { TenantContextService } from '../../tenant/tenant-context.service';
 import { sseStream } from './sse-stream';
 
 /**
- * Los ocho avisos del backend (`doc/citas_pacientes_onesignal.md` §3bis). Son
+ * Los ocho avisos del backend (`doc/contrato-api/appointments/citas_pacientes_onesignal.md` §3bis). Son
  * los mismos que recibe la app móvil por push; aquí llegan por SSE.
  */
 export type AppNotificationType =
@@ -52,7 +52,7 @@ export interface AppNotification {
 
 /**
  * Canal SSE con los avisos del usuario conectado
- * (`doc/sse-notificaciones-frontend.md`).
+ * (`doc/frontend/notifications/sse-notificaciones-frontend.md`).
  *
  * Tres cosas que lo diferencian del canal de menú:
  *

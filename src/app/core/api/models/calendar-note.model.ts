@@ -5,7 +5,7 @@
  * filtra siempre por él, así que ni un `ADMIN` ve las de otro profesional. Una
  * entrada ajena responde `404`, no `403`, para no revelar que existe.
  *
- * Ver `doc/calendario_notas_nutricionista_frontend.md`.
+ * Ver `doc/frontend/appointments/calendario_notas_nutricionista_frontend.md`.
  */
 
 /**

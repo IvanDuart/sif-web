@@ -48,7 +48,7 @@ const fields: FillField[] = CHECKLIST.flatMap(([id, notesId, alias]) => [
 ]);
 
 /**
- * El texto libre de la anamnesis (`doc/assistant-frontend.md` §6).
+ * El texto libre de la anamnesis (`doc/contrato-api/assistant/assistant-frontend.md` §6).
  *
  * **Sin alias en castellano a propósito**: `alergias` ya es el alias de
  * `hasAllergiesAsthma`, y un nombre ambiguo se lo quedaría el primero que lo

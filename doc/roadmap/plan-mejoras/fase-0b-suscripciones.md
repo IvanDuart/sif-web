@@ -770,7 +770,7 @@ El job debe ser idempotente y tolerante a fallos por tenant (try/catch individua
 | `service/PushNotificationService.java` | Tipos de billing. |
 | `exception/ErrorResource.java` | `TENANT_SUSPENDED`, `BILLING_*`. |
 | `config/TenantInterceptorConfig.java` | Registrar el interceptor de billing después del de tenant. |
-| `doc/breaking-changes.md` | Nuevos campos y 403. |
+| `doc/contrato-api/breaking-changes.md` | Nuevos campos y 403. |
 
 ---
 
@@ -791,7 +791,7 @@ El job debe ser idempotente y tolerante a fallos por tenant (try/catch individua
 | BILL-11 | `EmailService` + plantillas + notificaciones | 2,5 |
 | BILL-12 | Facturas: persistencia, PDF en MinIO, listado | 2 |
 | BILL-13 | Tests unitarios + MVC + integración Stripe CLI | 3 |
-| BILL-14 | Documento de contrato Angular (`doc/billing-frontend.md`) | 1 |
+| BILL-14 | Documento de contrato Angular (`doc/contrato-api/billing/billing-frontend.md`) | 1 |
 | **Total backend** | | **28 días** |
 
 Con 1 backend: **5,5–6 semanas** incluyendo margen.
@@ -832,8 +832,8 @@ Con 1 backend: **5,5–6 semanas** incluyendo margen.
 - [ ] Las facturas se listan y su PDF se sirve por URL firmada.
 - [ ] `GET /tenants/{id}/billing` solo es accesible por superadmin.
 - [ ] Tests pasan y la aplicación compila.
-- [ ] `doc/billing-frontend.md` describe el contrato Angular.
-- [ ] `doc/breaking-changes.md` documenta los nuevos campos y el 403.
+- [ ] `doc/contrato-api/billing/billing-frontend.md` describe el contrato Angular.
+- [ ] `doc/contrato-api/breaking-changes.md` documenta los nuevos campos y el 403.
 
 ---
 
@@ -861,8 +861,8 @@ BILL-13  ->  al final, con Stripe CLI
 - [ ] Facturas PDF verificadas.
 - [ ] Middleware probado con rutas exentas.
 - [ ] `application.yaml` documenta todas las variables de entorno.
-- [ ] `doc/billing-frontend.md` publicado.
-- [ ] `doc/breaking-changes.md` actualizado.
+- [ ] `doc/contrato-api/billing/billing-frontend.md` publicado.
+- [ ] `doc/contrato-api/breaking-changes.md` actualizado.
 
 ---
 

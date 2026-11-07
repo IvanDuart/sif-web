@@ -382,7 +382,7 @@ function watchForTakeover(fill: MascotFillService): () => void {
 /**
  * Señala un campo sin tocarlo: la mascota lo descubre si hace falta, va hasta
  * él y se queda ahí mientras el asistente lo explica (el `HIGHLIGHT` del
- * contrato, `doc/assistant-frontend.md` §4).
+ * contrato, `doc/contrato-api/assistant/assistant-frontend.md` §4).
  *
  * No escribe ni retira ninguna acción, así que si la persona está a medias de
  * algo lo único que pasa es que la mascota se asoma. Devuelve si llegó a

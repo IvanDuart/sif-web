@@ -1,10 +1,12 @@
-# Documentación — Tus Dietas
+# Documentación — Tus Dietas / sif-web
 
 Índice maestro de la documentación técnica y funcional del proyecto.
 
-> **Última reorganización:** 2026-10-30. La documentación se agrupó por dominio funcional y áreas transversales para dejar de ser un “cajón de sastre”.
+> **Última reorganización:** 2026-11-02. La documentación se divide ahora en dos áreas bien diferenciadas:
+> - **`doc/contrato-api/`**: contratos, endpoints, reglas de negocio y funcionalidades del backend (implementadas o pendientes).
+> - **`doc/frontend/`**: guías de integración, arquitectura, decisiones de UX y planes de desarrollo de la aplicación web Angular.
 >
-> Si buscas algo concreto y no lo encuentras aquí, revisa primero el README de la carpeta del dominio correspondiente.
+> Antes de modificar cualquier documento, lee [`AGENT.md`](../AGENT.md) para conocer las normas de mantenimiento.
 
 ---
 
@@ -12,162 +14,101 @@
 
 ```text
 doc/
-├── README.md                  # Este índice maestro
-├── breaking-changes.md        # Cambios incompatibles para clientes (transversal)
-│
-├── architecture/              # Plataforma, infraestructura y decisiones transversales
-├── security/                  # Autenticación, permisos, usuarios y roles
-├── appointments/              # Citas, agenda, horarios, métricas y precios
-├── patients/                  # Pacientes, perfil clínico y anamnesis
-├── body-composition/          # Mediciones y composición corporal
-├── menus/                     # Menús, comidas, plantillas y PDFs
-├── ai/                        # IA (Gemini), lista de la compra y automatización
-├── notifications/             # Push (OneSignal) y SSE
-├── roadmap/                   # Planes de futuro
-└── assets/                    # Imágenes y recursos
+├── README.md                     # Este índice maestro
+├── AGENT.md                      # Normas para agentes: dónde documentar y cómo mantener
+├── contrato-api/                 # Backend: contratos, endpoints, reglas de negocio
+│   ├── README.md
+│   ├── api-docs.json             # OpenAPI/Swagger del backend
+│   ├── breaking-changes.md       # Cambios incompatibles entre versiones
+│   ├── appointments/
+│   ├── architecture/
+│   ├── body-composition/
+│   ├── menus/
+│   ├── notifications/
+│   ├── patients/
+│   ├── security/
+│   ├── ai/
+│   ├── assistant/
+│   ├── chat/
+│   ├── mascot/
+│   └── billing/
+├── frontend/                     # Frontend Angular: integración, UX, arquitectura
+│   ├── README.md
+│   ├── appointments/
+│   ├── body-composition/
+│   ├── menus/
+│   ├── notifications/
+│   ├── patients/
+│   ├── ai/
+│   ├── assistant/
+│   ├── chat/
+│   ├── mascot/
+│   └── billing/
+├── roadmap/                      # Planes de futuro y sesiones por fases
+│   ├── plan-mejoras/
+│   └── plan-chat-mascota/
+└── assets/                       # Imágenes y recursos compartidos
 ```
 
 ---
 
-## 2. Índice por carpeta
+## 2. ¿Dónde va cada cosa?
 
-### Arquitectura — [`architecture/`](architecture/README.md)
-
-| Documento | Contenido |
+| Tipo de documento | Va en |
 |---|---|
-| [`tenant-creation-workflow.md`](architecture/tenant-creation-workflow.md) | Creación de tenants y datos semilla. |
-| [`minio-storage.md`](architecture/minio-storage.md) | Almacenamiento de objetos privados en MinIO. |
-| [`app_version_control.md`](architecture/app_version_control.md) | Versionado de la app móvil y actualización obligatoria. |
-| [`history.md`](architecture/history.md) | Histórico de cambios del modelo de datos (perfil, mediciones, menús). |
-
-### Seguridad y usuarios — [`security/`](security/README.md)
-
-| Documento | Contenido |
-|---|---|
-| [`disable_user.md`](security/disable_user.md) | Habilitar/deshabilitar usuarios y alcance de permisos. |
-| [`userType.md`](security/userType.md) | Clasificación `STAFF` vs `PATIENT`. |
-| [`user_locale_sync.md`](security/user_locale_sync.md) | Sincronización de zona horaria e idioma del usuario. |
-| [`updateUser.md`](security/updateUser.md) | Actualización del perfil básico de usuario. |
-
-### Citas y agenda — [`appointments/`](appointments/README.md)
-
-| Documento | Contenido |
-|---|---|
-| [`appointments.md`](appointments/appointments.md) | Módulo de citas: reglas, endpoints y estados. |
-| [`appointment_types.md`](appointments/appointment_types.md) | Tipos de cita por tenant. |
-| [`appointment_reminders.md`](appointments/appointment_reminders.md) | Recordatorios automáticos de cita. |
-| [`appointment_overlap_frontend.md`](appointments/appointment_overlap_frontend.md) | Solape de citas permitido para staff. |
-| [`appointment_reschedule.md`](appointments/appointment_reschedule.md) | Reagendamiento de citas. |
-| [`appointments_without_patient.md`](appointments/appointments_without_patient.md) | Citas sin paciente (primera consulta). |
-| [`citas_pacientes_onesignal.md`](appointments/citas_pacientes_onesignal.md) | Solicitud de citas por pacientes y push con OneSignal. |
-| [`calendario_notas_nutricionista_frontend.md`](appointments/calendario_notas_nutricionista_frontend.md) | Notas y bloqueos del calendario del nutricionista. |
-| [`horarios_centros.md`](appointments/horarios_centros.md) | Horarios, festivos y perfil del centro. |
-| [`relacion_paciente_nutricionista.md`](appointments/relacion_paciente_nutricionista.md) | Nutricionista titular y cartera de pacientes. |
-| [`metricas_asistencia_frontend.md`](appointments/metricas_asistencia_frontend.md) | Métricas de facturación y asistencia. |
-| [`EXECUTIVE_SUMMARY.md`](appointments/EXECUTIVE_SUMMARY.md) | Resumen ejecutivo de precios de consultas. |
-| [`FEATURE_APPOINTMENT_PRICING.md`](appointments/FEATURE_APPOINTMENT_PRICING.md) | Especificación técnica de precios de consultas. |
-| [`FRONTEND_INTEGRATION_GUIDE.md`](appointments/FRONTEND_INTEGRATION_GUIDE.md) | Integración frontend de precios de consultas. |
-| [`API_TESTING_GUIDE.md`](appointments/API_TESTING_GUIDE.md) | Pruebas de API con cURL y Postman. |
-
-### Pacientes y perfil clínico — [`patients/`](patients/README.md)
-
-| Documento | Contenido |
-|---|---|
-| [`patient_profile.md`](patients/patient_profile.md) | Perfil médico y datos sensibles. |
-| [`anamnesis_checklist_fields.md`](patients/anamnesis_checklist_fields.md) | Checklist estructurado de anamnesis. |
-| [`water_intake_and_anamnesis_config.md`](patients/water_intake_and_anamnesis_config.md) | Consumo de agua y configuración de anamnesis. |
-| [`observaciones_perfil.md`](patients/observaciones_perfil.md) | Observaciones libres del profesional. |
-| [`patient_phone.md`](patients/patient_phone.md) | Teléfono del paciente. |
-| [`patient_events.md`](patients/patient_events.md) | Eventos del paciente en calendario. |
-| [`breakfast_snack.md`](patients/breakfast_snack.md) | Desayuno y merienda fijos. |
-| [`lunch_meal.md`](patients/lunch_meal.md) | Almuerzo fijo. |
-| [`clinical-status.md`](patients/clinical-status.md) | Estado clínico del paciente. |
-| [`listado_pacientes_frontend.md`](patients/listado_pacientes_frontend.md) | Listado de pacientes: filtros, ordenación y CSV. |
-
-### Composición corporal — [`body-composition/`](body-composition/README.md)
-
-| Documento | Contenido |
-|---|---|
-| [`body_composition_and_segmental_measurements.md`](body-composition/body_composition_and_segmental_measurements.md) | Motor clínico de composición corporal y análisis segmental. |
-| [`cambios-composicion-corporal-frontend.md`](body-composition/cambios-composicion-corporal-frontend.md) | Cambios API v1: masa muscular y grasa visceral. |
-| [`cambios-composicion-corporal-v2-frontend.md`](body-composition/cambios-composicion-corporal-v2-frontend.md) | Cambios API v2: procedencia de datos y revisión de cálculos. |
-| [`pdf-composicion-corporal.md`](body-composition/pdf-composicion-corporal.md) | PDF del informe de composición corporal. |
-| [`measurements_and_gender.md`](body-composition/measurements_and_gender.md) | Nuevas mediciones y género del paciente. |
-
-### Menús y nutrición — [`menus/`](menus/README.md)
-
-| Documento | Contenido |
-|---|---|
-| [`menuTemplateUpload.md`](menus/menuTemplateUpload.md) | Subida de PDF/imagen para crear plantillas. |
-| [`menu-template-upload-frontend-guide.md`](menus/menu-template-upload-frontend-guide.md) | Guía frontend de subida de plantillas con IA. |
-| [`menu-template-upload-changes.md`](menus/menu-template-upload-changes.md) | Cambios backend de la subida de plantillas con Gemini. |
-| [`menu-update-endpoint.md`](menus/menu-update-endpoint.md) | Edición parcial de menús. |
-| [`meal-update-endpoint.md`](menus/meal-update-endpoint.md) | Edición de platos. |
-| [`menuTemplateMeals.md`](menus/menuTemplateMeals.md) | CRUD de platos dentro de plantillas. |
-| [`menu-pdf-and-tenant-contact.md`](menus/menu-pdf-and-tenant-contact.md) | PDF de menú y datos de contacto del centro. |
-| [`sse-real-time-menu-frontend.md`](menus/sse-real-time-menu-frontend.md) | Actualización del menú en tiempo real por SSE. |
-| [`menus-estructurados-bedca-frontend.md`](menus/menus-estructurados-bedca-frontend.md) | Menús estructurados con catálogo BEDCA. |
-
-### IA y automatización — [`ai/`](ai/README.md)
-
-| Documento | Contenido |
-|---|---|
-| [`ai-shopping-list.md`](ai/ai-shopping-list.md) | Generación de lista de la compra con Gemini. |
-| [`categorias-lista-compra-supermercados.md`](ai/categorias-lista-compra-supermercados.md) | Categorías y secciones por supermercado. |
-
-### Notificaciones — [`notifications/`](notifications/README.md)
-
-| Documento | Contenido |
-|---|---|
-| [`sse-notificaciones-frontend.md`](notifications/sse-notificaciones-frontend.md) | Notificaciones en tiempo real por SSE. |
-| [`chat-frontend.md`](chat-frontend.md) | Contrato del chat 1:1: REST, SSE, adjuntos y push. |
-| [`mascota-frontend.md`](mascota-frontend.md) | Contrato de la mascota: sesiones, consentimiento, tools y acciones pendientes. |
-| [`assistant-frontend.md`](assistant-frontend.md) | Contrato del asistente de nutricionista: pantallas, `uiActions` y `pendingAction`. |
-| [`assistant-tools-backend.md`](assistant-tools-backend.md) | Tools que faltan en el backend: horarios del centro y el resto del catálogo, con el formato del `preview`. |
-| [`assistant-backend-peticion.md`](assistant-backend-peticion.md) | Peticiones de protocolo al backend: streaming SSE, tipos de `uiAction`, pantallas y reanudación de sesión. |
-| [`assistant-agendar-403-backend-peticion.md`](assistant-agendar-403-backend-peticion.md) | Petición al backend: agendar por NutrIA da 403 `error.permission_denied` desde el panel principal, incluso siendo el nutricionista asignado. |
-| [`mascota-catalogo-backend-peticion.md`](mascota-catalogo-backend-peticion.md) | Petición al backend: registrar `naranja`, `pina` y `melon` en el catálogo de mascotas (el `PUT /look` las rechaza con 422). |
-| [`mascota-catalogo-ampliacion-backend-peticion.md`](mascota-catalogo-ampliacion-backend-peticion.md) | Petición al backend: conservar `brocoli`, `semilla` y `zanahoria` (enmienda), catálogo de siete mascotas y regla `/pets` ↔ `PUT /look`. |
-| [`mascota-adjuntos-backend-peticion.md`](mascota-adjuntos-backend-peticion.md) | Petición al backend: adjuntos en la conversación del asistente (subida, lectura por el modelo, límites y retención). |
-| [`mascota-adjuntos-preguntas-backend.md`](mascota-adjuntos-preguntas-backend.md) | Dos preguntas abiertas antes de implementar los adjuntos: `attachmentId` en el endpoint de streaming y qué borra los adjuntos al cerrar la sesión. |
-| [`mascota-memoria-usuario-backend-peticion.md`](mascota-memoria-usuario-backend-peticion.md) | Petición al backend: preferencias de proactividad e hitos de primera vez por usuario. |
-| [`mascot-improvement-plan.md`](mascot-improvement-plan.md) | Plan de mejoras de la mascota: brechas frente a alkimia-app y fases. |
-| [`mascot-improvement-plan-detailed.md`](mascot-improvement-plan-detailed.md) | El mismo plan con ejemplos de código por fase. |
-
-### Roadmap — [`roadmap/`](roadmap/README.md)
-
-| Documento | Contenido |
-|---|---|
-| [`plan-mejoras/`](roadmap/plan-mejoras/README.md) | Plan de mejoras backend por fases. |
-| [`plan-chat-mascota/`](roadmap/plan-chat-mascota/README.md) | Planes independientes de chat y mascota. |
+| Contrato REST/SSE, endpoints, DTOs, permisos, migraciones | `doc/contrato-api/` |
+| Peticiones de cambio al backend, bugs de API, reglas de negocio | `doc/contrato-api/` |
+| Guía de integración Angular, decisiones de UX, ejemplos de código frontend | `doc/frontend/` |
+| Planes de mejora/prototipo de funcionalidades web | `doc/frontend/` |
+| Roadmap de fases, orden de ejecución, sesiones de agentes | `doc/roadmap/` |
+| Cambios incompatibles para clientes (web/app) | `doc/contrato-api/breaking-changes.md` |
+| Especificación OpenAPI/Swagger | `doc/contrato-api/api-docs.json` |
 
 ---
 
-## 3. Documentos transversales
+## 3. Índice rápido por área
 
-- [`breaking-changes.md`](breaking-changes.md): cambios incompatibles que afectan a frontend web y app móvil. **Debe revisarse antes de cualquier despliegue.**
-- [`architecture/history.md`](architecture/history.md): contexto histórico de cambios de modelo; útil para entender por qué algunas estructuras son como son.
+### Backend / contrato-api
+
+- [`contrato-api/appointments/`](contrato-api/appointments/README.md) — citas, agenda, horarios, precios.
+- [`contrato-api/architecture/`](contrato-api/architecture/README.md) — tenants, MinIO, versionado, evolución del modelo.
+- [`contrato-api/body-composition/`](contrato-api/body-composition/README.md) — mediciones, informe clínico, PDF.
+- [`contrato-api/menus/`](contrato-api/menus/README.md) — menús, plantillas, BEDCA, SSE de menú.
+- [`contrato-api/notifications/`](contrato-api/notifications/README.md) — canales push/SSE (contratos).
+- [`contrato-api/patients/`](contrato-api/patients/README.md) — perfil clínico, anamnesis, estado clínico.
+- [`contrato-api/security/`](contrato-api/security/README.md) — autenticación, permisos, usuarios, roles.
+- [`contrato-api/ai/`](contrato-api/ai/README.md) — Gemini, lista de la compra.
+- [`contrato-api/assistant/`](contrato-api/assistant/README.md) — NutrIA / asistente para nutricionistas.
+- [`contrato-api/chat/`](contrato-api/chat/README.md) — chat 1:1 paciente–nutricionista.
+- [`contrato-api/mascot/`](contrato-api/mascot/README.md) — mascota conversacional (contrato API).
+- [`contrato-api/billing/`](contrato-api/billing/README.md) — facturación por tenant.
+- [`contrato-api/breaking-changes.md`](contrato-api/breaking-changes.md) — cambios incompatibles.
+- [`contrato-api/api-docs.json`](contrato-api/api-docs.json) — OpenAPI.
+
+### Frontend
+
+- [`frontend/appointments/`](frontend/appointments/README.md) — integración de citas, calendario, métricas.
+- [`frontend/body-composition/`](frontend/body-composition/README.md) — guías de integración del informe corporal.
+- [`frontend/menus/`](frontend/menus/README.md) — integración de menús, BEDCA, subida de plantillas.
+- [`frontend/notifications/`](frontend/notifications/README.md) — integración SSE en la web.
+- [`frontend/patients/`](frontend/patients/README.md) — listados y flujos de pacientes.
+- [`frontend/ai/`](frontend/ai/README.md) — renderizado de lista de la compra IA.
+- [`frontend/assistant/`](frontend/assistant/README.md) — *(reservado)* implementación Angular del asistente.
+- [`frontend/chat/`](frontend/chat/README.md) — *(reservado)* implementación Angular del chat.
+- [`frontend/mascot/`](frontend/mascot/README.md) — planes de mejora de la mascota.
+- [`frontend/billing/`](frontend/billing/README.md) — *(reservado)* implementación Angular de facturación.
+
+### Roadmap
+
+- [`roadmap/plan-mejoras/`](roadmap/plan-mejoras/README.md) — roadmap backend por fases.
+- [`roadmap/plan-chat-mascota/`](roadmap/plan-chat-mascota/README.md) — planes independientes de chat y mascota.
 
 ---
 
-## 4. Documentos obsoletos o candidatos a consolidar
-
-Estos documentos siguen siendo válidos, pero conviene revisarlos o fusionarlos en el corto plazo:
-
-| Documento | Situación | Acción sugerida |
-|---|---|---|
-| `body-composition/cambios-composicion-corporal-frontend.md` | Describe la v1 de los cambios de composición corporal. | Conservar como referencia histórica; la v2 es la guía vigente. |
-| `body-composition/cambios-composicion-corporal-v2-frontend.md` | Guía vigente de la v2. | Mantener como fuente de verdad para frontend. |
-| `menus/menuTemplateUpload.md` | Describe el endpoint original. | Puede fusionarse con `menu-template-upload-changes.md` y `menu-template-upload-frontend-guide.md`. |
-| `menus/menu-template-upload-changes.md` | Cambios backend de la integración con Gemini. | Candidato a consolidar en un único doc de “subida de plantillas”. |
-| `menus/menu-template-upload-frontend-guide.md` | Guía frontend de la misma funcionalidad. | Candidato a consolidar en un único doc de “subida de plantillas”. |
-| `architecture/history.md` | Documento histórico con información parcialmente reemplazada por `body-composition/`. | Mantener como histórico o mover su contenido útil a los docs de dominio. |
-
----
-
-## 5. Convenciones
+## 4. Convenciones
 
 - Los enlaces internos son **relativos** al archivo que los contiene.
-- Cada carpeta tiene su propio `README.md` con el índice de su dominio.
-- `breaking-changes.md` vive en la raíz porque afecta a todos los clientes.
+- Cada carpeta de dominio tiene su propio `README.md` con el índice de su área.
+- `breaking-changes.md` vive en `contrato-api/` porque afecta al contrato con los clientes.
 - Los planes de futuro viven en `roadmap/` y no deben mezclarse con la documentación del sistema actual.
+- Al añadir, mover o eliminar un documento, actualiza los READMEs afectados y, si cambia un contrato o una decisión de arquitectura, [`AGENT.md`](../AGENT.md).

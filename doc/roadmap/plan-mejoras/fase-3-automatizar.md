@@ -284,4 +284,4 @@ T20 ->  requiere T19 y P7/P9 para eventos
 - [ ] Rate limiting por tenant con Redis.
 - [ ] Webhooks de eventos con firma y reintentos.
 - [ ] Tests pasan y aplicación compila.
-- [ ] `doc/breaking-changes.md` actualizado.
+- [ ] `doc/contrato-api/breaking-changes.md` actualizado.

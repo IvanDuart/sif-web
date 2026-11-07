@@ -1,0 +1,13 @@
+.claude
+.codegraph
+.agents
+.github
+.opencode
+.thinkrail
+design
+doc
+playwright-report
+node_modules
+tests
+test-results
+.idea

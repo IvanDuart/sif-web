@@ -235,4 +235,4 @@ T15/T16 ->  transversal; debe hacerse antes o junto con P7/P9/P10
 - [ ] Auditoría de escrituras clínicas y de archivos en MinIO.
 - [ ] Soft delete en entidades clínicas y UTR.
 - [ ] Tests pasan y aplicación compila.
-- [ ] `doc/breaking-changes.md` actualizado.
+- [ ] `doc/contrato-api/breaking-changes.md` actualizado.
