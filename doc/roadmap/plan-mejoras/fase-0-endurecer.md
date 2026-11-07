@@ -350,7 +350,7 @@ T21              ->  bloquea P4, P6, P7, P14 y P15 (cualquier adjunto binario)
 - [ ] MinIO integrado con `StorageService`, bucket privado y URLs firmadas.
 - [ ] Logos de tenant servidos desde MinIO (o fallback temporal documentado).
 - [ ] Tests pasan y aplicación compila.
-- [ ] `doc/breaking-changes.md` actualizado con cambios en DTOs.
+- [ ] `doc/contrato-api/breaking-changes.md` actualizado con cambios en DTOs.
 
 ---
 

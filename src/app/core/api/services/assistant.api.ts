@@ -246,7 +246,7 @@ export class AssistantService {
   }
 
   /**
-   * El mismo envío, pero en streaming (`doc/assistant-frontend.md` §3.1).
+   * El mismo envío, pero en streaming (`doc/contrato-api/assistant/assistant-frontend.md` §3.1).
    *
    * Va por `HttpClient` y no por `EventSource` por dos razones: `EventSource`
    * no sabe hacer POST con cuerpo, y por aquí pasan los interceptores, así que

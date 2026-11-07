@@ -2,7 +2,7 @@
 
 > **Fecha:** 28 de octubre de 2026
 > **Alcance:** plan de mejoras de producto + auditoría del contrato OpenAPI.
-> **Fuentes:** `doc/` (55 documentos, ~12.200 líneas) y `doc/api-docs.json`
+> **Fuentes:** `doc/` (55 documentos, ~12.200 líneas) y `doc/contrato-api/api-docs.json`
 > (OpenAPI 3.1.0: **80 rutas, 115 operaciones, 131 esquemas**).
 > **Contexto verificado:** existe app móvil Flutter para pacientes y nutricionistas;
 > existe ciclo de vida (alta en el centro, última visita, próxima cita, habilitar/deshabilitar).
@@ -25,14 +25,14 @@
 
 | Dominio | Evidencia |
 |---|---|
-| Multitenant + RBAC + marca blanca | `doc/API.md`, `doc/userType.md`, `doc/menu-pdf-and-tenant-contact.md` |
-| App Flutter paciente + nutricionista | `doc/*` ("Para: equipo de Frontend (app Flutter)"), `doc/relacion_paciente_nutricionista.md` §7 |
-| Agenda completa | `doc/appointments.md`, `doc/appointment_reminders.md`, `doc/calendario_notas_nutricionista_frontend.md`, `doc/horarios_centros.md` |
-| Precios, ingresos y métricas | `doc/EXECUTIVE_SUMMARY.md`, `doc/metricas_asistencia_frontend.md` |
-| Menús BEDCA + plantillas + PDF + lista de compra IA | `doc/menus-estructurados-bedca-frontend.md`, `doc/ai-shopping-list.md` |
-| Composición corporal clínica + PDF | `doc/body_composition_and_segmental_measurements.md`, `doc/pdf-composicion-corporal.md` |
-| Anamnesis estructurada (18 condiciones) | `doc/anamnesis_checklist_fields.md` |
-| Portal paciente (dieta, evolución, agua, PDFs) | `doc/water_intake_and_anamnesis_config.md`, `doc/pdf-composicion-corporal.md` |
+| Multitenant + RBAC + marca blanca | `doc/API.md`, `doc/contrato-api/security/userType.md`, `doc/contrato-api/menus/menu-pdf-and-tenant-contact.md` |
+| App Flutter paciente + nutricionista | `doc/*` ("Para: equipo de Frontend (app Flutter)"), `doc/contrato-api/appointments/relacion_paciente_nutricionista.md` §7 |
+| Agenda completa | `doc/contrato-api/appointments/appointments.md`, `doc/contrato-api/appointments/appointment_reminders.md`, `doc/frontend/appointments/calendario_notas_nutricionista_frontend.md`, `doc/contrato-api/appointments/horarios_centros.md` |
+| Precios, ingresos y métricas | `doc/contrato-api/appointments/EXECUTIVE_SUMMARY.md`, `doc/frontend/appointments/metricas_asistencia_frontend.md` |
+| Menús BEDCA + plantillas + PDF + lista de compra IA | `doc/frontend/menus/menus-estructurados-bedca-frontend.md`, `doc/contrato-api/ai/ai-shopping-list.md` |
+| Composición corporal clínica + PDF | `doc/contrato-api/body-composition/body_composition_and_segmental_measurements.md`, `doc/contrato-api/body-composition/pdf-composicion-corporal.md` |
+| Anamnesis estructurada (18 condiciones) | `doc/contrato-api/patients/anamnesis_checklist_fields.md` |
+| Portal paciente (dieta, evolución, agua, PDFs) | `doc/contrato-api/patients/water_intake_and_anamnesis_config.md`, `doc/contrato-api/body-composition/pdf-composicion-corporal.md` |
 | Ciclo de vida | `createdAt` ("Alta en el centro"), `lastAppointmentDate`, `nextAppointmentDate`, `enabled`/`disabledAt`, `PATCH /users/{id}/status` |
 | Control de versiones de la app | `GET/PUT /api/v1/app/version` (`AppVersionDto`, `mandatoryUpdate`) |
 | Exportación de usuarios | `GET /tenant/{tenantId}/users/export` |
@@ -119,29 +119,29 @@ Severidad: **A** = bloquea venta o genera riesgo; **M** = deuda que frena integr
 | ID | Sev. | Hallazgo | Evidencia | Impacto | Corrección propuesta |
 |---|---|---|---|---|---|
 | C1 | **A** | `gemini_api_key` aparece en `TenantPreferences_Public`, idéntico a `_Full`, y `GET /tenant/{tenantId}/profile` devuelve `Tenant_Public.preferences` | `api-docs.json` esquemas `TenantPreferences*`; ruta `/tenant/{tenantId}/profile` | Posible exposición de la clave de IA a usuarios del tenant (incluido paciente si el permiso lo permite) | Campo write-only, `hasApiKey: boolean`, cifrado en reposo, rotación y auditoría. **Verificar si el serializer la enmascara hoy** |
-| C2 | **A** | `AppointmentDto` no expone `price` aunque la cita lo persiste | `doc/EXECUTIVE_SUMMARY.md` vs esquema `AppointmentDto` | No se puede mostrar/auditar el importe por cita; solo el total agregado | Añadir `price`, `currency`, `priceSource` y `paidAt` (futuro) |
-| C3 | **A** | Contrato de errores inconsistente: literales en inglés, claves i18n y 400 de Spring sin formato | `doc/appointments.md`, `doc/relacion_paciente_nutricionista.md`, `doc/calendario_notas_*` §238 | Cliente frágil, mensajes sin traducir, imposible tests por código | `ProblemDetail` (RFC 9457) con `code`, `message`, `fieldErrors`, `traceId`; catálogo de códigos |
+| C2 | **A** | `AppointmentDto` no expone `price` aunque la cita lo persiste | `doc/contrato-api/appointments/EXECUTIVE_SUMMARY.md` vs esquema `AppointmentDto` | No se puede mostrar/auditar el importe por cita; solo el total agregado | Añadir `price`, `currency`, `priceSource` y `paidAt` (futuro) |
+| C3 | **A** | Contrato de errores inconsistente: literales en inglés, claves i18n y 400 de Spring sin formato | `doc/contrato-api/appointments/appointments.md`, `doc/contrato-api/appointments/relacion_paciente_nutricionista.md`, `doc/calendario_notas_*` §238 | Cliente frágil, mensajes sin traducir, imposible tests por código | `ProblemDetail` (RFC 9457) con `code`, `message`, `fieldErrors`, `traceId`; catálogo de códigos |
 | C4 | **A** | OpenAPI incompleto: sin seguridad, sin summaries, sin errores, media types `*/*`, servidor localhost | `api-docs.json` | No se pueden generar SDKs ni contract tests; onboarding lento | Anotar seguridad, publicar OpenAPI versionado, lint en CI (Spectral), portal de API |
-| C5 | **A** | Preferencias con 5 caminos de escritura y reemplazo total del documento | `POST /tenants`, `PUT /tenants/{id}`, `PUT /tenant/{id}/profile`, `PUT .../profile/preferences`, `PUT .../branding/preferences` | Un PUT parcial borra flags (`doc/menus-estructurados` §2) | Un único `PATCH /tenant/{id}/preferences` con merge y validación por campo |
-| C6 | **M** | `dayOfWeek`, `mealType`, `menu_creation_mode` son strings libres | `doc/menus-estructurados` §3 | Datos inconsistentes; agregación imposible | Enums + migración + validación + valores legacy |
+| C5 | **A** | Preferencias con 5 caminos de escritura y reemplazo total del documento | `POST /tenants`, `PUT /tenants/{id}`, `PUT /tenant/{id}/profile`, `PUT .../profile/preferences`, `PUT .../branding/preferences` | Un PUT parcial borra flags (`doc/frontend/menus/menus-estructurados-bedca-frontend.md` §2) | Un único `PATCH /tenant/{id}/preferences` con merge y validación por campo |
+| C6 | **M** | `dayOfWeek`, `mealType`, `menu_creation_mode` son strings libres | `doc/frontend/menus/menus-estructurados-bedca-frontend.md` §3 | Datos inconsistentes; agregación imposible | Enums + migración + validación + valores legacy |
 | C7 | **M** | Listados sin paginación: notas de calendario, comidas de menú, citas por nutricionista, historial de menús, eventos, listas de compra, nutrientes | `api-docs.json` (respuestas `array`) | Crecimiento sin límite y latencia | `Page<>` o cursor; `limit` máximo |
 | C8 | **M** | Sin control de concurrencia en menús/comidas | Sin `@Version`/ETag en el contrato; SSE solo notifica | Dos profesionales editan y el último gana; pérdida de trabajo | `@Version` + `If-Match`/ETag + `409` |
-| C9 | **M** | Recordatorios a las 08:00 **hora del servidor**, no configurable por tenant; el tenant no tiene `timezone` | `doc/appointment_reminders.md` §5; `AppUser_Me.timezone` | Avisos a horas raras en centros de otra zona | `tenant.timezone` + `reminderHour` + job por zona |
+| C9 | **M** | Recordatorios a las 08:00 **hora del servidor**, no configurable por tenant; el tenant no tiene `timezone` | `doc/contrato-api/appointments/appointment_reminders.md` §5; `AppUser_Me.timezone` | Avisos a horas raras en centros de otra zona | `tenant.timezone` + `reminderHour` + job por zona |
 | C10 | **M** | No hay "alta en el centro": `TenantUserDto` sin `joinedAt`; `AppUser.createdAt` es la cuenta global | `api-docs.json`; `es.json` `joined_at` | Un paciente en dos centros muestra la fecha del primero | `joinedAt` en `user_tenant_role` + DTO |
-| C11 | **M** | `lastAppointmentDate` incluye `NO_SHOW` | `doc/listado_pacientes_frontend.md` §2 | Un no-show figura como "última visita"; sesga retención | Separar `lastVisitDate` (`COMPLETED`) y `lastNoShowDate` |
+| C11 | **M** | `lastAppointmentDate` incluye `NO_SHOW` | `doc/frontend/patients/listado_pacientes_frontend.md` §2 | Un no-show figura como "última visita"; sesga retención | Separar `lastVisitDate` (`COMPLETED`) y `lastNoShowDate` |
 | C12 | **B** | Duplicidad `Menu.active` / `Menu.isActive`; preferencias en `snake_case` | `api-docs.json` | Modelos generados sucios | Unificar nombres |
 | C13 | **M** | Versionado inconsistente: `/api` para todo, `/api/v1` solo para versión de app | `api-docs.json` | Cambios breaking sin ruta de escape | `/api/v1` o `Accept-Version` + política de deprecación |
 | C14 | **M** | Sin idempotencia en POST críticos | Citas, menús, mediciones, lista de compra | Reintentos móviles duplican datos | `Idempotency-Key` + TTL |
-| C15 | **M** | SSE efímero, sin buzón ni `Last-Event-ID` | `doc/sse-notificaciones-frontend.md` §1 | Notificación perdida si el usuario está offline | Tabla `notification` + `GET /notifications` + replay |
+| C15 | **M** | SSE efímero, sin buzón ni `Last-Event-ID` | `doc/frontend/notifications/sse-notificaciones-frontend.md` §1 | Notificación perdida si el usuario está offline | Tabla `notification` + `GET /notifications` + replay |
 | C16 | **B** | `/users/export` sin contrato (200 `*/*`) | `api-docs.json` | Integradores a ciegas | `text/csv`, columnas y ejemplo documentados |
-| C17 | **A** | Sin auditoría, consentimientos ni historial de anamnesis | No hay endpoints; perfil se sobrescribe (`doc/patient_profile.md` §5) | Requisito de compra en clínica; riesgo legal | `audit_log` append-only, `patient_consent`, historial de perfil |
-| C18 | **B** | Solo el paciente puede registrar agua | `doc/water_intake_and_anamnesis_config.md` | El nutricionista no puede registrar en consulta | Añadir `MANAGE_WATER_INTAKE` si se decide |
+| C17 | **A** | Sin auditoría, consentimientos ni historial de anamnesis | No hay endpoints; perfil se sobrescribe (`doc/contrato-api/patients/patient_profile.md` §5) | Requisito de compra en clínica; riesgo legal | `audit_log` append-only, `patient_consent`, historial de perfil |
+| C18 | **B** | Solo el paciente puede registrar agua | `doc/contrato-api/patients/water_intake_and_anamnesis_config.md` | El nutricionista no puede registrar en consulta | Añadir `MANAGE_WATER_INTAKE` si se decide |
 | C19 | **M** | Dinero como `number` sin moneda por tenant; `currency` fijo EUR en métricas | `api-docs.json` `Revenue`, `AppointmentTypeDto` | Redondeos y expansión internacional | `Money { amount, currency }` o `currency` en tenant |
-| C20 | **M** | IMC histórico calculado con la altura actual | `doc/history.md` §8 | Informes antiguos cambian solos | Guardar `heightCm` en cada medición |
+| C20 | **M** | IMC histórico calculado con la altura actual | `doc/contrato-api/architecture/history.md` §8 | Informes antiguos cambian solos | Guardar `heightCm` en cada medición |
 | C21 | **M** | Sin `soft delete` ni política de borrado | `DELETE /menu/{id}`, `/meal/{id}`, `/users/{userId}` | Pérdida de trazabilidad y de histórico | `deletedAt` + `revokeAccess` ≠ `delete` |
-| C22 | **B** | `food/search` limitado a 20 alimentos + 10 recetas, sin `total` ni cursor | `doc/menus-estructurados` §4 | Catálogo difícil de explorar | Cursor + `total` + facetas |
+| C22 | **B** | `food/search` limitado a 20 alimentos + 10 recetas, sin `total` ni cursor | `doc/frontend/menus/menus-estructurados-bedca-frontend.md` §4 | Catálogo difícil de explorar | Cursor + `total` + facetas |
 | C23 | **B** | `RecipeDto` sin CRUD | `api-docs.json` | No hay biblioteca de recetas gestionable | Ver §3.4 |
-| C24 | **M** | Sin lista de espera; `recoveredSlots` siempre `null` | `doc/metricas_asistencia_frontend.md` §1 | No se puede recuperar hueco ni medirlo | Ver §3.4 |
+| C24 | **M** | Sin lista de espera; `recoveredSlots` siempre `null` | `doc/frontend/appointments/metricas_asistencia_frontend.md` §1 | No se puede recuperar hueco ni medirlo | Ver §3.4 |
 | C25 | **M** | Sin estado clínico distinto del acceso | `enabled`/`disabledAt` deshabilita Keycloak | Un paciente "de alta" pierde acceso a su historial | `clinicalStatus` + `accessStatus` |
 
 ### 3.4 Contratos nuevos propuestos
@@ -389,7 +389,7 @@ POST     /public/{tenantSlug}/appointments
 ## 8. Anexo: método y evidencias
 
 - **Documentos leídos:** `doc/*.md` (55 entradas, ~12.200 líneas) y `PRODUCT.md`.
-- **Contrato:** `doc/api-docs.json` (OpenAPI 3.1.0; 80 rutas, 115 operaciones, 131 esquemas).
+- **Contrato:** `doc/contrato-api/api-docs.json` (OpenAPI 3.1.0; 80 rutas, 115 operaciones, 131 esquemas).
 - **Frontend:** `src/app/app.routes.ts` y estructura de `src/app/features`.
 - **Comprobaciones directas:**
   - `securitySchemes` ausente y `security` global ausente.

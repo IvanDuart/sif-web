@@ -29,8 +29,8 @@
   - `src/main/java/com/carajillolabs/tusdietas/controller/TenantProfileController.java`
   - `src/main/java/com/carajillolabs/tusdietas/controller/TenantBrandingController.java`
   - `src/main/java/com/carajillolabs/tusdietas/service/TenantService.java`
-- [ ] `doc/breaking-changes.md` (por ahora no aplica, se actualizará si cambia el DTO)
-- [ ] Otros documentos específicos: `doc/API.md` (revisar si menciona preferencias públicas)
+- [ ] `doc/contrato-api/breaking-changes.md` (por ahora no aplica, se actualizará si cambia el DTO)
+- [ ] Otros documentos específicos: `doc/contrato-api/security/userType.md` (revisar si menciona preferencias públicas)
 
 ---
 
@@ -136,7 +136,7 @@
 - [x] Tests unitarios y de integración añadidos.
 - [x] OpenAPI actualizado si cambia algún DTO público.
 - [x] Aplicación compila con `./mvnw clean verify`.
-- [x] `doc/breaking-changes.md` actualizado si el DTO de branding cambia.
+- [x] `doc/contrato-api/breaking-changes.md` actualizado si el DTO de branding cambia.
 - [x] Revisión de seguridad: no se expone la clave en logs ni respuestas.
 
 ---

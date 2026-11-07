@@ -314,7 +314,7 @@ export class MascotStateService {
       .pipe(
         catchError((error: HttpErrorResponse) => {
           // Un nutricionista sólo puede abrir sesión con SUS pacientes
-          // (doc/assistant-frontend.md §2). Si la ficha es de otro, el panel
+          // (doc/contrato-api/assistant/assistant-frontend.md §2). Si la ficha es de otro, el panel
           // se quedaba muerto con un "no tienes permisos" a secas. Se abre sin
           // paciente: la mascota sigue sirviendo para lo general y para
           // rellenar lo que haya en pantalla, y se dice por qué.
@@ -485,7 +485,7 @@ export class MascotStateService {
   }
 
   /**
-   * El turno en streaming (`doc/assistant-frontend.md` §3.1). La mascota va
+   * El turno en streaming (`doc/contrato-api/assistant/assistant-frontend.md` §3.1). La mascota va
    * diciendo lo que le llega en vez de quedarse muda mientras el modelo
    * piensa; el `done` trae el turno entero, y de ahí salen las `uiActions` y
    * la escritura pendiente igual que por el camino bloqueante.
@@ -694,7 +694,7 @@ export class MascotStateService {
    * A la persona no se le dice nada —la tarjeta de confirmar sigue haciendo su
    * trabajo—, pero sin esto el contrato se rompe en silencio y nadie se entera
    * hasta que un nutricionista nota que la mascota ha dejado de rellenar. Los
-   * nombres están fijados en `doc/assistant-frontend.md` §6.
+   * nombres están fijados en `doc/contrato-api/assistant/assistant-frontend.md` §6.
    */
   private warnPreviewDrift(action: AssistantPendingActionDto, surface: FillSurface): void {
     const orphans = unmatchedPreview(surface, action.preview);
@@ -705,7 +705,7 @@ export class MascotStateService {
     console.warn(
       `[mascota] "${action.toolName}" → formulario "${surface.id}": no reconoce ${scope} de los campos del preview.`,
       `Sin reconocer: ${orphans.join(', ')}.`,
-      'El contrato de nombres está en doc/assistant-frontend.md §6.',
+      'El contrato de nombres está en doc/contrato-api/assistant/assistant-frontend.md §6.',
     );
   }
 
@@ -735,7 +735,7 @@ export class MascotStateService {
         // Acaba de escribir algo: puede haber sido la primera vez de algo.
         this.milestones.refresh();
         // Y lleva a ver lo que se acaba de crear, si el backend lo pide
-        // (`doc/assistant-frontend.md` §5).
+        // (`doc/contrato-api/assistant/assistant-frontend.md` §5).
         void this.handleUiActions(response.uiActions ?? []);
       },
       error: (error: HttpErrorResponse) => {
@@ -835,7 +835,7 @@ export class MascotStateService {
   private async handleUiActions(actions: AssistantUiActionDto[]): Promise<void> {
     // De paso se apunta de quién habla el backend: `params.patientId` es el
     // único sitio del contrato por el que el paciente activo llega hoy al
-    // frontend (`doc/assistant-frontend.md` §4).
+    // frontend (`doc/contrato-api/assistant/assistant-frontend.md` §4).
     for (const action of actions) {
       const patientId = action.params?.['patientId'];
       if (typeof patientId === 'string' && patientId !== '') this.activePatientId.set(patientId);
@@ -855,7 +855,7 @@ export class MascotStateService {
     }
 
     // Y después TODAS las demás, no la primera: el backend manda el aviso y la
-    // navegación en el mismo turno (`doc/assistant-frontend.md` §5).
+    // navegación en el mismo turno (`doc/contrato-api/assistant/assistant-frontend.md` §5).
     for (const action of actions) {
       switch (action.type) {
         case 'TOAST':
@@ -1154,7 +1154,7 @@ export class MascotStateService {
    * El texto de un error del turno. El **código manda sobre el `detail`** del
    * backend: un "Permiso denegado" a secas no le dice a nadie qué pasa, y el
    * 403 del asistente es siempre el mismo —la ficha no está asignada a quien
-   * pregunta (`doc/assistant-frontend.md` §2)—, así que se dice eso, igual
+   * pregunta (`doc/contrato-api/assistant/assistant-frontend.md` §2)—, así que se dice eso, igual
    * que al abrir sesión sobre un paciente de otro.
    *
    * Sale aparte de `errorMessage` porque el stream trae su código dentro del

@@ -26,7 +26,7 @@ Marcar cada elemento como leído:
 - [ ] `doc/roadmap/plan-mejoras/fase-X-<nombre>.md` (archivo de la fase asignada)
 - [ ] `doc/roadmap/plan-mejoras/orden-ejecucion.md`
 - [ ] Código existente relevante en `src/main/java/com/carajillolabs/tusdietas/`
-- [ ] `doc/breaking-changes.md` (para entender cambios previos)
+- [ ] `doc/contrato-api/breaking-changes.md` (para entender cambios previos)
 - [ ] Otros documentos específicos: `______________________________`
 
 ---
@@ -111,7 +111,7 @@ Marcar al cerrar la sesión:
 - [ ] Tests unitarios y/o de integración añadidos para lógica nueva.
 - [ ] OpenAPI actualizado (`@Operation`, `@ApiResponse`, `@SecurityScheme` si aplica).
 - [ ] Aplicación compila: `./mvnw clean verify` o `mvn clean verify` sin errores.
-- [ ] `doc/breaking-changes.md` actualizado si hay cambios en contrato.
+- [ ] `doc/contrato-api/breaking-changes.md` actualizado si hay cambios en contrato.
 - [ ] Documentación de la fase actualizada si ha cambiado el alcance.
 - [ ] Revisión de seguridad básica: no se exponen secretos, permisos correctos.
 

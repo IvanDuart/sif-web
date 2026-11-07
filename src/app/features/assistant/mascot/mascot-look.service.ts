@@ -85,7 +85,7 @@ export class MascotLookService {
 
   /**
    * Lo que el armario puede ofrecer: la intersección de tres listas, y hacen
-   * falta las tres (`doc/mascota-frontend.md` §2.4).
+   * falta las tres (`doc/contrato-api/mascot/mascota-frontend.md` §2.4).
    *
    * 1. `SKIN_IDS`  — lo que este frontend sabe dibujar.
    * 2. `/pets`     — el catálogo del producto; fuera de él, `PUT /look` da 422.

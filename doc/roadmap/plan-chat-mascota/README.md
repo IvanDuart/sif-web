@@ -2,7 +2,7 @@
 
 > **Ubicación:** `doc/roadmap/plan-chat-mascota/`
 > **Propósito:** dos planes de implementación autónomos, sin dependencia de las fases de `doc/roadmap/plan-mejoras/`.
-> **Estado:** backend v1 de Chat y Mascota implementado (migraciones `V54` y `V55`). El frontend Angular se implementa en su repositorio con los contratos `doc/chat-frontend.md` y `doc/mascota-frontend.md`.
+> **Estado:** backend v1 de Chat y Mascota implementado (migraciones `V54` y `V55`). El frontend Angular se implementa en su repositorio con los contratos `doc/contrato-api/chat/chat-frontend.md` y `doc/contrato-api/mascot/mascota-frontend.md`.
 > **Última actualización:** 2026-10-30
 
 ---
@@ -75,7 +75,7 @@ Si el contrato real difiere, se adapta el adaptador en cada plan; la lógica de 
 | Push OneSignal | Ya existe en `PushNotificationService` | Reutilizar `notifyUserAfterCommit`. |
 | Gemini en Java | `com.google.genai:google-genai:1.77.0` ya en `pom.xml` | Solo la mascota lo usa. |
 | Redis | **Dependencia obligatoria desde v1** | `spring-boot-starter-data-redis`; bus de eventos del chat en `192.168.1.5:6379` (configurable por `REDIS_HOST`/`REDIS_PORT`). |
-| Frontend | Angular, con `@microsoft/fetch-event-source` para SSE | Confirmado en `doc/notifications/sse-notificaciones-frontend.md`. |
+| Frontend | Angular, con `@microsoft/fetch-event-source` para SSE | Confirmado en `doc/frontend/notifications/sse-notificaciones-frontend.md`. |
 
 ---
 
@@ -90,7 +90,7 @@ Si el contrato real difiere, se adapta el adaptador en cada plan; la lógica de 
 7. **Errores:** añadir códigos a `exception/ErrorResource.java` y lanzar `NotFoundException`, `ForbiddenException` o `ConflictException`.
 8. **OpenAPI:** `@Operation` y `@Tag` en cada endpoint.
 9. **Tests:** unitarios de servicio + MVC de controlador. No hace falta Testcontainers para v1; sí mocks de `StorageService` y del cliente Gemini.
-10. **Breaking changes:** documentar en `doc/breaking-changes.md` si cambia un DTO existente.
+10. **Breaking changes:** documentar en `doc/contrato-api/breaking-changes.md` si cambia un DTO existente.
 
 ---
 

@@ -6,7 +6,7 @@ import { ApiErrorLike } from './appointment-errors';
  * endpoints de notas el discriminante fiable es el par código HTTP + endpoint:
  * un `409` aquí solo puede significar una cosa.
  *
- * Ver §6 de `doc/calendario_notas_nutricionista_frontend.md`.
+ * Ver §6 de `doc/frontend/appointments/calendario_notas_nutricionista_frontend.md`.
  */
 
 /**

@@ -44,7 +44,7 @@ describe('qué archivos se pueden mandar', () => {
 /**
  * El adjunto se sube aparte y **antes** del mensaje, así que el turno no se
  * queda esperando diez megas y el archivo no se sube dos veces si el turno
- * falla (`doc/mascota-frontend.md` §4.3).
+ * falla (`doc/contrato-api/mascot/mascota-frontend.md` §4.3).
  */
 describe('un archivo en la conversación', () => {
   const TENANT = 'tenant-1';

@@ -78,10 +78,10 @@ ng generate component component-name  # Generate a new Angular component
 
 ### Backend API conventions (Spring Boot, external)
 - Nearly all endpoints are `/api/tenant/{tenantId}/...`; the backend enforces tenant isolation, so the tenantId must always be supplied from `TenantContextService.currentTenantId()`.
-- Pagination responses use **PagedModel** format: `{ content: [...], page: { size, number, totalElements, totalPages } }` — NOT the old Spring `PageImpl` shape. See `doc/breaking-changes.md` (also documents the `users/by-type/STAFF|PATIENT` route change).
+- Pagination responses use **PagedModel** format: `{ content: [...], page: { size, number, totalElements, totalPages } }` — NOT the old Spring `PageImpl` shape. See `doc/contrato-api/breaking-changes.md` (also documents the `users/by-type/STAFF|PATIENT` route change).
 - Errors return `{ "error": "message" }`. HTTP 403 = missing permission for the current tenant; 404 = entity missing (or deliberately hidden for another tenant).
 - Users come from `GET /users/me` as `AppUserDto` with `memberships: TenantMembershipDto[]` (`{ tenantId, tenantName, roleCode, permissions[], userType }`).
-- `doc/` holds backend feature specs and frontend integration guides (e.g. `API.md`, `FRONTEND_INTEGRATION_GUIDE.md`, `menu-template-upload-frontend-guide.md`) — consult the relevant one before implementing against a feature.
+- `doc/` holds project documentation. See `AGENT.md` for the structure: `doc/contrato-api/` for backend contracts and `doc/frontend/` for Angular integration guides. Consult the relevant doc before implementing against a feature.
 
 ### Design tokens & theming
 - `ThemeService` toggles the `dark` class on `<html>` (Tailwind `darkMode: 'class'`) and sets per-tenant brand colors as CSS variables: `--p-primary-*` (Tailwind `primary` palette) and `--tui-primary` / `--tui-background-accent-1` (Taiga tokens). `brandingResolver` calls `themeService.setPrimary()` from tenant branding before the Shell renders.

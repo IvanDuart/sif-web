@@ -1,9 +1,9 @@
-/** Mascota conversacional (`doc/mascota-frontend.md`). */
+/** Mascota conversacional (`doc/contrato-api/mascot/mascota-frontend.md`). */
 
 /**
  * Pantallas a las que el asistente puede navegar. Nunca rutas libres.
  *
- * El contrato de nutricionista (`doc/assistant-frontend.md`) añade las
+ * El contrato de nutricionista (`doc/contrato-api/assistant/assistant-frontend.md`) añade las
  * pantallas `PATIENT_*`, `PATIENTS`, `AGENDA` y `DASHBOARD`; las heredadas se
  * mantienen por compatibilidad con respuestas antiguas.
  *
@@ -125,7 +125,7 @@ export interface AssistantPetSupportsDto {
 
 /**
  * Lo que la mascota recuerda de cada persona para hablar sin que le pregunten
- * (`doc/mascota-frontend.md` §5.1).
+ * (`doc/contrato-api/mascot/mascota-frontend.md` §5.1).
  *
  * `silencedTips` son ids opacos que inventa el frontend (`<dominio>.<acción>`):
  * el backend no los conoce, solo limita la lista a 50 de hasta 64 caracteres.
@@ -146,7 +146,7 @@ export interface AssistantPreferencesDto {
 export type UpdateAssistantPreferencesRequest = Omit<AssistantPreferencesDto, 'updatedAt'>;
 
 /**
- * Una primera vez de la persona dentro del centro (`doc/mascota-frontend.md`
+ * Una primera vez de la persona dentro del centro (`doc/contrato-api/mascot/mascota-frontend.md`
  * §5.2). `reachedAt` lo calcula el backend desde sus propios datos: el
  * frontend no avisa de nada, solo lee y marca lo que ya ha celebrado.
  */
@@ -157,7 +157,7 @@ export interface AssistantMilestoneDto {
 }
 
 /**
- * Un archivo subido a la conversación (`doc/mascota-frontend.md` §4.3).
+ * Un archivo subido a la conversación (`doc/contrato-api/mascot/mascota-frontend.md` §4.3).
  *
  * `url` viene firmada y caduca a los 10 minutos; para renovarla está
  * `GET /assistant/attachments/{id}/url`. Vive y muere con su sesión.
@@ -246,7 +246,7 @@ export interface AssistantUiActionDto {
 }
 
 /**
- * Lo que llega por el stream de un turno (`doc/assistant-frontend.md` §3.1).
+ * Lo que llega por el stream de un turno (`doc/contrato-api/assistant/assistant-frontend.md` §3.1).
  *
  * `done` trae el mismo objeto que el envío bloqueante, así que de él salen las
  * `uiActions` y la escritura pendiente igual que siempre: el stream sólo
@@ -265,7 +265,7 @@ export interface AssistantTurnResponse {
 }
 
 export interface AssistantActionResponse {
-  /** `"APPLIED"`, no `"CONFIRMED"` (`doc/assistant-frontend.md` §5). */
+  /** `"APPLIED"`, no `"CONFIRMED"` (`doc/contrato-api/assistant/assistant-frontend.md` §5). */
   status: string;
   entityType: string | null;
   entityId: string | null;

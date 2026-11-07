@@ -172,7 +172,7 @@ export function matchPreview(
  * del `preview`, el relleno deja de encontrarlo y la acción cae a la tarjeta de
  * confirmar **sin dar ningún error**: sigue funcionando, pero la mascota deja
  * de escribir y nadie se entera. Esto lo hace visible
- * (`doc/assistant-frontend.md` §6).
+ * (`doc/contrato-api/assistant/assistant-frontend.md` §6).
  *
  * Los campos vacíos no cuentan: el backend los manda a propósito cuando no
  * sabe resolver un desplegable.

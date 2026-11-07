@@ -1,4 +1,4 @@
-/** Chat 1:1 paciente ↔ nutricionista (`doc/chat-frontend.md`). */
+/** Chat 1:1 paciente ↔ nutricionista (`doc/contrato-api/chat/chat-frontend.md`). */
 
 export type ChatMessageKind = 'TEXT' | 'IMAGE';
 

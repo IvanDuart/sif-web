@@ -4,7 +4,7 @@
 > **Prerrequisito:** MinIO operativo con `StorageService` y tabla `stored_file` (ver `README.md` §2), y clave Gemini del tenant cifrada.
 > **Ámbito:** backend Java + contrato para frontend Angular. Sin microservicio Python.
 > **Estimación:** 8–10 semanas de backend + 6–8 semanas de frontend Angular (pueden solaparse).
-> **Estado:** backend v1 implementado en esta rama. Contrato Angular en `doc/mascota-frontend.md`.
+> **Estado:** backend v1 implementado en esta rama. Contrato Angular en `doc/contrato-api/mascot/mascota-frontend.md`.
 
 ---
 
@@ -913,7 +913,7 @@ No enviar:
 | MA-11 | Endpoints REST + DTOs + OpenAPI + errores | 2 |
 | MA-12 | Cuotas, métricas, auditoría, kill switch | 2 |
 | MA-13 | Tests unitarios + MVC + seguridad | 4 |
-| MA-14 | Documento de contrato Angular (`doc/mascota-frontend.md`) | 1 |
+| MA-14 | Documento de contrato Angular (`doc/contrato-api/mascot/mascota-frontend.md`) | 1 |
 | **Total backend** | | **31 días** |
 
 Con 1 backend: **7–8 semanas** efectivas; 9–10 con margen y revisión.
@@ -969,7 +969,7 @@ Con 1 frontend: **5–6 semanas** efectivas.
 - [ ] No hay contenido sensible en logs ni en push.
 - [ ] La mascota tiene estados visuales y respeta `prefers-reduced-motion`.
 - [ ] Tests unitarios, MVC y de seguridad pasan.
-- [ ] `doc/mascota-frontend.md` describe el contrato para Angular.
+- [ ] `doc/contrato-api/mascot/mascota-frontend.md` describe el contrato para Angular.
 
 ---
 

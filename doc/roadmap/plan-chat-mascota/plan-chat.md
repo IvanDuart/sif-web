@@ -4,7 +4,7 @@
 > **Prerrequisito:** MinIO operativo con `StorageService` y tabla `stored_file` (ver `README.md` §2).
 > **Ámbito:** backend Spring Boot + contrato para frontend Angular.
 > **Estimación:** 3–4 semanas de un backend dedicado, incluyendo pruebas y documentación.
-> **Estado:** backend v1 implementado en esta rama. Contrato Angular en `doc/chat-frontend.md`.
+> **Estado:** backend v1 implementado en esta rama. Contrato Angular en `doc/contrato-api/chat/chat-frontend.md`.
 
 ---
 
@@ -579,7 +579,7 @@ Reglas:
 | `service/PushNotificationService.java` | `TYPE_CHAT_MESSAGE`. |
 | `exception/ErrorResource.java` | Códigos de chat. |
 | `application.yaml` | `app.chat.heartbeat-ms`, `app.chat.presigned-ttl-minutes`, `app.chat.max-image-bytes`. |
-| `doc/breaking-changes.md` | Solo si se toca un DTO existente; el chat es aditivo. |
+| `doc/contrato-api/breaking-changes.md` | Solo si se toca un DTO existente; el chat es aditivo. |
 
 ---
 
@@ -684,7 +684,7 @@ Opcional con Testcontainers. Si no, mock de `StorageService` y un test manual do
 | CH-07 | Push + eventos post-commit | 1 |
 | CH-08 | DTOs, OpenAPI, errores, `application.yaml` | 1 |
 | CH-09 | Tests unitarios + MVC + SSE | 3 |
-| CH-10 | Documento de contrato Angular (`doc/chat-frontend.md`) | 1 |
+| CH-10 | Documento de contrato Angular (`doc/contrato-api/chat/chat-frontend.md`) | 1 |
 | **Total** | | **18 días** |
 
 Con 1 backend: **3,5–4 semanas** incluyendo revisión y margen del 15 %.
@@ -719,7 +719,7 @@ Con 1 backend: **3,5–4 semanas** incluyendo revisión y margen del 15 %.
 - [ ] El push llega al receptor sin contenido del mensaje.
 - [ ] El borrado es lógico y visible como “mensaje eliminado”.
 - [ ] Los tests pasan y la aplicación compila.
-- [ ] `doc/chat-frontend.md` describe el contrato para Angular.
+- [ ] `doc/contrato-api/chat/chat-frontend.md` describe el contrato para Angular.
 
 ---
 

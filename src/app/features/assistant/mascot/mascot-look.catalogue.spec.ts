@@ -16,7 +16,7 @@ import { SKIN_IDS } from './skins/types';
 
 /**
  * El armario solo puede ofrecer lo que está en las tres listas a la vez
- * (`doc/mascota-frontend.md` §2.4): lo que el frontend dibuja, lo que el
+ * (`doc/contrato-api/mascot/mascota-frontend.md` §2.4): lo que el frontend dibuja, lo que el
  * catálogo del producto sirve y lo que este centro permite. Ofrecer algo fuera
  * de ellas es prometer una mascota que al recargar vuelve a ser otra, que es
  * justo el fallo que arrastrábamos.

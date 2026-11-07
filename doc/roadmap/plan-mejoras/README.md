@@ -62,13 +62,13 @@ Cada fase tiene su propio archivo markdown. Un agente debe poder leer solo el ar
 ### 4.2 Durante la implementación
 - Usar **Flyway** para todas las migraciones de base de datos (`src/main/resources/db/migration/VNN__descripcion.sql`).
 - Mantener el estilo existente: Lombok, records para DTOs inmutables, `JsonViews` para control de serialización, `@PreAuthorize` para permisos.
-- Cualquier breaking change en DTOs/respuestas debe documentarse en `doc/breaking-changes.md`.
+- Cualquier breaking change en DTOs/respuestas debe documentarse en `doc/contrato-api/breaking-changes.md`.
 - Añadir tests unitarios y/o de integración para lógica nueva.
 - No modificar lógica de negocio existente si no es estrictamente necesario; si se hace, justificarlo.
 
 ### 4.3 Al finalizar una fase
 - Actualizar este README si una decisión cambia.
-- Actualizar `doc/API.md` o la documentación de endpoints afectados.
+- Actualizar `doc/contrato-api/security/userType.md` o la documentación de endpoints afectados.
 - Verificar que la aplicación compila (`./mvnw clean verify` o `mvn clean verify`).
 - Dejar anotadas las deudas técnicas o tareas aplazadas para la siguiente fase.
 

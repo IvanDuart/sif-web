@@ -1,7 +1,7 @@
 import type { AssistantStreamEvent, AssistantTurnResponse } from '../models/assistant.model';
 
 /**
- * El troceado del stream del asistente (`doc/assistant-frontend.md` §3.1).
+ * El troceado del stream del asistente (`doc/contrato-api/assistant/assistant-frontend.md` §3.1).
  *
  * Va aparte del servicio y sin HTTP a propósito: lo que tiene miga no es la
  * llamada sino partir el texto, que llega a pedazos que no respetan ni las

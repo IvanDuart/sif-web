@@ -123,7 +123,7 @@ Orden recomendado:
     - Integración con Stripe CLI.
 
 14. **BILL-14 — Contrato Angular**
-    - `doc/billing-frontend.md`.
+    - `doc/contrato-api/billing/billing-frontend.md`.
 
 > **Nota:** BILL-01 y BILL-02 pueden adelantarse al final de la Fase 0 si el agente termina antes. El resto es secuencial.
 
