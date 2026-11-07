@@ -11,7 +11,7 @@ export const PATIENT_EVENT_SURFACE: FillSurface = {
   tools: ['create_patient_event'],
   fields: [
     { key: 'title', kind: 'text', from: ['title', 'titulo', 'name', 'nombre'] },
-    { key: 'description', kind: 'text', from: ['description', 'descripcion', 'notes', 'notas'] },
+    { key: 'description', kind: 'text', from: ['description', 'descripcion', 'notes', 'notas'], long: true },
     {
       key: 'startTime',
       kind: 'date',

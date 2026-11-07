@@ -1,0 +1,138 @@
+<div class="bar" *transloco="let t">
+  @if (trayOpen()) {
+    <!-- El historial, cuando se pide: la conversación entera no cabe en la tarjeta. -->
+    <div class="tray">
+      <div class="tray__head">
+        <span class="tray__title">{{ t('assistant.history') }}</span>
+        <button type="button" class="tray__close" [attr.aria-label]="t('common.close')" (click)="trayOpen.set(false)">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="tray__body">
+        @for (message of history(); track message.id) {
+          <div class="tray__msg" [class.tray__msg--mine]="message.role === 'USER'">
+            <app-mascot-rich-text [text]="message.content" />
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Una sola tarjeta: lo que dice, lo que hay que contestar y dónde se
+       escribe. La mascota se monta sobre su borde izquierdo. -->
+  <div class="card" [class.card--pill]="pill()">
+    <button
+      type="button"
+      class="card__orb"
+      [attr.aria-label]="t('assistant.open', { name: state.name() })"
+      (click)="toggleTray()"
+    >
+      <app-mascot-orb
+        [mode]="state.orbMode()"
+        [skin]="state.skin()"
+        [accessories]="state.accessories()"
+        size="s"
+      />
+    </button>
+
+    <div class="card__body">
+      <app-catalog-debug />
+
+      @if (said(); as text) {
+        <!-- Lo que acaba de decir, entero y donde se lee: no por una rendija. -->
+        <div class="say" [class.say--danger]="dangerous()">
+          <div class="say__text"><app-mascot-rich-text [text]="text" /></div>
+          <button type="button" class="say__close" [attr.aria-label]="t('common.close')" (click)="dismiss()">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </div>
+      }
+
+      @if (asking()) {
+        <div class="answers">
+          @if (kind() === 'confirm') {
+            <button type="button" class="chip" (click)="decline()">{{ t('assistant.no') }}</button>
+            <button type="button" class="chip chip--primary" (click)="answer('yes')">{{ t('assistant.yes') }}</button>
+          } @else {
+            @for (option of options(); track option) {
+              <button type="button" class="chip" (click)="answer(option)">{{ option }}</button>
+            }
+          }
+        </div>
+      }
+
+      @if (working()) {
+        <!-- Lo que está haciendo, con qué pararlo al lado: es lo que se mira
+             mientras trabaja, así que no comparte sitio con lo que se escribe. -->
+        <div class="doing" role="status">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="doing__text">{{ doingText() }}</span>
+          @if (state.clientSteps() > 0) {
+            <span class="doing__step">{{ t('assistant.step_of', { n: state.clientSteps(), max: 30 }) }}</span>
+          }
+          <button
+            type="button"
+            class="icon icon--pause"
+            [attr.aria-label]="state.cursor.paused() ? t('assistant.resume') : t('assistant.pause')"
+            (click)="state.cursor.toggle()"
+          >
+            <i class="fa-solid" [class.fa-pause]="!state.cursor.paused()" [class.fa-play]="state.cursor.paused()" aria-hidden="true"></i>
+          </button>
+          <button type="button" class="icon icon--stop" [attr.aria-label]="t('assistant.stop')" (click)="state.stop()">
+            <i class="fa-solid fa-stop" aria-hidden="true"></i>
+          </button>
+        </div>
+      }
+
+      @if (state.queued().length > 0) {
+        <div class="queue">
+          @for (item of state.queued(); track $index) {
+            <div class="queued">
+              <span class="queued__text">{{ item }}</span>
+              <button type="button" class="queued__act" (click)="state.sendNow($index)">{{ t('assistant.do_now') }}</button>
+              <button type="button" class="icon icon--tiny" [attr.aria-label]="t('common.remove')" (click)="state.unqueue($index)">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="input">
+        <textarea
+          #input
+          rows="1"
+          [placeholder]="placeholder()"
+          [ngModel]="text()"
+          (ngModelChange)="text.set($event); grow()"
+          (keydown)="onKey($event)"
+          [attr.aria-label]="placeholder()"
+        ></textarea>
+
+        @if (state.attachment(); as file) {
+          <span class="input__file" [title]="file.fileName">
+            <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
+            <button type="button" [attr.aria-label]="t('common.remove')" (click)="state.attachment.set(null)">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+          </span>
+        } @else {
+          <label class="icon" [attr.aria-label]="t('assistant.attach')">
+            <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
+            <input type="file" hidden (change)="onFile($event)" />
+          </label>
+        }
+
+        <button
+          type="button"
+          class="icon icon--send"
+          [disabled]="!canSend()"
+          [attr.aria-label]="t('assistant.send')"
+          (click)="submit()"
+        >
+          <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

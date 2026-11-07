@@ -6,6 +6,7 @@ import { AssistantService } from '../../../core/api/services/assistant.api';
 import type { ToolResult } from './client-tool.model';
 import { StepLimiter } from './step-limiter.service';
 import { ToolRegistryService } from './tool-registry.service';
+import { WriteWatchService } from './write-watch.service';
 
 /** Lo más largo que se le cuenta al modelo de un fallo nuestro. */
 const ERROR_MESSAGE_MAX = 200;
@@ -24,11 +25,14 @@ export class ToolRunnerService {
   private readonly api = inject(AssistantService);
   private readonly registry = inject(ToolRegistryService);
   private readonly steps = inject(StepLimiter);
+  private readonly writes = inject(WriteWatchService);
 
   /** La herramienta que se está ejecutando, para la UI y para `X-Assistant-Write`. */
-  readonly running = signal<{ name: string; callId: string } | null>(null);
+  readonly running = signal<{ name: string; callId: string; sessionId: string } | null>(null);
 
   private abort: AbortController | null = null;
+  private readonly ran = new Set<string>();
+  private sessionId = '';
 
   /**
    * Ejecuta la llamada y entrega el resultado.
@@ -41,7 +45,8 @@ export class ToolRunnerService {
     this.abort?.abort();
     const controller = new AbortController();
     this.abort = controller;
-    this.running.set({ name: call.name, callId: call.callId });
+    this.writes.reset();
+    this.running.set({ name: call.name, callId: call.callId, sessionId: this.sessionId });
 
     const result = await this.execute(call, controller.signal);
 
@@ -56,6 +61,24 @@ export class ToolRunnerService {
     } catch {
       return 'gone';
     }
+  }
+
+  /**
+   * Empieza un turno: lo que se ejecutó en el anterior deja de contar.
+   *
+   * Mientras conviva con el modelo antiguo, el `done` trae a veces una
+   * propuesta que rellena el MISMO formulario que una herramienta ya rellenó
+   * en este turno. Sin esto el formulario se escribiría dos veces, y la
+   * segunda pisando lo que la persona pudo corregir en medio.
+   */
+  startTurn(sessionId: string): void {
+    this.ran.clear();
+    this.sessionId = sessionId;
+  }
+
+  /** Si esa herramienta ya se ejecutó en este turno. */
+  alreadyRan(name: string): boolean {
+    return this.ran.has(name);
   }
 
   /** Corta lo que se esté ejecutando sin contestar: el turno se ha detenido. */
@@ -75,6 +98,7 @@ export class ToolRunnerService {
     if (!allowed) return { ok: false, reason: 'step_budget_exhausted' };
 
     try {
+      this.ran.add(call.name);
       return await run(call.args, { call, signal });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

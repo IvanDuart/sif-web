@@ -1,0 +1,344 @@
+/* La barra de abajo: una tarjeta con la mascota montada sobre el borde
+   izquierdo. Sigue `design-guide`: neutros cálidos, el verde del centro,
+   Inter, sombra sólo en lo que flota. */
+
+:host {
+  position: fixed;
+  left: 0;
+  right: 0;
+  /* En móvil va SOBRE la barra de navegación, no encima de ella. */
+  bottom: calc(var(--bottom-nav-h, 0px) + 16px);
+  z-index: 1000;
+  display: block;
+  pointer-events: none;
+}
+
+.bar {
+  max-width: 620px;
+  /* El hueco de la izquierda es donde asoma la mascota. */
+  margin: 0 auto;
+  padding: 0 16px 0 40px;
+  pointer-events: auto;
+}
+
+/* ── La tarjeta ───────────────────────────────────────────────── */
+.card {
+  position: relative;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow-float, 0 1px 2px rgb(31 29 26 / 4%), 0 8px 24px rgb(31 29 26 / 6%));
+  transition: border-radius 160ms ease;
+}
+
+/* En reposo sólo está el campo: una pastilla, no un panel. */
+.card--pill { border-radius: 999px; }
+
+/* La mascota asoma por fuera del borde izquierdo, a caballo sobre él. */
+.card__orb {
+  position: absolute;
+  left: -26px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: top 160ms ease;
+}
+
+.card__body {
+  /* Deja sitio a la mitad de la mascota que entra en la tarjeta. */
+  padding-left: 30px;
+}
+
+/* ── Lo que dice ──────────────────────────────────────────────── */
+.say {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 12px 6px 4px;
+  max-height: 38vh;
+  overflow-y: auto;
+}
+
+.say__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-1);
+}
+
+.say--danger .say__text { color: var(--tui-status-negative, #b04a3e); }
+
+.say__close {
+  flex: none;
+  border: none;
+  background: none;
+  color: var(--ink-3);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px;
+}
+
+/* ── Respuestas ───────────────────────────────────────────────── */
+.answers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 12px 8px 4px;
+}
+
+.chip {
+  padding: 5px 14px;
+  border: 1px solid var(--line-strong, var(--line));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.chip:hover { background: var(--sunken, #f4f2ee); }
+
+.chip--primary {
+  background: var(--tui-background-accent-1);
+  border-color: transparent;
+  color: #fff;
+}
+
+/* ── Lo que está haciendo ─────────────────────────────────────── */
+.doing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 10px 6px 4px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+
+.doing__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doing__step {
+  flex: none;
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sin paso que enseñar, los botones se van igualmente a la derecha. */
+.doing__text + .icon { margin-left: auto; }
+
+.dots {
+  display: inline-flex;
+  flex: none;
+  gap: 3px;
+}
+
+.dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--tui-primary, #2f5d4f);
+  animation: mascot-bar-pulse 1.2s infinite;
+}
+
+.dots i:nth-child(2) { animation-delay: 0.15s; }
+.dots i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes mascot-bar-pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dots i { animation: none; opacity: 0.6; }
+}
+
+/* ── Entrada ──────────────────────────────────────────────────── */
+.input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px 6px 4px;
+}
+
+.input textarea {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-height: 92px;
+  padding: 8px 4px;
+  resize: none;
+  border: none;
+  outline: none;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink-1);
+}
+
+.input textarea::placeholder { color: var(--ink-3); }
+
+.input__file {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  background: var(--sunken, #f4f2ee);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.input__file button {
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ── Botones redondos ─────────────────────────────────────────── */
+.icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-3);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.icon:hover { background: var(--sunken, #f4f2ee); color: var(--ink-2); }
+
+.icon--tiny { width: 24px; height: 24px; font-size: 12px; }
+
+.icon--send {
+  background: var(--sunken, #f4f2ee);
+  color: var(--ink-3);
+}
+
+.icon--send:not(:disabled) {
+  background: var(--tui-background-accent-1);
+  color: #fff;
+}
+
+.icon--send:disabled { cursor: default; }
+
+.icon--pause {
+  background: var(--primary-soft, #edf2f0);
+  color: var(--tui-primary, #2f5d4f);
+}
+
+.icon--stop {
+  background: var(--ink-1, #1f1d1a);
+  color: #fff;
+  font-size: 11px;
+}
+
+/* ── Cola ─────────────────────────────────────────────────────── */
+.queue {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 12px 4px 4px;
+}
+
+.queued {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0 3px 10px;
+  border-left: 2px solid var(--line-strong, var(--line));
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.queued__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.queued__act {
+  flex: none;
+  border: none;
+  background: none;
+  color: var(--tui-primary);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* ── Historial ────────────────────────────────────────────────── */
+.tray {
+  margin: 0 0 10px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow-float, 0 1px 2px rgb(31 29 26 / 4%), 0 8px 24px rgb(31 29 26 / 6%));
+  overflow: hidden;
+}
+
+.tray__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tray__title { font-size: 14px; font-weight: 500; }
+
+.tray__close {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.tray__body {
+  max-height: 40vh;
+  overflow-y: auto;
+  padding: 8px 16px 14px;
+}
+
+.tray__msg {
+  padding: 6px 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.tray__msg--mine {
+  text-align: right;
+  color: var(--ink-1);
+}
+
+@media (width <= 480px) {
+  .bar { padding: 0 10px 0 34px; }
+
+  .card__orb { left: -22px; }
+
+  .card__body { padding-left: 26px; }
+}

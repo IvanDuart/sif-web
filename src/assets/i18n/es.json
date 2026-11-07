@@ -1525,15 +1525,15 @@
         "prompt": "Registra en el historial de "
       }
     },
-        "attachment_add": "Adjuntar un archivo",
+    "attachment_add": "Adjuntar un archivo",
     "attachment_remove": "Quitar el archivo",
     "attachment_uploading": "Subiendo el archivo…",
     "attachment_drop": "Suéltalo aquí y lo miro",
     "attachment_too_large": "El archivo pesa más de 10 MB.",
     "attachment_unsupported": "Solo puedo leer imágenes (JPG, PNG, WebP) y PDF.",
-"tip_try": "Pruébalo",
+    "tip_try": "Pruébalo",
     "tip_never": "No me lo digas más",
-"milestone": {
+    "milestone": {
       "first_patient": {
         "title": "¡Tu primer paciente!",
         "text": "Ya tienes a quien cuidar. Esto empieza."
@@ -1609,7 +1609,21 @@
     "settings_consent_hint": "Se muestra antes del primer mensaje. Si lo dejas vacío, se usa el texto por defecto.",
     "settings_load_error": "No se pudo cargar la configuración del asistente. Comprueba que la IA está habilitada para este centro.",
     "settings_saved": "Configuración del asistente guardada",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "question_danger": "Esto no se puede deshacer.",
+    "tour_saying": "{{text}}",
+    "yes": "Sí",
+    "no": "No",
+    "history": "Conversación",
+    "reply": "Respuesta",
+    "paused": "En pausa",
+    "step_of": "Paso {{n}}/{{max}}",
+    "placeholder": "Pídeme algo…",
+    "attach": "Adjuntar un archivo",
+    "pause": "Pausar",
+    "do_now": "Hacer ahora",
+    "queue_placeholder": "Añade otra instrucción…",
+    "resume": "Reanudar"
   },
   "errors": {
     "not_authorized_title": "403",
@@ -1638,10 +1652,10 @@
     "assistant_session_not_found": "La conversación ha caducado. Vuelve a escribir para empezar otra.",
     "assistant_session_closed": "La conversación se ha cerrado. Vuelve a escribir para empezar otra.",
     "assistant_quota_exceeded": "Se alcanzó la cuota diaria del asistente. Inténtalo mañana.",
-        "assistant_attachment_not_found": "Ese archivo ya no está disponible. Vuelve a subirlo.",
+    "assistant_attachment_not_found": "Ese archivo ya no está disponible. Vuelve a subirlo.",
     "assistant_attachment_too_large": "El archivo pesa más de 10 MB.",
     "assistant_attachment_unsupported": "Solo puedo leer imágenes (JPG, PNG, WebP) y PDF.",
-"assistant_unavailable": "El asistente no responde ahora mismo. Inténtalo de nuevo en unos minutos.",
+    "assistant_unavailable": "El asistente no responde ahora mismo. Inténtalo de nuevo en unos minutos.",
     "assistant_action_not_found": "La acción ya no existe.",
     "assistant_action_expired": "La acción ha caducado. Pide de nuevo la operación.",
     "assistant_action_already_resolved": "La acción ya se había resuelto.",

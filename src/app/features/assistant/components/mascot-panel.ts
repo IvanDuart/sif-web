@@ -17,8 +17,10 @@ import {
   AssistantAttachmentDto,
   AssistantPendingActionDto,
 } from '../../../core/api/models/assistant.model';
+import { CatalogDebug } from '../copilot/catalog-debug';
 import { MascotStateService } from '../mascot-state.service';
 import { MascotActionCard } from './mascot-action-card';
+import { MascotQuestion } from './mascot-question';
 import { MascotQuickReplies } from './mascot-quick-replies';
 import { MascotRichText } from './mascot-rich-text';
 
@@ -35,7 +37,9 @@ import { MascotRichText } from './mascot-rich-text';
     TuiButton,
     TuiInput,
     TuiTextfield,
+    CatalogDebug,
     MascotActionCard,
+    MascotQuestion,
     MascotQuickReplies,
     MascotRichText,
   ],
@@ -54,6 +58,15 @@ export class MascotPanel {
 
   private readonly scrollHost = viewChild<ElementRef<HTMLElement>>('scrollHost');
   private readonly input = viewChild<ElementRef<HTMLInputElement>>('input');
+
+  /**
+   * Lo que la mascota pregunta y no es una escritura. Las escrituras salen por
+   * la tarjeta de siempre, que además enseña la vista previa.
+   */
+  readonly question = computed(() => {
+    const current = this.state.questions.current();
+    return current?.kind === 'confirm' && current.action ? null : current;
+  });
 
   readonly showGreeting = computed(
     () => !this.state.consentRequired() && this.state.messages().length === 0 && !!this.state.greeting()

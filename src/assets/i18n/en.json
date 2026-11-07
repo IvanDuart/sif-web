@@ -1465,15 +1465,15 @@
         "prompt": "Log in the history of "
       }
     },
-        "attachment_add": "Attach a file",
+    "attachment_add": "Attach a file",
     "attachment_remove": "Remove the file",
     "attachment_uploading": "Uploading the file…",
     "attachment_drop": "Drop it here and I will take a look",
     "attachment_too_large": "The file is larger than 10 MB.",
     "attachment_unsupported": "I can only read images (JPG, PNG, WebP) and PDF.",
-"tip_try": "Try it",
+    "tip_try": "Try it",
     "tip_never": "Don't tell me again",
-"milestone": {
+    "milestone": {
       "first_patient": {
         "title": "Your first patient!",
         "text": "Someone to look after. It begins."
@@ -1549,7 +1549,21 @@
     "settings_consent_hint": "Shown before the first message. If left empty, the default text is used.",
     "settings_load_error": "The assistant configuration could not be loaded. Check that AI is enabled for this clinic.",
     "settings_saved": "Assistant configuration saved",
-    "retry": "Retry"
+    "retry": "Retry",
+    "question_danger": "This cannot be undone.",
+    "tour_saying": "{{text}}",
+    "yes": "Yes",
+    "no": "No",
+    "history": "Conversation",
+    "reply": "Reply",
+    "paused": "Paused",
+    "step_of": "Step {{n}}/{{max}}",
+    "placeholder": "Ask me something…",
+    "attach": "Attach a file",
+    "pause": "Pause",
+    "do_now": "Do this now",
+    "queue_placeholder": "Add another instruction…",
+    "resume": "Resume"
   },
   "errors": {
     "not_authorized_title": "403",
@@ -1578,10 +1592,10 @@
     "assistant_session_not_found": "The conversation has expired. Type again to start a new one.",
     "assistant_session_closed": "The conversation has been closed. Type again to start a new one.",
     "assistant_quota_exceeded": "The assistant's daily quota has been reached. Try again tomorrow.",
-        "assistant_attachment_not_found": "That file is no longer available. Upload it again.",
+    "assistant_attachment_not_found": "That file is no longer available. Upload it again.",
     "assistant_attachment_too_large": "The file is larger than 10 MB.",
     "assistant_attachment_unsupported": "I can only read images (JPG, PNG, WebP) and PDF.",
-"assistant_unavailable": "The assistant is not responding right now. Try again in a few minutes.",
+    "assistant_unavailable": "The assistant is not responding right now. Try again in a few minutes.",
     "assistant_action_not_found": "The action no longer exists.",
     "assistant_action_expired": "The action has expired. Ask for the operation again.",
     "assistant_action_already_resolved": "The action had already been resolved.",

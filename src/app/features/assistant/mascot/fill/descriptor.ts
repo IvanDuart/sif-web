@@ -42,6 +42,13 @@ export interface FillField {
    */
   options?: () => readonly string[];
   /**
+   * Un texto que ya escribió alguien y que se edita por trozos: las
+   * observaciones de un paciente, las notas de una cita. Es lo que hace que el
+   * formulario ofrezca `edit_<id>` además de `fill_<id>`; sin esto, cambiar
+   * una línea obligaría al modelo a reescribirlo entero.
+   */
+  long?: boolean;
+  /**
    * Del valor que guarda el control (un id) a la etiqueta que ve la persona.
    * El modelo habla en etiquetas: sin esto, el contexto le diría `8f3c…` en
    * vez de a quién se refiere.
@@ -99,6 +106,37 @@ export interface FillSurface {
    * Por defecto, siempre.
    */
   contextual?(): boolean;
+  /**
+   * Este formulario NO ofrece `save_`: lo guarda la persona y solo la persona.
+   *
+   * La mascota puede rellenarlo, pero el botón de guardar no se le ofrece ni
+   * con un sí. Es para lo que no admite un «casi»: el estado clínico y la baja
+   * de un paciente, y lo que toca dinero. Se marca aquí, en el descriptor,
+   * para que la exclusión viaje con el formulario y no se olvide al mover el
+   * botón de sitio.
+   */
+  noSave?: boolean;
+}
+
+/**
+ * Algo que una pantalla sabe hacer y que no es rellenar ni pulsar un botón
+ * suelto: marcar una cita como realizada, duplicar un menú, activar los
+ * recordatorios.
+ *
+ * Lo declara la propia pantalla porque es la única que sabe hacerlo. Si la
+ * acción escribe en el backend, lleva `confirm: true` y se pregunta antes: la
+ * regla de que nada se escribe sin un sí explícito no tiene excepciones.
+ */
+export interface MascotAction {
+  /** Cómo se llama; de aquí sale `action_<id>`. */
+  id: string;
+  /** Qué hace, en una línea, para el modelo. */
+  description: string;
+  /** Se pregunta antes de ejecutarla. */
+  confirm?: boolean;
+  /** Lo que se pregunta, si `confirm`. Sin esto, la descripción. */
+  confirmText?: string;
+  run(): Promise<void> | void;
 }
 
 /** Cómo se lee y se escribe un campo, sea lo que sea el formulario por dentro. */
@@ -106,6 +144,13 @@ export interface FieldAccess {
   get(key: string): unknown;
   /** `silent` = un paso intermedio de la escritura, no el valor final. */
   set(key: string, value: unknown, options?: { silent?: boolean }): void;
+  /**
+   * Los campos obligatorios que siguen vacíos. Es lo que convierte «he escrito
+   * el peso» en «he escrito el peso, pero falta la fecha para poder guardar»:
+   * sin esto el modelo da por bueno un formulario que no se puede guardar.
+   * Solo lo saben los formularios que declaran sus validadores.
+   */
+  missingRequired?(): readonly string[];
 }
 
 /**
@@ -123,6 +168,13 @@ export function formAccess(form: FormGroup): FieldAccess {
       control.markAsDirty();
       if (!options?.silent) control.markAsTouched();
     },
+    // Solo el error `required`: los demás (un rango, un formato) ya los cuenta
+    // el propio campo en pantalla, y aquí lo que importa es qué impide guardar
+    // por estar vacío.
+    missingRequired: () =>
+      Object.entries(form.controls)
+        .filter(([, control]) => control.enabled && control.hasError('required'))
+        .map(([key]) => key),
   };
 }
 
@@ -252,7 +304,7 @@ function matchList(list: FillList, preview: readonly { field: string; value: str
  * busca dentro de la fila, porque en el DOM todas las filas repiten el mismo
  * `formControlName`.
  */
-function rowField(list: FillList, field: FillField, index: number): FillField {
+export function rowField(list: FillList, field: FillField, index: number): FillField {
   const key = `${list.key}.${index}.${field.key}`;
   const row = `[data-mascot-row="${list.key}.${index}"]`;
   return {

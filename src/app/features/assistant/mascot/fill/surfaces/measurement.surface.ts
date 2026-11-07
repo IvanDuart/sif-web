@@ -57,6 +57,7 @@ export const MEASUREMENT_SURFACE: FillSurface = {
       key: 'notes',
       kind: 'text',
       from: ['notes', 'notas', 'observaciones'],
+      long: true,
       reveal: '[data-mascot-reveal="measurement-step-4"]',
     },
   ],

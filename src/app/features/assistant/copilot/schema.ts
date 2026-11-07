@@ -1,5 +1,5 @@
 import type { AssistantClientToolDecl } from '../../../core/api/models/assistant.model';
-import type { FillField, FillSurface } from '../mascot/fill/descriptor';
+import type { FillField, FillSurface, MascotAction } from '../mascot/fill/descriptor';
 import { MAX_DESCRIPTION, MAX_SCHEMA_BYTES, schemaBytes } from './catalog-rules';
 import { toolName } from './tool-names';
 
@@ -131,4 +131,98 @@ export function fillTools(surface: FillSurface): FillToolDecl[] {
       },
     ];
   });
+}
+
+/** Las operaciones de `edit_`, con lo que el modelo necesita saber de cada una. */
+const EDIT_OPS = ['append', 'prepend', 'insert_after', 'insert_before', 'replace', 'delete'] as const;
+
+/**
+ * La herramienta `edit_<id>` de un formulario, si tiene algún campo de texto
+ * largo (`FillField.long`).
+ *
+ * Va aparte de `fill_` porque hace otra cosa: `fill_` pone un valor y `edit_`
+ * cambia un trozo del que ya hay, sin que el texto viejo pase por el modelo.
+ *
+ * Devuelve `null` si el formulario no tiene textos largos o si el id no da un
+ * nombre válido.
+ */
+export function editTool(surface: FillSurface): FillToolDecl | null {
+  const name = toolName('edit', surface.id);
+  const keys = surface.fields.filter((field) => field.long).map((field) => field.key);
+  if (!name || keys.length === 0) return null;
+
+  const parameters: JsonSchema = {
+    type: 'object',
+    properties: {
+      field: { type: 'string', enum: keys },
+      op: { type: 'string', enum: [...EDIT_OPS] },
+      text: { type: 'string', description: 'Lo que se escribe; no lo lleva delete' },
+      anchor: { type: 'string', description: 'Fragmento literal del texto actual; lo piden insert_*, replace y delete' },
+    },
+    required: ['field', 'op'],
+  };
+
+  const label = surface.id.replace(/-/g, ' ');
+  return {
+    decl: {
+      name,
+      description: `Cambia un trozo de un texto largo de «${label}» sin reescribirlo`.slice(0, MAX_DESCRIPTION),
+      parameters,
+    },
+    keys,
+  };
+}
+
+/**
+ * La herramienta `open_<id>` de un formulario que esta pantalla sabe abrir.
+ *
+ * No tiene parámetros: abrir es abrir. El `id` del opener es el mismo que el
+ * del formulario que monta, así que el modelo ve `open_measurement` y
+ * `fill_measurement` como las dos mitades de lo mismo.
+ */
+export function openTool(id: string): AssistantClientToolDecl | null {
+  const name = toolName('open', id);
+  if (!name) return null;
+  const label = id.replace(/-/g, ' ');
+  return {
+    name,
+    description: `Abre el formulario «${label}» pulsando su botón en la pantalla`.slice(0, MAX_DESCRIPTION),
+    parameters: { type: 'object', properties: {} },
+  };
+}
+
+/**
+ * La herramienta `action_<id>` de algo que la pantalla sabe hacer.
+ *
+ * No tiene parámetros: la pantalla ya sabe sobre qué actúa (la cita abierta,
+ * el menú que se está viendo). Pasarle argumentos sería dejar al modelo elegir
+ * sobre qué, y para eso están `navigate` y `open_`.
+ */
+export function actionTool(action: MascotAction): AssistantClientToolDecl | null {
+  const name = toolName('action', action.id);
+  if (!name) return null;
+  return {
+    name,
+    description: action.description.slice(0, MAX_DESCRIPTION),
+    parameters: { type: 'object', properties: {} },
+  };
+}
+
+/**
+ * La herramienta `save_<id>` de un formulario, si lo ofrece.
+ *
+ * Sin parámetros: guardar es guardar lo que hay. Devuelve `null` para los
+ * formularios marcados `noSave`, que es lo que hace que la exclusión no
+ * dependa de que nadie se despiste al declararla.
+ */
+export function saveTool(surface: FillSurface): AssistantClientToolDecl | null {
+  if (surface.noSave) return null;
+  const name = toolName('save', surface.id);
+  if (!name) return null;
+  const label = surface.id.replace(/-/g, ' ');
+  return {
+    name,
+    description: `Pulsa Guardar en «${label}»; se pregunta antes y solo guarda con un sí`.slice(0, MAX_DESCRIPTION),
+    parameters: { type: 'object', properties: {} },
+  };
 }

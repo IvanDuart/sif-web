@@ -1,7 +1,8 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject } from '@angular/core';
 
 import type { AssistantPendingActionDto } from '../../../core/api/models/assistant.model';
 import type { ToolResult } from './client-tool.model';
+import { QuestionService, YES } from './question.service';
 import { ToolRegistryService } from './tool-registry.service';
 
 /** Lo que `confirm_action` lleva en `args` (`assistant-contract` §3.2). */
@@ -12,11 +13,6 @@ interface ConfirmArgs {
   idempotencyKey?: unknown;
   expiresAt?: unknown;
   preview?: unknown;
-}
-
-interface Waiting {
-  action: AssistantPendingActionDto;
-  resolve: (result: ToolResult) => void;
 }
 
 const text = (value: unknown): string => (typeof value === 'string' ? value : '');
@@ -35,11 +31,19 @@ const text = (value: unknown): string => (typeof value === 'string' ? value : ''
 @Injectable({ providedIn: 'root' })
 export class ConfirmationService {
   private readonly registry = inject(ToolRegistryService);
+  private readonly questions = inject(QuestionService);
 
-  /** La tarjeta que espera un sí o un no ahora mismo, vinculada al turno. */
-  readonly waiting = signal<AssistantPendingActionDto | null>(null);
-
-  private current: Waiting | null = null;
+  /**
+   * La tarjeta que espera un sí o un no ahora mismo, vinculada al turno.
+   *
+   * Sale de la bandeja común: la tarjeta de escritura, la duda del modelo y el
+   * aviso antes de pulsar algo peligroso son la misma cola, y aquí solo se
+   * mira la parte que es una escritura.
+   */
+  readonly waiting = computed<AssistantPendingActionDto | null>(() => {
+    const question = this.questions.current();
+    return question?.kind === 'confirm' ? (question.action ?? null) : null;
+  });
 
   constructor() {
     this.registry.register({
@@ -55,15 +59,13 @@ export class ConfirmationService {
 
   /** ¿Esta tarjeta espera una respuesta por el turno (y no por REST)? */
   isLinked(actionId: string): boolean {
-    return this.current?.action.id === actionId;
+    return this.waiting()?.id === actionId;
   }
 
   /** La persona contestó en la tarjeta: la respuesta viaja como resultado de la herramienta. */
   answer(confirmed: boolean): void {
-    const current = this.current;
-    if (!current) return;
-    this.clear();
-    current.resolve(confirmed ? { ok: true, confirmed: true } : { ok: true, confirmed: false });
+    if (confirmed) this.questions.answer(YES);
+    else this.questions.decline();
   }
 
   /**
@@ -72,15 +74,12 @@ export class ConfirmationService {
    * se resolverá por REST.
    */
   release(): void {
-    const current = this.current;
-    if (!current) return;
-    this.clear();
-    current.resolve({ ok: false, reason: 'superseded' });
+    if (this.waiting()) this.questions.release();
   }
 
-  private ask(args: ConfirmArgs, aborted: AbortSignal): Promise<ToolResult> {
+  private async ask(args: ConfirmArgs, aborted: AbortSignal): Promise<ToolResult> {
     const id = text(args.actionId);
-    if (id === '') return Promise.resolve({ ok: false, reason: 'invalid_args' });
+    if (id === '') return { ok: false, reason: 'invalid_args' };
 
     this.release();
     const action: AssistantPendingActionDto = {
@@ -96,20 +95,16 @@ export class ConfirmationService {
         : [],
     };
 
-    return new Promise<ToolResult>((resolve) => {
-      this.current = { action, resolve };
-      this.waiting.set(action);
-      // El turno se detuvo mientras se esperaba: la tarjeta ya no tiene a quién contestar.
-      aborted.addEventListener('abort', () => {
-        if (this.current?.action.id !== id) return;
-        this.clear();
-        resolve({ ok: false, reason: 'aborted' });
-      });
-    });
-  }
-
-  private clear(): void {
-    this.current = null;
-    this.waiting.set(null);
+    // El sí y el no vuelven por la bandeja; detener el turno la aborta sola.
+    const answer = await this.questions.ask(
+      { kind: 'confirm', text: action.summary, action },
+      aborted,
+    );
+    if (answer.ok) return { ok: true, confirmed: answer.value === YES };
+    // Un «no» es una respuesta; lo demás es que nadie contestó, y eso el
+    // backend lo distingue: rechaza la acción en un caso y la deja viva en el otro.
+    return answer.reason === 'declined'
+      ? { ok: true, confirmed: false }
+      : { ok: false, reason: answer.reason };
   }
 }

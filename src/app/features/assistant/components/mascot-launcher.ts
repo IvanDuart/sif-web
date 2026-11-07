@@ -14,6 +14,8 @@ import { MascotFillService } from '../mascot/fill/mascot-fill.service';
 import type { NoteAction } from '../mascot/mascot-mood.service';
 import { StuckFormOfferService } from '../stuck-form-offer.service';
 import { MascotStateService } from '../mascot-state.service';
+import { barEnabled } from '../bar/bar-preference';
+import { MascotBar } from '../bar/mascot-bar';
 import { MascotOrb } from './mascot-orb';
 import { MascotPanel } from './mascot-panel';
 import { MascotWardrobe } from './mascot-wardrobe';
@@ -49,10 +51,19 @@ export function beside(target: HTMLElement): { x: number; y: number } {
 @Component({
   selector: 'app-mascot-launcher',
   standalone: true,
-  imports: [TranslocoDirective, TuiButton, MascotOrb, MascotPanel, MascotWardrobe],
+  imports: [TranslocoDirective, TuiButton, MascotBar, MascotOrb, MascotPanel, MascotWardrobe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (state.visible()) {
+    @if (state.visible() && bar()) {
+      <!-- La barra sustituye al panel Y al FAB: una sola mascota en pantalla. -->
+      <app-mascot-bar />
+
+      @if (state.wardrobeOpen()) {
+        <app-mascot-wardrobe (closed)="state.closeWardrobe()" />
+      }
+    }
+
+    @if (state.visible() && !bar()) {
       @if (state.open()) {
         <div class="mascot-backdrop" aria-hidden="true" (click)="state.closePanel()"></div>
         <app-mascot-panel />
@@ -311,6 +322,8 @@ export function beside(target: HTMLElement): { x: number; y: number } {
 })
 export class MascotLauncher implements OnInit {
   readonly state = inject(MascotStateService);
+  /** La barra de abajo, mientras conviva con el panel (`bar/bar-preference.ts`). */
+  protected readonly bar = barEnabled;
   readonly fill = inject(MascotFillService);
   private readonly stuck = inject(StuckFormOfferService);
 

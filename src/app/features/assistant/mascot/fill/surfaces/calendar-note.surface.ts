@@ -21,6 +21,6 @@ export const CALENDAR_NOTE_SURFACE: FillSurface = {
     { key: 'day', kind: 'date', from: ['date', 'fecha', 'day', 'startDate'], parse: toDay },
     { key: 'startTime', kind: 'time', from: ['startTime', 'start', 'desde', 'horaInicio'], parse: toTime },
     { key: 'endTime', kind: 'time', from: ['endTime', 'end', 'hasta', 'horaFin'], parse: toTime },
-    { key: 'description', kind: 'text', from: ['description', 'descripcion', 'notes', 'notas'] },
+    { key: 'description', kind: 'text', from: ['description', 'descripcion', 'notes', 'notas'], long: true },
   ],
 };

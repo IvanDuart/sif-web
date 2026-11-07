@@ -46,6 +46,8 @@
     </button>
   </header>
 
+  <app-catalog-debug />
+
   <div #scrollHost class="mascot-scroll" aria-live="polite">
     @if (state.consentRequired()) {
       <div class="consent">
@@ -107,6 +109,14 @@
             }
           </p>
         </div>
+      }
+
+      @if (question(); as ask) {
+        <app-mascot-question
+          [question]="ask"
+          (answered)="state.questions.answer($event)"
+          (declined)="state.questions.decline()"
+        />
       }
 
       @if (state.pendingAction(); as action) {

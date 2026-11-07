@@ -70,11 +70,12 @@
           type="button"
           [attr.aria-label]="t('appointments.prev_period')"
           [attr.title]="t('appointments.prev_period')"
+          data-mascot-point="agenda-prev"
           (click)="navigate(-1)"
         >
           <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
         </button>
-        <button tuiButton appearance="flat" size="s" type="button" (click)="goToToday()">
+        <button tuiButton appearance="flat" size="s" type="button" data-mascot-point="agenda-today" (click)="goToToday()">
           {{ t('appointments.today') }}
         </button>
         <button
@@ -84,6 +85,7 @@
           type="button"
           [attr.aria-label]="t('appointments.next_period')"
           [attr.title]="t('appointments.next_period')"
+          data-mascot-point="agenda-next"
           (click)="navigate(1)"
         >
           <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
@@ -101,7 +103,7 @@
         Punto de entrada único: con permiso para gestionar notas el diálogo
         ofrece cita, recordatorio o bloqueo; sin él va directo a la cita.
       -->
-      <button tuiButton appearance="primary" size="m" type="button" (click)="showCreateDialog()">
+      <button tuiButton appearance="primary" size="m" type="button" data-mascot-point="agenda-new" (click)="showCreateDialog()">
         <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
         {{ canManageNotes() ? t('calendar_notes.create_entry') : t('appointments.new_appointment') }}
       </button>

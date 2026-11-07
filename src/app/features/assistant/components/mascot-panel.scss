@@ -352,3 +352,26 @@
   font-size: 13px;
   pointer-events: none;
 }
+
+/* Solo en desarrollo: el catálogo que se le ofrece al modelo. */
+.mascot-debug {
+  max-height: 9rem;
+  overflow-y: auto;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--tui-border-normal);
+  background: var(--tui-background-neutral-1);
+  font-family: ui-monospace, monospace;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--tui-text-secondary);
+}
+
+.mascot-debug__refresh {
+  font: inherit;
+  color: var(--tui-text-primary);
+  cursor: pointer;
+}
+
+.mascot-debug__line {
+  white-space: nowrap;
+}

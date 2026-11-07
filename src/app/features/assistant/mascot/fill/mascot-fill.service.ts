@@ -1,6 +1,6 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 
-import type { FieldAccess, FillField, FillOpener, FillSurface } from './descriptor';
+import type { FieldAccess, FillField, FillOpener, FillSurface, MascotAction } from './descriptor';
 
 /** Un formulario montado, con cómo se escribe en él. */
 export interface MountedSurface {
@@ -22,6 +22,7 @@ export class MascotFillService {
   private readonly mounted = new Map<string, MountedSurface>();
   private readonly openers = new Map<string, FillOpener>();
   private readonly extras = new Map<string, () => unknown>();
+  private readonly actions = new Map<string, MascotAction>();
 
   // ── El viaje ────────────────────────────────────────────────────────
 
@@ -123,6 +124,31 @@ export class MascotFillService {
     return this.openers.get(id) ?? null;
   }
 
+  /** Los formularios que esta pantalla sabe abrir ahora mismo. */
+  allOpeners(): readonly FillOpener[] {
+    return [...this.openers.values()];
+  }
+
+  /**
+   * Apunta algo que esta pantalla sabe hacer, mientras esté viva. Se llama
+   * desde un contexto de inyección, como `register`.
+   */
+  registerAction(action: MascotAction): void {
+    this.actions.set(action.id, action);
+    inject(DestroyRef).onDestroy(() => {
+      if (this.actions.get(action.id) === action) this.actions.delete(action.id);
+    });
+  }
+
+  /** Lo que las pantallas vivas saben hacer. */
+  allActions(): readonly MascotAction[] {
+    return [...this.actions.values()];
+  }
+
+  actionFor(id: string): MascotAction | null {
+    return this.actions.get(id) ?? null;
+  }
+
   /** Cómo abrir un formulario para esa tool desde esta pantalla, si se puede. */
   openerForTool(toolName: string): FillOpener | null {
     for (const opener of this.openers.values()) {
@@ -132,13 +158,33 @@ export class MascotFillService {
   }
 
   /**
+   * El formulario de ese id, si está montado y ya tiene sus datos. Es la vía
+   * de las herramientas de cliente, que nombran el formulario por su id
+   * (`fill_patient_profile`), no por la tool de escritura del backend.
+   */
+  forId(id: string): MountedSurface | null {
+    const entry = this.mounted.get(id);
+    if (!entry) return null;
+    return entry.surface.ready && !entry.surface.ready() ? null : entry;
+  }
+
+  /**
    * Espera a que aparezca el formulario de esa tool: el asistente puede navegar
    * a la pantalla y el formulario tarda en montar.
    */
   async waitForTool(toolName: string, timeoutMs: number): Promise<MountedSurface | null> {
+    return this.waitFor(() => this.forTool(toolName), timeoutMs);
+  }
+
+  /** Lo mismo que `waitForTool`, pero por el id del formulario. */
+  async waitForId(id: string, timeoutMs: number): Promise<MountedSurface | null> {
+    return this.waitFor(() => this.forId(id), timeoutMs);
+  }
+
+  private async waitFor(look: () => MountedSurface | null, timeoutMs: number): Promise<MountedSurface | null> {
     const deadline = Date.now() + timeoutMs;
     for (;;) {
-      const found = this.forTool(toolName);
+      const found = look();
       if (found) return found;
       if (Date.now() >= deadline) return null;
       await new Promise((resolve) => setTimeout(resolve, 120));

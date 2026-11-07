@@ -53,11 +53,38 @@ export const STILL_TIMING: FillTiming = {
   settleMs: 60,
 };
 
+/**
+ * Por qué un campo que SÍ estaba en pantalla no se quedó con el valor pedido.
+ * Es la diferencia entre «no lo encontré» y «lo encontré y no lo quiso», que
+ * es lo único que permite al modelo corregirse en vez de repetir.
+ */
+export type FillRejection =
+  /** Un `choice` cuyo valor no está entre las opciones del formulario. */
+  | 'unknown_option'
+  /** `parse` no supo convertir el texto (una fecha imposible, una hora mal). */
+  | 'unparsable'
+  /** Se escribió y el formulario no se quedó con ello: lo pisó o lo rechazó. */
+  | 'not_applied';
+
+export interface FillRejected {
+  field: string;
+  reason: FillRejection;
+}
+
+/** Quien no quiera movimiento ve lo mismo, pero sin viaje ni tecleo. */
+export function preferredTiming(): FillTiming {
+  return matchMedia('(prefers-reduced-motion: reduce)').matches ? STILL_TIMING : DEFAULT_FILL_TIMING;
+}
+
 export interface FillReport {
   /** Los campos escritos, por su clave del formulario. */
   written: string[];
   /** Los que venían del asistente y no se encontraron en pantalla. */
   missing: string[];
+  /** Los que estaban y no aceptaron el valor. */
+  rejected: FillRejected[];
+  /** Los obligatorios que siguen vacíos al terminar, estuvieran o no en la petición. */
+  missingRequired: string[];
 }
 
 function quote(value: string): string {
@@ -180,7 +207,8 @@ export async function typeChange(
 }
 
 /** Lleva la mascota hasta el elemento y espera a que llegue. */
-async function goToElement(element: HTMLElement, timing: FillTiming, fill: MascotFillService): Promise<boolean> {
+/** Lleva la mascota hasta un elemento y espera a que llegue. */
+export async function goToElement(element: HTMLElement, timing: FillTiming, fill: MascotFillService): Promise<boolean> {
   if (fill.skipRequested) return false;
   element.scrollIntoView({ block: 'center', behavior: timing.hopMs > 0 ? 'smooth' : 'auto' });
   fill.hopMs.set(timing.hopMs);
@@ -285,6 +313,9 @@ export async function playOpen(
   return !fill.skipRequested;
 }
 
+/** Cómo acabó un campo. */
+type FillOutcome = 'written' | 'missing' | FillRejection;
+
 /** Escribe un campo: va hasta él, lo pulsa y pone el valor. */
 async function playField(
   surface: FillSurface,
@@ -293,29 +324,50 @@ async function playField(
   access: FieldAccess,
   timing: FillTiming,
   fill: MascotFillService,
-): Promise<boolean> {
+): Promise<FillOutcome> {
   await reveal(surface.id, field, timing, fill);
   const anchor = findAnchor(surface.id, field);
-  if (!anchor || fill.skipRequested) return false;
+  if (!anchor || fill.skipRequested) return 'missing';
 
   fill.saying.set({ key: 'assistant.fill_writing', values: { field: fieldLabel(anchor, field) } });
-  if (!(await goToElement(visualTarget(anchor), timing, fill))) return false;
+  if (!(await goToElement(visualTarget(anchor), timing, fill))) return 'missing';
 
   fill.presses.update((count) => count + 1);
   anchor.focus?.({ preventScroll: true });
   await fill.wait(timing.clickMs);
-  if (fill.skipRequested) return false;
+  if (fill.skipRequested) return 'missing';
 
   const parsed = field.parse ? field.parse(raw) : raw;
+  // `parse` devuelve `null` cuando no sabe traducir (`surfaces/parse.ts`).
+  // Escribir eso vaciaría el campo, así que no se escribe y se cuenta por qué:
+  // en un `choice` el valor no estaba entre las opciones, y en lo demás el
+  // texto no tenía la forma que el control espera.
+  if (parsed === null || parsed === undefined) {
+    return field.kind === 'choice' && field.options ? 'unknown_option' : 'unparsable';
+  }
+
   if (isTypeable(field, anchor)) {
     await typeChange(field, access, currentText(field, access), raw, timing, fill);
   }
   // Siempre la escritura final y validada, teclee o no: lo tecleado son pasos
   // intermedios y silenciosos.
   access.set(field.key, parsed);
+
+  // Lo que el formulario tiene AHORA, no lo que se le pidió: un control puede
+  // ignorar el valor (fuera de su rango, una fecha que su `min` no admite) sin
+  // decir nada, y el modelo tiene que enterarse.
+  if (!kept(field, access, parsed)) return 'not_applied';
+
   markWritten(anchor);
   await fill.wait(timing.pauseMs);
-  return true;
+  return 'written';
+}
+
+/** Lo que se escribió, ¿sigue ahí? Se compara por su texto: basta y vale para todo. */
+function kept(field: FillField, access: FieldAccess, parsed: unknown): boolean {
+  const now = access.get(field.key);
+  if (now === null || now === undefined) return false;
+  return String(now) === String(parsed);
 }
 
 /** Cómo se llama el campo para quien mira: su etiqueta, o su clave si no tiene. */
@@ -337,12 +389,19 @@ export async function playFill(
   values: readonly FillValue[],
   fill: MascotFillService,
   timing: FillTiming = DEFAULT_FILL_TIMING,
+  /**
+   * Se espera aquí ANTES de cada campo, nunca a mitad de uno: es donde encaja
+   * la pausa (`CursorService`). Una pausa que dejara un campo escrito a medias
+   * sería peor que no poder pausar.
+   */
+  beforeEach: () => Promise<void> = () => Promise.resolve(),
 ): Promise<FillReport> {
-  const report: FillReport = { written: [], missing: [] };
+  const report: FillReport = { written: [], missing: [], rejected: [], missingRequired: [] };
   fill.begin();
   const stop = watchForTakeover(fill);
   try {
     for (const { field, raw, grow } of values) {
+      await beforeEach();
       if (fill.skipRequested) {
         report.missing.push(field.key);
         continue;
@@ -352,13 +411,16 @@ export async function playFill(
         report.missing.push(field.key);
         continue;
       }
-      const done = await playField(surface, field, raw, access, timing, fill);
-      (done ? report.written : report.missing).push(field.key);
+      const outcome = await playField(surface, field, raw, access, timing, fill);
+      if (outcome === 'written') report.written.push(field.key);
+      else if (outcome === 'missing') report.missing.push(field.key);
+      else report.rejected.push({ field: field.key, reason: outcome });
     }
   } finally {
     stop();
     fill.end();
   }
+  report.missingRequired = [...(access.missingRequired?.() ?? [])];
   return report;
 }
 

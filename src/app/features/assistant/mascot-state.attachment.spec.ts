@@ -144,9 +144,11 @@ describe('un archivo en la conversación', () => {
     const turn = http.expectOne((r) => r.url.endsWith('/messages/stream') && r.method === 'POST');
     expect(turn.request.body.content).toBe('¿Me pasas estos valores?');
     expect(turn.request.body.attachmentId).toBe('adj-1');
-    // El contexto de pantalla viaja siempre; las herramientas, solo si las hay.
+    // El contexto de pantalla viaja siempre, y con él lo que se puede hacer
+    // aquí: sin formularios montados eso es `navigate` y nada más.
     expect(turn.request.body.pageContext.route).toBeDefined();
-    expect(turn.request.body.clientTools).toBeUndefined();
+    expect(turn.request.body.clientTools.map((tool: { name: string }) => tool.name))
+      .toEqual(['ask_user', 'navigate']);
   });
 
   it('se gasta al enviarlo: el siguiente mensaje ya no lo lleva', () => {

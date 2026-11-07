@@ -16,6 +16,8 @@ import { SETTINGS_APPOINTMENT_TYPES_TAB } from './settings-section';
 export const APPOINTMENT_TYPE_SURFACE: FillSurface = {
   id: 'appointment-type',
   tools: ['create_appointment_type', 'update_appointment_type'],
+  // Lleva el precio de la consulta: lo que toca dinero lo guarda la persona.
+  noSave: true,
   fields: [
     { key: 'name', kind: 'text', from: ['name', 'nombre', 'typeName'] },
     {

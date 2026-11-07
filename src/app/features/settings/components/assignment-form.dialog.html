@@ -35,7 +35,7 @@
       <button tuiButton appearance="secondary" size="m" type="button" (click)="context.$implicit.complete()">
         {{ t('common.cancel') }}
       </button>
-      <button tuiButton size="m" type="submit" [disabled]="form.invalid || saving()">
+      <button tuiButton size="m" type="submit" data-mascot-submit="schedule-assignment" [disabled]="form.invalid || saving()">
         @if (saving()) {
           <i class="fa-solid fa-spinner fa-spin"></i>
         }

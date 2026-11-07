@@ -132,6 +132,7 @@
       appearance="primary"
       size="m"
       [disabled]="!canSave()"
+      data-mascot-submit="calendar-note"
       (click)="submit()">
       {{ saving() ? t('common.loading') : (isEdit() ? t('common.save') : t('common.create')) }}
     </button>

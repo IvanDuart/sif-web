@@ -62,6 +62,7 @@
             type="button"
             tuiButton appearance="secondary" size="m"
             [disabled]="isClinicalReadOnly()"
+            data-mascot-point="patient-edit"
             (click)="showEditDialog()">
             <i class="fa-solid fa-pen-to-square mr-1" aria-hidden="true"></i>
             {{ t('users.edit') }}
@@ -71,6 +72,7 @@
               *appIfPermission="'MANAGE_CHAT'"
               type="button"
               tuiButton appearance="secondary" size="m"
+              data-mascot-point="patient-chat"
               (click)="openChat()">
               <i class="fa-solid fa-comments mr-1" aria-hidden="true"></i>
               {{ t('chat.open_chat') }}
@@ -127,6 +129,8 @@
             [disabled]="isSendingResetPassword()"
             [attr.title]="t('users.reset_password')"
             [attr.aria-label]="t('users.reset_password')"
+            data-mascot-point="patient-reset-password"
+            data-mascot-danger
             (click)="resetPassword()">
             <i class="fa-solid fa-key" aria-hidden="true"></i>
           </button>

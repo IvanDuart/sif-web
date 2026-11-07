@@ -4,7 +4,7 @@ import { MascotFillService } from '../mascot/fill/mascot-fill.service';
 import { MAX_TOOLS } from './catalog-rules';
 import type { ClientTool } from './client-tool.model';
 import { ECHO_DEBUG_KEY } from './tools/echo.run';
-import { SCREEN_TOOLS_KEY, ToolRegistryService } from './tool-registry.service';
+import { ToolRegistryService } from './tool-registry.service';
 
 describe('ToolRegistryService', () => {
   let registry: ToolRegistryService;
@@ -18,7 +18,6 @@ describe('ToolRegistryService', () => {
 
   beforeEach(() => {
     localStorage.removeItem(ECHO_DEBUG_KEY);
-    localStorage.removeItem(SCREEN_TOOLS_KEY);
     spyOn(console, 'warn');
     registry = TestBed.inject(ToolRegistryService);
     fill = TestBed.inject(MascotFillService);
@@ -26,7 +25,6 @@ describe('ToolRegistryService', () => {
 
   afterEach(() => {
     localStorage.removeItem(ECHO_DEBUG_KEY);
-    localStorage.removeItem(SCREEN_TOOLS_KEY);
   });
 
   const names = () => registry.catalog().map((decl) => decl.name);
@@ -75,15 +73,62 @@ describe('ToolRegistryService', () => {
     expect(names()).toEqual(['navigate']);
   });
 
-  it('las herramientas de formulario solo salen con la clave de depuración', () => {
+  it('un formulario montado se declara y se sabe ejecutar', () => {
     TestBed.runInInjectionContext(() =>
       fill.register(
         { id: 'menu-rename', tools: [], fields: [{ key: 'name', kind: 'text', from: [] }] },
         { get: () => '', set: () => undefined },
       ),
     );
+    expect(names()).toEqual(['fill_menu_rename', 'save_menu_rename']);
+    expect(registry.runFor('fill_menu_rename')).not.toBeNull();
+    expect(registry.runFor('save_menu_rename')).not.toBeNull();
+  });
+
+  it('un formulario con texto largo ofrece además `edit_`', () => {
+    TestBed.runInInjectionContext(() =>
+      fill.register(
+        { id: 'appointment', tools: [], fields: [{ key: 'notes', kind: 'text', from: [], long: true }] },
+        { get: () => '', set: () => undefined },
+      ),
+    );
+    expect(names()).toEqual(['fill_appointment', 'edit_appointment', 'save_appointment']);
+  });
+
+  it('`open_` solo se ofrece de lo que no está ya abierto', () => {
+    TestBed.runInInjectionContext(() =>
+      fill.registerOpener({ id: 'measurement', tools: [], trigger: '[data-open]' }),
+    );
+    expect(names()).toEqual(['open_measurement']);
+    expect(registry.runFor('open_measurement')).not.toBeNull();
+
+    TestBed.runInInjectionContext(() =>
+      fill.register(
+        { id: 'measurement', tools: [], fields: [{ key: 'weight', kind: 'number', from: [] }] },
+        { get: () => '', set: () => undefined },
+      ),
+    );
+    expect(names()).toEqual(['fill_measurement', 'save_measurement']);
+  });
+
+  it('un formulario excluido se rellena pero no ofrece `save_`', () => {
+    TestBed.runInInjectionContext(() =>
+      fill.register(
+        { id: 'clinical-status', tools: [], noSave: true, fields: [{ key: 'reason', kind: 'text', from: [] }] },
+        { get: () => '', set: () => undefined },
+      ),
+    );
+    expect(names()).toEqual(['fill_clinical_status']);
+    expect(registry.runFor('save_clinical_status')).toBeNull();
+  });
+
+  it('un formulario que aún carga no se declara', () => {
+    TestBed.runInInjectionContext(() =>
+      fill.register(
+        { id: 'menu-rename', tools: [], fields: [{ key: 'name', kind: 'text', from: [] }], ready: () => false },
+        { get: () => '', set: () => undefined },
+      ),
+    );
     expect(names()).toEqual([]);
-    localStorage.setItem(SCREEN_TOOLS_KEY, '1');
-    expect(names()).toEqual(['fill_menu_rename']);
   });
 });

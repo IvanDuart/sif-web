@@ -45,7 +45,7 @@ export function appointmentSurface(options: AppointmentOptions): FillSurface {
       },
       { key: 'date', kind: 'date', from: ['date', 'fecha', 'startDate', 'scheduledAt'], parse: toDay },
       { key: 'time', kind: 'time', from: ['time', 'hora', 'startTime', 'scheduledAt'], parse: toTime },
-      { key: 'notes', kind: 'text', from: ['notes', 'notas', 'observaciones'] },
+      { key: 'notes', kind: 'text', from: ['notes', 'notas', 'observaciones'], long: true },
     ],
   };
 }

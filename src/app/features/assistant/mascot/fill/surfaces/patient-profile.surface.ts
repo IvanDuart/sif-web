@@ -44,7 +44,7 @@ const REVEAL = '[data-mascot-reveal="tab-patient_profile"]';
 
 const fields: FillField[] = CHECKLIST.flatMap(([id, notesId, alias]) => [
   { key: id, kind: 'boolean', from: [id, alias], reveal: REVEAL, parse: toBoolean } satisfies FillField,
-  { key: notesId, kind: 'text', from: [notesId, `${alias}Notas`], reveal: REVEAL } satisfies FillField,
+  { key: notesId, kind: 'text', from: [notesId, `${alias}Notas`], long: true, reveal: REVEAL } satisfies FillField,
 ]);
 
 /**
@@ -62,15 +62,16 @@ const fields: FillField[] = CHECKLIST.flatMap(([id, notesId, alias]) => [
 const NOTES: FillField[] = [
   { key: 'consultationReason', kind: 'text', from: ['consultationReason'], reveal: REVEAL },
   { key: 'habits', kind: 'text', from: ['habits'], reveal: REVEAL },
-  { key: 'lifestyle', kind: 'text', from: ['lifestyle'], reveal: REVEAL },
-  { key: 'exercise', kind: 'text', from: ['exercise'], reveal: REVEAL },
-  { key: 'foodPreferences', kind: 'text', from: ['foodPreferences'], reveal: REVEAL },
+  { key: 'lifestyle', kind: 'text', from: ['lifestyle'], long: true, reveal: REVEAL },
+  { key: 'exercise', kind: 'text', from: ['exercise'], long: true, reveal: REVEAL },
+  { key: 'foodPreferences', kind: 'text', from: ['foodPreferences'], long: true, reveal: REVEAL },
   {
     // Las observaciones no están en la anamnesis sino en las pautas fijas, que
     // además se editan a mano: la pestaña y luego el botón de editar.
     key: 'observations',
     kind: 'text',
     from: ['observations'],
+    long: true,
     reveal: ['[data-mascot-reveal="tab-fixed_guidelines"]', '[data-mascot-open="patient-guidelines"]'],
   },
 ];
@@ -83,6 +84,10 @@ const NOTES: FillField[] = [
  */
 export const PATIENT_PROFILE_SURFACE: FillSurface = {
   id: 'patient-profile',
+  // Sus campos viven en dos sitios con guardados distintos (la anamnesis y las
+  // pautas fijas), así que NO hay un botón que cubra lo que la mascota acaba
+  // de escribir: pulsar uno guardaría la mitad. Lo guarda la persona.
+  noSave: true,
   tools: ['update_anamnesis'],
   fields: [...fields, ...NOTES],
 };

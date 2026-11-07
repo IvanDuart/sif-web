@@ -11,10 +11,16 @@ import { MascotLookService } from './mascot/mascot-look.service';
 import { MascotMoodService } from './mascot/mascot-mood.service';
 import { MascotMilestonesService } from './mascot/mascot-milestones.service';
 import { MascotPreferencesService } from './mascot/mascot-preferences.service';
-import { DEFAULT_FILL_TIMING, STILL_TIMING, playFill, playHighlight, playOpen, type FillTiming } from './mascot/fill/animated-fill';
+import { playFill, playHighlight, playOpen, preferredTiming, type FillTiming } from './mascot/fill/animated-fill';
 import { matchPreview, unmatchedPreview, type FillSurface } from './mascot/fill/descriptor';
 import { MascotFillService } from './mascot/fill/mascot-fill.service';
 import { resolveFillRoute, routeForTool } from './mascot/fill/surfaces/routes';
+import { NAVIGABLE_SCREENS, routeForScreen, type ScreenRoute } from './copilot/screen-routes';
+import { fillTools } from './copilot/schema';
+import { InteractionToolsService } from './copilot/interaction-tools.service';
+import { CursorService } from './copilot/cursor.service';
+import { QuestionService } from './copilot/question.service';
+import { runNavigate } from './copilot/tools/navigate.run';
 import { NotificationService } from '../../core/ui';
 import type { MascotMode } from './mascot/mascot-life.service';
 import { ToolRegistryService } from './copilot/tool-registry.service';
@@ -85,6 +91,10 @@ export class MascotStateService {
   private readonly limiter = inject(StepLimiter);
   private readonly pageContext = inject(PageContextService);
   private readonly confirmations = inject(ConfirmationService);
+  readonly cursor = inject(CursorService);
+  /** Solo por inyectarlo se declaran `ask_user`, `point_at`, `show_around` y `press`. */
+  private readonly interactions = inject(InteractionToolsService);
+  readonly questions = inject(QuestionService);
 
   readonly config = signal<AssistantConfigDto | null>(null);
   readonly configLoaded = signal(false);
@@ -118,6 +128,8 @@ export class MascotStateService {
   /** Lo que alguien dejó escrito para que la persona lo termine. Lo lee el panel. */
   readonly draft = signal('');
   readonly sending = signal(false);
+  /** Lo que se escribió mientras la mascota estaba ocupada, en orden. */
+  readonly queued = signal<string[]>([]);
   readonly resolvingAction = signal(false);
 
   /**
@@ -198,6 +210,34 @@ export class MascotStateService {
   private welcomed = false;
 
   constructor() {
+    // `navigate` se declara desde aquí, y no desde `copilot/`, porque es lo
+    // único de la pantalla que necesita el router y cerrar el panel: pedirle
+    // eso a `copilot/` lo ataría al estado del asistente, que es justo la
+    // frontera que `assistant-module` no deja cruzar.
+    this.tools.register({
+      decl: {
+        name: 'navigate',
+        description: 'Va a una pantalla de la aplicación',
+        parameters: {
+          type: 'object',
+          properties: {
+            screen: { type: 'string', enum: [...NAVIGABLE_SCREENS] },
+            patientId: { type: 'string', description: 'Id del paciente, para las pantallas de su ficha' },
+            query: { type: 'string', description: 'Texto por el que filtrar el listado' },
+          },
+          required: ['screen'],
+        },
+      },
+      run: (args, { signal }) =>
+        runNavigate(args, {
+          router: this.router,
+          fill: this.fill,
+          signal,
+          catalog: () => this.tools.catalog(),
+          closePanel: () => this.closePanel(),
+        }),
+    });
+
     // Una escritura que el backend propone dentro del turno (`confirm_action`)
     // se pinta en la misma tarjeta de siempre.
     effect(() => {
@@ -436,7 +476,15 @@ export class MascotStateService {
     // Con un archivo delante no hace falta texto: soltar la analítica y callar
     // es una pregunta perfectamente clara.
     const attachment = this.attachment();
-    if ((!text && !attachment) || !tenantId || this.sending() || this.consentRequired()) return;
+    if ((!text && !attachment) || !tenantId || this.consentRequired()) return;
+
+    // Mientras hay un turno en marcha, lo que se escribe se encola en vez de
+    // perderse. Antes el envío se ignoraba sin más, y lo que acababas de
+    // teclear desaparecía sin decir nada.
+    if (this.sending()) {
+      if (text !== '') this.queued.update((queue) => [...queue, text]);
+      return;
+    }
 
     this.sending.set(true);
     this.pushUser(text, attachment);
@@ -550,6 +598,7 @@ export class MascotStateService {
     // veces. Un `client_tool` suele llegar sin texto delante.
     let started = false;
 
+    this.runner.startTurn(sessionId);
     const request = {
       content: text,
       attachmentId,
@@ -692,6 +741,8 @@ export class MascotStateService {
     // podría confirmarla ya.
     const card = this.confirmations.waiting();
     this.runner.cancel();
+    // Una pausa sin turno no tiene sentido, y dejaría colgado lo que esperase.
+    this.cursor.release();
     if (card) this.rejectQuietly(card);
 
     // Cerrar el SSE ya basta para que el backend suelte el turno (lo detecta
@@ -768,6 +819,8 @@ export class MascotStateService {
    */
   private settleTurn(bubble: string, turn: AssistantTurnResponse): void {
     this.sending.set(false);
+    this.cursor.release();
+    this.sendNextQueued();
     this.dropStream(bubble);
     this.pushAssistant(turn.assistantMessage);
     void this.handleUiActions(turn.uiActions ?? []);
@@ -784,6 +837,16 @@ export class MascotStateService {
   private async offerAction(action: AssistantPendingActionDto | null): Promise<void> {
     if (!action) {
       this.pendingAction.set(null);
+      return;
+    }
+
+    // Mientras el modelo antiguo conviva con las herramientas de cliente, un
+    // mismo turno puede traer las dos cosas: un `fill_` que ya escribió en el
+    // formulario y, detrás, la propuesta del backend para el mismo. Rellenar
+    // otra vez pisaría lo que la persona haya corregido entre medias, así que
+    // solo se ofrece la tarjeta.
+    if (this.alreadyFilledByTool(action.toolName)) {
+      this.pendingAction.set(action);
       return;
     }
 
@@ -1059,6 +1122,33 @@ export class MascotStateService {
     }
   }
 
+  /** Quita de la cola lo que ya no se quiera mandar. */
+  unqueue(index: number): void {
+    this.queued.update((queue) => queue.filter((_, position) => position !== index));
+  }
+
+  /**
+   * «Hacer ahora»: corta el turno en marcha y manda ese mensaje. Es para
+   * cuando la mascota se ha ido por donde no era y lo que importa es lo nuevo.
+   */
+  sendNow(index: number): void {
+    const text = this.queued()[index];
+    if (text === undefined) return;
+    this.unqueue(index);
+    this.stop();
+    this.send(text);
+  }
+
+  /** Al acabar un turno, el siguiente de la cola sale solo. */
+  private sendNextQueued(): void {
+    const [next, ...rest] = this.queued();
+    if (next === undefined) return;
+    this.queued.set(rest);
+    // En el siguiente tick: `sending` acaba de bajar y el turno anterior
+    // todavía está asentándose.
+    setTimeout(() => this.send(next));
+  }
+
   /** Un aviso corto, que no necesita que el panel esté abierto. */
   private showToast(params: Record<string, unknown>): void {
     const message = typeof params['message'] === 'string' ? params['message'].trim() : '';
@@ -1085,9 +1175,19 @@ export class MascotStateService {
     await playHighlight(found.surface, found.field, this.fillTiming(), this.fill);
   }
 
+  /**
+   * Si una herramienta de cliente ya rellenó en este turno el formulario que
+   * esta propuesta quiere rellenar.
+   */
+  private alreadyFilledByTool(toolName: string): boolean {
+    const mounted = this.fill.forTool(toolName);
+    if (!mounted) return false;
+    return fillTools(mounted.surface).some((tool) => this.runner.alreadyRan(tool.decl.name));
+  }
+
   /** Quien no quiera movimiento ve lo mismo, pero sin viaje ni tecleo. */
   private fillTiming(): FillTiming {
-    return matchMedia('(prefers-reduced-motion: reduce)').matches ? STILL_TIMING : DEFAULT_FILL_TIMING;
+    return preferredTiming();
   }
 
   /**
@@ -1188,78 +1288,8 @@ export class MascotStateService {
    * siempre dentro de su ficha (`/users/:id`). Las heredadas sin `patientId`
    * caen en la sección global equivalente.
    */
-  private routeFor(action: AssistantUiActionDto): { commands: string[]; queryParams?: Record<string, string> } | null {
-    const params = action.params ?? {};
-    const patientId = typeof params['patientId'] === 'string' ? params['patientId'] : null;
-    const patientRoute = patientId ? ['/users', patientId] : null;
-
-    switch (action.screen) {
-      case 'PATIENTS': {
-        // `find_patient` manda a quién busca: el listado abre ya filtrado, que
-        // es lo que la persona vería al teclearlo ella.
-        const query = typeof params['query'] === 'string' ? params['query'].trim() : '';
-        return query === ''
-          ? { commands: ['/patients'] }
-          : { commands: ['/patients'], queryParams: { q: query } };
-      }
-      case 'AGENDA':
-      case 'APPOINTMENTS':
-      case 'PATIENT_APPOINTMENTS':
-        return { commands: ['/appointments'] };
-      case 'DASHBOARD':
-        return { commands: ['/dashboard'] };
-      // Ajustes es maestro-detalle: las secciones no tienen ruta propia, así
-      // que se abren con la pestaña puesta en los query params.
-      case 'MENUS': {
-        const query = typeof params['query'] === 'string' ? params['query'].trim() : '';
-        return query === ''
-          ? { commands: ['/menus'] }
-          : { commands: ['/menus'], queryParams: { q: query } };
-      }
-      case 'SHOPPING_LIST':
-        return { commands: ['/shopping-lists'] };
-      case 'EVOLUTION':
-        return { commands: ['/evolution'] };
-      case 'REVENUE':
-        return { commands: ['/revenue'] };
-      case 'STAFF':
-        return { commands: ['/staff'] };
-      case 'SETTINGS':
-        return { commands: ['/settings'] };
-      case 'SETTINGS_BRANDING':
-        return { commands: ['/settings'], queryParams: { tab: 'branding' } };
-      case 'SETTINGS_SCHEDULES':
-        return { commands: ['/settings'], queryParams: { tab: 'schedules', section: 'schedules' } };
-      case 'SETTINGS_ASSIGNMENTS':
-        return { commands: ['/settings'], queryParams: { tab: 'schedules', section: 'assignments' } };
-      case 'SETTINGS_HOLIDAYS':
-        return { commands: ['/settings'], queryParams: { tab: 'schedules', section: 'holidays' } };
-      case 'PATIENT_PROFILE':
-      case 'PROFILE':
-      case 'ANAMNESIS':
-        return patientRoute
-          ? { commands: patientRoute, queryParams: { tab: 'patient_profile' } }
-          : { commands: ['/dashboard'] };
-      case 'PATIENT_MEASUREMENTS':
-      case 'MEASUREMENTS':
-        return patientRoute
-          ? { commands: patientRoute, queryParams: { tab: 'measurements' } }
-          : { commands: ['/dashboard'] };
-      case 'PATIENT_MENU':
-        return patientRoute
-          ? { commands: patientRoute, queryParams: { tab: 'menus' } }
-          : { commands: ['/dashboard'] };
-      case 'MENU':
-        return patientRoute
-          ? { commands: patientRoute, queryParams: { tab: 'menus' } }
-          : { commands: ['/menus'] };
-      case 'DIARY':
-        return patientRoute
-          ? { commands: patientRoute, queryParams: { tab: 'menus' } }
-          : { commands: ['/dashboard'] };
-      default:
-        return null;
-    }
+  private routeFor(action: AssistantUiActionDto): ScreenRoute | null {
+    return routeForScreen(action.screen, action.params ?? {});
   }
 
   // ── Mensajes y errores ──────────────────────────────────────────────

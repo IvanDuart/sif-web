@@ -14,6 +14,7 @@ import { map } from 'rxjs/operators';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
+import { assistantWriteInterceptor } from './features/assistant/copilot/assistant-write.interceptor';
 import { errorInterceptor } from './core/http/error.interceptor';
 import { loadingInterceptor } from './core/http/loading.interceptor';
 import { mascotWritesInterceptor } from './features/assistant/mascot/mascot-writes.interceptor';
@@ -68,6 +69,9 @@ export const appConfig: ApplicationConfig = {
       // El de la mascota va el último: solo mira lo que ya pasó por los demás.
       withInterceptors([
         authInterceptor,
+        // Antes del de errores: marca la petición al salir, y así la marca
+        // está puesta pase lo que pase después.
+        assistantWriteInterceptor,
         errorInterceptor,
         loadingInterceptor,
         mascotWritesInterceptor,

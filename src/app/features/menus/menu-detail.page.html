@@ -13,6 +13,7 @@
             <button
               *appIfPermission="'MANAGE_MENU'"
               tuiButton appearance="flat" size="s" type="button"
+              data-mascot-point="menu-rename"
               (click)="renameMenu()"
               [attr.title]="t('common.edit')" [attr.aria-label]="t('common.edit')">
               <i class="fa-solid fa-pen" aria-hidden="true"></i>
@@ -32,6 +33,7 @@
                 tuiButton appearance="flat" size="s"
                 [class.text-ok]="menu()?.isActive"
                 [class.text-surface-400]="!menu()?.isActive"
+                data-mascot-point="menu-toggle-active"
                 (click)="toggleActiveMenu()"
                 [attr.title]="menu()?.isActive ? t('menu_history.deactivate') : t('menu_history.activate')"
                 [attr.aria-label]="menu()?.isActive ? t('menu_history.deactivate') : t('menu_history.activate')">
@@ -48,6 +50,7 @@
           @if (canManageTemplate()) {
             <button
               tuiButton appearance="secondary" size="m"
+              data-mascot-point="menu-to-template"
               (click)="convertToTemplate()">
               <i class="fa-solid fa-copy"></i>
               {{ t('diets.convert_to_template') }}
@@ -57,6 +60,7 @@
             *appIfPermission="'VIEW_MENU'"
             tuiButton appearance="secondary" size="m"
             [disabled]="printingPdf()"
+            data-mascot-point="menu-print"
             (click)="printPdf()">
             @if (printingPdf()) {
               <i class="fa-solid fa-spinner fa-spin"></i>
@@ -69,6 +73,7 @@
             *appIfPermission="'VIEW_MENU'"
             tuiButton appearance="secondary" size="m"
             [disabled]="downloadingPdf()"
+            data-mascot-point="menu-download"
             (click)="downloadPdf()">
             @if (downloadingPdf()) {
               <i class="fa-solid fa-spinner fa-spin"></i>

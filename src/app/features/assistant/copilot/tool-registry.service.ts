@@ -1,14 +1,10 @@
 import { Injectable, inject, isDevMode } from '@angular/core';
 
 import type { AssistantClientToolDecl } from '../../../core/api/models/assistant.model';
-import { MascotFillService } from '../mascot/fill/mascot-fill.service';
 import { MAX_TOOLS, cleanDescription, declProblem } from './catalog-rules';
 import type { ClientTool, ToolRun } from './client-tool.model';
-import { fillTools } from './schema';
+import { ScreenToolsService } from './screen-tools.service';
 import { ECHO_TOOL } from './tools/echo.run';
-
-/** La clave de `localStorage` que declara las herramientas de formulario antes de que se puedan ejecutar. */
-export const SCREEN_TOOLS_KEY = 'mascot-debug-screen-tools';
 
 /**
  * Las herramientas que el navegador sabe ejecutar en la pantalla actual
@@ -20,7 +16,7 @@ export const SCREEN_TOOLS_KEY = 'mascot-debug-screen-tools';
  */
 @Injectable({ providedIn: 'root' })
 export class ToolRegistryService {
-  private readonly fill = inject(MascotFillService);
+  private readonly screen = inject(ScreenToolsService);
   private readonly tools = new Map<string, ClientTool>([[ECHO_TOOL.decl.name, ECHO_TOOL]]);
   private readonly warned = new Set<string>();
 
@@ -39,8 +35,10 @@ export class ToolRegistryService {
    */
   catalog(): AssistantClientToolDecl[] {
     const decls: AssistantClientToolDecl[] = [
-      ...[...this.tools.values()].filter((tool) => this.attempt(() => tool.offered?.() ?? true, false)).map((tool) => tool.decl),
-      ...this.attempt(() => this.screenDecls(), []),
+      ...[...this.tools.values()]
+        .filter((tool) => this.attempt(() => tool.offered?.() ?? true, false))
+        .map((tool) => this.attempt(() => ({ ...(tool.refine?.(tool.decl) ?? tool.decl), name: tool.decl.name }), tool.decl)),
+      ...this.attempt(() => this.screen.decls(), []),
     ].map((decl) => ({ ...decl, description: cleanDescription(decl.description) }));
 
     const valid = decls.filter((decl) => {
@@ -58,32 +56,11 @@ export class ToolRegistryService {
    * es mejor que un `unknown_tool`.
    */
   runFor(name: string): ToolRun | null {
-    return this.tools.get(name)?.run ?? null;
-  }
-
-  /**
-   * Las herramientas de los formularios montados. Mientras no haya quien las
-   * ejecute (`fill_` llega con la fase de formularios), solo se declaran con
-   * la clave de depuración: sirve para ver el catálogo real sin ofrecérselo
-   * al modelo para nada.
-   */
-  private screenDecls(): AssistantClientToolDecl[] {
-    if (!this.screenToolsEnabled()) return [];
-    return this.fill
-      .surfaces()
-      .filter(({ surface }) => !surface.ready || surface.ready())
-      .flatMap(({ surface }) => fillTools(surface).map((tool) => tool.decl));
-  }
-
-  private screenToolsEnabled(): boolean {
-    // Sin quien las ejecute, cada `fill_` le haría gastar al modelo un paso y
-    // decir que falló: solo en desarrollo, para ver el catálogo real.
-    if (!isDevMode()) return false;
-    try {
-      return globalThis.localStorage?.getItem(SCREEN_TOOLS_KEY) === '1';
-    } catch {
-      return false;
-    }
+    const fixed = this.tools.get(name)?.run;
+    if (fixed) return fixed;
+    // Las de pantalla se resuelven ahora, no al declararse: entre que el
+    // catálogo salió y el modelo llama, el diálogo puede haberse cerrado.
+    return this.attempt(() => this.screen.runFor(name, { catalog: () => this.catalog() }), null);
   }
 
   /** Código de pantalla ajeno: si lanza, la herramienta no se ofrece y el turno sigue. */

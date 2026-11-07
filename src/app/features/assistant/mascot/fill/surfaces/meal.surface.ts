@@ -45,7 +45,7 @@ export function mealSurface(options: MealOptions): FillSurface {
         ...choicesOf(() => options.mealTypes()),
         parse: (raw) => pickOption(options.mealTypes(), raw),
       },
-      { key: 'description', kind: 'text', from: ['description', 'descripcion', 'texto'] },
+      { key: 'description', kind: 'text', from: ['description', 'descripcion', 'texto'], long: true },
     ],
   };
 }

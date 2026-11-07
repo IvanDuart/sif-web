@@ -19,6 +19,9 @@ export function clinicalStatusSurface(options: ClinicalStatusOptions): FillSurfa
   return {
     id: 'clinical-status',
     tools: ['update_clinical_status'],
+    // Dar de baja a un paciente, o cambiarle el estado, no admite un «casi»:
+    // lo rellena la mascota y lo guarda la persona.
+    noSave: true,
     fields: [
       {
         key: 'clinicalStatus',
