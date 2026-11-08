@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   CalendarNoteDto,
@@ -7,6 +7,7 @@ import {
   CreateCalendarNoteRequest,
   UpdateCalendarNoteRequest,
 } from '../models/calendar-note.model';
+import { DEFAULT_PAGE_SIZE, Page } from '../models/page.model';
 import { ConfigService } from '../../config/config.service';
 
 @Injectable({ providedIn: 'root' })
@@ -19,20 +20,38 @@ export class CalendarNoteService {
   }
 
   /**
-   * Devuelve **solo las entradas propias**, ordenadas por `startTime` ascendente
-   * y sin paginar.
+   * Devuelve **solo las entradas propias** del autor, ordenadas por `startTime`
+   * ascendente.
    *
-   * El filtro es por **solapamiento, no por contención** (`endTime > from AND
-   * startTime < to`), así que el resultado desborda el rango pedido: unas
-   * vacaciones del 28/oct al 5/nov salen al pedir noviembre. Hay que recortar
-   * en cliente al rango visible en lugar de asumir que `startTime` cae dentro.
+   * Dos matices que vienen del backend:
+   * - El filtro es por **solapamiento, no por contención** (`endTime > from AND
+   *   startTime < to`), así que el resultado desborda el rango pedido: unas
+   *   vacaciones del 28/oct al 5/nov salen al pedir noviembre. Hay que recortar
+   *   en cliente al rango visible en lugar de asumir que `startTime` cae dentro.
+   * - El listado está paginado (`PagedModel`, 50 por defecto): si el rango
+   *   tiene más entradas hay que pedir páginas adicionales.
    */
-  list(tenantId: string, from?: string, to?: string, type?: CalendarNoteType): Observable<CalendarNoteDto[]> {
-    const params: Record<string, string> = {};
-    if (from) params['from'] = from;
-    if (to) params['to'] = to;
-    if (type) params['type'] = type;
-    return this.http.get<CalendarNoteDto[]>(`${this.baseUrl}/tenant/${tenantId}/calendar-notes`, { params });
+  list(
+    tenantId: string,
+    from?: string,
+    to?: string,
+    type?: CalendarNoteType,
+    page = 0,
+    size = DEFAULT_PAGE_SIZE,
+    sort: string[] = ['startTime,ASC']
+  ): Observable<Page<CalendarNoteDto>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    sort.forEach(value => params = params.append('sort', value));
+    if (from) params = params.set('from', from);
+    if (to) params = params.set('to', to);
+    if (type) params = params.set('type', type);
+
+    return this.http.get<Page<CalendarNoteDto>>(
+      `${this.baseUrl}/tenant/${tenantId}/calendar-notes`,
+      { params }
+    );
   }
 
   getById(tenantId: string, noteId: string): Observable<CalendarNoteDto> {

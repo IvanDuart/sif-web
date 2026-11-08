@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PatientEventDto, CreatePatientEventRequest, UpdatePatientEventRequest } from '../models/patient-event.model';
-import {ConfigService} from '../../config/config.service';
+import { DEFAULT_PAGE_SIZE, Page } from '../models/page.model';
+import { ConfigService } from '../../config/config.service';
 
 @Injectable({ providedIn: 'root' })
 export class PatientEventService {
@@ -13,11 +14,30 @@ export class PatientEventService {
     return this.configService.apiUrl;
   }
 
-  getByPatient(tenantId: string, patientId: string, from?: string, to?: string): Observable<PatientEventDto[]> {
-    const params: Record<string, string> = {};
-    if (from) params['from'] = from;
-    if (to) params['to'] = to;
-    return this.http.get<PatientEventDto[]>(`${this.baseUrl}/tenant/${tenantId}/patients/${patientId}/events`, { params });
+  /**
+   * Eventos del paciente en el rango. El listado es paginado (`PagedModel`,
+   * 50 por defecto) desde la Fase 1.
+   */
+  getByPatient(
+    tenantId: string,
+    patientId: string,
+    from?: string,
+    to?: string,
+    page = 0,
+    size = DEFAULT_PAGE_SIZE,
+    sort: string[] = ['startTime,ASC']
+  ): Observable<Page<PatientEventDto>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    sort.forEach(value => params = params.append('sort', value));
+    if (from) params = params.set('from', from);
+    if (to) params = params.set('to', to);
+
+    return this.http.get<Page<PatientEventDto>>(
+      `${this.baseUrl}/tenant/${tenantId}/patients/${patientId}/events`,
+      { params }
+    );
   }
 
   create(tenantId: string, patientId: string, request: CreatePatientEventRequest): Observable<PatientEventDto> {

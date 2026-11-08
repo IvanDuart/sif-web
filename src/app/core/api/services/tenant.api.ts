@@ -24,6 +24,10 @@ export interface UpdateTenantRequest {
   countryCode?: string;
   stateCode?: string;
   city?: string;
+  /** Zona horaria IANA (p. ej. `Europe/Madrid`, `America/Mexico_City`). */
+  timezone?: string;
+  /** Hora local (0-23) de envío del recordatorio de citas. */
+  reminderHour?: number;
   preferences?: TenantPreferences;
 }
 

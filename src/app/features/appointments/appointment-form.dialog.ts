@@ -383,7 +383,7 @@ export class AppointmentFormDialog implements OnInit, AfterViewInit, OnDestroy {
       .getByNutritionist(tenantId, nutritionistId, start.toISOString(), end.toISOString())
       .subscribe({
         next: (res) => {
-          this.agendaEvents.set(this.buildAgendaEvents(res || [], day));
+          this.agendaEvents.set(this.buildAgendaEvents(res?.content ?? [], day));
           this.loadingAgenda.set(false);
         },
         error: () => {

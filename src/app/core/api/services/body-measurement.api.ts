@@ -9,6 +9,7 @@ import {
   UpdateBodyMeasurementRequest
 } from '../models/body-measurement.model';
 import { Page } from '../models/page.model';
+import { idempotencyHeaders } from '../idempotency';
 import {ConfigService} from '../../config/config.service';
 import { IGNORE_NOT_FOUND } from '../../http/error.interceptor';
 
@@ -55,8 +56,16 @@ export class BodyMeasurementService {
     return this.http.get<MeasurementHistoryDto>(`${this.endpoint(tenantId, userId)}/evolution`);
   }
 
-  create(tenantId: string, userId: string, request: CreateBodyMeasurementRequest): Observable<BodyMeasurementDto> {
-    return this.http.post<BodyMeasurementDto>(this.endpoint(tenantId, userId), request);
+  /** Crea una medición; admite `Idempotency-Key` para reintentos seguros. */
+  create(
+    tenantId: string,
+    userId: string,
+    request: CreateBodyMeasurementRequest,
+    idempotencyKey?: string
+  ): Observable<BodyMeasurementDto> {
+    return this.http.post<BodyMeasurementDto>(this.endpoint(tenantId, userId), request, {
+      headers: idempotencyHeaders(idempotencyKey),
+    });
   }
 
   update(

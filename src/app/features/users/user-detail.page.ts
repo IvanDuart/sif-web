@@ -1290,9 +1290,10 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     if (!tenantId) return;
     this.loadingMenus.set(true);
     this.menuService.history(tenantId, this.userId).subscribe({
-      next: (menuList) => {
-        this.menus.set(menuList || []);
-        const active = (menuList || []).find(m => m.isActive || m.active);
+      next: (result) => {
+        const menuList = result?.content ?? [];
+        this.menus.set(menuList);
+        const active = menuList.find(m => m.isActive || m.active);
         this.activeMenu.set(active || null);
         this.loadingMenus.set(false);
       },
@@ -1363,8 +1364,8 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     if (!tenantId) return;
     this.loadingEvents.set(true);
     this.patientEventService.getByPatient(tenantId, this.userId, from, to).subscribe({
-      next: (events) => {
-        this.patientEvents.set(events || []);
+      next: (result) => {
+        this.patientEvents.set(result?.content ?? []);
         this.loadingEvents.set(false);
       },
       error: () => this.loadingEvents.set(false)
@@ -1430,7 +1431,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     this.appointmentService.getByPatient(tenantId, this.userId).subscribe({
       next: (res) => {
         // Historial de citas: de la más reciente a la más antigua.
-        const sorted = [...(res || [])].sort(
+        const sorted = [...(res?.content ?? [])].sort(
           (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
         );
         this.appointments.set(sorted);

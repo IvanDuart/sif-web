@@ -164,8 +164,9 @@ export default class ShoppingListsPage implements OnInit {
     // La lista actual cuelga del menú activo del paciente: mismo camino que el
     // panel, así no dependemos de que exista un histórico.
     this.menuService.history(tenantId, userId).subscribe({
-      next: (menus) => {
-        const active = (menus || []).find((menu) => menu.isActive || menu.active);
+      next: (result) => {
+        const menus = result?.content ?? [];
+        const active = menus.find((menu) => menu.isActive || menu.active);
         if (!active) {
           this.shoppingList.set(null);
           this.items.set([]);

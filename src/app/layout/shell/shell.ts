@@ -239,7 +239,7 @@ export class Shell implements OnInit, OnDestroy {
 
     this.appointmentService.getByNutritionist(tenantId, userId, undefined, undefined, 'PROPOSED').subscribe({
       next: (res) => {
-        this.proposedAppointments.set(res || []);
+        this.proposedAppointments.set(res?.content ?? []);
       }
     });
   }

@@ -240,7 +240,7 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
       .getByNutritionist(tenantId, this.currentUserId(), this.todayStart, this.todayEnd)
       .subscribe({
         next: (res) => {
-          this.todayAppointments.set(res || []);
+          this.todayAppointments.set(res?.content ?? []);
           this.loadingToday.set(false);
         },
         error: () => this.loadingToday.set(false),

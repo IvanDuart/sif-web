@@ -36,6 +36,13 @@ export interface SseStreamConfig<T> {
    * perderla. Útil para un indicador de "en directo".
    */
   onConnectionChange?: (connected: boolean) => void;
+  /**
+   * Último `id` de evento ya procesado, si el cliente lo conoce fuera del
+   * stream. Se envía como `Last-Event-ID` en la primera conexión; después el
+   * propio stream recuerda el último id recibido y lo reenvía en cada
+   * reconexión para no perder eventos (`notifications/stream`).
+   */
+  initialLastEventId?: () => string | null;
 }
 
 /**
@@ -58,6 +65,9 @@ export interface SseStreamConfig<T> {
 export function sseStream<T>(config: SseStreamConfig<T>): Observable<T> {
   return new Observable<T>((subscriber) => {
     const abortController = new AbortController();
+    // Último evento visto: sobrevive a las reconexiones de este Observable y
+    // viaja como `Last-Event-ID` en cada reintento.
+    const cursor: SseEventCursor = { value: config.initialLastEventId?.() ?? null };
 
     const sleep = (ms: number): Promise<void> =>
       new Promise((resolve) => {
@@ -75,7 +85,7 @@ export function sseStream<T>(config: SseStreamConfig<T>): Observable<T> {
     const run = async (): Promise<void> => {
       while (!abortController.signal.aborted) {
         try {
-          await connectOnce(config, abortController.signal, subscriber);
+          await connectOnce(config, abortController.signal, subscriber, cursor);
         } catch (error) {
           if (abortController.signal.aborted) break;
           config.onConnectionChange?.(false);
@@ -98,24 +108,33 @@ export function sseStream<T>(config: SseStreamConfig<T>): Observable<T> {
   });
 }
 
+/** Puntero mutable al último `id` de evento recibido en el canal. */
+interface SseEventCursor {
+  value: string | null;
+}
+
 /** Una conexión completa: renueva token, abre el stream y lo consume hasta que cae. */
 async function connectOnce<T>(
   config: SseStreamConfig<T>,
   signal: AbortSignal,
-  subscriber: Subscriber<T>
+  subscriber: Subscriber<T>,
+  cursor: SseEventCursor
 ): Promise<void> {
   const token = await freshToken(config.keycloak);
   if (signal.aborted) return;
   if (!token) throw new Error('Sin token de acceso para el stream SSE');
 
+  // En minúsculas a propósito: la librería comprueba `headers.accept` para
+  // no duplicar el suyo. `last-event-id` pide replay de lo perdido.
+  const headers: Record<string, string> = {
+    accept: 'text/event-stream',
+    authorization: `Bearer ${token}`,
+  };
+  if (cursor.value) headers['last-event-id'] = cursor.value;
+
   await fetchEventSource(config.url, {
     method: 'GET',
-    // En minúsculas a propósito: la librería comprueba `headers.accept` para
-    // no duplicar el suyo.
-    headers: {
-      accept: 'text/event-stream',
-      authorization: `Bearer ${token}`,
-    },
+    headers,
     signal,
     // No cerrar el stream cuando la pestaña pasa a segundo plano.
     openWhenHidden: true,
@@ -134,6 +153,8 @@ async function connectOnce<T>(
     },
 
     onmessage(message: EventSourceMessage) {
+      // El id del evento permite pedir replay tras una desconexión.
+      if (message.id) cursor.value = message.id;
       const value = config.parse(message);
       if (value !== null) subscriber.next(value);
     },

@@ -69,6 +69,10 @@ export interface Tenant extends TenantBillingFields {
   cif: string;
   /** Moneda del centro para precios de citas (por defecto `EUR`). */
   currency?: string;
+  /** Zona horaria IANA del centro (p. ej. `Europe/Madrid`). */
+  timezone?: string;
+  /** Hora local (0-23) de envío de los recordatorios de citas. */
+  reminderHour?: number;
   address?: string;
   phone?: string;
   countryCode?: string;

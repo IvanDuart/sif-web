@@ -17,6 +17,7 @@ import { NotificationService } from '../../core/ui';
 
 import { Menu } from '../../core/api/models/menu.model';
 import { Meal } from '../../core/api/models/meal.model';
+import { emptyPage } from '../../core/api/models/page.model';
 import { UserTenantProfileFixedMealsDto } from '../../core/api/models/user.model';
 import { EmptyState } from '../../shared/ui/empty-state';
 import { LiveIndicator } from '../../shared/ui/live-indicator';
@@ -370,14 +371,14 @@ export default class MyDietPage implements OnInit, OnDestroy {
     forkJoin({
       menus: this.menuService
         .history(tenantId, userId)
-        .pipe(catchError(() => of([] as Menu[]))),
+        .pipe(catchError(() => of(emptyPage<Menu>()))),
       fixed: this.userTenantRoleService
         .getPatientFixedMeals(tenantId, userId)
         .pipe(catchError(() => of(null))),
     }).subscribe({
       next: ({ menus, fixed }) => {
         this.fixedMeals.set(fixed);
-        const active = (menus || []).find((m) => m.isActive || m.active) ?? null;
+        const active = (menus?.content ?? []).find((m) => m.isActive || m.active) ?? null;
         this.menu.set(active);
         this.syncStream();
 
@@ -394,8 +395,8 @@ export default class MyDietPage implements OnInit, OnDestroy {
         }
 
         this.mealService.getByMenuId(tenantId, active.id).subscribe({
-          next: (meals) => {
-            this.meals.set(meals || []);
+          next: (result) => {
+            this.meals.set(result?.content ?? []);
             this.loading.set(false);
           },
           error: () => {

@@ -216,7 +216,7 @@ export default class StaffDetailPage implements OnInit {
     }).subscribe({
       next: ({ patients, appointments }) => {
         this.assignedPatients.set(patients || []);
-        this.appointments.set(appointments || []);
+        this.appointments.set(appointments?.content ?? []);
         this.loadingActivity.set(false);
       },
       error: () => this.loadingActivity.set(false)

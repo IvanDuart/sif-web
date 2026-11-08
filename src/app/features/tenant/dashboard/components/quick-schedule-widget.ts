@@ -15,13 +15,14 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TuiButton, TuiCalendar, TuiDropdown, TuiInput, TuiLabel, TuiTextfield } from '@taiga-ui/core';
 import { TuiAvatar, TuiChip, TuiInputDate } from '@taiga-ui/kit';
 import { TuiDay } from '@taiga-ui/cdk';
-import { Subject, catchError, debounceTime, distinctUntilChanged, forkJoin, of, switchMap } from 'rxjs';
+import { Subject, Observable, catchError, debounceTime, distinctUntilChanged, forkJoin, of, switchMap } from 'rxjs';
 
 import { AppointmentService } from '../../../../core/api/services/appointment.api';
 import { AppointmentTypeService } from '../../../../core/api/services/appointment-type.api';
 import { ScheduleAvailabilityService } from '../../../../core/api/services/schedule-availability.service';
 import { CalendarNoteService } from '../../../../core/api/services/calendar-note.api';
 import { CalendarNoteDto } from '../../../../core/api/models/calendar-note.model';
+import { Page, emptyPage } from '../../../../core/api/models/page.model';
 import { PermissionsService } from '../../../../core/permissions/permissions.service';
 import { UserTenantRoleService } from '../../../../core/api/services/user-tenant-role.api';
 import { TenantContextService } from '../../../../core/tenant/tenant-context.service';
@@ -442,29 +443,29 @@ export class QuickScheduleWidget implements OnInit, OnDestroy {
      * endpoint que permita consultarlos, ni siquiera siendo administrador.
      */
     const ownCalendar = nutritionistId === this.auth.user()?.id;
-    const timeBlocks$ =
+    const timeBlocks$: Observable<Page<CalendarNoteDto>> =
       ownCalendar && this.permissions.has('VIEW_CALENDAR_NOTES')
         ? this.calendarNoteService.list(tenantId, from, to, 'TIME_BLOCK')
-        : of<CalendarNoteDto[]>([]);
+        : of(emptyPage<CalendarNoteDto>());
 
     forkJoin({
       appointments: this.appointmentService.getByNutritionist(tenantId, nutritionistId, from, to),
       // Un fallo al traer los bloqueos no puede dejar sin huecos la pantalla:
       // se degrada a la lista de antes y el backend sigue siendo la red final.
-      timeBlocks: timeBlocks$.pipe(catchError(() => of<CalendarNoteDto[]>([]))),
+      timeBlocks: timeBlocks$.pipe(catchError(() => of(emptyPage<CalendarNoteDto>()))),
     }).subscribe({
       next: ({ appointments, timeBlocks }) => {
         this.loadingSlots.set(false);
         // Una cita no choca consigo misma: el backend la excluye al reagendar,
         // así que su hueco actual se sigue ofreciendo.
         const rescheduleId = this.rescheduleAppointment()?.id;
-        const busy = (appointments || []).filter((appointment) => appointment.id !== rescheduleId);
+        const busy = (appointments?.content ?? []).filter((appointment) => appointment.id !== rescheduleId);
         const slots = this.computeSlots(
           iso,
           schedule.details,
           busy,
           this.duration(),
-          timeBlocks || []
+          timeBlocks?.content ?? []
         );
         this.slots.set(slots);
         this.emptyReason.set(slots.length ? null : 'none-left');

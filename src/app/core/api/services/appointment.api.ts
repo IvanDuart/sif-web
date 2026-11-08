@@ -2,6 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AppointmentDto, CreateAppointmentRequest, UpdateAppointmentStatusRequest, RescheduleAppointmentRequest, NutritionistPatientDto, AppointmentMetricsDto, AppointmentMetricsQuery } from '../models/appointment.model';
+import { DEFAULT_PAGE_SIZE, Page } from '../models/page.model';
+import { idempotencyHeaders } from '../idempotency';
 import { ConfigService } from '../../config/config.service';
 import { SILENT_ERROR } from '../../http/error.interceptor';
 
@@ -18,10 +20,19 @@ export class AppointmentService {
     return `${this.baseUrl}/tenant/${tenantId}/appointments`;
   }
 
-  create(tenantId: string, request: CreateAppointmentRequest): Observable<AppointmentDto> {
+  /**
+   * Crea una cita. Acepta `Idempotency-Key` para que reintentos y dobles clics
+   * devuelvan la cita original en lugar de duplicarla.
+   */
+  create(
+    tenantId: string,
+    request: CreateAppointmentRequest,
+    idempotencyKey?: string
+  ): Observable<AppointmentDto> {
     return this.http.post<AppointmentDto>(this.endpoint(tenantId), request, {
       // Errors are surfaced inline (and may trigger the overlap confirm dialog).
-      context: new HttpContext().set(SILENT_ERROR, true)
+      context: new HttpContext().set(SILENT_ERROR, true),
+      headers: idempotencyHeaders(idempotencyKey),
     });
   }
 
@@ -31,35 +42,49 @@ export class AppointmentService {
     });
   }
 
+  /** Agenda de un profesional. Devuelve `PagedModel` (50 por defecto). */
   getByNutritionist(
     tenantId: string,
     nutritionistId: string,
     from?: string,
     to?: string,
-    status?: string
-  ): Observable<AppointmentDto[]> {
-    let params = new HttpParams();
+    status?: string,
+    page = 0,
+    size = DEFAULT_PAGE_SIZE,
+    sort: string[] = ['startTime,ASC']
+  ): Observable<Page<AppointmentDto>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    sort.forEach(value => params = params.append('sort', value));
     if (from) params = params.set('from', from);
     if (to) params = params.set('to', to);
     if (status) params = params.set('status', status);
-    return this.http.get<AppointmentDto[]>(
+    return this.http.get<Page<AppointmentDto>>(
       `${this.endpoint(tenantId)}/nutritionist/${nutritionistId}`,
       { params }
     );
   }
 
+  /** Citas de un paciente. Devuelve `PagedModel` (50 por defecto). */
   getByPatient(
     tenantId: string,
     patientId: string,
     from?: string,
     to?: string,
-    status?: string
-  ): Observable<AppointmentDto[]> {
-    let params = new HttpParams();
+    status?: string,
+    page = 0,
+    size = DEFAULT_PAGE_SIZE,
+    sort: string[] = ['startTime,DESC']
+  ): Observable<Page<AppointmentDto>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    sort.forEach(value => params = params.append('sort', value));
     if (from) params = params.set('from', from);
     if (to) params = params.set('to', to);
     if (status) params = params.set('status', status);
-    return this.http.get<AppointmentDto[]>(
+    return this.http.get<Page<AppointmentDto>>(
       `${this.endpoint(tenantId)}/patient/${patientId}`,
       { params }
     );

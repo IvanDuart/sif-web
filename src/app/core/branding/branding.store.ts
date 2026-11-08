@@ -72,7 +72,7 @@ export class BrandingStore {
     if (this.nutrientsRequested) return;
     this.nutrientsRequested = true;
     this.foodService.listNutrients(tenantId).subscribe({
-      next: list => this.nutrients.set(list ?? []),
+      next: result => this.nutrients.set(result?.content ?? []),
       error: () => {
         // Sin catálogo se cae a los códigos crudos; no merece molestar al usuario.
         this.nutrientsRequested = false;

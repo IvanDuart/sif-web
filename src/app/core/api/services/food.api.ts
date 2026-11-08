@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { FoodDto, FoodSearchResultDto, NutrientDto, NutrientMap } from '../models/food.model';
+import { DEFAULT_PAGE_SIZE, Page } from '../models/page.model';
 import { normalizeRecipe } from '../models/meal-normalizers';
 import { map } from 'rxjs/operators';
 import { ConfigService } from '../../config/config.service';
@@ -38,9 +39,26 @@ export class FoodService {
     })));
   }
 
-  /** Catálogo de nutrientes (código, nombre, unidad, grupo). Pedirlo una vez y cachear. */
-  listNutrients(tenantId: string): Observable<NutrientDto[]> {
-    return this.http.get<NutrientDto[]>(`${this.baseUrl}/tenant/${tenantId}/food/nutrient`);
+  /**
+   * Catálogo de nutrientes (código, nombre, unidad, grupo). Pedirlo una vez y
+   * cachear. Está paginado (`PagedModel`, 50 por defecto): el catálogo completo
+   * real es pequeño y suele caber en la primera página.
+   */
+  listNutrients(
+    tenantId: string,
+    page = 0,
+    size = DEFAULT_PAGE_SIZE,
+    sort: string[] = ['sortOrder,ASC']
+  ): Observable<Page<NutrientDto>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    sort.forEach(value => params = params.append('sort', value));
+
+    return this.http.get<Page<NutrientDto>>(
+      `${this.baseUrl}/tenant/${tenantId}/food/nutrient`,
+      { params }
+    );
   }
 
   /** Crea un alimento propio del centro. Devuelve el mismo `FoodDto` que el buscador. */

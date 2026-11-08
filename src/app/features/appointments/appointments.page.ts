@@ -538,7 +538,7 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
       .getByPatient(tenantId, patient.id, from.toISOString(), to.toISOString())
       .subscribe({
         next: (appointments) => {
-          const next = (appointments || [])
+          const next = (appointments?.content ?? [])
             .filter((a) => a.status === 'SCHEDULED' || a.status === 'PROPOSED')
             .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())[0];
 
@@ -586,7 +586,7 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
     this.loadingToday.set(true);
     this.appointmentService.getByNutritionist(tenantId, this.currentUserId(), this.todayStart, this.todayEnd).subscribe({
       next: (res) => {
-        this.todayAppointments.set(res || []);
+        this.todayAppointments.set(res?.content ?? []);
         this.loadingToday.set(false);
       },
       error: () => this.loadingToday.set(false)
@@ -600,7 +600,7 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
     this.loadingWeek.set(true);
     this.appointmentService.getByNutritionist(tenantId, userId, this.weekStart, this.weekEnd).subscribe({
       next: (res) => {
-        this.weekAppointments.set(res || []);
+        this.weekAppointments.set(res?.content ?? []);
         this.buildCalendarEvents();
         this.loadingWeek.set(false);
       },
@@ -621,7 +621,7 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
 
     this.calendarNoteService.list(tenantId, this.weekStart, this.weekEnd).subscribe({
       next: (res) => {
-        const notes = clipToRange(res || [], this.weekStart, this.weekEnd);
+        const notes = clipToRange(res?.content ?? [], this.weekStart, this.weekEnd);
         this.weekNotes.set(notes);
         // El formulario de cita valida contra los bloqueos antes de enviar; sin
         // esto solo se enteraría por el `409` del backend.

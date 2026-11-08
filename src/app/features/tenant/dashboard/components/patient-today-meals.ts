@@ -92,8 +92,8 @@ export class PatientTodayMeals implements OnInit {
 
     this.loading.set(true);
     this.menuService.history(tenantId, userId).subscribe({
-      next: (menus) => {
-        const activeMenu = (menus || []).find(m => m.isActive || m.active);
+      next: (result) => {
+        const activeMenu = (result?.content ?? []).find(m => m.isActive || m.active);
         if (!activeMenu) {
           this.loading.set(false);
           return;
@@ -104,8 +104,8 @@ export class PatientTodayMeals implements OnInit {
           this.loading.set(false);
         } else {
           this.mealService.getByMenuId(tenantId, activeMenu.id).subscribe({
-            next: (meals) => {
-              this.filterMealsForToday(meals || []);
+            next: (result) => {
+              this.filterMealsForToday(result?.content ?? []);
               this.loading.set(false);
             },
             error: () => this.loading.set(false)

@@ -61,9 +61,10 @@ export interface AppNotification {
  *   suscriben a `notifications$`; no hay una conexión por pantalla.
  * - **El evento ya trae el texto que se muestra**, no es una señal para
  *   recargar. `data` sigue sirviendo para refrescar la vista afectada.
- * - **Es efímero**: lo emitido con la web cerrada se pierde y no hay historial
- *   ni replay. Por eso `reconnected$` avisa tras recuperar la conexión, para
- *   que las pantallas abiertas se refresquen por REST y tapen el hueco.
+ * - **Replay al reconectar**: el canal recuerda el último `id` recibido y lo
+ *   envía como `Last-Event-ID`, así que el backend retransmite lo perdido
+ *   durante la desconexión. `reconnected$` sigue avisando para que las
+ *   pantallas abiertas se refresquen por REST por si acaso.
  *
  * Los avisos de otro centro se descartan: el canal es multicentro pero la
  * sesión no (cambiar de tenant recarga la página), así que un aviso de otro

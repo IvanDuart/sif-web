@@ -213,8 +213,8 @@ export default class MenuDetailPage implements OnInit, OnDestroy {
           this.loading.set(false);
         } else {
           this.mealService.getByMenuId(tenantId, this.menuId).subscribe({
-            next: (mealsList) => {
-              this.meals.set(mealsList || []);
+            next: (result) => {
+              this.meals.set(result?.content ?? []);
               this.loading.set(false);
             },
             error: () => this.loading.set(false)
@@ -236,7 +236,7 @@ export default class MenuDetailPage implements OnInit, OnDestroy {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
     this.mealService.getByMenuId(tenantId, this.menuId).subscribe({
-      next: mealsList => this.meals.set(mealsList || []),
+      next: result => this.meals.set(result?.content ?? []),
     });
   }
 
@@ -598,14 +598,15 @@ export default class MenuDetailPage implements OnInit, OnDestroy {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
     this.downloadingPdf.set(true);
+    // El endpoint ya no devuelve bytes: entrega una URL prefirmada de MinIO.
     this.menuService.getPdf(tenantId, this.menuId).subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
+      next: (pdf) => {
         const anchor = document.createElement('a');
-        anchor.href = url;
+        anchor.href = pdf.url;
+        anchor.target = '_blank';
+        anchor.rel = 'noopener';
         anchor.download = 'menu.pdf';
         anchor.click();
-        URL.revokeObjectURL(url);
         this.downloadingPdf.set(false);
       },
       error: () => this.downloadingPdf.set(false)
@@ -616,20 +617,11 @@ export default class MenuDetailPage implements OnInit, OnDestroy {
     const tenantId = this.tenantCtx.currentTenantId();
     if (!tenantId) return;
     this.printingPdf.set(true);
+    // La URL es de otro origen (MinIO), así que no se puede imprimir desde un
+    // iframe: se abre en una pestaña y el usuario lanza la impresión allí.
     this.menuService.getPdf(tenantId, this.menuId).subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = url;
-        document.body.appendChild(iframe);
-        iframe.addEventListener('load', () => {
-          iframe.contentWindow?.print();
-          setTimeout(() => {
-            document.body.removeChild(iframe);
-            URL.revokeObjectURL(url);
-          }, 1000);
-        });
+      next: (pdf) => {
+        window.open(pdf.url, '_blank', 'noopener');
         this.printingPdf.set(false);
       },
       error: () => this.printingPdf.set(false)

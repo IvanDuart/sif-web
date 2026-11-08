@@ -63,9 +63,9 @@ export class PatientNextAppointment implements OnInit {
 
     this.loading.set(true);
     this.appointmentService.getByPatient(tenantId, userId).subscribe({
-      next: (appointments) => {
+      next: (result) => {
         const now = new Date();
-        const future = (appointments || [])
+        const future = (result?.content ?? [])
           .filter(a => (a.status === 'SCHEDULED' || a.status === 'PROPOSED') && new Date(a.startTime) > now)
           .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
