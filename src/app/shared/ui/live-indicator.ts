@@ -23,7 +23,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       padding: 3px 9px 3px 7px;
       border-radius: var(--r-pill);
       background: var(--primary-soft);
-      color: var(--primary);
+      color: var(--accent-text);
       font-size: 12px;
       font-weight: 500;
       line-height: 1;

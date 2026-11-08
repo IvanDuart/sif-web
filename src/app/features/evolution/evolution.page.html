@@ -14,7 +14,7 @@
       class="flex w-full flex-col divide-y divide-line overflow-hidden rounded-md border border-line bg-surface-0 dark:bg-surface-800 sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0 lg:w-auto"
     >
       <label class="flex min-w-0 flex-1 flex-col gap-0.5 px-3 py-2.5 sm:px-4 lg:w-[170px] lg:flex-none">
-        <span class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+        <span class="text-[11.5px] font-semibold uppercase tracking-wide text-surface-400">
           {{ t('common.from') }}
         </span>
         <tui-textfield class="w-full" tuiTextfieldSize="m">
@@ -29,7 +29,7 @@
         </tui-textfield>
       </label>
       <label class="flex min-w-0 flex-1 flex-col gap-0.5 px-3 py-2.5 sm:px-4 lg:w-[170px] lg:flex-none">
-        <span class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+        <span class="text-[11.5px] font-semibold uppercase tracking-wide text-surface-400">
           {{ t('common.to') }}
         </span>
         <tui-textfield class="w-full" tuiTextfieldSize="m">
@@ -93,7 +93,7 @@
     @if (loading()) {
       <div class="data-card">
         <div class="flex items-center justify-center py-12">
-          <i class="fa-solid fa-spinner fa-spin text-2xl text-primary-500" aria-hidden="true"></i>
+          <i class="fa-solid fa-spinner fa-spin text-2xl text-ink-accent" aria-hidden="true"></i>
         </div>
       </div>
     } @else if (rows().length === 0) {

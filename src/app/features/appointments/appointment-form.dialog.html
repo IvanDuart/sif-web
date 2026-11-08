@@ -38,7 +38,7 @@
 
           @if (isFirstConsultation()) {
             <div class="flex items-center gap-2 p-3 rounded bg-primary-50 dark:bg-primary-500/10 border border-primary-200 dark:border-primary-800">
-              <i class="fa-solid fa-user-plus text-primary-500"></i>
+              <i class="fa-solid fa-user-plus text-ink-accent"></i>
               <span class="text-sm text-primary-700 dark:text-primary-300">{{ t('appointments.first_consultation_hint') }}</span>
             </div>
           }
@@ -133,7 +133,7 @@
             <span>{{ t('appointments.agenda_hint') }}</span>
           </div>
         } @else if (isHolidayDate() || isClosedDate()) {
-          <div class="flex flex-1 flex-col items-center justify-center gap-2 py-10 text-center text-[13px] text-warn">
+          <div class="flex flex-1 flex-col items-center justify-center gap-2 py-10 text-center text-[13px] text-warn-text">
             <i class="fa-solid fa-calendar-xmark text-xl" aria-hidden="true"></i>
             <span>{{ t('appointments.agenda_closed') }}</span>
           </div>

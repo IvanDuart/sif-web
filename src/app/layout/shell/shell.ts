@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, NgZone, signal, viewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, NgZone, signal, viewChild, ElementRef, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterOutlet, RouterModule, Router } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -83,7 +83,7 @@ const SUPERADMIN_TENANT_PAGE = 50;
   templateUrl: './shell.html',
   styleUrls: ['./shell.scss']
 })
-export class Shell implements OnInit, OnDestroy {
+export class Shell implements OnInit, OnDestroy, AfterViewInit {
   private readonly overlayLayer = inject(OverlayLayerService);
   loading = globalLoadingSignal;
 
@@ -160,7 +160,9 @@ export class Shell implements OnInit, OnDestroy {
   readonly compactNav = signal(this.compactQuery?.matches ?? false);
 
   private readonly mobileMenuPanel = viewChild<ElementRef<HTMLElement>>('mobileMenuPanel');
+  private readonly moreButton = viewChild<ElementRef<HTMLButtonElement>>('moreButton');
   private dragging = false;
+  private dragPointerId = -1;
   private dragStartY = 0;
   private dragCurrentY = 0;
   private dragVelocity = 0;
@@ -175,6 +177,14 @@ export class Shell implements OnInit, OnDestroy {
       query.addEventListener('change', onChange);
       destroyRef.onDestroy(() => query.removeEventListener('change', onChange));
     }
+
+    // El panel «Más» es un modal real: bloquea el scroll del documento y
+    // devuelve el foco a la página al cerrarse (el resto del shell queda inert).
+    effect(() => {
+      const open = this.mobileMenuOpen();
+      document.documentElement.classList.toggle('mobile-menu-open', open);
+      document.body.classList.toggle('mobile-menu-open', open);
+    });
   }
 
   ngOnInit() {
@@ -192,6 +202,30 @@ export class Shell implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.notificationStream.disconnect();
+  }
+
+  ngAfterViewInit(): void {
+    this.watchDialogsForInert();
+  }
+
+  /**
+   * Cualquier diálogo de Taiga (los de `ModalService` y los `TuiConfirmService`)
+   * monta un `<tui-modal>` dentro de `<tui-popups>`. Mientras exista uno, el
+   * contenido de la app queda `inert`: el foco y el puntero no pueden escapar
+   * al fondo (p. ej. al lanzador de la mascota) y los lectores de pantalla no
+   * anuncian la página tapada.
+   */
+  private watchDialogsForInert(): void {
+    const root = document.querySelector('tui-root');
+    const popups = root?.querySelector('tui-popups');
+    const content = root?.querySelector<HTMLElement>(':scope > .t-root-content');
+    if (!popups || !content) return;
+
+    const sync = () => content.toggleAttribute('inert', !!popups.querySelector('tui-modal'));
+    const observer = new MutationObserver(sync);
+    observer.observe(popups, { childList: true });
+    sync();
+    this.destroyRef.onDestroy(() => observer.disconnect());
   }
 
   private loadSuperAdminTenants(): void {
@@ -488,12 +522,44 @@ export class Shell implements OnInit, OnDestroy {
     this.themeService.toggleColorScheme();
   }
 
-  toggleMobileMenu(): void {
-    this.mobileMenuOpen.update(v => !v);
+  /** Salta al contenido y coloca el foco real en `main` (no solo el scroll). */
+  skipToContent(event: Event): void {
+    event.preventDefault();
+    const main = document.getElementById('main-content');
+    if (!main) return;
+    main.focus({ preventScroll: false });
+    main.scrollIntoView({ block: 'start' });
   }
 
-  closeMobileMenu(): void {
+  toggleMobileMenu(): void {
+    const next = !this.mobileMenuOpen();
+    this.mobileMenuOpen.set(next);
+    if (next) {
+      this.focusMobileMenu();
+    } else {
+      this.restoreMobileMenuFocus();
+    }
+  }
+
+  closeMobileMenu(restoreFocus = false): void {
+    if (!this.mobileMenuOpen()) return;
     this.mobileMenuOpen.set(false);
+    if (restoreFocus) this.restoreMobileMenuFocus();
+  }
+
+  /** El foco entra en la hoja al abrirla, no se queda en el botón que la abre. */
+  private focusMobileMenu(): void {
+    requestAnimationFrame(() => {
+      const panel = this.mobileMenuPanel()?.nativeElement;
+      if (!panel) return;
+      const first = panel.querySelector<HTMLElement>('a[href], button:not(:disabled)');
+      (first ?? panel).focus();
+    });
+  }
+
+  /** Al cerrar sin navegar, el foco vuelve a «Más» (ya sin `inert`). */
+  private restoreMobileMenuFocus(): void {
+    requestAnimationFrame(() => this.moreButton()?.nativeElement.focus());
   }
 
   private prefersReducedMotion(): boolean {
@@ -501,9 +567,10 @@ export class Shell implements OnInit, OnDestroy {
   }
 
   onMobileMenuDragStart(event: PointerEvent): void {
-    if (this.prefersReducedMotion()) return;
+    if (this.prefersReducedMotion() || this.dragging || !event.isPrimary) return;
     (event.target as HTMLElement).setPointerCapture(event.pointerId);
     this.dragging = true;
+    this.dragPointerId = event.pointerId;
     this.dragStartY = event.clientY;
     this.dragCurrentY = 0;
     this.dragVelocity = 0;
@@ -511,7 +578,7 @@ export class Shell implements OnInit, OnDestroy {
   }
 
   onMobileMenuDragMove(event: PointerEvent): void {
-    if (!this.dragging) return;
+    if (!this.dragging || event.pointerId !== this.dragPointerId) return;
     const panel = this.mobileMenuPanel()?.nativeElement;
     if (!panel) return;
 
@@ -532,9 +599,11 @@ export class Shell implements OnInit, OnDestroy {
     panel.style.transform = `translateY(${delta}px)`;
   }
 
-  onMobileMenuDragEnd(): void {
+  onMobileMenuDragEnd(event?: PointerEvent): void {
     if (!this.dragging) return;
+    if (event && event.pointerId !== this.dragPointerId) return;
     this.dragging = false;
+    this.dragPointerId = -1;
     const panel = this.mobileMenuPanel()?.nativeElement;
     if (!panel) return;
 
@@ -546,7 +615,21 @@ export class Shell implements OnInit, OnDestroy {
     animate(panel, { y: target }, { type: 'spring', bounce: 0.2, duration: 0.4, velocity: this.dragVelocity })
       .then(() => {
         panel.style.transform = '';
-        if (dismiss) this.closeMobileMenu();
+        if (dismiss) this.closeMobileMenu(true);
       });
+  }
+
+  /**
+   * El gesto se interrumpió (segundo dedo, `pointercancel`, captura perdida o
+   * la ventana perdió el foco): se limpia el estado y la hoja vuelve a su sitio
+   * sin cerrarse. La siguiente pulsación funciona con normalidad.
+   */
+  onMobileMenuDragCancel(event?: PointerEvent): void {
+    if (!this.dragging) return;
+    if (event && event.pointerId !== this.dragPointerId) return;
+    this.dragging = false;
+    this.dragPointerId = -1;
+    const panel = this.mobileMenuPanel()?.nativeElement;
+    if (panel) panel.style.transform = '';
   }
 }

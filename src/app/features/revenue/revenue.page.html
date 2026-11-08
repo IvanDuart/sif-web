@@ -64,7 +64,7 @@
   </div>
 
   @if (seriesCapped() && !loading()) {
-    <p class="inline-flex items-center gap-2 text-xs text-warn">
+    <p class="inline-flex items-center gap-2 text-xs text-warn-text">
       <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
       {{ t('revenue.series_capped', { count: bucketCount() }) }}
     </p>
@@ -83,7 +83,7 @@
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="data-card p-4">
             <p class="text-xs text-surface-400">{{ t('revenue.kpi_revenue') }}</p>
-            <p class="text-2xl lg:text-3xl font-display font-bold text-primary-600 dark:text-primary-400 mt-2 tabular-nums">
+            <p class="text-2xl lg:text-3xl font-display font-bold text-ink-accent dark:text-primary-400 mt-2 tabular-nums">
               {{ formatCurrency(revenue()!.total) }}
             </p>
           </div>
@@ -200,7 +200,7 @@
         <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
           <div class="data-card p-4">
             <p class="text-xs text-surface-400">{{ t('revenue.kpi_attendance_rate') }}</p>
-            <p class="text-2xl lg:text-3xl font-display font-bold text-primary-600 dark:text-primary-400 mt-2 tabular-nums">
+            <p class="text-2xl lg:text-3xl font-display font-bold text-ink-accent dark:text-primary-400 mt-2 tabular-nums">
               {{ formatPercent(attendance()!.attendanceRate) }}
             </p>
           </div>
@@ -218,7 +218,7 @@
           </div>
           <div class="data-card p-4">
             <p class="text-xs text-surface-400">{{ t('revenue.kpi_no_show') }}</p>
-            <p class="text-2xl lg:text-3xl font-display font-bold text-err mt-2 tabular-nums">
+            <p class="text-2xl lg:text-3xl font-display font-bold text-err-text mt-2 tabular-nums">
               {{ formatNumber(attendance()!.noShow) }}
             </p>
           </div>
@@ -230,7 +230,7 @@
           </div>
           <div class="data-card p-4">
             <p class="text-xs text-surface-400">{{ t('revenue.kpi_cancelled_late') }}</p>
-            <p class="text-2xl lg:text-3xl font-display font-bold text-warn mt-2 tabular-nums">
+            <p class="text-2xl lg:text-3xl font-display font-bold text-warn-text mt-2 tabular-nums">
               {{ formatNumber(attendance()!.cancelledLate) }}
             </p>
           </div>
@@ -309,22 +309,22 @@
           @if (hasOutcomes()) {
             <div class="flex h-9 rounded-sm overflow-hidden mt-4 border border-line">
               <span
-                class="grid place-items-center text-xs font-medium text-white min-w-0 overflow-hidden whitespace-nowrap bg-primary-500"
+                class="grid place-items-center text-xs font-medium text-primary-contrast-color min-w-0 overflow-hidden whitespace-nowrap bg-primary-500"
                 [style.width.%]="outcomeShare(attendance()!.attended)">
                 {{ formatNumber(attendance()!.attended) }}
               </span>
               <span
-                class="grid place-items-center text-xs font-medium text-ink min-w-0 overflow-hidden whitespace-nowrap bg-surface-300"
+                class="grid place-items-center text-xs font-medium text-surface-900 min-w-0 overflow-hidden whitespace-nowrap bg-surface-300"
                 [style.width.%]="outcomeShare(attendance()!.cancelledInTime)">
                 {{ formatNumber(attendance()!.cancelledInTime) }}
               </span>
               <span
-                class="grid place-items-center text-xs font-medium text-white min-w-0 overflow-hidden whitespace-nowrap bg-warn"
+                class="grid place-items-center text-xs font-medium text-warn-contrast min-w-0 overflow-hidden whitespace-nowrap bg-warn"
                 [style.width.%]="outcomeShare(attendance()!.cancelledLate)">
                 {{ formatNumber(attendance()!.cancelledLate) }}
               </span>
               <span
-                class="grid place-items-center text-xs font-medium text-white min-w-0 overflow-hidden whitespace-nowrap bg-err"
+                class="grid place-items-center text-xs font-medium text-err-contrast min-w-0 overflow-hidden whitespace-nowrap bg-err"
                 [style.width.%]="outcomeShare(attendance()!.noShow)">
                 {{ formatNumber(attendance()!.noShow) }}
               </span>

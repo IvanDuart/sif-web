@@ -14,16 +14,16 @@
   <!-- ═══════════ Nav + sección (maestro-detalle) ═══════════ -->
   <div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-[236px_minmax(0,1fr)]">
     <nav
-      class="flex gap-1 overflow-x-auto pb-1 lg:sticky lg:top-6 lg:flex-col lg:gap-0.5 lg:overflow-visible lg:pb-0"
+      class="flex flex-wrap gap-1 pb-1 lg:sticky lg:top-6 lg:flex-col lg:gap-0.5 lg:pb-0"
       [attr.aria-label]="t('menu.settings')"
     >
-      <p class="hidden px-3 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-surface-400 lg:block">
+      <p class="hidden px-3 pb-1.5 pt-1 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-surface-400 lg:block">
         {{ t('settings.nav_group') }}
       </p>
 
       <button
         type="button"
-        class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 text-[14px] transition-colors lg:w-full"
+        class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 min-h-11 text-[14px] transition-colors lg:w-full"
         [class]="activeTab === 0
           ? 'bg-brand-tint-10 font-medium text-primary-700 dark:text-primary-300'
           : 'text-surface-600 hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-800'"
@@ -36,7 +36,7 @@
 
       <button
         type="button"
-        class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 text-[14px] transition-colors lg:w-full"
+        class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 min-h-11 text-[14px] transition-colors lg:w-full"
         [class]="activeTab === 1
           ? 'bg-brand-tint-10 font-medium text-primary-700 dark:text-primary-300'
           : 'text-surface-600 hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-800'"
@@ -50,7 +50,7 @@
 
       <button
         type="button"
-        class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 text-[14px] transition-colors lg:w-full"
+        class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 min-h-11 text-[14px] transition-colors lg:w-full"
         [class]="activeTab === 2
           ? 'bg-brand-tint-10 font-medium text-primary-700 dark:text-primary-300'
           : 'text-surface-600 hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-800'"
@@ -64,7 +64,7 @@
 
       <button
         type="button"
-        class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 text-[14px] transition-colors lg:w-full"
+        class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 min-h-11 text-[14px] transition-colors lg:w-full"
         [class]="activeTab === 3
           ? 'bg-brand-tint-10 font-medium text-primary-700 dark:text-primary-300'
           : 'text-surface-600 hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-800'"
@@ -79,7 +79,7 @@
       <button
         *appIfPermission="'MANAGE_TENANT'"
         type="button"
-        class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 text-[14px] transition-colors lg:w-full"
+        class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 min-h-11 text-[14px] transition-colors lg:w-full"
         [class]="activeTab === 4
           ? 'bg-brand-tint-10 font-medium text-primary-700 dark:text-primary-300'
           : 'text-surface-600 hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-800'"
@@ -93,7 +93,7 @@
       @if (exchangeEnabled()) {
         <button
           type="button"
-          class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 text-[14px] transition-colors lg:w-full"
+          class="flex shrink-0 items-center gap-3 rounded-sm px-3 py-2.5 min-h-11 text-[14px] transition-colors lg:w-full"
           [class]="activeTab === 5
             ? 'bg-brand-tint-10 font-medium text-primary-700 dark:text-primary-300'
             : 'text-surface-600 hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-800'"

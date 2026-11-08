@@ -36,6 +36,12 @@ export default class RecipeDetailPage implements OnInit {
   readonly uploading = signal(false);
   readonly cloning = signal(false);
   readonly recipeId = signal('');
+  /** Raciones de la receta tal y como vienen del servidor (base del escalado). */
+  readonly recipeServings = signal(1);
+  /** Raciones elegidas por el paciente/nutricionista con el selector - / +. */
+  readonly selectedServings = signal(1);
+  /** `?servings=X` de la URL: raciones pautadas al abrir desde una comida. */
+  private requestedServings: number | null = null;
 
   readonly isPublic = computed(() => this.recipe()?.scope === 'PUBLIC');
   readonly canManage = computed(
@@ -49,6 +55,8 @@ export default class RecipeDetailPage implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
     this.recipeId.set(id);
+    const servingsParam = Number(this.route.snapshot.queryParamMap.get('servings'));
+    this.requestedServings = Number.isFinite(servingsParam) && servingsParam > 0 ? servingsParam : null;
     this.load();
   }
 
@@ -61,6 +69,11 @@ export default class RecipeDetailPage implements OnInit {
     this.loading.set(true);
     this.recipeService.getById(tenantId, this.recipeId()).subscribe({
       next: (recipe) => {
+        const base = recipe.servings && recipe.servings > 0 ? recipe.servings : 1;
+        this.recipeServings.set(base);
+        this.selectedServings.set(this.requestedServings ?? base);
+        // Consumido: los refrescos posteriores respetan lo que elija el usuario.
+        this.requestedServings = null;
         this.recipe.set(recipe);
         this.loading.set(false);
       },
@@ -74,6 +87,37 @@ export default class RecipeDetailPage implements OnInit {
   coverUrl(recipe: RecipeDto): string | null {
     const cover = recipe.images?.find((image) => image.cover);
     return cover?.url ?? recipe.images?.[0]?.url ?? null;
+  }
+
+  /** Factor de escalado por personas. */
+  readonly scaleFactor = computed(() => this.selectedServings() / (this.recipeServings() || 1));
+
+  incrementServings(): void {
+    this.selectedServings.update((value) => Math.min(99, value + 1));
+  }
+
+  decrementServings(): void {
+    this.selectedServings.update((value) => Math.max(1, value - 1));
+  }
+
+  /** Gramos escalados por el número de personas. */
+  scaledQuantityG(quantityG: number | null | undefined): number | null {
+    if (quantityG === null || quantityG === undefined) return null;
+    return Math.round(quantityG * this.scaleFactor());
+  }
+
+  /**
+   * Medida casera escalada. Sólo se multiplica si empieza por un número
+   * ("2 unidades" → "4 unidades"); textos como "al gusto" se quedan igual.
+   */
+  scaledHouseholdMeasure(measure: string | null | undefined): string | null {
+    if (!measure) return null;
+    const match = /^(\d+(?:[.,]\d+)?)(.*)$/.exec(measure.trim());
+    if (!match) return measure;
+    const amount = Number(match[1].replace(',', '.')) * this.scaleFactor();
+    const rounded = Math.round(amount * 10) / 10;
+    const text = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+    return `${text}${match[2]}`;
   }
 
   sortedSteps(recipe: RecipeDto) {

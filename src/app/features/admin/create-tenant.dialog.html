@@ -1,5 +1,17 @@
 <div *transloco="let t" class="w-full">
   <form (ngSubmit)="save()" class="flex flex-col gap-4 mt-2">
+    @if (geoError()) {
+      <div
+        role="alert"
+        class="flex flex-wrap items-center gap-2 rounded-md bg-err-soft px-3 py-2 text-[13px] text-err-text"
+      >
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+        <span>{{ t('settings.address_geo_error') }}</span>
+        <button tuiButton appearance="flat" size="xs" type="button" (click)="retryGeo()">
+          {{ t('common.retry') }}
+        </button>
+      </div>
+    }
     <tui-textfield class="w-full">
       <label tuiLabel for="name">{{ t('admin.dialog_name') }} *</label>
       <input tuiInput id="name" [(ngModel)]="name" name="name" [placeholder]="t('admin.dialog_name_placeholder')" required />
@@ -25,26 +37,26 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <tui-textfield tuiChevron>
         <label tuiLabel for="country">{{ t('admin.dialog_country') }}</label>
-        <input tuiComboBox id="country" [(ngModel)]="countryDisplay" (ngModelChange)="onCountryChange()" name="country" />
+        <input tuiComboBox id="country" [(ngModel)]="countryDisplay" (ngModelChange)="onCountryChange()" name="country" [disabled]="geoLoading() || geoError()" />
         <tui-data-list-wrapper *tuiDropdown [items]="countryLabels() | tuiFilterByInput" />
       </tui-textfield>
 
       <tui-textfield tuiChevron>
         <label tuiLabel for="state">{{ t('admin.dialog_state') }}</label>
-        <input tuiComboBox id="state" [(ngModel)]="stateDisplay" (ngModelChange)="onStateChange()" name="state" [disabled]="!countryDisplay" />
+        <input tuiComboBox id="state" [(ngModel)]="stateDisplay" (ngModelChange)="onStateChange()" name="state" [disabled]="geoError() || !countryDisplay" />
         <tui-data-list-wrapper *tuiDropdown [items]="stateLabels() | tuiFilterByInput" />
       </tui-textfield>
 
       <tui-textfield tuiChevron>
         <label tuiLabel for="city">{{ t('admin.dialog_city') }}</label>
-        <input tuiComboBox id="city" [(ngModel)]="cityDisplay" name="city" [disabled]="!stateDisplay" />
+        <input tuiComboBox id="city" [(ngModel)]="cityDisplay" name="city" (focus)="loadCitiesIfNeeded()" [disabled]="geoError() || !stateDisplay" />
         <tui-data-list-wrapper *tuiDropdown [items]="cityLabels() | tuiFilterByInput" />
       </tui-textfield>
     </div>
 
     <div class="mt-2 p-4 rounded-lg bg-brand-tint-08 border border-brand-tint-20">
       <div class="flex items-start gap-3">
-        <i class="fa-solid fa-circle-info mt-1 text-primary-500"></i>
+        <i class="fa-solid fa-circle-info mt-1 text-ink-accent"></i>
         <div>
           <p class="text-sm font-semibold text-surface-800 dark:text-surface-200 mb-1">{{ t('admin.dialog_info_title') }}</p>
           <p class="text-xs text-surface-500 leading-relaxed">{{ t('admin.dialog_info') }}</p>

@@ -6,9 +6,11 @@ const surface = {
   50: '#fbfaf8',
   100: '#f4f2ee',
   200: '#eae7e1',
+  // 400/500 son niveles de TEXTO: se enlazan a los tokens semánticos para que
+  // hereden el modo oscuro. Antes eran hex fijos y #6b665e caía a 2.8:1 en dark.
   300: '#d8d4cc',
-  400: '#9a958c',
-  500: '#6b665e',
+  400: 'var(--ink-3)',
+  500: 'var(--ink-2)',
   600: '#55504a',
   700: '#3a3631',
   800: '#2a2723',
@@ -44,6 +46,7 @@ module.exports = {
           DEFAULT: 'var(--ink)',
           2: 'var(--ink-2)',
           3: 'var(--ink-3)',
+          accent: 'var(--accent-text)',
         },
         accent: {
           DEFAULT: 'var(--accent)',
@@ -52,14 +55,19 @@ module.exports = {
         ok: {
           DEFAULT: 'var(--ok)',
           soft: 'var(--ok-soft)',
+          text: 'var(--ok-text)',
         },
         warn: {
           DEFAULT: 'var(--warn)',
           soft: 'var(--warn-soft)',
+          text: 'var(--warn-text)',
+          contrast: 'var(--on-warn)',
         },
         err: {
           DEFAULT: 'var(--err)',
           soft: 'var(--err-soft)',
+          text: 'var(--err-text)',
+          contrast: 'var(--on-err)',
         },
         info: 'var(--info)',
         primary: {

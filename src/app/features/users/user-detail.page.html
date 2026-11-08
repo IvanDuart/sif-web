@@ -1,7 +1,7 @@
 <div class="space-y-6 pb-4" *transloco="let t">
   <!-- Miga de pan -->
   <nav class="flex items-center gap-2 text-[13px] text-surface-400" [attr.aria-label]="t('patients.title')">
-    <a class="transition-colors hover:text-primary-600 dark:hover:text-primary-300" [routerLink]="backRoute">
+    <a class="transition-colors hover:text-ink-accent dark:hover:text-primary-300" [routerLink]="backRoute">
       {{ t('patients.back_to_list') }}
     </a>
     <i class="fa-solid fa-chevron-right text-[10px]" aria-hidden="true"></i>
@@ -139,7 +139,7 @@
 
       @if (isClinicalReadOnly()) {
         <div class="flex items-start gap-3 rounded-md border border-warn bg-warn-soft px-4 py-3 text-sm text-surface-700 dark:text-surface-200">
-          <i class="fa-solid fa-lock mt-0.5 text-warn" aria-hidden="true"></i>
+          <i class="fa-solid fa-lock mt-0.5 text-warn-text" aria-hidden="true"></i>
           <p>{{ t('clinical_status.read_only_notice') }}</p>
         </div>
       }
@@ -315,7 +315,7 @@
                     </div>
                   }
                   @if (symmetryAlert()) {
-                    <div class="flex items-start gap-2.5 rounded-sm bg-warn-soft px-3.5 py-3 text-[13px] leading-relaxed text-warn">
+                    <div class="flex items-start gap-2.5 rounded-sm bg-warn-soft px-3.5 py-3 text-[13px] leading-relaxed text-warn-text">
                       <i class="fa-solid fa-triangle-exclamation mt-0.5 shrink-0" aria-hidden="true"></i>
                       <div>{{ t('users.situation_asymmetry') }}</div>
                     </div>
@@ -490,7 +490,7 @@
                                       <i class="fa-solid fa-pen mr-2" aria-hidden="true"></i>
                                       {{ t('common.edit') }}
                                     </button>
-                                    <button tuiOption type="button" class="text-err" (click)="deleteMeasurement(m)">
+                                    <button tuiOption type="button" class="text-err-text" (click)="deleteMeasurement(m)">
                                       <i class="fa-solid fa-trash mr-2" aria-hidden="true"></i>
                                       {{ t('common.delete') }}
                                     </button>
@@ -808,6 +808,7 @@
 
                 <div class="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr]">
                   <div>
+                    <!-- impeccable-disable tiny-text -- SVG: viewBox 140×230 se pinta a 220px, así que 9u ≈ 14 CSS px -->
                     <svg class="mx-auto block w-full max-w-[220px]" viewBox="0 0 140 230" role="img" [attr.aria-label]="t('measurements.segmental_analysis_title')">
                       <circle cx="70" cy="20" r="13" class="fill-surface-300 dark:fill-surface-700"></circle>
                       @for (seg of segmentalFigure(); track seg.id) {
@@ -874,7 +875,7 @@
                               <em
                                 class="ml-1.5 text-xs not-italic"
                                 [class.text-surface-400]="!seg.asymmetric"
-                                [class.text-err]="seg.asymmetric">{{ t(seg.diffLabelKey, { pct: seg.diffValue }) }}</em>
+                                [class.text-err-text]="seg.asymmetric">{{ t(seg.diffLabelKey, { pct: seg.diffValue }) }}</em>
                             }
                           </span>
                         </div>
@@ -889,7 +890,7 @@
                             [class.bg-ok-soft]="note.tone === 'ok'"
                             [class.text-ok]="note.tone === 'ok'"
                             [class.bg-err-soft]="note.tone === 'err'"
-                            [class.text-err]="note.tone === 'err'"
+                            [class.text-err-text]="note.tone === 'err'"
                             [class.bg-surface-100]="note.tone === 'info'"
                             [class.dark:bg-surface-800]="note.tone === 'info'"
                             [class.text-surface-600]="note.tone === 'info'"
@@ -949,7 +950,7 @@
                             {{ t('patient_profile.saved') }}
                           </span>
                         } @else if (saveStatus() === 'error') {
-                          <span class="flex items-center gap-1.5 text-err">
+                          <span class="flex items-center gap-1.5 text-err-text">
                             <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
                             {{ t('patient_profile.save_error') }}
                           </span>
@@ -1328,7 +1329,7 @@
                                     </button>
                                   }
                                   @if (canManageMenu() && !(menu.isActive || menu.active)) {
-                                    <button tuiOption type="button" class="text-err" (click)="deleteMenu(menu)">
+                                    <button tuiOption type="button" class="text-err-text" (click)="deleteMenu(menu)">
                                       <i class="fa-solid fa-trash mr-2" aria-hidden="true"></i>
                                       {{ t('common.delete') }}
                                     </button>
@@ -1401,7 +1402,7 @@
                         @if (canManageMenu() && !(menu.isActive || menu.active)) {
                           <button
                             tuiButton appearance="flat" size="s" type="button"
-                            class="text-err"
+                            class="text-err-text"
                             (click)="$event.stopPropagation(); deleteMenu(menu)"
                             [attr.title]="t('common.delete')" [attr.aria-label]="t('common.delete')"
                           >

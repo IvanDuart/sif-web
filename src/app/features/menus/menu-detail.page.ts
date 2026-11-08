@@ -353,6 +353,28 @@ export default class MenuDetailPage implements OnInit, OnDestroy {
     });
   }
 
+  /** Abre el diálogo de la comida para asignar receta, raciones o texto libre. */
+  editMealDialog(meal: Meal) {
+    this.modal.open<Meal, MealFormDialogInput>(MealFormDialog, {
+      label: this.transloco.translate('diet_detail.edit_meal'),
+      size: 'm',
+      data: { menuId: this.menuId, meal }
+    }).subscribe(result => {
+      if (result) {
+        this.markLocalMutation();
+        this.loadData();
+      }
+    });
+  }
+
+  /** Abre la receta asignada a la comida con sus raciones pautadas. */
+  openRecipe(meal: Meal) {
+    if (!meal.recipeId) return;
+    this.router.navigate(['/recipes', meal.recipeId], {
+      queryParams: { servings: meal.servings || 1 }
+    });
+  }
+
   getMeal(day: string, mealType: string): Meal | undefined {
     return this.groupedMeals().get(day)?.find(m => m.mealType === mealType);
   }
@@ -711,19 +733,15 @@ export default class MenuDetailPage implements OnInit, OnDestroy {
 
     // Una comida estructurada viaja como `items` y sin `description`: el servidor
     // la regenera, y mandar las dos perdería el texto enviado de todas formas.
-    const initialMeals: CreateMealTemplateRequest[] = currentMeals.map(meal =>
-      meal.items?.length
-        ? {
-            dayOfWeek: meal.dayOfWeek,
-            mealType: meal.mealType,
-            items: toMealItemRequests(meal.items),
-          }
-        : {
-            dayOfWeek: meal.dayOfWeek,
-            mealType: meal.mealType,
-            description: meal.description ?? '',
-          }
-    );
+    const initialMeals: CreateMealTemplateRequest[] = currentMeals.map(meal => ({
+      dayOfWeek: meal.dayOfWeek,
+      mealType: meal.mealType,
+      // La receta y sus raciones viajan con la comida al convertir el menú en plantilla.
+      ...(meal.recipeId ? { recipeId: meal.recipeId, servings: meal.servings ?? null } : {}),
+      ...(meal.items?.length
+        ? { items: toMealItemRequests(meal.items) }
+        : { description: meal.description ?? '' }),
+    }));
 
     const defaultName = `${currentMenu.name} - Plantilla`;
 

@@ -21,7 +21,9 @@
   --sunken: #f4f2ee;
   --line: #eae7e1;
   --line-strong: #d8d4cc;
-  --ink-3: #9a958c;
+  /* ink-3 es el nivel terciario de TEXTO: debe medir ≥4.5:1 sobre
+     canvas, surface y sunken. #6e6960 da 5.45 / 5.23 / 4.88. */
+  --ink-3: #6e6960;
   --ink-2: #6b665e;
   --ink: #1f1d1a;
 
@@ -29,7 +31,11 @@
   --primary: var(--brand-primary);
   --primary-hover: color-mix(in srgb, var(--brand-primary) 88%, black);
   --primary-soft: color-mix(in srgb, var(--brand-primary) 10%, white);
-  --accent: #c45608;
+  /* Texto de acento sobre superficies claras: ThemeService calcula por tenant
+     (--accent-text-light) hasta alcanzar 4.5:1 sobre el tint. El mix estático
+     es solo el fallback previo a la carga de la marca. */
+  --accent-text: var(--accent-text-light, var(--p-primary-700));
+  --accent: #b04a06;
   --accent-soft: #faf0ea;
 
   /* — Colores semánticos de estado (Guía §3) —
@@ -42,6 +48,14 @@
   --err: #b04a3e;
   --err-soft: #fbf0ee;
   --info: #3c6e96;
+  /* Texto de estado: variantes con contraste AA sobre su propio fondo suave
+     (--warn da 2.9:1 sobre --warn-soft; --err da 4.2:1 sobre --err-soft en oscuro). */
+  --ok-text: var(--ok);
+  --warn-text: #8a6414;
+  --err-text: var(--err);
+  /* Texto sobre rellenos sólidos de estado (barras de métricas). */
+  --on-warn: #1f1d1a;
+  --on-err: #ffffff;
 
   /* — Formas y sombra (Guía §3) — */
   --r-sm: 8px;
@@ -131,6 +145,10 @@
   --tui-text-primary: var(--ink);
   --tui-text-secondary: var(--ink-2);
   --tui-text-tertiary: var(--ink-3);
+  /* Texto sobre rellenos de acento (botones, chips, segmentados con
+     appearance="primary"). ThemeService calcula el color por tenant; sin este
+     puente Taiga pinta blanco fijo y un acento luminoso cae a 3.05:1. */
+  --tui-text-primary-on-accent-1: var(--p-primary-contrast-color);
   --tui-border: var(--line);
   --tui-border-normal: var(--line);
   --tui-border-hover: var(--line-strong);
@@ -174,7 +192,7 @@
   --sunken: #2b2927;
   --line: #38352f;
   --line-strong: #4a463f;
-  --ink-3: #8a857c;
+  --ink-3: #969188;
   --ink-2: #b4aea4;
   --ink: #f4f2ee;
 
@@ -182,6 +200,7 @@
   --primary: color-mix(in srgb, var(--brand-primary) 78%, white);
   --primary-hover: color-mix(in srgb, var(--brand-primary) 62%, white);
   --primary-soft: color-mix(in srgb, var(--brand-primary) 22%, var(--surface));
+  --accent-text: var(--accent-text-dark, var(--p-primary-300));
   --accent: #e08a5c;
   --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
 
@@ -193,6 +212,11 @@
   --err: #d98377;
   --err-soft: color-mix(in srgb, var(--err) 18%, var(--surface));
   --info: #7fadcf;
+  --ok-text: var(--ok);
+  --warn-text: #e3bf6d;
+  --err-text: #e59a8e;
+  --on-warn: #1f1d1a;
+  --on-err: #1f1d1a;
   --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.32), 0 8px 24px rgba(0, 0, 0, 0.36);
   --toast-bg: #0f0e0c;
   --toast-fg: #f4f2ee;
@@ -292,8 +316,8 @@ tui-dropdown.tui-leave {
   }
 }
 
-/* Headings — Source Serif 4 (Guía §4). Nunca fijan familia: heredan
-   de --font-display, de modo que un cambio de sistema editorial no
+/* Headings — Satoshi (variante c de la Guía §4). Nunca fijan familia:
+   heredan de --font-display, de modo que un cambio de sistema editorial no
    obligue a tocar cada título. */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
@@ -619,14 +643,14 @@ button[tuiButton][appearance="flat"]:not(:disabled) {
   
   &:hover {
     background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
-    color: var(--tui-primary);
+    color: var(--accent-text);
   }
 }
 
 /* Secondary buttons — tenant border + tint */
 button[tuiButton][appearance="secondary"]:not(:disabled) {
   border-color: var(--tui-primary);
-  color: var(--tui-primary);
+  color: var(--accent-text);
   
   &:hover {
     background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
@@ -735,7 +759,7 @@ button[tuiIconButton][appearance="flat"]:focus-visible {
 
   /* Text utilities for tenant-aware contrast */
   .text-brand-primary {
-    color: var(--tui-primary);
+    color: var(--accent-text);
   }
 }
 
@@ -754,7 +778,7 @@ button[tuiIconButton][appearance="flat"]:focus-visible {
   }
   
   .fc-day-today .fc-daygrid-day-number {
-    color: var(--tui-primary);
+    color: var(--accent-text);
     font-weight: 700;
   }
   
@@ -788,6 +812,13 @@ boneyard-skeleton {
    PHASE 4: MOBILE & TOUCH OPTIMIZATION
    ───────────────────────────────────────────── */
 
+/* El panel «Más» es modal: bloquea el scroll del documento mientras está
+   abierto (el fondo se marca `inert` desde el shell). */
+html.mobile-menu-open,
+body.mobile-menu-open {
+  overflow: hidden;
+}
+
 /* Touch targets >= 44×44px solo con puntero grueso (móvil/tablet). En
    escritorio manda la densidad de la Guía: los icon-buttons `s`/`xs` de
    tabla vuelven a su tamaño natural. */
@@ -800,6 +831,12 @@ boneyard-skeleton {
     align-items: center;
     justify-content: center;
     min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* El raíl compacto de tablet deja sólo iconos: cada destino sigue
+     necesitando una diana táctil cómoda. */
+  .side .nav-item {
     min-height: 44px;
   }
 }

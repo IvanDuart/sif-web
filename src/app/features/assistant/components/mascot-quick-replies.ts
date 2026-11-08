@@ -44,7 +44,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
       &:hover {
         border-color: var(--primary);
         background: var(--primary-soft);
-        color: var(--primary);
+        color: var(--accent-text);
       }
 
       &:focus-visible {

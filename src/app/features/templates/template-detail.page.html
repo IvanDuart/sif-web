@@ -2,7 +2,7 @@
   @if (template()) {
   <div class="space-y-6 pb-4" *transloco="let t">
     <div>
-      <a routerLink="/templates" class="mb-3 inline-flex items-center gap-1 text-[13px] text-surface-400 hover:text-primary-600 dark:hover:text-primary-300 transition-colors">
+      <a routerLink="/templates" class="mb-3 inline-flex items-center gap-1 text-[13px] text-surface-400 hover:text-ink-accent dark:hover:text-primary-300 transition-colors">
         <i class="fa-solid fa-arrow-left text-[10px]"></i> {{ t('template_detail.back') }}
       </a>
 
@@ -74,6 +74,8 @@
                         openId="meal-template"
                         (add)="addMeal(day, mealType)"
                         (edit)="onEditMeal(getMeal(day, mealType)!)"
+                        (openForm)="editMealDialog(getMeal(day, mealType)!)"
+                        (openRecipe)="openRecipe(getMeal(day, mealType)!)"
                         (remove)="deleteMeal(getMeal(day, mealType)!)"
                         (save)="saveInlineEdit(getMeal(day, mealType)!)"
                         (cancelEdit)="cancelInlineEdit()" />

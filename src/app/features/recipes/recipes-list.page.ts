@@ -148,7 +148,8 @@ export default class RecipesListPage implements OnInit {
     if (!file) return;
 
     const extension = file.name.split('.').pop()?.toLowerCase();
-    if (extension !== 'csv' && extension !== 'json') {
+    const allowedExtensions = ['csv', 'json', 'pdf', 'docx', 'doc', 'png', 'jpg', 'jpeg', 'webp'];
+    if (!extension || !allowedExtensions.includes(extension)) {
       this.notify.error(this.transloco.translate('recipes.import_invalid'));
       return;
     }

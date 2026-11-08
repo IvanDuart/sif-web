@@ -42,7 +42,7 @@
 
       <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div class="min-w-0">
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+          <p class="text-[11.5px] font-semibold uppercase tracking-wide text-surface-400">
             {{ t('admin.billing.customer_id') }}
           </p>
           <p class="mt-1 truncate font-mono text-[13px] text-surface-900 dark:text-surface-0">
@@ -50,7 +50,7 @@
           </p>
         </div>
         <div class="min-w-0">
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+          <p class="text-[11.5px] font-semibold uppercase tracking-wide text-surface-400">
             {{ t('admin.billing.subscription_id') }}
           </p>
           <p class="mt-1 truncate font-mono text-[13px] text-surface-900 dark:text-surface-0">
@@ -58,7 +58,7 @@
           </p>
         </div>
         <div class="min-w-0">
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+          <p class="text-[11.5px] font-semibold uppercase tracking-wide text-surface-400">
             {{ t('admin.billing.trial_ends') }}
           </p>
           <p class="mt-1 tabular-nums text-[13px] text-surface-900 dark:text-surface-0">
@@ -66,7 +66,7 @@
           </p>
         </div>
         <div class="min-w-0">
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+          <p class="text-[11.5px] font-semibold uppercase tracking-wide text-surface-400">
             {{ t('admin.billing.paid_until') }}
           </p>
           <p class="mt-1 tabular-nums text-[13px] text-surface-900 dark:text-surface-0">
@@ -74,7 +74,7 @@
           </p>
         </div>
         <div class="min-w-0">
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+          <p class="text-[11.5px] font-semibold uppercase tracking-wide text-surface-400">
             {{ t('admin.billing.grace_ends') }}
           </p>
           <p class="mt-1 tabular-nums text-[13px] text-surface-900 dark:text-surface-0">
@@ -82,7 +82,7 @@
           </p>
         </div>
         <div class="min-w-0">
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+          <p class="text-[11.5px] font-semibold uppercase tracking-wide text-surface-400">
             {{ t('admin.billing.suspended_at') }}
           </p>
           <p class="mt-1 tabular-nums text-[13px] text-surface-900 dark:text-surface-0">
@@ -132,7 +132,7 @@
         </tui-textfield>
 
         @if (form.errors?.['reasonRequired'] && form.touched) {
-          <p class="text-[13px] font-medium text-err">{{ t('admin.billing.reason_required_exempt') }}</p>
+          <p class="text-[13px] font-medium text-err-text">{{ t('admin.billing.reason_required_exempt') }}</p>
         }
 
         <p class="max-w-[70ch] text-[13px] leading-relaxed text-surface-500 dark:text-surface-400">

@@ -64,6 +64,10 @@ export class MealCell {
   draftChange = output<string>();
   add = output<void>();
   edit = output<void>();
+  /** Abre el diálogo de comida (receta, raciones y texto libre). */
+  openForm = output<void>();
+  /** Abre la receta asignada con las raciones pautadas. */
+  openRecipe = output<void>();
   remove = output<void>();
   save = output<void>();
   /** No se llama `cancel` a secas: choca con el evento nativo del DOM. */
@@ -82,6 +86,9 @@ export class MealCell {
   }
 
   readonly canSave = computed(() => !this.saving() && this.draft().trim().length > 0);
+
+  /** ¿La comida tiene una receta asignada? */
+  readonly hasRecipe = computed(() => !!this.meal()?.recipeId);
 
   /** ¿El borrador difiere del texto original? Evita un PATCH al salir sin cambios. */
   private readonly hasChanges = computed(() =>

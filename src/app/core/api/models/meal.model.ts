@@ -19,6 +19,12 @@ export interface Meal {
    * para recuperar los alimentos: para eso está `items`.
    */
   description: string | null;
+  /** Receta asignada a la comida, si la hay. */
+  recipeId?: string | null;
+  /** Nombre de la receta asignada, para pintarlo sin pedir el detalle. */
+  recipeName?: string | null;
+  /** Personas/raciones pautadas de la receta. */
+  servings?: number | null;
   /** Vacío en los centros en modo MANUAL. Viene ordenado por `sortOrder`. */
   items?: MealItem[];
 }

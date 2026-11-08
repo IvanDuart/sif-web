@@ -7,6 +7,7 @@
     "create": "Create",
     "actions": "Actions",
     "loading": "Loading...",
+    "retry": "Retry",
     "skip_to_content": "Skip to main content",
     "success": "Success",
     "error": "Error",
@@ -700,17 +701,17 @@
     "print_pdf": "Print",
     "download_pdf": "Download PDF",
     "deleted_remote": "This menu was deleted from another screen.",
-  "concurrency_conflict": "The menu or meal was modified by another professional. Reload the current version before saving again so you do not overwrite their changes.",
-  "reload_version": "Reload current version",
-  "exchanges": {
-    "title": "Rations & exchanges",
-    "hint": "Set the target rations per group. When syncing, ingredient grams are recalculated.",
-    "target_rations": "Rations",
-    "sync": "Sync grams",
-    "saved": "Rations saved and grams synced",
-    "save_error": "Could not save the rations",
-    "no_groups": "No exchange groups configured"
-  },
+    "concurrency_conflict": "The menu or meal was modified by another professional. Reload the current version before saving again so you do not overwrite their changes.",
+    "reload_version": "Reload current version",
+    "exchanges": {
+      "title": "Rations & exchanges",
+      "hint": "Set the target rations per group. When syncing, ingredient grams are recalculated.",
+      "target_rations": "Rations",
+      "sync": "Sync grams",
+      "saved": "Rations saved and grams synced",
+      "save_error": "Could not save the rations",
+      "no_groups": "No exchange groups configured"
+    },
     "live": "Live",
     "empty_title": "No meals assigned",
     "empty_description": "This diet doesn't have meals yet. Add the first one using the button above.",
@@ -732,7 +733,8 @@
       "almuerzo": "Mid-morning",
       "merienda": "Afternoon Snack",
       "media_manana": "Mid-morning Snack"
-    }
+    },
+    "edit_meal": "Edit meal"
   },
   "my_diet": {
     "title": "My Diet",
@@ -768,7 +770,8 @@
     "meal_types": {
       "lunch": "Lunch",
       "dinner": "Dinner"
-    }
+    },
+    "edit_meal": "Edit dish"
   },
   "calendar_notes": {
     "entry_type_label": "What do you want to create",
@@ -941,6 +944,7 @@
     "change": "Change",
     "address_tab": "Address",
     "address_subtitle": "Set the center's country, region and address. Country and region codes are used to import national holidays.",
+    "address_geo_error": "Could not load the country list. Check your connection and try again.",
     "address_country": "Country",
     "address_state": "State / Province",
     "address_city": "City",
@@ -1343,7 +1347,7 @@
     "import": "Import recipes",
     "import_success": "{{count}} recipes imported",
     "import_error": "Could not import the recipes",
-    "import_invalid": "Select a valid CSV or JSON file",
+    "import_invalid": "Select a valid CSV, JSON, PDF, Word or image file",
     "empty_title": "No recipes",
     "empty": "Create the clinic's first recipe or import an existing collection.",
     "no_results_title": "No results",
@@ -1361,6 +1365,10 @@
     "ingredients": "Ingredients",
     "food_search_placeholder": "Search food...",
     "quantity_g": "Quantity (g)",
+    "ingredient_measure": "Quantity or measure",
+    "ingredient_measure_placeholder": "E.g. 2 units, 1 tbsp...",
+    "add_free_text": "Add as free text",
+    "free_text_badge": "free text",
     "no_ingredients": "This recipe has no ingredients.",
     "steps": "Steps",
     "step_placeholder": "Write the steps, one per line",
@@ -1394,7 +1402,20 @@
     "back": "Back to recipes",
     "detail_not_found": "Recipe not found",
     "photos": "Photos",
-    "updated_at": "Updated"
+    "updated_at": "Updated",
+    "meal_recipe": "Recipe",
+    "no_recipe": "No recipe (free text)",
+    "view_recipe": "View recipe",
+    "assign_recipe": "Assign recipe",
+    "servings_short": "people",
+    "servings_persons": "People / servings",
+    "persons_count": "{{count}} people",
+    "add_person": "Add person",
+    "remove_person": "Remove person",
+    "target_type": "Assign to",
+    "target_menu": "Patient menu",
+    "target_template": "Menu template",
+    "select_template": "Template"
   },
   "exchange": {
     "title": "Exchange groups",

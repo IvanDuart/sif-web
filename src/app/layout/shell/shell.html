@@ -2,12 +2,17 @@
   <progress tuiProgressBar class="loading-bar" [attr.aria-label]="'shell.loading' | transloco"></progress>
 }
 
-<a href="#main-content" class="skip-to-content">{{ 'common.skip_to_content' | transloco }}</a>
+<a
+  href="#main-content"
+  class="skip-to-content"
+  [attr.inert]="mobileMenuOpen() ? '' : null"
+  (click)="skipToContent($event)"
+>{{ 'common.skip_to_content' | transloco }}</a>
 
 <div class="app-layout">
 
   <!-- ═══════════ Barra lateral (desktop / tablet) ═══════════ -->
-  <aside class="side" [attr.aria-label]="'shell.navigation' | transloco">
+  <aside class="side" [attr.aria-label]="'shell.navigation' | transloco" [attr.inert]="mobileMenuOpen() ? '' : null">
     <div class="brand">
       <a routerLink="/" class="brand-link" [attr.aria-label]="'shell.home' | transloco">
         @if (tenantLogoUrl() && !logoError()) {
@@ -41,8 +46,10 @@
           class="nav-item"
           [routerLink]="item.route"
           routerLinkActive="active-link"
+          #rlaSide="routerLinkActive"
           [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
           [attr.title]="compactNav() ? navLabel(item) : null"
+          [attr.aria-current]="rlaSide.isActive ? 'page' : null"
         >
           <i [class]="item.icon" aria-hidden="true"></i>
           <span class="nav-label">{{ navLabel(item) }}</span>
@@ -158,7 +165,7 @@
         <div class="flex items-center justify-between gap-3">
           <div class="menu-section-title">{{ 'notifications_inbox.title' | transloco }}</div>
           @if (unreadCount() > 0) {
-            <button type="button" class="text-[12px] font-medium text-primary-600 hover:underline" (click)="markAllNotificationsRead()">
+            <button type="button" class="text-[12px] font-medium text-ink-accent hover:underline" (click)="markAllNotificationsRead()">
               {{ 'notifications_inbox.mark_all_read' | transloco }}
             </button>
           }
@@ -170,13 +177,13 @@
             <p class="bell-empty">{{ 'common.loading' | transloco }}</p>
           }
           @for (item of mailboxItems(); track item.id) {
-            <div class="bell-item" [class.opacity-60]="item.readAt">
+            <div class="bell-item">
               <span class="bell-item-top">
                 <span class="bell-item-name">{{ item.title || item.type }}</span>
                 @if (!item.readAt) {
                   <span class="tag tag-proposed">{{ 'notifications_inbox.unread' | transloco }}</span>
                 } @else {
-                  <span class="text-[11px] text-surface-400">{{ 'notifications_inbox.read' | transloco }}</span>
+                  <span class="text-[11.5px] text-surface-400">{{ 'notifications_inbox.read' | transloco }}</span>
                 }
               </span>
               @if (item.body) {
@@ -190,7 +197,7 @@
                 @if (!item.readAt) {
                   <button
                     type="button"
-                    class="text-[11.5px] text-surface-500 hover:text-primary-600 dark:text-surface-400"
+                    class="text-[11.5px] text-surface-500 hover:text-ink-accent dark:text-surface-400"
                     (click)="markNotificationRead(item)"
                   >
                     {{ 'notifications_inbox.mark_read' | transloco }}
@@ -198,7 +205,7 @@
                 }
                 <button
                   type="button"
-                  class="text-[11.5px] font-medium text-primary-600 hover:underline"
+                  class="text-[11.5px] font-medium text-ink-accent hover:underline"
                   (click)="openMailboxNotification(item)"
                 >
                   {{ 'notifications_inbox.view' | transloco }}
@@ -240,7 +247,7 @@
   </aside>
 
   <!-- ═══════════ Cabecera móvil ═══════════ -->
-  <header class="mobile-bar">
+  <header class="mobile-bar" [attr.inert]="mobileMenuOpen() ? '' : null">
     <a routerLink="/" class="brand-link" [attr.aria-label]="'shell.home' | transloco">
       @if (tenantLogoUrl() && !logoError()) {
         <img [src]="tenantLogoUrl()" alt="" class="brand-logo" (error)="logoError.set(true)" />
@@ -265,19 +272,21 @@
   </header>
 
   <!-- ═══════════ Contenido ═══════════ -->
-  <main id="main-content" class="content-viewport">
+  <main id="main-content" class="content-viewport" tabindex="-1" [attr.inert]="mobileMenuOpen() ? '' : null">
     <app-billing-banner />
     <router-outlet></router-outlet>
   </main>
 
   <!-- ═══════════ Bottom navigation (móvil) ═══════════ -->
-  <nav class="bottom-nav" [attr.aria-label]="'shell.navigation' | transloco">
+  <nav class="bottom-nav" [attr.aria-label]="'shell.navigation' | transloco" [attr.inert]="mobileMenuOpen() ? '' : null">
     @for (item of bottomNavItems(); track item.route) {
       <a
         class="bottom-nav-item"
         [routerLink]="item.route"
         routerLinkActive="active-link"
+        #rlaBottom="routerLinkActive"
         [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+        [attr.aria-current]="rlaBottom.isActive ? 'page' : null"
       >
         <i [class]="item.icon" aria-hidden="true"></i>
         <span>{{ navLabel(item) }}</span>
@@ -285,10 +294,12 @@
     }
 
     <button
+      #moreButton
       type="button"
       class="bottom-nav-item"
       [attr.aria-expanded]="mobileMenuOpen()"
       aria-controls="mobile-menu"
+      aria-haspopup="dialog"
       (click)="toggleMobileMenu()"
     >
       <i class="fa-solid fa-bars" aria-hidden="true"></i>
@@ -303,7 +314,7 @@
   @if (mobileMenuOpen()) {
     <div
       class="mobile-overlay"
-      (click)="closeMobileMenu()"
+      (click)="closeMobileMenu(true)"
       aria-hidden="true"
       animate.enter="mobile-overlay-enter"
       animate.leave="mobile-overlay-leave"
@@ -314,8 +325,9 @@
       class="mobile-menu"
       role="dialog"
       aria-modal="true"
+      tabindex="-1"
       [attr.aria-label]="'shell.navigation' | transloco"
-      (document:keydown.escape)="closeMobileMenu()"
+      (document:keydown.escape)="closeMobileMenu(true)"
       animate.enter="mobile-menu-enter"
       animate.leave="mobile-menu-leave"
     >
@@ -324,8 +336,10 @@
         aria-hidden="true"
         (pointerdown)="onMobileMenuDragStart($event)"
         (pointermove)="onMobileMenuDragMove($event)"
-        (pointerup)="onMobileMenuDragEnd()"
-        (pointercancel)="onMobileMenuDragEnd()"
+        (pointerup)="onMobileMenuDragEnd($event)"
+        (pointercancel)="onMobileMenuDragCancel($event)"
+        (lostpointercapture)="onMobileMenuDragCancel($event)"
+        (window:blur)="onMobileMenuDragCancel()"
       ></div>
 
       <ul class="mobile-nav-list">
@@ -335,7 +349,9 @@
               class="mobile-nav-link"
               [routerLink]="item.route"
               routerLinkActive="active-link"
+              #rlaMobile="routerLinkActive"
               [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+              [attr.aria-current]="rlaMobile.isActive ? 'page' : null"
               (click)="closeMobileMenu()"
             >
               <i [class]="item.icon" aria-hidden="true"></i>

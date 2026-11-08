@@ -32,6 +32,10 @@ export interface CreateMealRequest {
   /** Obligatoria si no se mandan `items`. Sin ninguna de las dos → 400. */
   description?: string;
   items?: MealItemRequest[];
+  /** Receta a asignar; convive con el texto libre y con BEDCA. */
+  recipeId?: string | null;
+  /** Personas/raciones. Si falta, se usa el de la receta. */
+  servings?: number | null;
 }
 
 /**
@@ -45,6 +49,12 @@ export interface UpdateMealRequest {
   items?: MealItemRequest[];
   dayOfWeek?: string;
   mealType?: string;
+  /** Receta a asignar a la comida. */
+  recipeId?: string | null;
+  /** `true` para desvincular la receta. */
+  clearRecipe?: boolean;
+  /** Personas/raciones. */
+  servings?: number | null;
 }
 
 /**

@@ -33,7 +33,7 @@
       <button type="button">
         {{ t('chat.filter_unread') }}
         @if (chatUnread.unread() > 0) {
-          <span class="ml-1.5 tabular-nums opacity-70">{{ chatUnread.unread() }}</span>
+          <span class="ml-1.5 tabular-nums">{{ chatUnread.unread() }}</span>
         }
       </button>
       <button type="button">{{ t('chat.filter_archived') }}</button>
@@ -93,7 +93,7 @@
               </span>
               <span class="mt-0.5 flex items-center gap-1.5 text-[13px] text-surface-400">
                 @if (thread.lastMessage?.kind === 'IMAGE') {
-                  <i class="fa-solid fa-image text-[11px]" aria-hidden="true"></i>
+                  <i class="fa-solid fa-image text-[11.5px]" aria-hidden="true"></i>
                 }
                 <span class="truncate">{{ preview(thread) }}</span>
               </span>

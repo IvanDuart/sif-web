@@ -86,7 +86,7 @@
         <div class="py-4">
           <div class="data-card">
             <div class="flex items-center gap-2 mb-4">
-              <i class="fa-solid fa-address-card text-primary-500"></i>
+              <i class="fa-solid fa-address-card text-ink-accent"></i>
               <h2 class="text-lg font-display font-bold tracking-tight m-0 text-balance">{{ t('users.tab_profile') }}</h2>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
@@ -178,7 +178,7 @@
               <div class="data-card">
                 <div class="flex items-center justify-between gap-3 mb-4">
                   <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-users text-primary-500"></i>
+                    <i class="fa-solid fa-users text-ink-accent"></i>
                     <h2 class="text-lg font-display font-bold tracking-tight m-0 text-balance">{{ t('staff.assigned_title') }}</h2>
                   </div>
                   <span tuiBadge appearance="neutral">{{ portfolioCount() }}</span>
@@ -205,11 +205,11 @@
                           <tr tuiTr class="table-row">
                             <td tuiTd>
                               <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-full bg-surface-200 dark:bg-surface-600 flex items-center justify-center text-xs font-bold text-primary-600 dark:text-primary-300 shrink-0">
+                                <div class="w-9 h-9 rounded-full bg-surface-200 dark:bg-surface-600 flex items-center justify-center text-xs font-bold text-ink-accent dark:text-primary-300 shrink-0">
                                   {{ getPatientInitials(patient) }}
                                 </div>
                                 <div class="min-w-0">
-                                  <a class="font-medium text-surface-900 dark:text-surface-0 hover:text-primary-600 transition-colors"
+                                  <a class="font-medium text-surface-900 dark:text-surface-0 hover:text-ink-accent transition-colors"
                                     [routerLink]="['/users', patient.patientId]">
                                     {{ patient.firstName }} {{ patient.lastName }}
                                   </a>
@@ -238,7 +238,7 @@
                     @for (patient of assignedPatients(); track patient.patientId) {
                       <div class="rounded-lg border border-surface-200 dark:border-surface-700 p-3">
                         <div class="flex items-center gap-3">
-                          <div class="w-9 h-9 rounded-full bg-surface-200 dark:bg-surface-600 flex items-center justify-center text-xs font-bold text-primary-600 dark:text-primary-300 shrink-0">
+                          <div class="w-9 h-9 rounded-full bg-surface-200 dark:bg-surface-600 flex items-center justify-center text-xs font-bold text-ink-accent dark:text-primary-300 shrink-0">
                             {{ getPatientInitials(patient) }}
                           </div>
                           <div class="min-w-0 flex-1">
@@ -267,7 +267,7 @@
               <div class="data-card">
                 <div class="flex items-center justify-between gap-3 mb-4">
                   <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-calendar-days text-primary-500"></i>
+                    <i class="fa-solid fa-calendar-days text-ink-accent"></i>
                     <h2 class="text-lg font-display font-bold tracking-tight m-0 text-balance">{{ t('staff.agenda_title') }}</h2>
                   </div>
                   <span tuiBadge appearance="neutral">{{ upcomingAppointments().length }}</span>

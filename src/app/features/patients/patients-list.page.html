@@ -53,13 +53,13 @@
       <button type="button">
         {{ t('patients.filter_active') }}
         @if (statusCounts(); as counts) {
-          <span class="ml-1.5 tabular-nums opacity-70">{{ counts.active }}</span>
+          <span class="ml-1.5 tabular-nums">{{ counts.active }}</span>
         }
       </button>
       <button type="button">
         {{ t('patients.filter_inactive') }}
         @if (statusCounts(); as counts) {
-          <span class="ml-1.5 tabular-nums opacity-70">{{ counts.inactive }}</span>
+          <span class="ml-1.5 tabular-nums">{{ counts.inactive }}</span>
         }
       </button>
     </tui-segmented>
@@ -296,8 +296,7 @@
               @for (row of rows(); track row.user.id) {
                 <tr
                   tuiTr
-                  class="cursor-pointer transition-opacity"
-                  [class.opacity-60]="row.user.enabled === false"
+                  class="cursor-pointer transition-colors"
                   [routerLink]="['/users', row.user.id]">
                   <td tuiTd (click)="$event.stopPropagation()">
                     <input
@@ -347,7 +346,7 @@
                             </button>
                           }
                           @if (canDeleteUsers()) {
-                            <button tuiOption type="button" class="text-err" (click)="revokeAccess(row.user)">
+                            <button tuiOption type="button" class="text-err-text" (click)="revokeAccess(row.user)">
                               <i class="fa-solid fa-user-xmark mr-2" aria-hidden="true"></i>
                               {{ t('users.revoke') }}
                             </button>
@@ -386,7 +385,7 @@
                       <span class="text-surface-300 dark:text-surface-600">—</span>
                     }
                   </td>
-                  <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">
+                  <td tuiTd class="tabular-nums whitespace-nowrap text-surface-500 dark:text-surface-400">
                     {{ row.user.age !== null && row.user.age !== undefined ? row.user.age + ' ' + t('common.years') : '—' }}
                   </td>
                   @if (isTenantAdmin()) {
@@ -435,7 +434,6 @@
           @for (row of rows(); track row.user.id) {
             <article
               class="rounded-md border border-line bg-surface-0 dark:bg-surface-800 p-3"
-              [class.opacity-60]="row.user.enabled === false"
               [routerLink]="['/users', row.user.id]"
             >
               <div class="flex items-start justify-between gap-2">
@@ -536,7 +534,7 @@
                   @if (canDeleteUsers()) {
                     <button
                       tuiButton appearance="flat" size="s" type="button"
-                      class="text-err"
+                      class="text-err-text"
                       (click)="revokeAccess(row.user)"
                       [attr.title]="t('users.revoke')" [attr.aria-label]="t('users.revoke')"
                     >

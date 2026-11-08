@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TuiButton, TuiDialogContext, TuiInput, TuiTextfield, TuiDropdown, TuiFilterByInputPipe } from '@taiga-ui/core';
 import { TuiComboBox, TuiDataListWrapper, TuiChevron } from '@taiga-ui/kit';
@@ -7,11 +7,32 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { TenantService, CreateTenantRequest } from '../../core/api/services/tenant.api';
 import { NotificationService } from '../../core/ui';
 import { Tenant } from '../../core/api/models/tenant.model';
-import { Country, State, City } from 'country-state-city';
 
 interface GeoOption {
   label: string;
   value: string;
+}
+
+/** Ver `tenant-address-settings`: el dataset se carga por módulos y bajo demanda. */
+interface CountryEntry {
+  name: string;
+  isoCode: string;
+}
+interface StateEntry {
+  name: string;
+  isoCode: string;
+}
+interface CityEntry {
+  name: string;
+}
+interface CountryApi {
+  getAllCountries(): CountryEntry[];
+}
+interface StateApi {
+  getStatesOfCountry(countryCode: string): StateEntry[];
+}
+interface CityApi {
+  getCitiesOfState(countryCode: string, stateCode: string): CityEntry[];
 }
 
 @Component({
@@ -31,13 +52,15 @@ interface GeoOption {
   ],
   templateUrl: './create-tenant.dialog.html'
 })
-export class CreateTenantDialog {
+export class CreateTenantDialog implements OnInit {
   private readonly tenantService = inject(TenantService);
   private readonly notify = inject(NotificationService);
   readonly context = injectContext<TuiDialogContext<Tenant | null, void>>();
 
   readonly saving = signal(false);
-  readonly countries = signal<GeoOption[]>(Country.getAllCountries().map(c => ({ label: c.name, value: c.isoCode })));
+  readonly geoLoading = signal(true);
+  readonly geoError = signal(false);
+  readonly countries = signal<GeoOption[]>([]);
   readonly states = signal<GeoOption[]>([]);
   readonly cities = signal<GeoOption[]>([]);
   readonly countryLabels = computed(() => this.countries().map(c => c.label));
@@ -53,20 +76,91 @@ export class CreateTenantDialog {
   cityDisplay = '';
   private countryCode = '';
   private stateCode = '';
+  private countryApi?: CountryApi;
+  private stateApi?: StateApi;
+  private cityApi?: CityApi;
+  private geoPromise?: Promise<void>;
+  private cityPromise?: Promise<void>;
+
+  ngOnInit() {
+    this.loadGeo();
+  }
+
+  retryGeo(): void {
+    this.geoPromise = undefined;
+    this.geoLoading.set(true);
+    this.loadGeo();
+  }
+
+  private loadGeo(): void {
+    this.geoError.set(false);
+    void this.ensureGeo()
+      .then(() => this.geoLoading.set(false))
+      .catch(() => {
+        this.geoError.set(true);
+        this.geoLoading.set(false);
+      });
+  }
+
+  private ensureGeo(): Promise<void> {
+    this.geoPromise ??= Promise.all([
+      import('country-state-city/lib/country'),
+      import('country-state-city/lib/state'),
+    ]).then(([country, state]) => {
+      this.countryApi = country.default;
+      this.stateApi = state.default;
+      this.countries.set(
+        this.countryApi.getAllCountries().map((c) => ({ label: c.name, value: c.isoCode })),
+      );
+    });
+    return this.geoPromise;
+  }
+
+  private ensureCities(): Promise<void> {
+    this.cityPromise ??= import('country-state-city/lib/city').then((city) => {
+      this.cityApi = city.default;
+    });
+    return this.cityPromise;
+  }
 
   onCountryChange() {
     this.countryCode = this.countries().find(c => c.label === this.countryDisplay)?.value ?? this.countryDisplay;
     this.stateCode = '';
     this.stateDisplay = '';
     this.cityDisplay = '';
-    this.states.set(this.countryCode ? State.getStatesOfCountry(this.countryCode).map(s => ({ label: s.name, value: s.isoCode })) : []);
     this.cities.set([]);
+    if (this.stateApi) {
+      this.fillStates();
+      return;
+    }
+    void this.ensureGeo().then(() => this.fillStates());
+  }
+
+  private fillStates() {
+    const states = this.countryCode
+      ? this.stateApi?.getStatesOfCountry(this.countryCode).map(s => ({ label: s.name, value: s.isoCode })) ?? []
+      : [];
+    this.states.set(states);
   }
 
   onStateChange() {
     this.stateCode = this.states().find(s => s.label === this.stateDisplay)?.value ?? this.stateDisplay;
     this.cityDisplay = '';
-    this.cities.set(this.countryCode && this.stateCode ? City.getCitiesOfState(this.countryCode, this.stateCode).map(c => ({ label: c.name, value: c.name })) : []);
+    this.cities.set([]);
+    void this.loadCitiesIfNeeded();
+  }
+
+  /** Carga el dataset de ciudades solo cuando la persona va a elegir una. */
+  async loadCitiesIfNeeded() {
+    if (!this.countryCode || !this.stateCode) return;
+    try {
+      await this.ensureCities();
+    } catch {
+      return;
+    }
+    this.cities.set(
+      this.cityApi?.getCitiesOfState(this.countryCode, this.stateCode).map(c => ({ label: c.name, value: c.name })) ?? [],
+    );
   }
 
   save() {

@@ -51,7 +51,7 @@
             </td>
             <td tuiTd><input class="field-inline" [(ngModel)]="item.notes" /></td>
             <td tuiTd class="text-center">
-              <button tuiIconButton appearance="flat" size="s" type="button" class="text-err" (click)="deleteItem(i)">
+              <button tuiIconButton appearance="flat" size="s" type="button" class="text-err-text" (click)="deleteItem(i)">
                 <i class="fa-solid fa-trash"></i>
               </button>
             </td>
@@ -67,7 +67,7 @@
         <div class="flex items-start justify-between gap-2">
           <span class="text-surface-400 text-sm shrink-0 mt-2">{{ i + 1 }}</span>
           <input class="field-inline flex-1" [(ngModel)]="item.name" [placeholder]="'shopping_list.product' | transloco" />
-          <button tuiIconButton appearance="flat" size="s" type="button" class="text-err shrink-0" (click)="deleteItem(i)">
+          <button tuiIconButton appearance="flat" size="s" type="button" class="text-err-text shrink-0" (click)="deleteItem(i)">
             <i class="fa-solid fa-trash"></i>
           </button>
         </div>

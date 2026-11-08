@@ -71,6 +71,19 @@
                   <p class="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-surface-500 dark:text-surface-400">
                     {{ entry.description }}
                   </p>
+                  @if (entry.recipeId) {
+                    <a
+                      class="recipe-chip"
+                      [routerLink]="['/recipes', entry.recipeId]"
+                      [queryParams]="{ servings: entry.servings || 1 }"
+                    >
+                      <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+                      {{ t('recipes.view_recipe') }}: {{ entry.recipeName || t('recipes.title') }}
+                      @if (entry.servings) {
+                        <span>· {{ entry.servings }} {{ t('recipes.servings_short') }}</span>
+                      }
+                    </a>
+                  }
                 </div>
                 @if (entry.time) {
                   <span class="shrink-0 pt-0.5 text-sm tabular-nums text-surface-400">
@@ -155,7 +168,7 @@
                         (change)="onDiaryPhotoSelected(row.mealId, $event)"
                       />
                       <div class="flex items-center gap-2">
-                        <button type="button" class="text-[12.5px] text-surface-500 hover:text-primary-600" (click)="diaryPhoto.click()">
+                        <button type="button" class="text-[12.5px] text-surface-500 hover:text-ink-accent" (click)="diaryPhoto.click()">
                           <i class="fa-solid fa-camera mr-1" aria-hidden="true"></i>
                           {{ row.photoName || t('diary.attach_photo') }}
                         </button>

@@ -2,7 +2,7 @@
   @if (done(); as summary) {
     <!-- ── Confirmación ─────────────────────────────────────────────── -->
     <div class="flex flex-col items-start gap-3.5">
-      <span class="grid size-9 place-items-center rounded-pill bg-primary-50 text-primary-600 dark:bg-brand-tint-20 dark:text-primary-300">
+      <span class="grid size-9 place-items-center rounded-pill bg-primary-50 text-ink-accent dark:bg-brand-tint-20 dark:text-primary-300">
         <i class="fa-solid fa-check" aria-hidden="true"></i>
       </span>
 
@@ -77,7 +77,7 @@
             >
               <span class="inline-flex items-baseline gap-1">
                 <span class="font-medium tabular-nums">{{ day.dayNumber }}</span>
-                <span class="text-[11px] opacity-70">{{ day.label }}</span>
+                <span class="text-[11.5px]">{{ day.label }}</span>
               </span>
             </button>
           }
@@ -171,7 +171,7 @@
               (click)="pickType(type.id)"
             >
               {{ type.name }}
-              <span class="text-[11px] opacity-70">{{ type.durationMinutes }} min</span>
+              <span class="text-[11.5px]">{{ type.durationMinutes }} min</span>
             </button>
           }
         </div>
@@ -257,7 +257,7 @@
     </div>
 
     @if (error()) {
-      <p class="mt-2 text-xs text-err">{{ error() }}</p>
+      <p class="mt-2 text-xs text-err-text">{{ error() }}</p>
     }
   }
 </div>

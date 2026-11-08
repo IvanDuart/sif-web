@@ -7,7 +7,7 @@
         [attr.data-mascot-reveal]="'measurement-step-' + step"
         (click)="activeStep.set(step)"
         [class.bg-primary-500]="activeStep() >= step"
-        [class.text-white]="activeStep() >= step"
+        [class.text-primary-contrast-color]="activeStep() >= step"
         [class.bg-surface-200]="activeStep() < step"
         [class.dark:bg-surface-700]="activeStep() < step"
         class="w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center transition-colors"
@@ -27,10 +27,10 @@
 
   <!-- Step labels -->
   <div class="grid grid-cols-4 text-center text-xs text-surface-500 mb-4 font-medium">
-    <span [class.font-semibold]="activeStep() === 1" [class.text-primary-600]="activeStep() === 1">{{ t('measurements.step_composition') }}</span>
-    <span [class.font-semibold]="activeStep() === 2" [class.text-primary-600]="activeStep() === 2">{{ t('measurements.step_circumferences') }}</span>
-    <span [class.font-semibold]="activeStep() === 3" [class.text-primary-600]="activeStep() === 3">{{ t('measurements.step_segmental') }}</span>
-    <span [class.font-semibold]="activeStep() === 4" [class.text-primary-600]="activeStep() === 4">{{ t('measurements.step_details') }}</span>
+    <span [class.font-semibold]="activeStep() === 1" [class.text-ink-accent]="activeStep() === 1">{{ t('measurements.step_composition') }}</span>
+    <span [class.font-semibold]="activeStep() === 2" [class.text-ink-accent]="activeStep() === 2">{{ t('measurements.step_circumferences') }}</span>
+    <span [class.font-semibold]="activeStep() === 3" [class.text-ink-accent]="activeStep() === 3">{{ t('measurements.step_segmental') }}</span>
+    <span [class.font-semibold]="activeStep() === 4" [class.text-ink-accent]="activeStep() === 4">{{ t('measurements.step_details') }}</span>
   </div>
 
   <!-- Step 1: Composición General -->
@@ -132,7 +132,7 @@
       <!-- Tronco -->
       <div class="p-3 rounded-lg bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
         <span class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
-          <i class="fa-solid fa-child text-primary-500"></i> {{ t('measurements.trunk') }}
+          <i class="fa-solid fa-child text-ink-accent"></i> {{ t('measurements.trunk') }}
         </span>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <tui-textfield class="w-full">
@@ -151,7 +151,7 @@
         <!-- Brazo Derecho -->
         <div class="p-3 rounded-lg bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
           <span class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
-            <i class="fa-solid fa-hand text-primary-500"></i> {{ t('measurements.right_arm') }}
+            <i class="fa-solid fa-hand text-ink-accent"></i> {{ t('measurements.right_arm') }}
           </span>
           <tui-textfield class="w-full">
             <label tuiLabel for="rightArmFatPct">{{ t('measurements.fat_pct') }}</label>
@@ -166,7 +166,7 @@
         <!-- Brazo Izquierdo -->
         <div class="p-3 rounded-lg bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
           <span class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
-            <i class="fa-solid fa-hand text-primary-500"></i> {{ t('measurements.left_arm') }}
+            <i class="fa-solid fa-hand text-ink-accent"></i> {{ t('measurements.left_arm') }}
           </span>
           <tui-textfield class="w-full">
             <label tuiLabel for="leftArmFatPct">{{ t('measurements.fat_pct') }}</label>
@@ -184,7 +184,7 @@
         <!-- Pierna Derecha -->
         <div class="p-3 rounded-lg bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
           <span class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
-            <i class="fa-solid fa-socks text-primary-500"></i> {{ t('measurements.right_leg') }}
+            <i class="fa-solid fa-socks text-ink-accent"></i> {{ t('measurements.right_leg') }}
           </span>
           <tui-textfield class="w-full">
             <label tuiLabel for="rightLegFatPct">{{ t('measurements.fat_pct') }}</label>
@@ -199,7 +199,7 @@
         <!-- Pierna Izquierda -->
         <div class="p-3 rounded-lg bg-surface-50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
           <span class="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
-            <i class="fa-solid fa-socks text-primary-500"></i> {{ t('measurements.left_leg') }}
+            <i class="fa-solid fa-socks text-ink-accent"></i> {{ t('measurements.left_leg') }}
           </span>
           <tui-textfield class="w-full">
             <label tuiLabel for="leftLegFatPct">{{ t('measurements.fat_pct') }}</label>

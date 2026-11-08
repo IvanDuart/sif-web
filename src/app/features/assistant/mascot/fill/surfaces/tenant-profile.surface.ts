@@ -58,7 +58,17 @@ export function tenantProfileSurface(options: TenantProfileOptions): FillSurface
         kind: 'choice',
         from: ['city', 'ciudad', 'localidad'],
         ...choicesOf(() => options.cities()),
-        parse: (raw) => pickLabel(options.cities(), raw),
+        // El dataset de ciudades (8 MB) se carga bajo demanda: si todavía no
+        // está, se acepta el texto tal cual — el combobox ya permite escribir
+        // una ciudad que no esté en la lista.
+        parse: (raw) => pickLabel(options.cities(), raw) ?? (String(raw).trim() || null),
+        valueLabel: (value) => {
+          const raw = value === null || value === undefined ? '' : String(value);
+          return (
+            options.cities().find((option) => option.value === raw || option.label === raw)?.label ??
+            (raw || null)
+          );
+        },
       },
       { key: 'address', kind: 'text', from: ['address', 'direccion', 'calle', 'street'] },
     ],

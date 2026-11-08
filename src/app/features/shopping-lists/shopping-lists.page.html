@@ -35,7 +35,7 @@
               >
                 <i
                   [class]="group.icon"
-                  class="text-primary-600 dark:text-primary-300"
+                  class="text-ink-accent dark:text-primary-300"
                   aria-hidden="true"
                 ></i>
                 <span>{{ group.category }}</span>
@@ -98,7 +98,7 @@
               {{ t('shopping_list.progress', { checked: purchasedCount(), total: totalCount() }) }}
             </span>
             @if (list.totalEstimatedPrice !== null) {
-              <span class="text-sm font-semibold tabular-nums text-primary-600 dark:text-primary-300">
+              <span class="text-sm font-semibold tabular-nums text-ink-accent dark:text-primary-300">
                 {{ t('shopping_list.total') }}: {{ totalPrice() }}
               </span>
             }

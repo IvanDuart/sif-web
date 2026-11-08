@@ -1,6 +1,6 @@
 <div *transloco="let t" class="data-card border border-surface-200 dark:border-surface-700 flex flex-col h-full justify-between">
   <div class="flex items-center gap-2 mb-4">
-    <i class="fa-solid fa-calendar-day text-primary-500 text-xl"></i>
+    <i class="fa-solid fa-calendar-day text-ink-accent text-xl"></i>
     <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0">
       {{ t('patient_dashboard.next_appointment', { defaultValue: 'Próxima Cita' }) }}
     </h3>
@@ -8,12 +8,12 @@
 
   @if (loading()) {
     <div class="flex items-center justify-center py-6">
-      <i class="fa-solid fa-spinner fa-spin text-primary-500 text-xl"></i>
+      <i class="fa-solid fa-spinner fa-spin text-ink-accent text-xl"></i>
     </div>
   } @else if (nextAppointment(); as appt) {
     <div class="flex items-center justify-between gap-4 p-3 bg-primary-50 dark:bg-brand-tint-20 border border-primary-100 dark:border-brand-tint-50 rounded-lg">
       <div class="flex items-start gap-4 flex-1 min-w-0">
-        <div class="p-3 bg-primary-500 text-white rounded-lg flex flex-col items-center justify-center min-w-[64px]">
+        <div class="p-3 bg-primary-500 text-primary-contrast-color rounded-lg flex flex-col items-center justify-center min-w-[64px]">
           <span class="text-xs uppercase font-bold">{{ formatMonth(appt.startTime) }}</span>
           <span class="text-2xl font-black leading-none font-mono">{{ formatDay(appt.startTime) }}</span>
         </div>

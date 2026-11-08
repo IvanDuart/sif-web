@@ -29,7 +29,7 @@
     >
       <div class="group">
         <div
-          class="font-display text-4xl font-bold leading-none tracking-tight tabular-nums text-surface-900 transition-colors group-hover:text-primary-600 dark:text-surface-0 dark:group-hover:text-primary-300"
+          class="font-display text-4xl font-bold leading-none tracking-tight tabular-nums text-surface-900 transition-colors group-hover:text-ink-accent dark:text-surface-0 dark:group-hover:text-primary-300"
         >
           {{ todayCount() }}
         </div>
@@ -38,7 +38,7 @@
 
       <div class="group">
         <div
-          class="font-display text-4xl font-bold leading-none tracking-tight tabular-nums text-surface-900 transition-colors group-hover:text-primary-600 dark:text-surface-0 dark:group-hover:text-primary-300"
+          class="font-display text-4xl font-bold leading-none tracking-tight tabular-nums text-surface-900 transition-colors group-hover:text-ink-accent dark:text-surface-0 dark:group-hover:text-primary-300"
         >
           @if (attendanceRate() === null) {
             —
@@ -104,7 +104,6 @@
                 } @else if (row.appointment; as appt) {
                   <article
                     class="group grid grid-cols-[66px_1fr] items-center gap-x-4 border-b border-line py-[18px] transition-colors hover:bg-surface-0 sm:grid-cols-[78px_1fr_auto] sm:gap-x-5 lg:px-3 dark:hover:bg-surface-900"
-                    [class.opacity-45]="row.past"
                   >
                     <!-- Hora -->
                     <div class="pl-1 tabular-nums">
@@ -118,7 +117,7 @@
                     <div class="flex min-w-0 items-center gap-3.5">
                       @if (appt.patientId) {
                         <a
-                          class="grid size-9 shrink-0 place-items-center rounded-pill bg-surface-100 text-[13px] font-semibold text-surface-500 transition-colors hover:bg-primary-50 hover:text-primary-600 dark:bg-surface-800 dark:text-surface-300 dark:hover:bg-brand-tint-20 dark:hover:text-primary-300"
+                          class="grid size-9 shrink-0 place-items-center rounded-pill bg-surface-100 text-[13px] font-semibold text-surface-500 transition-colors hover:bg-primary-50 hover:text-ink-accent dark:bg-surface-800 dark:text-surface-300 dark:hover:bg-brand-tint-20 dark:hover:text-primary-300"
                           [routerLink]="['/users', appt.patientId]"
                           [attr.title]="appt.patientName"
                           [attr.aria-label]="t('tenant_dashboard.open_patient_file', { name: appt.patientName })"
@@ -136,7 +135,7 @@
                       <div class="min-w-0">
                         @if (appt.patientId) {
                           <a
-                            class="text-[15.5px] font-medium text-surface-900 transition-colors hover:text-primary-600 dark:text-surface-0 dark:hover:text-primary-300"
+                            class="text-[15.5px] font-medium text-surface-900 transition-colors hover:text-ink-accent dark:text-surface-0 dark:hover:text-primary-300"
                             [routerLink]="['/users', appt.patientId]"
                           >
                             {{ appt.patientName }}
@@ -192,7 +191,7 @@
                           [disabled]="updatingStatus() === appt.id"
                           (click)="markNoShow(appt)"
                         >
-                          <i class="fa-solid fa-user-slash mr-1 text-err" aria-hidden="true"></i>
+                          <i class="fa-solid fa-user-slash mr-1 text-err-text" aria-hidden="true"></i>
                           {{ t('tenant_dashboard.missed') }}
                         </button>
                       }
@@ -204,7 +203,7 @@
 
             <a
               routerLink="/appointments"
-              class="mt-4 inline-block border-b border-line-strong pb-0.5 text-sm text-surface-500 transition-colors hover:border-primary-600 hover:text-primary-600 dark:text-surface-400"
+              class="mt-4 inline-block border-b border-line-strong pb-0.5 text-sm text-surface-500 transition-colors hover:border-primary-600 hover:text-ink-accent dark:text-surface-400"
             >
               {{ t('tenant_dashboard.view_full_agenda') }}
             </a>
@@ -264,7 +263,7 @@
         <section class="data-card" data-brand-tint>
           <div class="flex items-start gap-4">
             <span
-              class="grid size-10 shrink-0 place-items-center rounded-pill bg-primary-600 text-surface-0"
+              class="grid size-10 shrink-0 place-items-center rounded-pill bg-primary-600 text-primary-contrast-color"
             >
               <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
             </span>

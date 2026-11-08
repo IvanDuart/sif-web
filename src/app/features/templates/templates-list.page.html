@@ -148,7 +148,7 @@
                           </button>
                           <button
                             *appIfPermission="'MANAGE_TEMPLATE'"
-                            tuiOption type="button" class="text-err" (click)="deleteTemplate(template)"
+                            tuiOption type="button" class="text-err-text" (click)="deleteTemplate(template)"
                           >
                             <i class="fa-solid fa-trash mr-2" aria-hidden="true"></i>
                             {{ t('common.delete') }}
@@ -214,7 +214,7 @@
                 <button
                   *appIfPermission="'MANAGE_TEMPLATE'"
                   type="button" tuiButton appearance="flat" size="s"
-                  class="text-err"
+                  class="text-err-text"
                   (click)="$event.stopPropagation(); deleteTemplate(template)"
                   [attr.title]="t('common.delete')" [attr.aria-label]="t('common.delete')"
                 >

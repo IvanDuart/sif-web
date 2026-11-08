@@ -92,6 +92,11 @@ interface MealEntryVm {
   /** `true` si viene de las pautas fijas (se repite todos los días). */
   everyDay: boolean;
   icon: string;
+  /** Receta asignada a la comida, si la hay. */
+  recipeId: string | null;
+  recipeName: string | null;
+  /** Personas/raciones pautadas de la receta. */
+  servings: number | null;
 }
 
 interface DiaryRowVm {
@@ -134,13 +139,30 @@ interface DiaryRowVm {
     .day-tab:hover { background: var(--sunken); color: var(--ink); }
     .day-tab[aria-pressed="true"] {
       background: var(--primary-soft);
-      color: var(--primary);
+      color: var(--accent-text);
       font-weight: 600;
     }
     .day-tab.is-today:not([aria-pressed="true"]) { color: var(--accent); }
 
     /* ── Fila de comida ──────────────────────────────────────────────── */
     .meal-row[data-next] { background: var(--primary-soft); }
+
+    /* Pastilla "Ver receta" de la comida pautada. */
+    .recipe-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding: 3px 10px;
+      border-radius: var(--r-pill);
+      border: 1px solid color-mix(in srgb, var(--brand-primary) 35%, transparent);
+      background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+      color: var(--accent-text);
+      font-size: 12px;
+      font-weight: 600;
+      transition: background-color var(--motion-duration-fast) var(--motion-ease-out);
+    }
+    .recipe-chip:hover { background: color-mix(in srgb, var(--brand-primary) 18%, transparent); }
 
     /* ── Botón flotante "Generar lista" ──────────────────────────────── */
     .shopping-fab {
@@ -153,15 +175,20 @@ interface DiaryRowVm {
       gap: 10px;
       padding: 12px 20px;
       border-radius: var(--r-pill);
-      background: var(--p-primary-100);
-      color: var(--p-primary-700);
+      background: var(--primary-soft);
+      color: var(--accent-text);
       font-size: 14px;
       font-weight: 600;
       box-shadow: var(--shadow-float);
       transition: background-color var(--motion-duration-base) var(--motion-ease-out),
+        box-shadow var(--motion-duration-base) var(--motion-ease-out),
         transform var(--motion-duration-fast) var(--motion-ease-out);
     }
-    .shopping-fab:hover { background: var(--p-primary-200); }
+    .shopping-fab:hover {
+      /* La tint se mantiene: sobre un tint más intenso el acento de texto
+         cae por debajo de 4.5:1. El hover se marca con un anillo interior. */
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 45%, transparent), var(--shadow-float);
+    }
     .shopping-fab:active { transform: scale(0.97); }
     @media (max-width: 767px) {
       .shopping-fab {
@@ -267,7 +294,15 @@ export default class MyDietPage implements OnInit, OnDestroy {
 
     const fromMenu: MealEntryVm[] = this.meals()
       .filter((meal) => meal.dayOfWeek?.toUpperCase() === day)
-      .map((meal) => this.toEntry(meal.mealType, meal.description ?? '', false, meal.id));
+      .map((meal) => this.toEntry(
+        meal.mealType,
+        meal.description ?? '',
+        false,
+        meal.id,
+        meal.recipeId ?? null,
+        meal.recipeName ?? null,
+        meal.servings ?? null
+      ));
 
     const fixed = this.fixedMeals();
     const fromFixed: MealEntryVm[] = fixed
@@ -464,11 +499,11 @@ export default class MyDietPage implements OnInit, OnDestroy {
       case 'DONE':
         return 'bg-ok/10 text-ok border-ok/30';
       case 'PARTIAL':
-        return 'bg-warn/10 text-warn border-warn/30';
+        return 'bg-warn/10 text-warn-text border-warn/30';
       case 'SWAPPED':
         return 'bg-info/10 text-info border-info/30';
       default:
-        return 'bg-err/10 text-err border-err/30';
+        return 'bg-err/10 text-err-text border-err/30';
     }
   }
 
@@ -485,7 +520,15 @@ export default class MyDietPage implements OnInit, OnDestroy {
     }
   }
 
-  private toEntry(mealType: string, description: string, everyDay: boolean, key: string): MealEntryVm {
+  private toEntry(
+    mealType: string,
+    description: string,
+    everyDay: boolean,
+    key: string,
+    recipeId: string | null = null,
+    recipeName: string | null = null,
+    servings: number | null = null
+  ): MealEntryVm {
     const type = mealType.toUpperCase();
     const hour = MEAL_HOURS[type] ?? 99;
     return {
@@ -496,6 +539,9 @@ export default class MyDietPage implements OnInit, OnDestroy {
       description,
       everyDay,
       icon: MEAL_ICONS[type] ?? 'fa-solid fa-utensils',
+      recipeId,
+      recipeName,
+      servings,
     };
   }
 

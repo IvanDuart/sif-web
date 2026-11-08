@@ -20,7 +20,7 @@
 
   @if (loading()) {
     <div class="flex items-center justify-center py-10">
-      <i class="fa-solid fa-spinner fa-spin text-2xl text-primary-500 dark:text-primary-300" aria-hidden="true"></i>
+      <i class="fa-solid fa-spinner fa-spin text-2xl text-ink-accent dark:text-primary-300" aria-hidden="true"></i>
     </div>
   } @else {
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr]">
@@ -107,7 +107,7 @@
                     appearance="flat"
                     size="xs"
                     type="button"
-                    class="text-err"
+                    class="text-err-text"
                     (click)="deleteRecord(item)"
                     [title]="t('common.delete')"
                     [attr.aria-label]="t('common.delete')">

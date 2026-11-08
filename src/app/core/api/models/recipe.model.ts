@@ -9,10 +9,12 @@ export type RecipeScopeFilter = 'ALL' | RecipeScope;
 
 export interface RecipeItemDto {
   id: string;
-  foodId: string;
+  foodId: string | null;
   foodName: string;
-  /** Gramos de porción comestible. */
-  quantityG: number;
+  /** Gramos de porción comestible; puede faltar si solo hay medida casera. */
+  quantityG: number | null;
+  /** Cantidad natural o medida casera ("2 unidades", "1 cucharada", "al gusto"). */
+  householdMeasure?: string | null;
   sortOrder?: number | null;
 }
 
@@ -56,9 +58,14 @@ export interface RecipeDto {
 }
 
 export interface RecipeItemRequest {
-  foodId: string;
-  /** Debe ser > 0. */
-  quantityG: number;
+  /** Alimento BEDCA; nulo para ingredientes libres. */
+  foodId?: string | null;
+  /** Nombre visible del ingrediente (obligatorio si no hay `foodId`). */
+  foodName?: string | null;
+  /** Gramos; nulo si el ingrediente solo se expresa en medida casera. */
+  quantityG?: number | null;
+  /** Cantidad natural o medida casera ("2 unidades", "1 cucharada", "al gusto"). */
+  householdMeasure?: string | null;
   sortOrder?: number | null;
 }
 
@@ -94,5 +101,10 @@ export interface RecipeListQuery {
 
 /** Payload de `POST /recipes/{id}/instantiate`. */
 export interface InstantiateRecipeRequest {
-  mealId: string;
+  /** Comida de un menú de paciente. */
+  mealId?: string | null;
+  /** Comida de una plantilla del centro. */
+  mealTemplateId?: string | null;
+  /** Personas/raciones con las que escalar; si falta se usa el de la receta. */
+  servings?: number | null;
 }

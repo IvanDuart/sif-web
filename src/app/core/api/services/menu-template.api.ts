@@ -15,6 +15,10 @@ export interface CreateMealTemplateRequest {
   mealType?: string;
   description?: string;
   items?: MealItemRequest[];
+  /** Receta a asignar a la comida de plantilla. */
+  recipeId?: string | null;
+  /** Personas/raciones. */
+  servings?: number | null;
 }
 
 /**
@@ -27,6 +31,12 @@ export interface UpdateMealTemplateRequest {
   mealType: string;
   description?: string;
   items?: MealItemRequest[];
+  /** Receta a asignar a la comida de plantilla. */
+  recipeId?: string | null;
+  /** `true` para desvincular la receta. */
+  clearRecipe?: boolean;
+  /** Personas/raciones. */
+  servings?: number | null;
 }
 
 export interface CreateMenuTemplateRequest {
@@ -108,6 +118,7 @@ export class MenuTemplateService {
     return {
       dayOfWeek: meal.dayOfWeek,
       mealType: meal.mealType,
+      ...(meal.recipeId ? { recipeId: meal.recipeId, servings: meal.servings ?? null } : {}),
       ...(items.length > 0
         ? { items: toMealItemRequests(items) }
         : { description: meal.description ?? undefined }),

@@ -299,10 +299,10 @@ export default class AdminBillingDetailPage implements OnInit {
   }
 
   eventIcon(type: string): string {
-    if (type.startsWith('PAYMENT_FAILED') || type === 'SUSPENDED') return 'fa-solid fa-circle-xmark text-err';
+    if (type.startsWith('PAYMENT_FAILED') || type === 'SUSPENDED') return 'fa-solid fa-circle-xmark text-err-text';
     if (type === 'PAYMENT_SUCCEEDED' || type === 'REACTIVATED' || type === 'CHECKOUT_COMPLETED')
       return 'fa-solid fa-circle-check text-ok';
-    if (type.startsWith('GRACE') || type.startsWith('TRIAL')) return 'fa-solid fa-hourglass-half text-warn';
+    if (type.startsWith('GRACE') || type.startsWith('TRIAL')) return 'fa-solid fa-hourglass-half text-warn-text';
     return 'fa-solid fa-circle-info text-surface-400';
   }
 

@@ -24,7 +24,7 @@
   height: 28px;
   border-radius: var(--r-pill);
   background: var(--primary-soft);
-  color: var(--primary);
+  color: var(--accent-text);
   font-size: 12px;
 }
 
@@ -34,7 +34,7 @@
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--primary);
+  color: var(--accent-text);
 }
 
 .card__summary {

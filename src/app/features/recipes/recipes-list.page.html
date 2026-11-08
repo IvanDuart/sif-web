@@ -14,7 +14,7 @@
         <input
           #importInput
           type="file"
-          accept=".csv,.json,text/csv,application/json"
+          accept=".csv,.json,.pdf,.docx,.doc,.png,.jpg,.jpeg,.webp,application/pdf,image/*,application/json,text/csv"
           class="hidden"
           (change)="onImportFile($event)"
         />
@@ -141,7 +141,7 @@
               </div>
 
               @if (allergensText(recipe); as allergens) {
-                <p class="mt-auto truncate text-[12px] text-warn">
+                <p class="mt-auto truncate text-[12px] text-warn-text">
                   <i class="fa-solid fa-triangle-exclamation mr-1" aria-hidden="true"></i>
                   {{ allergens }}
                 </p>

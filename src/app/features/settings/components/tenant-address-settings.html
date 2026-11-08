@@ -7,27 +7,39 @@
   </header>
 
   <div class="data-card">
+    @if (geoError()) {
+      <div
+        role="alert"
+        class="mb-4 flex flex-wrap items-center gap-2 rounded-md bg-err-soft px-3 py-2 text-[13px] text-err-text"
+      >
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+        <span>{{ t('settings.address_geo_error') }}</span>
+        <button tuiButton appearance="flat" size="xs" type="button" (click)="retryGeo()">
+          {{ t('common.retry') }}
+        </button>
+      </div>
+    }
     @if (loading()) {
       <div class="flex items-center justify-center py-8">
-        <i class="fa-solid fa-spinner fa-spin text-primary-500 text-xl" aria-hidden="true"></i>
+        <i class="fa-solid fa-spinner fa-spin text-ink-accent text-xl" aria-hidden="true"></i>
       </div>
     } @else {
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
         <tui-textfield tuiChevron>
           <label tuiLabel for="addressCountry">{{ t('settings.address_country') }}</label>
-          <input id="addressCountry" data-mascot-field="tenant-profile.countryDisplay" tuiComboBox [(ngModel)]="countryDisplay" (ngModelChange)="onCountryChange()" />
+          <input id="addressCountry" data-mascot-field="tenant-profile.countryDisplay" tuiComboBox [(ngModel)]="countryDisplay" (ngModelChange)="onCountryChange()" [disabled]="geoError()" />
           <tui-data-list-wrapper *tuiDropdown [items]="countryLabels() | tuiFilterByInput" />
         </tui-textfield>
 
         <tui-textfield tuiChevron>
           <label tuiLabel for="addressState">{{ t('settings.address_state') }}</label>
-          <input id="addressState" data-mascot-field="tenant-profile.stateDisplay" tuiComboBox [(ngModel)]="stateDisplay" (ngModelChange)="onStateChange()" [disabled]="!countryDisplay" />
+          <input id="addressState" data-mascot-field="tenant-profile.stateDisplay" tuiComboBox [(ngModel)]="stateDisplay" (ngModelChange)="onStateChange()" [disabled]="geoError() || !countryDisplay" />
           <tui-data-list-wrapper *tuiDropdown [items]="stateLabels() | tuiFilterByInput" />
         </tui-textfield>
 
         <tui-textfield tuiChevron>
           <label tuiLabel for="addressCity">{{ t('settings.address_city') }}</label>
-          <input id="addressCity" data-mascot-field="tenant-profile.cityDisplay" tuiComboBox [(ngModel)]="cityDisplay" [disabled]="!stateDisplay" />
+          <input id="addressCity" data-mascot-field="tenant-profile.cityDisplay" tuiComboBox [(ngModel)]="cityDisplay" (focus)="loadCitiesIfNeeded()" [disabled]="geoError() || !stateDisplay" />
           <tui-data-list-wrapper *tuiDropdown [items]="cityLabels() | tuiFilterByInput" />
         </tui-textfield>
       </div>

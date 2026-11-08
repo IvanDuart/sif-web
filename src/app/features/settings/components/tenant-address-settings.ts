@@ -6,7 +6,6 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { TenantService, UpdateTenantRequest } from '../../../core/api/services/tenant.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
 import { NotificationService } from '../../../core/ui';
-import { Country, State, City } from 'country-state-city';
 import { bindingAccess } from '../../assistant/mascot/fill/descriptor';
 import { MascotFillService } from '../../assistant/mascot/fill/mascot-fill.service';
 import { tenantProfileSurface } from '../../assistant/mascot/fill/surfaces/tenant-profile.surface';
@@ -14,6 +13,32 @@ import { tenantProfileSurface } from '../../assistant/mascot/fill/surfaces/tenan
 interface GeoOption {
   label: string;
   value: string;
+}
+
+/**
+ * `country-state-city` pesa 8.4 MB (7.7 MB son las ciudades). Se carga por
+ * módulos y solo cuando la sección de dirección (o el campo de ciudad) lo
+ * necesita: nada de esto entra en el chunk inicial de Configuración.
+ */
+interface CountryEntry {
+  name: string;
+  isoCode: string;
+}
+interface StateEntry {
+  name: string;
+  isoCode: string;
+}
+interface CityEntry {
+  name: string;
+}
+interface CountryApi {
+  getAllCountries(): CountryEntry[];
+}
+interface StateApi {
+  getStatesOfCountry(countryCode: string): StateEntry[];
+}
+interface CityApi {
+  getCitiesOfState(countryCode: string, stateCode: string): CityEntry[];
 }
 
 @Component({
@@ -33,6 +58,7 @@ export class TenantAddressSettings implements OnInit {
 
   readonly loading = signal(false);
   readonly saving = signal(false);
+  readonly geoError = signal(false);
 
   readonly countries = signal<GeoOption[]>([]);
   readonly states = signal<GeoOption[]>([]);
@@ -49,6 +75,11 @@ export class TenantAddressSettings implements OnInit {
   private countryCode = '';
   private stateCode = '';
   private tenantId: string | null = null;
+  private countryApi?: CountryApi;
+  private stateApi?: StateApi;
+  private cityApi?: CityApi;
+  private geoPromise?: Promise<void>;
+  private cityPromise?: Promise<void>;
 
   constructor() {
     // Mientras esta sección esté en pantalla, la mascota puede rellenarla.
@@ -82,9 +113,45 @@ export class TenantAddressSettings implements OnInit {
   }
 
   ngOnInit() {
-    const all = Country.getAllCountries().map(c => ({ label: c.name, value: c.isoCode }));
-    this.countries.set(all);
-    this.loadProfile();
+    this.loading.set(true);
+    this.loadGeo();
+  }
+
+  retryGeo(): void {
+    this.geoPromise = undefined;
+    this.loading.set(true);
+    this.loadGeo();
+  }
+
+  private loadGeo(): void {
+    this.geoError.set(false);
+    void this.ensureGeo()
+      .then(() => this.loadProfile())
+      .catch(() => {
+        this.geoError.set(true);
+        this.loading.set(false);
+      });
+  }
+
+  private ensureGeo(): Promise<void> {
+    this.geoPromise ??= Promise.all([
+      import('country-state-city/lib/country'),
+      import('country-state-city/lib/state'),
+    ]).then(([country, state]) => {
+      this.countryApi = country.default;
+      this.stateApi = state.default;
+      this.countries.set(
+        this.countryApi.getAllCountries().map((c) => ({ label: c.name, value: c.isoCode })),
+      );
+    });
+    return this.geoPromise;
+  }
+
+  private ensureCities(): Promise<void> {
+    this.cityPromise ??= import('country-state-city/lib/city').then((city) => {
+      this.cityApi = city.default;
+    });
+    return this.cityPromise;
   }
 
   private findCountryByCode(code: string): GeoOption | undefined {
@@ -110,24 +177,21 @@ export class TenantAddressSettings implements OnInit {
     this.loading.set(true);
 
     this.tenantService.getProfile(id).subscribe({
-      next: (tenant) => {
+      next: async (tenant) => {
         this.countryCode = tenant.countryCode ?? '';
         const found = this.findCountryByCode(this.countryCode);
         this.countryDisplay = found?.label ?? this.countryCode;
 
         this.stateCode = tenant.stateCode ?? '';
         if (this.countryCode) {
-          this.loadStates(this.countryCode);
+          await this.loadStates(this.countryCode);
         }
         const foundState = this.findStateByCode(this.stateCode);
         this.stateDisplay = foundState?.label ?? this.stateCode;
 
-        if (this.countryCode && this.stateCode) {
-          this.loadCities(this.countryCode, this.stateCode);
-        }
-        const cityCode = tenant.city ?? '';
-        const foundCity = this.findCityByName(cityCode);
-        this.cityDisplay = foundCity?.label ?? cityCode;
+        // La ciudad guardada se muestra tal cual: resolverla contra el dataset
+        // descargaría 7.7 MB al abrir la sección. La lista llega al enfocar.
+        this.cityDisplay = tenant.city ?? '';
 
         this.address = tenant.address ?? '';
         this.loading.set(false);
@@ -140,10 +204,11 @@ export class TenantAddressSettings implements OnInit {
     this.stateCode = '';
     this.stateDisplay = '';
     this.states.set([]);
+    this.cities.set([]);
     const found = this.findCountryByLabel(this.countryDisplay);
     this.countryCode = found?.value ?? this.countryDisplay;
     if (this.countryCode) {
-      this.loadStates(this.countryCode);
+      void this.loadStates(this.countryCode);
     }
   }
 
@@ -152,23 +217,40 @@ export class TenantAddressSettings implements OnInit {
     this.stateCode = found?.value ?? this.stateDisplay;
     this.cityDisplay = '';
     this.cities.set([]);
-    if (this.countryCode && this.stateCode) {
-      this.loadCities(this.countryCode, this.stateCode);
-    }
+    // El siguiente paso natural es elegir ciudad: se precarga en segundo
+    // plano (solo al editar la provincia, nunca al abrir la sección).
+    void this.loadCitiesIfNeeded();
   }
 
-  private loadStates(c: string) {
-    const list = State.getStatesOfCountry(c).map(s => ({ label: s.name, value: s.isoCode }));
+  /** Carga el dataset de ciudades solo cuando la persona va a elegir una. */
+  async loadCitiesIfNeeded() {
+    if (!this.countryCode || !this.stateCode) return;
+    try {
+      await this.ensureCities();
+    } catch {
+      return;
+    }
+    this.loadCities(this.countryCode, this.stateCode);
+  }
+
+  private async loadStates(c: string) {
+    // Fast path síncrono: tras `ensureGeo()` los estados se resuelven sin
+    // ceder el turno, para que el encadenado país → provincia (incluido el
+    // relleno de la mascota) encuentre la lista ya poblada.
+    if (!this.stateApi) {
+      try {
+        await this.ensureGeo();
+      } catch {
+        return;
+      }
+    }
+    const list = this.stateApi?.getStatesOfCountry(c).map(s => ({ label: s.name, value: s.isoCode })) ?? [];
     this.states.set(list);
   }
 
   private loadCities(country: string, state: string) {
-    const list = City.getCitiesOfState(country, state).map(c => ({ label: c.name, value: c.name }));
+    const list = this.cityApi?.getCitiesOfState(country, state).map(c => ({ label: c.name, value: c.name })) ?? [];
     this.cities.set(list);
-  }
-
-  private findCityByName(name: string): GeoOption | undefined {
-    return this.cities().find(c => c.value === name);
   }
 
   save() {

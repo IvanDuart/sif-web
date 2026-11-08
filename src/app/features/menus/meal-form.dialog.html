@@ -13,6 +13,25 @@
   </tui-textfield>
   <tui-error formControlName="mealType" />
 
+  <tui-textfield class="w-full" tuiChevron [stringify]="recipeStringify">
+    <label tuiLabel for="recipeId">{{ t('recipes.meal_recipe') }}</label>
+    <input
+      id="recipeId"
+      formControlName="recipeId"
+      tuiSelect
+      [placeholder]="loadingRecipes() ? t('common.loading') : t('recipes.no_recipe')"
+    />
+    <tui-data-list-wrapper *tuiDropdown [items]="recipeValues()"></tui-data-list-wrapper>
+  </tui-textfield>
+
+  @if (hasRecipe()) {
+    <tui-textfield class="w-full">
+      <label tuiLabel for="servings">{{ t('recipes.servings_persons') }}</label>
+      <input id="servings" tuiInput type="number" min="1" step="1" formControlName="servings" />
+    </tui-textfield>
+    <tui-error formControlName="servings" />
+  }
+
   <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
     <label tuiLabel for="description">{{ t('diets.description') }}</label>
     <textarea id="description" formControlName="description" tuiTextarea [min]="4" [max]="10"></textarea>

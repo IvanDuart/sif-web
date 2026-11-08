@@ -65,9 +65,11 @@ export class RecipeService {
     return this.http.post<RecipeDto>(`${this.endpoint(tenantId)}/${recipeId}/clone`, {});
   }
 
-  /** Inyecta los ingredientes de la receta en la comida indicada. */
-  instantiate(tenantId: string, recipeId: string, mealId: string): Observable<void> {
-    const request: InstantiateRecipeRequest = { mealId };
+  /**
+   * Asocia la receta a una comida de menú o de plantilla y vuelca sus
+   * ingredientes BEDCA escalados por el número de personas.
+   */
+  instantiate(tenantId: string, recipeId: string, request: InstantiateRecipeRequest): Observable<void> {
     return this.http.post<void>(`${this.endpoint(tenantId)}/${recipeId}/instantiate`, request);
   }
 

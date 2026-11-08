@@ -7,6 +7,7 @@
     "create": "Crear",
     "actions": "Acciones",
     "loading": "Cargando...",
+    "retry": "Reintentar",
     "skip_to_content": "Saltar al contenido principal",
     "success": "Éxito",
     "error": "Error",
@@ -700,17 +701,17 @@
     "print_pdf": "Imprimir",
     "download_pdf": "Descargar PDF",
     "deleted_remote": "Este menú se ha eliminado desde otra pantalla.",
-  "concurrency_conflict": "El menú o la comida han sido modificados por otro profesional. Recarga la versión actual antes de volver a guardar para no pisar sus cambios.",
-  "reload_version": "Recargar versión actual",
-  "exchanges": {
-    "title": "Raciones e intercambios",
-    "hint": "Asigna las raciones objetivo por grupo. Al sincronizar, los gramos de los ingredientes se recalculan.",
-    "target_rations": "Raciones",
-    "sync": "Sincronizar gramos",
-    "saved": "Raciones guardadas y gramos sincronizados",
-    "save_error": "No se pudieron guardar las raciones",
-    "no_groups": "No hay grupos de intercambio configurados"
-  },
+    "concurrency_conflict": "El menú o la comida han sido modificados por otro profesional. Recarga la versión actual antes de volver a guardar para no pisar sus cambios.",
+    "reload_version": "Recargar versión actual",
+    "exchanges": {
+      "title": "Raciones e intercambios",
+      "hint": "Asigna las raciones objetivo por grupo. Al sincronizar, los gramos de los ingredientes se recalculan.",
+      "target_rations": "Raciones",
+      "sync": "Sincronizar gramos",
+      "saved": "Raciones guardadas y gramos sincronizados",
+      "save_error": "No se pudieron guardar las raciones",
+      "no_groups": "No hay grupos de intercambio configurados"
+    },
     "live": "En directo",
     "empty_title": "Sin comidas asignadas",
     "empty_description": "Esta dieta aún no tiene comidas. Agrega la primera usando el botón superior.",
@@ -732,7 +733,8 @@
       "almuerzo": "Almuerzo",
       "merienda": "Merienda",
       "media_manana": "Media Mañana"
-    }
+    },
+    "edit_meal": "Editar comida"
   },
   "my_diet": {
     "title": "Mi Dieta",
@@ -768,7 +770,8 @@
     "meal_types": {
       "lunch": "Comida",
       "dinner": "Cena"
-    }
+    },
+    "edit_meal": "Editar plato"
   },
   "calendar_notes": {
     "entry_type_label": "Qué quieres crear",
@@ -941,6 +944,7 @@
     "change": "Cambiar",
     "address_tab": "Dirección",
     "address_subtitle": "Configura el país, provincia y dirección del centro. El país y la provincia se usan para importar festivos nacionales.",
+    "address_geo_error": "No se pudo cargar la lista de países. Revisa tu conexión e inténtalo de nuevo.",
     "address_country": "País",
     "address_state": "Provincia",
     "address_city": "Ciudad",
@@ -1403,7 +1407,7 @@
     "import": "Importar recetas",
     "import_success": "{{count}} recetas importadas",
     "import_error": "No se pudieron importar las recetas",
-    "import_invalid": "Selecciona un archivo CSV o JSON válido",
+    "import_invalid": "Selecciona un archivo CSV, JSON, PDF, Word o imagen válido",
     "empty_title": "Sin recetas",
     "empty": "Crea la primera receta del centro o importa un recetario existente.",
     "no_results_title": "Sin resultados",
@@ -1421,6 +1425,10 @@
     "ingredients": "Ingredientes",
     "food_search_placeholder": "Buscar alimento...",
     "quantity_g": "Cantidad (g)",
+    "ingredient_measure": "Cantidad o medida",
+    "ingredient_measure_placeholder": "Ej: 2 uds, 1 cda...",
+    "add_free_text": "Añadir como texto libre",
+    "free_text_badge": "texto libre",
     "no_ingredients": "Esta receta no tiene ingredientes.",
     "steps": "Pasos",
     "step_placeholder": "Escribe los pasos, uno por línea",
@@ -1454,7 +1462,20 @@
     "back": "Volver al recetario",
     "detail_not_found": "Receta no encontrada",
     "photos": "Fotos",
-    "updated_at": "Actualizada"
+    "updated_at": "Actualizada",
+    "meal_recipe": "Receta",
+    "no_recipe": "Sin receta (texto libre)",
+    "view_recipe": "Ver receta",
+    "assign_recipe": "Asignar receta",
+    "servings_short": "personas",
+    "servings_persons": "Personas / raciones",
+    "persons_count": "{{count}} personas",
+    "add_person": "Añadir persona",
+    "remove_person": "Quitar persona",
+    "target_type": "Asignar a",
+    "target_menu": "Menú de paciente",
+    "target_template": "Plantilla de menú",
+    "select_template": "Plantilla"
   },
   "exchange": {
     "title": "Grupos de intercambio",

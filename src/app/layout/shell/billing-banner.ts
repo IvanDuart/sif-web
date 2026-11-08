@@ -111,9 +111,9 @@ export class BillingBanner {
   readonly toneClasses = computed(() => {
     switch (this.copy()?.tone) {
       case 'err':
-        return 'bg-err-soft text-err border-err/25';
+        return 'bg-err-soft text-err-text border-err/25';
       case 'warn':
-        return 'bg-warn-soft text-warn border-warn/25';
+        return 'bg-warn-soft text-warn-text border-warn/25';
       default:
         return 'bg-accent-soft text-accent border-accent/20';
     }

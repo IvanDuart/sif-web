@@ -2,7 +2,7 @@
   @if (menu()) {
   <div class="space-y-6 pb-4" *transloco="let t">
     <div>
-      <a (click)="goBack()" (keydown.enter)="goBack()" tabindex="0" role="link" class="mb-3 inline-flex items-center gap-1 text-[13px] text-surface-400 hover:text-primary-600 dark:hover:text-primary-300 transition-colors cursor-pointer">
+      <a (click)="goBack()" (keydown.enter)="goBack()" tabindex="0" role="link" class="mb-3 inline-flex items-center gap-1 text-[13px] text-surface-400 hover:text-ink-accent dark:hover:text-primary-300 transition-colors cursor-pointer">
         <i class="fa-solid fa-arrow-left text-[10px]"></i> {{ t('diet_detail.back') }}
       </a>
 
@@ -169,7 +169,7 @@
                                   <button tuiOption type="button" (click)="copyDay(day, target)">
                                     {{ dayLabel(target) }}
                                     @if (mealCountOfDay(target) > 0) {
-                                      <i class="fa-solid fa-triangle-exclamation text-xs ml-1.5 text-warn" aria-hidden="true"></i>
+                                      <i class="fa-solid fa-triangle-exclamation text-xs ml-1.5 text-warn-text" aria-hidden="true"></i>
                                     }
                                   </button>
                                 }
@@ -201,6 +201,8 @@
                         (draftChange)="editingDescription.set($event)"
                         (add)="addMeal(day, mealType)"
                         (edit)="onEditMeal(getMeal(day, mealType)!)"
+                        (openForm)="editMealDialog(getMeal(day, mealType)!)"
+                        (openRecipe)="openRecipe(getMeal(day, mealType)!)"
                         (remove)="deleteMeal(getMeal(day, mealType)!)"
                         (save)="saveInlineEdit(getMeal(day, mealType)!)"
                         (cancelEdit)="cancelInlineEdit()" />
@@ -262,6 +264,8 @@
                     (draftChange)="editingDescription.set($event)"
                     (add)="addMeal(day, mealType)"
                     (edit)="onEditMeal(getMeal(day, mealType)!)"
+                    (openForm)="editMealDialog(getMeal(day, mealType)!)"
+                    (openRecipe)="openRecipe(getMeal(day, mealType)!)"
                     (remove)="deleteMeal(getMeal(day, mealType)!)"
                     (save)="saveInlineEdit(getMeal(day, mealType)!)"
                     (cancelEdit)="cancelInlineEdit()" />

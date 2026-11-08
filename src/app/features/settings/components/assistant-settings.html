@@ -13,7 +13,7 @@
     </div>
   } @else {
     <div class="data-card space-y-6">
-      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0">{{ t('assistant.settings_title') }}</h3>
+      <h2 class="text-base font-semibold text-surface-900 dark:text-surface-0">{{ t('assistant.settings_title') }}</h2>
 
       <div class="flex items-start gap-3">
         <input id="assistantEnabled" type="checkbox" tuiSwitch [ngModel]="enabled()" (ngModelChange)="enabled.set($event)" />
@@ -108,7 +108,7 @@
     <!-- Mascota por defecto -->
     <div class="data-card space-y-5">
       <div>
-        <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0">{{ t('assistant.settings_mascot_title') }}</h3>
+        <h2 class="text-base font-semibold text-surface-900 dark:text-surface-0">{{ t('assistant.settings_mascot_title') }}</h2>
         <p class="mt-1 text-xs text-surface-400">{{ t('assistant.settings_mascot_hint') }}</p>
       </div>
 
@@ -136,7 +136,7 @@
     <!-- Personalización por usuario -->
     <div class="data-card space-y-5">
       <div>
-        <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0">{{ t('assistant.settings_look_title') }}</h3>
+        <h2 class="text-base font-semibold text-surface-900 dark:text-surface-0">{{ t('assistant.settings_look_title') }}</h2>
         <p class="mt-1 text-xs text-surface-400">{{ t('assistant.settings_look_hint') }}</p>
       </div>
 

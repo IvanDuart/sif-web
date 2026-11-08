@@ -43,15 +43,30 @@
     <h3 class="mb-3 text-sm font-bold text-surface-900 dark:text-surface-0">{{ t('recipes.ingredients') }}</h3>
 
     <div class="relative">
-      <input
-        type="search"
-        class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
-        [ngModel]="foodQuery"
-        (ngModelChange)="onFoodQuery($event)"
-        [placeholder]="t('recipes.food_search_placeholder')"
-      />
+      <div class="flex gap-2">
+        <input
+          type="search"
+          class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
+          [ngModel]="foodQuery"
+          (ngModelChange)="onFoodQuery($event)"
+          (keydown)="onFoodQueryKeydown($event)"
+          [placeholder]="t('recipes.food_search_placeholder')"
+        />
+        <button
+          type="button"
+          tuiButton
+          appearance="flat"
+          size="s"
+          class="shrink-0"
+          [disabled]="!foodQuery.trim()"
+          (click)="addFreeTextIngredient()"
+        >
+          <i class="fa-solid fa-keyboard mr-1" aria-hidden="true"></i>
+          {{ t('recipes.add_free_text') }}
+        </button>
+      </div>
       @if (searchingFoods()) {
-        <i class="fa-solid fa-spinner fa-spin absolute right-3 top-2.5 text-surface-400" aria-hidden="true"></i>
+        <i class="fa-solid fa-spinner fa-spin absolute left-3 top-2.5 text-surface-400" aria-hidden="true"></i>
       }
       @if (foodResults().length > 0) {
         <ul class="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-line bg-surface-0 shadow-lg dark:bg-surface-800">
@@ -73,20 +88,33 @@
 
     @if (ingredients().length > 0) {
       <ul class="mt-3 divide-y divide-line">
-        @for (row of ingredients(); track row.foodId; let i = $index) {
+        @for (row of ingredients(); track $index; let i = $index) {
           <li class="flex items-center gap-3 py-2">
-            <span class="min-w-0 flex-1 truncate text-sm">{{ row.foodName }}</span>
+            <span class="min-w-0 flex-1 truncate text-sm">
+              {{ row.foodName }}
+              @if (!row.foodId) {
+                <span class="ml-1 text-xs text-surface-400">({{ t('recipes.free_text_badge') }})</span>
+              }
+            </span>
+            <input
+              type="text"
+              class="w-36 rounded-md border border-line bg-surface-0 px-2 py-1.5 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
+              [(ngModel)]="row.householdMeasure"
+              [placeholder]="t('recipes.ingredient_measure_placeholder')"
+              [attr.aria-label]="t('recipes.ingredient_measure')"
+            />
             <input
               type="number"
               min="1"
               class="w-24 rounded-md border border-line bg-surface-0 px-2 py-1.5 text-right text-sm tabular-nums outline-none focus:border-primary-400 dark:bg-surface-900"
               [(ngModel)]="row.quantityG"
+              [placeholder]="t('recipes.quantity_g')"
               [attr.aria-label]="t('recipes.quantity_g')"
             />
             <span class="text-xs text-surface-400">g</span>
             <button
               type="button"
-              class="text-surface-400 hover:text-err"
+              class="text-surface-400 hover:text-err-text"
               [attr.aria-label]="t('common.delete')"
               (click)="removeIngredient(i)"
             >
@@ -139,7 +167,7 @@
             <span class="text-xs text-surface-400">g</span>
             <button
               type="button"
-              class="text-surface-400 hover:text-err"
+              class="text-surface-400 hover:text-err-text"
               [attr.aria-label]="t('common.delete')"
               (click)="removeMeasure(i)"
             >

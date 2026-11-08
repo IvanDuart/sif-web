@@ -447,7 +447,7 @@ export default class UserDetailPage implements OnInit, OnDestroy {
           deltaText: isFlat
             ? null
             : `${sign}${Math.abs(delta as number).toFixed(1)}${d.unit ? ' ' + d.unit : ''}`,
-          toneClass: isFlat ? 'text-surface-400' : improving ? 'text-ok' : 'text-err',
+          toneClass: isFlat ? 'text-surface-400' : improving ? 'text-ok' : 'text-err-text',
         };
       });
   });

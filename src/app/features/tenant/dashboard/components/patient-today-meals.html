@@ -1,19 +1,19 @@
 <div *transloco="let t" class="data-card border border-surface-200 dark:border-surface-700 flex flex-col h-full">
   <div class="flex items-center justify-between mb-4">
     <div class="flex items-center gap-2">
-      <i class="fa-solid fa-utensils text-primary-500 text-xl"></i>
+      <i class="fa-solid fa-utensils text-ink-accent text-xl"></i>
       <h3 class="text-base font-semibold text-surface-900 dark:text-surface-0">
         {{ t('patient_dashboard.today_meals', { defaultValue: 'Comidas de Hoy' }) }}
       </h3>
     </div>
-    <span class="bg-primary-50 dark:bg-brand-tint-20 text-primary-700 dark:text-primary-400 text-xs font-bold px-2 py-0.5 rounded">
+    <span class="bg-primary-50 dark:bg-brand-tint-20 text-primary-800 dark:text-primary-400 text-xs font-bold px-2 py-0.5 rounded">
       {{ todayLabel() }}
     </span>
   </div>
 
   @if (loading()) {
     <div class="flex-1 flex items-center justify-center py-6">
-      <i class="fa-solid fa-spinner fa-spin text-primary-500 text-xl"></i>
+      <i class="fa-solid fa-spinner fa-spin text-ink-accent text-xl"></i>
     </div>
   } @else {
     <!-- Siguiente comida destacada (la marca la hora del día) -->
@@ -22,11 +22,11 @@
         class="mb-4 rounded-xl border border-primary-100 bg-primary-50 p-4 dark:border-brand-tint-40 dark:bg-brand-tint-20"
       >
         <div class="flex items-center gap-3">
-          <span class="grid size-11 shrink-0 place-items-center rounded-lg bg-primary-500 text-surface-0">
+          <span class="grid size-11 shrink-0 place-items-center rounded-lg bg-primary-500 text-primary-contrast-color">
             <i class="fa-solid fa-utensils" aria-hidden="true"></i>
           </span>
           <div class="min-w-0 flex-1">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-300">
+            <span class="text-[11.5px] font-bold uppercase tracking-wider text-ink-accent dark:text-primary-300">
               {{ t('patient_dashboard.next_meal', { defaultValue: 'Siguiente' }) }}
             </span>
             <div class="flex items-baseline justify-between gap-3">
@@ -34,7 +34,7 @@
                 {{ mealTypeLabel(next.mealType) }}
               </p>
               @if (mealTime(next.mealType); as time) {
-                <span class="shrink-0 text-sm font-semibold tabular-nums text-primary-600 dark:text-primary-300">
+                <span class="shrink-0 text-sm font-semibold tabular-nums text-ink-accent dark:text-primary-300">
                   {{ time }}
                 </span>
               }
@@ -58,7 +58,7 @@
       @if (todayMeals().length > 0) {
         <div class="divide-y divide-surface-100 dark:divide-surface-700/50">
           @for (meal of todayMeals(); track meal.id) {
-            <div class="flex gap-3 py-3" [class.opacity-45]="isPastMeal(meal)">
+            <div class="flex gap-3 py-3">
               <span class="w-11 shrink-0 pt-0.5 text-[13px] tabular-nums text-surface-400">
                 {{ mealTime(meal.mealType) }}
               </span>
@@ -97,25 +97,25 @@
         </h4>
         @if (fixedMeals()?.breakfast; as breakfast) {
           <div class="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-100 dark:border-surface-700/50">
-            <span class="text-xs font-bold text-primary-500 uppercase tracking-wider">{{ t('patient_profile.breakfast') }}</span>
+            <span class="text-xs font-bold text-ink-accent uppercase tracking-wider">{{ t('patient_profile.breakfast') }}</span>
             <p class="text-sm text-surface-800 dark:text-surface-200 mt-1 whitespace-pre-wrap">{{ breakfast }}</p>
           </div>
         }
         @if (fixedMeals()?.lunch; as lunch) {
           <div class="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-100 dark:border-surface-700/50">
-            <span class="text-xs font-bold text-primary-500 uppercase tracking-wider">{{ t('patient_profile.lunch') }}</span>
+            <span class="text-xs font-bold text-ink-accent uppercase tracking-wider">{{ t('patient_profile.lunch') }}</span>
             <p class="text-sm text-surface-800 dark:text-surface-200 mt-1 whitespace-pre-wrap">{{ lunch }}</p>
           </div>
         }
         @if (fixedMeals()?.snack; as snack) {
           <div class="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-100 dark:border-surface-700/50">
-            <span class="text-xs font-bold text-primary-500 uppercase tracking-wider">{{ t('patient_profile.snack') }}</span>
+            <span class="text-xs font-bold text-ink-accent uppercase tracking-wider">{{ t('patient_profile.snack') }}</span>
             <p class="text-sm text-surface-800 dark:text-surface-200 mt-1 whitespace-pre-wrap">{{ snack }}</p>
           </div>
         }
         @if (fixedMeals()?.observations; as observations) {
           <div class="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-100 dark:border-surface-700/50">
-            <span class="text-xs font-bold text-primary-500 uppercase tracking-wider">{{ t('patient_profile.observations') }}</span>
+            <span class="text-xs font-bold text-ink-accent uppercase tracking-wider">{{ t('patient_profile.observations') }}</span>
             <p class="text-sm text-surface-800 dark:text-surface-200 mt-1 whitespace-pre-wrap">{{ observations }}</p>
           </div>
         }

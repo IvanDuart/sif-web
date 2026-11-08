@@ -21,6 +21,44 @@
   gap: 0.5rem;
 }
 
+// Texto y pastilla de receta comparten columna: la receta va debajo del texto.
+.menu-table__meal-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-table__meal-recipe {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--p-primary-500) 35%, transparent);
+  background: color-mix(in srgb, var(--p-primary-500) 10%, transparent);
+  color: var(--p-primary-700);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--p-primary-500) 18%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary-500);
+    outline-offset: 2px;
+  }
+}
+
+.menu-table__meal-recipe-servings {
+  font-weight: 500;
+  opacity: 0.8;
+}
+
 .menu-table__meal-text {
   flex: 1;
   min-width: 0;

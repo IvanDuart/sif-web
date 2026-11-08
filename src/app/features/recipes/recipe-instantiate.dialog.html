@@ -3,36 +3,48 @@
     {{ t('recipes.instantiate_hint', { name: context.data.recipe.name }) }}
   </p>
 
-  <label class="flex flex-col gap-1.5">
-    <span class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('recipes.select_menu') }}</span>
-    <select
-      class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
-      [ngModel]="selectedMenuId"
-      (ngModelChange)="onMenuChange($event)"
-      [disabled]="loadingMenus()"
-    >
-      <option value="">{{ loadingMenus() ? t('common.loading') : t('common.select_option') }}</option>
-      @for (menu of menus(); track menu.id) {
-        <option [value]="menu.id">{{ menu.name }}</option>
-      }
-    </select>
-  </label>
+  <tui-textfield class="w-full" tuiChevron [stringify]="targetTypeStringify">
+    <label tuiLabel for="targetTypeSelect">{{ t('recipes.target_type') }}</label>
+    <input id="targetTypeSelect" tuiSelect [formControl]="targetTypeControl" />
+    <tui-data-list-wrapper *tuiDropdown [items]="targetTypeValues()"></tui-data-list-wrapper>
+  </tui-textfield>
 
-  <label class="flex flex-col gap-1.5">
-    <span class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('recipes.select_meal') }}</span>
-    <select
-      class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
-      [(ngModel)]="selectedMealId"
-      [disabled]="!selectedMenuId || loadingMeals()"
-    >
-      <option value="">
-        {{ loadingMeals() ? t('common.loading') : meals().length === 0 ? t('recipes.no_meals') : t('common.select_option') }}
-      </option>
-      @for (meal of meals(); track meal.id) {
-        <option [value]="meal.id">{{ mealLabel(meal) }}</option>
-      }
-    </select>
-  </label>
+  <tui-textfield class="w-full" tuiChevron [stringify]="sourceStringify">
+    <label tuiLabel for="sourceSelect">
+      {{ targetType() === 'menu' ? t('recipes.select_menu') : t('recipes.select_template') }}
+    </label>
+    <input
+      id="sourceSelect"
+      tuiSelect
+      [formControl]="sourceControl"
+      [placeholder]="loadingSources() ? t('common.loading') : t('common.select_option')"
+    />
+    <tui-data-list-wrapper *tuiDropdown [items]="sourceValues()"></tui-data-list-wrapper>
+  </tui-textfield>
+
+  <tui-textfield class="w-full" tuiChevron [stringify]="mealStringify">
+    <label tuiLabel for="mealSelect">{{ t('recipes.select_meal') }}</label>
+    <input
+      id="mealSelect"
+      tuiSelect
+      [formControl]="mealControl"
+      [placeholder]="
+        loadingMeals()
+          ? t('common.loading')
+          : !sourceControl.value
+            ? t('common.select_option')
+            : meals().length === 0
+              ? t('recipes.no_meals')
+              : t('common.select_option')
+      "
+    />
+    <tui-data-list-wrapper *tuiDropdown [items]="mealValues()"></tui-data-list-wrapper>
+  </tui-textfield>
+
+  <tui-textfield class="w-full">
+    <label tuiLabel for="servingsInput">{{ t('recipes.servings_persons') }}</label>
+    <input id="servingsInput" tuiInput type="number" min="1" step="1" [formControl]="servingsControl" />
+  </tui-textfield>
 
   <div class="mt-3 flex justify-end gap-2 border-t border-line pt-4">
     <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">
@@ -43,7 +55,7 @@
       tuiButton
       appearance="primary"
       size="m"
-      [disabled]="saving() || !selectedMealId"
+      [disabled]="saving() || !mealControl.value || servingsControl.invalid"
       (click)="save()"
     >
       @if (saving()) {

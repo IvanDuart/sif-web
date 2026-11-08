@@ -13,6 +13,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 
 import { routes } from './app.routes';
+import { environment } from '../environments/environment';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { assistantWriteInterceptor } from './features/assistant/copilot/assistant-write.interceptor';
 import { billingInterceptor } from './core/http/billing.interceptor';
@@ -111,7 +112,7 @@ export const appConfig: ApplicationConfig = {
         availableLangs: ['es', 'en'],
         defaultLang: localStorage.getItem('preferredLanguage') ?? 'es',
         reRenderOnLangChange: true,
-        prodMode: false
+        prodMode: environment.production
       },
       loader: TranslocoHttpLoader
     }),

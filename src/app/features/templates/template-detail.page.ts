@@ -131,6 +131,28 @@ export default class TemplateDetailPage implements OnInit {
     });
   }
 
+  /** Abre el diálogo de la comida de plantilla para asignar receta, raciones o texto libre. */
+  editMealDialog(meal: MealTemplate) {
+    this.modal.open<MealTemplate, MealTemplateFormDialogInput>(MealTemplateFormDialog, {
+      label: this.transloco.translate('template_detail.edit_meal'),
+      size: 'm',
+      data: { templateId: this.templateId, meal }
+    }).subscribe(result => {
+      if (result) {
+        this.notify.success(this.transloco.translate('notifications.meal_updated'));
+        this.loadData();
+      }
+    });
+  }
+
+  /** Abre la receta asignada a la comida con sus raciones pautadas. */
+  openRecipe(meal: MealTemplate) {
+    if (!meal.recipeId) return;
+    this.router.navigate(['/recipes', meal.recipeId], {
+      queryParams: { servings: meal.servings || 1 }
+    });
+  }
+
   startEditMeal(meal: MealTemplate) {
     this.editingMealId.set(meal.id);
     this.editingDescription.set(meal.description ?? '');

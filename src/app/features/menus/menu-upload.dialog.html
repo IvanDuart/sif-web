@@ -1,6 +1,6 @@
 <div class="flex flex-col gap-4 mt-2">
   <div class="bg-brand-tint-08 p-4 rounded-lg flex items-start gap-3 mb-2">
-    <i class="fa-solid fa-wand-magic-sparkles text-primary-500 text-xl mt-1"></i>
+    <i class="fa-solid fa-wand-magic-sparkles text-ink-accent text-xl mt-1"></i>
     <div class="text-sm">
       {{ 'diets.upload_description' | transloco }}
     </div>
@@ -34,17 +34,17 @@
       <ng-template let-dragged>
         @if (dragged) {
           <div class="border-2 border-primary-500 border-dashed rounded-lg p-6 text-center bg-brand-tint-08">
-            <i class="fa-solid fa-cloud-arrow-down text-3xl text-primary-500 mb-2" aria-hidden="true"></i>
-            <p class="text-sm text-primary-600 dark:text-primary-400 font-medium">
+            <i class="fa-solid fa-cloud-arrow-down text-3xl text-ink-accent mb-2" aria-hidden="true"></i>
+            <p class="text-sm text-ink-accent dark:text-primary-400 font-medium">
               {{ 'templates.upload_drop_here' | transloco }}
             </p>
           </div>
         } @else if (selectedFile(); as file) {
           <div class="relative group cursor-pointer">
             <div class="w-full py-6 rounded-lg border border-primary-300 dark:border-primary-300 bg-brand-tint-08 flex flex-col items-center justify-center gap-2">
-              <i class="fa-solid fa-file text-2xl text-primary-500" aria-hidden="true"></i>
+              <i class="fa-solid fa-file text-2xl text-ink-accent" aria-hidden="true"></i>
               <span class="text-sm font-medium text-primary-700 dark:text-primary-300 px-3 text-center truncate max-w-full">{{ file.name }}</span>
-              <span class="text-xs text-primary-500">({{ (file.size / 1024).toFixed(1) }} KB)</span>
+              <span class="text-xs text-ink-accent">({{ (file.size / 1024).toFixed(1) }} KB)</span>
             </div>
             <button tuiIconButton appearance="flat-destructive" size="xs" type="button" class="absolute -top-2 -right-2 shadow" (click)="removeFile(); $event.stopPropagation()" [title]="'common.remove' | transloco">
               <i class="fa-solid fa-xmark" aria-hidden="true"></i>

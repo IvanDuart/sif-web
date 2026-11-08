@@ -44,13 +44,13 @@
       <button type="button">
         {{ t('staff.filter_active') }}
         @if (statusCounts(); as counts) {
-          <span class="ml-1.5 tabular-nums opacity-70">{{ counts.active }}</span>
+          <span class="ml-1.5 tabular-nums">{{ counts.active }}</span>
         }
       </button>
       <button type="button">
         {{ t('staff.filter_inactive') }}
         @if (statusCounts(); as counts) {
-          <span class="ml-1.5 tabular-nums opacity-70">{{ counts.inactive }}</span>
+          <span class="ml-1.5 tabular-nums">{{ counts.inactive }}</span>
         }
       </button>
     </tui-segmented>
@@ -201,7 +201,7 @@
                         </button>
                         <button
                           *appIfPermission="'MANAGE_USER'"
-                          tuiOption type="button" class="text-err" (click)="revokeAccess(user)"
+                          tuiOption type="button" class="text-err-text" (click)="revokeAccess(user)"
                         >
                           <i class="fa-solid fa-user-xmark mr-2" aria-hidden="true"></i>
                           {{ t('users.revoke') }}
@@ -264,7 +264,7 @@
                 </button>
                 <button
                   tuiButton appearance="flat" size="s" type="button"
-                  class="text-err"
+                  class="text-err-text"
                   (click)="$event.stopPropagation(); revokeAccess(user)"
                   [attr.title]="t('users.revoke')" [attr.aria-label]="t('users.revoke')"
                 >

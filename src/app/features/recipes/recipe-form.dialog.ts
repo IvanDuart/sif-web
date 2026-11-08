@@ -23,9 +23,10 @@ export interface RecipeFormDialogInput {
 }
 
 interface IngredientRow {
-  foodId: string;
+  foodId: string | null;
   foodName: string;
   quantityG: number | null;
+  householdMeasure: string;
 }
 
 interface MeasureRow {
@@ -88,6 +89,7 @@ export class RecipeFormDialog implements OnDestroy {
             foodId: item.foodId,
             foodName: item.foodName,
             quantityG: item.quantityG,
+            householdMeasure: item.householdMeasure ?? '',
           }))
       );
       this.measures.set(
@@ -133,10 +135,39 @@ export class RecipeFormDialog implements OnDestroy {
     if (this.ingredients().some((row) => row.foodId === food.id)) return;
     this.ingredients.update((rows) => [
       ...rows,
-      { foodId: food.id, foodName: food.name, quantityG: null },
+      { foodId: food.id, foodName: food.name, quantityG: null, householdMeasure: '' },
     ]);
     this.foodQuery = '';
     this.foodResults.set([]);
+  }
+
+  /**
+   * Añade el texto escrito como ingrediente libre, sin necesidad de que exista
+   * en BEDCA (especias, condimentos, "sal y pimienta"...).
+   */
+  addFreeTextIngredient(): void {
+    const foodName = this.foodQuery.trim();
+    if (!foodName) return;
+    if (this.ingredients().some(
+      (row) => row.foodName.trim().toLowerCase() === foodName.toLowerCase()
+    )) {
+      this.foodQuery = '';
+      this.foodResults.set([]);
+      return;
+    }
+    this.ingredients.update((rows) => [
+      ...rows,
+      { foodId: null, foodName, quantityG: null, householdMeasure: '' },
+    ]);
+    this.foodQuery = '';
+    this.foodResults.set([]);
+    this.searchingFoods.set(false);
+  }
+
+  onFoodQueryKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    this.addFreeTextIngredient();
   }
 
   removeIngredient(index: number): void {
@@ -161,10 +192,16 @@ export class RecipeFormDialog implements OnDestroy {
     if (!tenantId || !this.name.trim()) return;
 
     const items: RecipeItemRequest[] = this.ingredients()
-      .filter((row) => row.foodId && (row.quantityG ?? 0) > 0)
+      .filter(
+        (row) =>
+          (row.foodId || row.foodName.trim()) &&
+          (row.householdMeasure.trim() || (row.quantityG ?? 0) > 0)
+      )
       .map((row, index) => ({
-        foodId: row.foodId,
-        quantityG: row.quantityG as number,
+        foodId: row.foodId ?? null,
+        foodName: row.foodName.trim() || null,
+        quantityG: (row.quantityG ?? 0) > 0 ? row.quantityG : null,
+        householdMeasure: row.householdMeasure.trim() || null,
         sortOrder: index,
       }));
 

@@ -65,7 +65,7 @@ export interface EvolutionMetricItem {
   unit: string;
   /** Variación frente a la medición anterior, ya formateada (sin flecha). */
   deltaText: string | null;
-  /** Clase de color de la variación (`text-ok` / `text-err` / neutro). */
+  /** Clase de color de la variación (`text-ok` / `text-err-text` / neutro). */
   deltaClass: string;
   /** Flecha ▲ / ▼ (vacía si no hay variación significativa). */
   arrow: string;
@@ -265,7 +265,7 @@ export default class EvolutionPage implements OnInit, OnDestroy {
       valueText: value == null ? '—' : value.toFixed(1),
       unit: value == null ? '' : def.unit,
       deltaText: isFlat ? null : `${Math.abs(delta as number).toFixed(1)}${def.unit ? ' ' + def.unit : ''}`,
-      deltaClass: isFlat ? 'text-surface-400' : improving ? 'text-ok' : 'text-err',
+      deltaClass: isFlat ? 'text-surface-400' : improving ? 'text-ok' : 'text-err-text',
       arrow: isFlat ? '' : (delta as number) > 0 ? '▲' : '▼',
     };
   }

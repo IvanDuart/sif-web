@@ -129,7 +129,7 @@
             (click)="toggleLayer('appointments')">
             <i class="inline-block size-2 rounded-[2px]" [style.background]="statusColor('SCHEDULED')" aria-hidden="true"></i>
             <span class="ml-1.5">{{ t('calendar_notes.filter_appointments') }}</span>
-            <span class="ml-1.5 tabular-nums opacity-70">{{ layerCounts().appointments }}</span>
+            <span class="ml-1.5 tabular-nums">{{ layerCounts().appointments }}</span>
           </button>
 
           <button
@@ -139,9 +139,9 @@
             [appearance]="layers().reminders ? 'primary' : 'neutral'"
             [attr.aria-pressed]="layers().reminders"
             (click)="toggleLayer('reminders')">
-            <i class="fa-regular fa-note-sticky text-[11px]" aria-hidden="true"></i>
+            <i class="fa-regular fa-note-sticky text-[11.5px]" aria-hidden="true"></i>
             <span class="ml-1.5">{{ t('calendar_notes.filter_reminders') }}</span>
-            <span class="ml-1.5 tabular-nums opacity-70">{{ layerCounts().reminders }}</span>
+            <span class="ml-1.5 tabular-nums">{{ layerCounts().reminders }}</span>
           </button>
 
           <button
@@ -154,7 +154,7 @@
             <!-- Trama, no color: el bloqueo se distingue también sin color. -->
             <i class="legend-hatch inline-block size-2 rounded-[2px]" aria-hidden="true"></i>
             <span class="ml-1.5">{{ t('calendar_notes.filter_blocks') }}</span>
-            <span class="ml-1.5 tabular-nums opacity-70">{{ layerCounts().blocks }}</span>
+            <span class="ml-1.5 tabular-nums">{{ layerCounts().blocks }}</span>
           </button>
         </div>
 
@@ -234,7 +234,7 @@
             {{ t('appointments.today_appointments') }}
           </h2>
           <span
-            class="rounded-pill bg-surface-100 px-2 py-0.5 text-[11px] font-bold tabular-nums text-surface-500 dark:bg-surface-800 dark:text-surface-300"
+            class="rounded-pill bg-surface-100 px-2 py-0.5 text-[11.5px] font-bold tabular-nums text-surface-500 dark:bg-surface-800 dark:text-surface-300"
           >
             {{ todayAppointments().length }}
           </span>
@@ -251,12 +251,11 @@
               @for (appt of todayAppointments(); track appt.id) {
                 <article
                   class="rounded-sm border border-line bg-surface-50 p-3 transition-colors hover:border-line-strong dark:bg-surface-800"
-                  [class.opacity-55]="isPastInstant(appt.startTime)"
                 >
                   <div class="flex items-start justify-between gap-3">
                     <div class="flex min-w-0 items-center gap-2.5">
                       <span
-                        class="grid size-8 shrink-0 place-items-center rounded-pill bg-surface-100 text-[11px] font-semibold text-surface-500 dark:bg-surface-700 dark:text-surface-300"
+                        class="grid size-8 shrink-0 place-items-center rounded-pill bg-surface-100 text-[11.5px] font-semibold text-surface-500 dark:bg-surface-700 dark:text-surface-300"
                         aria-hidden="true"
                       >
                         {{ appt.patientName ? getInitials(appt.patientName) : '—' }}
@@ -270,7 +269,7 @@
                         }
                       </div>
                     </div>
-                    <span class="shrink-0 text-sm font-semibold tabular-nums text-primary-600 dark:text-primary-300">
+                    <span class="shrink-0 text-sm font-semibold tabular-nums text-ink-accent dark:text-primary-300">
                       {{ formatTime(appt.startTime) }}
                     </span>
                   </div>
@@ -317,7 +316,7 @@
                             @if (updatingStatus() === appt.id) {
                               <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
                             } @else {
-                              <i class="fa-solid fa-user-slash text-err" aria-hidden="true"></i>
+                              <i class="fa-solid fa-user-slash text-err-text" aria-hidden="true"></i>
                             }
                           </button>
                         }
