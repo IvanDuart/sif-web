@@ -69,21 +69,20 @@
           </span>
         </button>
 
-        <!-- Propuestas de reagenda (solo staff) -->
-        @if (permissionsService.has('VIEW_APPOINTMENTS') || permissionsService.has('MANAGE_APPOINTMENTS')) {
-          <button
-            type="button"
-            class="icon-btn"
-            [tuiDropdown]="bellDropdown"
-            [(tuiDropdownOpen)]="bellMenuOpen"
-            [attr.aria-label]="'shell.notifications' | transloco"
-          >
-            <i class="fa-solid fa-bell" aria-hidden="true"></i>
-            @if (proposedAppointments().length > 0) {
-              <span class="dot-badge">{{ proposedAppointments().length }}</span>
-            }
-          </button>
-        }
+        <!-- Notificaciones (buzón + propuestas unificadas) -->
+        <button
+          type="button"
+          class="icon-btn"
+          [tuiDropdown]="unifiedNotificationsDropdown"
+          tuiDropdownAlign="start"
+          [(tuiDropdownOpen)]="desktopBellMenuOpen"
+          [attr.aria-label]="'notifications_inbox.title' | transloco"
+        >
+          <i class="fa-solid fa-bell" aria-hidden="true"></i>
+          @if (totalNotificationsCount() > 0) {
+            <span class="dot-badge">{{ totalNotificationsCount() }}</span>
+          }
+        </button>
       </div>
 
       <!-- Usuario -->
@@ -127,26 +126,89 @@
       </div>
     </ng-template>
 
-    <!-- Propuestas de reagenda -->
-    <ng-template #bellDropdown>
+    <!-- Buzón de notificaciones -->
+    <!-- Notificaciones unificadas (buzón + propuestas de reagenda) -->
+    <ng-template #unifiedNotificationsDropdown>
       <div class="dropdown-menu-content bell-menu" tuiDropdownContent>
-        <div class="menu-section-title">{{ 'shell.reschedule_proposals' | transloco }}</div>
+        <!-- Propuestas de reagenda (si hay y el usuario tiene permisos de citas) -->
+        @if ((permissionsService.has('VIEW_APPOINTMENTS') || permissionsService.has('MANAGE_APPOINTMENTS')) && proposedAppointments().length > 0) {
+          <div class="flex items-center justify-between gap-3">
+            <div class="menu-section-title">{{ 'shell.reschedule_proposals' | transloco }}</div>
+            <span class="tag tag-proposed">{{ proposedAppointments().length }}</span>
+          </div>
+          <div class="user-menu-divider"></div>
+
+          <div class="bell-list mb-3">
+            @for (appt of proposedAppointments(); track appt.id) {
+              <button type="button" class="bell-item" (click)="goToProposedDate(appt)">
+                <span class="bell-item-top">
+                  <span class="bell-item-name">{{ appt.patientName }}</span>
+                  <span class="tag tag-proposed">{{ 'shell.pending' | transloco }}</span>
+                </span>
+                <span class="bell-item-date">
+                  <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                  {{ formatDate(appt.startTime) }}
+                </span>
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Buzón de avisos y notificaciones generales -->
+        <div class="flex items-center justify-between gap-3">
+          <div class="menu-section-title">{{ 'notifications_inbox.title' | transloco }}</div>
+          @if (unreadCount() > 0) {
+            <button type="button" class="text-[12px] font-medium text-primary-600 hover:underline" (click)="markAllNotificationsRead()">
+              {{ 'notifications_inbox.mark_all_read' | transloco }}
+            </button>
+          }
+        </div>
         <div class="user-menu-divider"></div>
 
         <div class="bell-list">
-          @for (appt of proposedAppointments(); track appt.id) {
-            <button type="button" class="bell-item" (click)="goToProposedDate(appt)">
+          @if (mailboxLoading()) {
+            <p class="bell-empty">{{ 'common.loading' | transloco }}</p>
+          }
+          @for (item of mailboxItems(); track item.id) {
+            <div class="bell-item" [class.opacity-60]="item.readAt">
               <span class="bell-item-top">
-                <span class="bell-item-name">{{ appt.patientName }}</span>
-                <span class="tag tag-proposed">{{ 'shell.pending' | transloco }}</span>
+                <span class="bell-item-name">{{ item.title || item.type }}</span>
+                @if (!item.readAt) {
+                  <span class="tag tag-proposed">{{ 'notifications_inbox.unread' | transloco }}</span>
+                } @else {
+                  <span class="text-[11px] text-surface-400">{{ 'notifications_inbox.read' | transloco }}</span>
+                }
               </span>
+              @if (item.body) {
+                <span class="bell-item-date">{{ item.body }}</span>
+              }
               <span class="bell-item-date">
                 <i class="fa-regular fa-clock" aria-hidden="true"></i>
-                {{ formatDate(appt.startTime) }}
+                {{ item.createdAt | date: 'short' }}
               </span>
-            </button>
+              <span class="mt-1.5 flex items-center gap-3">
+                @if (!item.readAt) {
+                  <button
+                    type="button"
+                    class="text-[11.5px] text-surface-500 hover:text-primary-600 dark:text-surface-400"
+                    (click)="markNotificationRead(item)"
+                  >
+                    {{ 'notifications_inbox.mark_read' | transloco }}
+                  </button>
+                }
+                <button
+                  type="button"
+                  class="text-[11.5px] font-medium text-primary-600 hover:underline"
+                  (click)="openMailboxNotification(item)"
+                >
+                  {{ 'notifications_inbox.view' | transloco }}
+                </button>
+              </span>
+            </div>
           } @empty {
-            <p class="bell-empty">{{ 'shell.no_pending_proposals' | transloco }}</p>
+            @if (!mailboxLoading() && proposedAppointments().length === 0) {
+              <p class="bell-empty">{{ 'notifications_inbox.empty' | transloco }}</p>
+            }
           }
         </div>
       </div>
@@ -187,6 +249,19 @@
       }
     </a>
     <span class="mobile-bar-tenant">{{ activeTenant()?.tenantName }}</span>
+    <button
+      type="button"
+      class="icon-btn"
+      [tuiDropdown]="unifiedNotificationsDropdown"
+      tuiDropdownAlign="end"
+      [(tuiDropdownOpen)]="mobileBellMenuOpen"
+      [attr.aria-label]="'notifications_inbox.title' | transloco"
+    >
+      <i class="fa-solid fa-bell" aria-hidden="true"></i>
+      @if (totalNotificationsCount() > 0) {
+        <span class="dot-badge">{{ totalNotificationsCount() }}</span>
+      }
+    </button>
   </header>
 
   <!-- ═══════════ Contenido ═══════════ -->

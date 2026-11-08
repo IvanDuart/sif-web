@@ -1,0 +1,136 @@
+<div class="space-y-5 py-5" *transloco="let t">
+  <div class="data-card">
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h2 class="font-display text-lg font-bold tracking-tight text-surface-900 dark:text-surface-0">
+          {{ t('diary.tab_title') }}
+        </h2>
+        <p class="mt-1 text-[13px] text-surface-400">{{ t('diary.subtitle') }}</p>
+      </div>
+      <div class="flex flex-wrap items-end gap-2">
+        <label class="flex flex-col gap-1">
+          <span class="text-[12px] font-medium text-surface-500">{{ t('diary.from') }}</span>
+          <input
+            type="date"
+            class="rounded-md border border-line bg-surface-0 px-2.5 py-1.5 text-sm tabular-nums outline-none focus:border-primary-400 dark:bg-surface-900"
+            [(ngModel)]="fromDate"
+          />
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-[12px] font-medium text-surface-500">{{ t('diary.to') }}</span>
+          <input
+            type="date"
+            class="rounded-md border border-line bg-surface-0 px-2.5 py-1.5 text-sm tabular-nums outline-none focus:border-primary-400 dark:bg-surface-900"
+            [(ngModel)]="toDate"
+          />
+        </label>
+        <button type="button" tuiButton appearance="secondary" size="m" [disabled]="loading()" (click)="applyRange()">
+          @if (loading()) {
+            <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>
+          }
+          {{ t('diary.apply') }}
+        </button>
+      </div>
+    </div>
+
+    @if (adherence(); as adherence) {
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-md border border-line p-3">
+          <p class="text-[12px] font-medium uppercase tracking-wide text-surface-400">{{ t('diary.adherence_rate') }}</p>
+          <p class="mt-1 font-display text-2xl font-bold tabular-nums text-surface-900 dark:text-surface-0">
+            {{ adherencePercent() }}<span class="ml-0.5 text-base font-normal text-surface-400">%</span>
+          </p>
+        </div>
+        <div class="rounded-md border border-line p-3">
+          <p class="text-[12px] font-medium uppercase tracking-wide text-surface-400">{{ t('diary.planned') }}</p>
+          <p class="mt-1 font-display text-2xl font-bold tabular-nums text-surface-900 dark:text-surface-0">
+            {{ adherence.plannedMeals }}
+          </p>
+        </div>
+        <div class="rounded-md border border-line p-3">
+          <p class="text-[12px] font-medium uppercase tracking-wide text-surface-400">{{ t('diary.registered') }}</p>
+          <p class="mt-1 font-display text-2xl font-bold tabular-nums text-surface-900 dark:text-surface-0">
+            {{ adherence.doneMeals + adherence.partialMeals + adherence.swappedMeals + adherence.skippedMeals }}
+          </p>
+        </div>
+        <div class="rounded-md border border-line p-3">
+          <p class="text-[12px] font-medium uppercase tracking-wide text-surface-400">{{ t('diary.done_vs_partial') }}</p>
+          <p class="mt-1 text-sm tabular-nums text-surface-600 dark:text-surface-300">
+            {{ t('diary.done') }}: <strong>{{ adherence.doneMeals }}</strong> ·
+            {{ t('diary.partial') }}: <strong>{{ adherence.partialMeals }}</strong>
+          </p>
+        </div>
+      </div>
+
+      @if (adherence.weekly.length > 0) {
+        <div class="mt-4">
+          <h3 class="mb-2 text-[12px] font-semibold uppercase tracking-widest text-surface-400">
+            {{ t('diary.weekly') }}
+          </h3>
+          <ul class="divide-y divide-line">
+            @for (week of adherence.weekly; track week.weekStart) {
+              <li class="flex items-center justify-between gap-3 py-1.5 text-[13px]">
+                <span class="tabular-nums text-surface-500 dark:text-surface-400">
+                  {{ t('diary.week_start') }} {{ week.weekStart | date: 'mediumDate' }}
+                </span>
+                <span class="tabular-nums">
+                  {{ week.doneMeals }}/{{ week.plannedMeals }}
+                  <span class="ml-2 font-medium">{{ (week.adherenceRate * 100) | number: '1.0-1' }}%</span>
+                </span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    }
+  </div>
+
+  <div class="data-card">
+    <h3 class="mb-4 text-base font-bold uppercase tracking-widest text-surface-400">{{ t('diary.entries') }}</h3>
+
+    @if (loading()) {
+      <p class="py-6 text-center text-sm text-surface-400">{{ t('common.loading') }}</p>
+    } @else if (entries().length === 0) {
+      <div class="py-6 text-center">
+        <p class="text-sm font-medium text-surface-600 dark:text-surface-300">{{ t('diary.empty_title') }}</p>
+        <p class="mt-1 text-[13px] text-surface-400">{{ t('diary.empty') }}</p>
+      </div>
+    } @else {
+      <ul class="space-y-2">
+        @for (entry of entries(); track entry.id) {
+          <li class="flex flex-col gap-2 rounded-md border border-line p-3 sm:flex-row sm:items-start">
+            @if (entry.photoUrl) {
+              <img
+                [src]="entry.photoUrl"
+                [alt]="t('diary.photo')"
+                class="h-16 w-16 shrink-0 rounded-md object-cover"
+                loading="lazy"
+              />
+            }
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-[13px] font-medium tabular-nums text-surface-500 dark:text-surface-400">
+                  {{ entry.date | date: 'mediumDate' }}
+                </span>
+                <span class="text-sm font-semibold text-surface-900 dark:text-surface-0">{{ entry.mealType }}</span>
+                <span tuiBadge [appearance]="statusAppearance(entry.status)">
+                  {{ t(statusLabelKey(entry.status)) }}
+                </span>
+              </div>
+              @if (entry.notes) {
+                <p class="mt-1 whitespace-pre-wrap text-[13px] leading-relaxed text-surface-500 dark:text-surface-400">
+                  {{ entry.notes }}
+                </p>
+              }
+              @if (entry.items.length > 0) {
+                <p class="mt-1 truncate text-[12.5px] text-surface-400">
+                  {{ entry.items.length }} {{ t('diary.items') }}
+                </p>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>

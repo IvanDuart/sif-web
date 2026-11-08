@@ -73,6 +73,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/menus/menu-detail.page').then(m => m.default)
       },
       {
+        path: 'recipes',
+        loadComponent: () => import('./features/recipes/recipes-list.page').then(m => m.default)
+      },
+      {
+        path: 'recipes/:id',
+        loadComponent: () => import('./features/recipes/recipe-detail.page').then(m => m.default)
+      },
+      {
         path: 'templates',
         loadComponent: () => import('./features/templates/templates-list.page').then(m => m.default)
       },

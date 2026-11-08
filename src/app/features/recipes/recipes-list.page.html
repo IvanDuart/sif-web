@@ -1,0 +1,164 @@
+<div class="space-y-6 pb-4" *transloco="let t">
+  <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+    <div class="min-w-0">
+      <h1 class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]">
+        {{ t('recipes.title') }}
+      </h1>
+      <p class="mt-1.5 text-[13px] tabular-nums text-surface-400">
+        {{ t('recipes.count', { total: totalRecords() }) }}
+      </p>
+    </div>
+
+    @if (canManageRecipes()) {
+      <div class="flex flex-wrap items-center gap-2.5 lg:ml-auto">
+        <input
+          #importInput
+          type="file"
+          accept=".csv,.json,text/csv,application/json"
+          class="hidden"
+          (change)="onImportFile($event)"
+        />
+        <button
+          tuiButton
+          appearance="secondary"
+          size="m"
+          type="button"
+          [disabled]="importing()"
+          (click)="importInput.click()"
+        >
+          @if (importing()) {
+            <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>
+          } @else {
+            <i class="fa-solid fa-file-import mr-1" aria-hidden="true"></i>
+          }
+          {{ t('recipes.import') }}
+        </button>
+        <button tuiButton appearance="primary" size="m" type="button" (click)="createRecipe()">
+          <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
+          {{ t('recipes.create') }}
+        </button>
+      </div>
+    }
+  </header>
+
+  <div class="flex flex-wrap items-center gap-3">
+    <tui-textfield class="w-full sm:w-80" iconStart="@tui.search">
+      <input
+        tuiInput
+        type="search"
+        [formControl]="searchControl"
+        [placeholder]="t('recipes.search_placeholder')"
+      />
+    </tui-textfield>
+
+    <tui-segmented [activeItemIndex]="filterIndex()" (activeItemIndexChange)="setFilterIndex($event)">
+      <button type="button">{{ t('recipes.filter_all') }}</button>
+      <button type="button">{{ t('recipes.filter_tenant') }}</button>
+      <button type="button">{{ t('recipes.filter_public') }}</button>
+    </tui-segmented>
+  </div>
+
+  <boneyard-skeleton name="recipes-list" [loading]="loading()">
+    @if (!loading() && recipes().length === 0) {
+      <div class="data-card">
+        @if (searchControl.value || scopeFilter() !== 'ALL') {
+          <app-empty-state
+            icon="fa-solid fa-magnifying-glass"
+            [title]="t('recipes.no_results_title')"
+            [description]="t('recipes.no_results')"
+          />
+        } @else {
+          <app-empty-state
+            icon="fa-solid fa-book-open"
+            [title]="t('recipes.empty_title')"
+            [description]="t('recipes.empty')"
+            [actionLabel]="canManageRecipes() ? t('recipes.create') : undefined"
+            (action)="createRecipe()"
+          />
+        }
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        @for (recipe of recipes(); track recipe.id) {
+          <article
+            class="group flex cursor-pointer flex-col overflow-hidden rounded-lg border border-line bg-surface-0 transition-colors hover:border-line-strong dark:bg-surface-800"
+            (click)="openRecipe(recipe)"
+            (keydown.enter)="openRecipe(recipe)"
+            tabindex="0"
+            role="link"
+          >
+            <div class="relative h-40 overflow-hidden bg-surface-100 dark:bg-surface-900">
+              @if (coverOf(recipe); as cover) {
+                <img
+                  [src]="cover"
+                  [alt]="recipe.name"
+                  class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+              } @else {
+                <div class="grid h-full w-full place-items-center text-3xl text-surface-300">
+                  <i class="fa-solid fa-utensils" aria-hidden="true"></i>
+                </div>
+              }
+              <span
+                tuiBadge
+                class="absolute right-3 top-3"
+                [appearance]="recipe.scope === 'PUBLIC' ? 'info' : 'positive'"
+              >
+                {{ recipe.scope === 'PUBLIC' ? t('recipes.public_badge') : t('recipes.tenant_badge') }}
+              </span>
+            </div>
+
+            <div class="flex flex-1 flex-col gap-2 p-4">
+              <div>
+                <h2 class="font-display text-base font-bold tracking-tight text-surface-900 dark:text-surface-0">
+                  {{ recipe.name }}
+                </h2>
+                @if (recipe.description) {
+                  <p class="mt-1 line-clamp-2 text-[13px] leading-relaxed text-surface-500 dark:text-surface-400">
+                    {{ recipe.description }}
+                  </p>
+                }
+              </div>
+
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12.5px] tabular-nums text-surface-400">
+                @if (recipe.servings) {
+                  <span class="inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-users" aria-hidden="true"></i>
+                    {{ t('recipes.servings', { count: recipe.servings }) }}
+                  </span>
+                }
+                @if (stepCount(recipe); as steps) {
+                  <span class="inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-ol" aria-hidden="true"></i>
+                    {{ t('recipes.steps_count', { count: steps }) }}
+                  </span>
+                }
+                <span class="inline-flex items-center gap-1.5">
+                  <i class="fa-solid fa-carrot" aria-hidden="true"></i>
+                  {{ recipe.items.length }}
+                </span>
+              </div>
+
+              @if (allergensText(recipe); as allergens) {
+                <p class="mt-auto truncate text-[12px] text-warn">
+                  <i class="fa-solid fa-triangle-exclamation mr-1" aria-hidden="true"></i>
+                  {{ allergens }}
+                </p>
+              }
+            </div>
+          </article>
+        }
+      </div>
+
+      <app-pagination-footer
+        [page]="page()"
+        [size]="size"
+        [total]="totalRecords()"
+        [busy]="loading()"
+        (prev)="onPage(-1)"
+        (next)="onPage(1)"
+      />
+    }
+  </boneyard-skeleton>
+</div>

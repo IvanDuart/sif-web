@@ -1,0 +1,53 @@
+<div class="space-y-3" *transloco="let t">
+  <div class="flex items-center justify-between gap-3">
+    <div>
+      <h3 class="text-sm font-bold text-surface-900 dark:text-surface-0">
+        {{ t('diet_detail.exchanges.title') }}
+      </h3>
+      <p class="mt-0.5 text-[12.5px] text-surface-400">{{ t('diet_detail.exchanges.hint') }}</p>
+    </div>
+    @if (canManage()) {
+      <button
+        type="button"
+        tuiButton
+        appearance="primary"
+        size="s"
+        [disabled]="saving() || loading()"
+        (click)="save()"
+      >
+        @if (saving()) {
+          <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>
+        }
+        {{ t('diet_detail.exchanges.sync') }}
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <p class="text-[13px] text-surface-400">{{ t('common.loading') }}</p>
+  } @else if (rows().length === 0) {
+    <p class="text-[13px] text-surface-400">{{ t('diet_detail.exchanges.no_groups') }}</p>
+  } @else {
+    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      @for (row of rows(); track row.group.id) {
+        <label class="flex items-center gap-2.5 rounded-md border border-line px-3 py-2">
+          <span
+            class="size-2.5 shrink-0 rounded-pill border border-black/10"
+            [style.background]="row.group.colorHex || '#94a3b8'"
+            aria-hidden="true"
+          ></span>
+          <span class="min-w-0 flex-1 truncate text-[13px]">{{ row.group.name }}</span>
+          <input
+            type="number"
+            min="0"
+            step="0.5"
+            class="w-20 rounded-sm border border-line bg-surface-0 px-2 py-1 text-right text-[13px] tabular-nums outline-none focus:border-primary-400 dark:bg-surface-900"
+            [(ngModel)]="row.targetRations"
+            [disabled]="!canManage()"
+            [attr.aria-label]="t('diet_detail.exchanges.target_rations') + ' ' + row.group.name"
+          />
+        </label>
+      }
+    </div>
+  }
+</div>

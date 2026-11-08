@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { BrandingSettings } from './components/branding-settings';
@@ -6,8 +6,10 @@ import { AppointmentTypesSettings } from './components/appointment-types-setting
 import { ScheduleSettings } from './components/schedule-settings';
 import { TenantAddressSettings } from './components/tenant-address-settings';
 import { AssistantSettings } from './components/assistant-settings';
+import { ExchangeGroupsSettings } from './components/exchange-groups-settings';
 import { IfPermissionDirective } from '../../core/permissions/if-permission.directive';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
 import { TENANT_PROFILE_OPENER } from '../assistant/mascot/fill/surfaces/tenant-profile.surface';
 import { APPOINTMENT_TYPE_OPENER } from '../assistant/mascot/fill/surfaces/appointment-type.surface';
@@ -20,16 +22,33 @@ import { HOLIDAY_OPENER } from '../assistant/mascot/fill/surfaces/holiday.surfac
  * permite enlazar (y que la mascota abra) una sección concreta sin que nadie
  * tenga que saberse el índice de la pestaña.
  */
-const TABS = ['branding', 'appointment-types', 'schedules', 'address', 'assistant'] as const;
+const TABS = ['branding', 'appointment-types', 'schedules', 'address', 'assistant', 'exchange'] as const;
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [FormsModule, BrandingSettings, AppointmentTypesSettings, ScheduleSettings, TenantAddressSettings, AssistantSettings, IfPermissionDirective, TranslocoDirective],
+  imports: [
+    FormsModule,
+    BrandingSettings,
+    AppointmentTypesSettings,
+    ScheduleSettings,
+    TenantAddressSettings,
+    AssistantSettings,
+    ExchangeGroupsSettings,
+    IfPermissionDirective,
+    TranslocoDirective,
+  ],
   templateUrl: './branding-settings.page.html'
 })
 export default class SettingsPage {
+  private readonly tenantCtx = inject(TenantContextService);
+
   activeTab = 0;
+
+  /** Los grupos de intercambio sólo existen si el centro los tiene habilitados. */
+  readonly exchangeEnabled = computed(
+    () => this.tenantCtx.tenantProfile()?.preferences?.exchangeGroupsEnabled === true
+  );
 
   constructor() {
     // Los openers de Ajustes se registran AQUÍ y no en cada sección, porque

@@ -1,0 +1,172 @@
+<div class="flex max-h-[75vh] flex-col gap-5 overflow-y-auto pr-1" *transloco="let t">
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <label class="flex flex-col gap-1.5 sm:col-span-2">
+      <span class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('recipes.name') }}</span>
+      <input
+        type="text"
+        class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
+        [(ngModel)]="name"
+        [placeholder]="t('recipes.name_placeholder')"
+      />
+    </label>
+
+    <label class="flex flex-col gap-1.5 sm:col-span-2">
+      <span class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('recipes.description') }}</span>
+      <textarea
+        rows="2"
+        class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
+        [(ngModel)]="description"
+      ></textarea>
+    </label>
+
+    <label class="flex flex-col gap-1.5">
+      <span class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('recipes.servings_label') }}</span>
+      <input
+        type="number"
+        min="1"
+        class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm tabular-nums outline-none focus:border-primary-400 dark:bg-surface-900"
+        [(ngModel)]="servings"
+      />
+    </label>
+
+    <label class="flex flex-col gap-1.5">
+      <span class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('recipes.allergens_label') }}</span>
+      <input
+        type="text"
+        class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
+        [(ngModel)]="allergensText"
+      />
+    </label>
+  </div>
+
+  <section class="rounded-md border border-line p-4">
+    <h3 class="mb-3 text-sm font-bold text-surface-900 dark:text-surface-0">{{ t('recipes.ingredients') }}</h3>
+
+    <div class="relative">
+      <input
+        type="search"
+        class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
+        [ngModel]="foodQuery"
+        (ngModelChange)="onFoodQuery($event)"
+        [placeholder]="t('recipes.food_search_placeholder')"
+      />
+      @if (searchingFoods()) {
+        <i class="fa-solid fa-spinner fa-spin absolute right-3 top-2.5 text-surface-400" aria-hidden="true"></i>
+      }
+      @if (foodResults().length > 0) {
+        <ul class="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-line bg-surface-0 shadow-lg dark:bg-surface-800">
+          @for (food of foodResults(); track food.id) {
+            <li>
+              <button
+                type="button"
+                class="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-surface-100 dark:hover:bg-surface-900"
+                (click)="addFood(food)"
+              >
+                <span class="truncate">{{ food.name }}</span>
+                <span class="shrink-0 text-xs text-surface-400">{{ food.foodGroup ?? '' }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    @if (ingredients().length > 0) {
+      <ul class="mt-3 divide-y divide-line">
+        @for (row of ingredients(); track row.foodId; let i = $index) {
+          <li class="flex items-center gap-3 py-2">
+            <span class="min-w-0 flex-1 truncate text-sm">{{ row.foodName }}</span>
+            <input
+              type="number"
+              min="1"
+              class="w-24 rounded-md border border-line bg-surface-0 px-2 py-1.5 text-right text-sm tabular-nums outline-none focus:border-primary-400 dark:bg-surface-900"
+              [(ngModel)]="row.quantityG"
+              [attr.aria-label]="t('recipes.quantity_g')"
+            />
+            <span class="text-xs text-surface-400">g</span>
+            <button
+              type="button"
+              class="text-surface-400 hover:text-err"
+              [attr.aria-label]="t('common.delete')"
+              (click)="removeIngredient(i)"
+            >
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <label class="flex flex-col gap-1.5">
+    <span class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ t('recipes.steps') }}</span>
+    <textarea
+      rows="5"
+      class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
+      [(ngModel)]="stepsText"
+      [placeholder]="t('recipes.step_placeholder')"
+    ></textarea>
+  </label>
+
+  <section class="rounded-md border border-line p-4">
+    <div class="mb-3 flex items-center justify-between gap-3">
+      <h3 class="text-sm font-bold text-surface-900 dark:text-surface-0">{{ t('recipes.household_measures') }}</h3>
+      <button type="button" tuiButton appearance="flat" size="s" (click)="addMeasure()">
+        <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
+        {{ t('recipes.add_measure') }}
+      </button>
+    </div>
+
+    @if (measures().length === 0) {
+      <p class="text-[13px] text-surface-400">{{ t('recipes.no_measures') }}</p>
+    } @else {
+      <ul class="divide-y divide-line">
+        @for (row of measures(); track $index; let i = $index) {
+          <li class="flex items-center gap-3 py-2">
+            <input
+              type="text"
+              class="min-w-0 flex-1 rounded-md border border-line bg-surface-0 px-2 py-1.5 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
+              [(ngModel)]="row.label"
+              [placeholder]="t('recipes.measure_label')"
+            />
+            <input
+              type="number"
+              min="1"
+              class="w-24 rounded-md border border-line bg-surface-0 px-2 py-1.5 text-right text-sm tabular-nums outline-none focus:border-primary-400 dark:bg-surface-900"
+              [(ngModel)]="row.grams"
+              [attr.aria-label]="t('recipes.measure_grams')"
+            />
+            <span class="text-xs text-surface-400">g</span>
+            <button
+              type="button"
+              class="text-surface-400 hover:text-err"
+              [attr.aria-label]="t('common.delete')"
+              (click)="removeMeasure(i)"
+            >
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <div class="flex justify-end gap-2 border-t border-line pt-4">
+    <button type="button" tuiButton appearance="secondary" size="m" (click)="cancel()">
+      {{ t('common.cancel') }}
+    </button>
+    <button
+      type="button"
+      tuiButton
+      appearance="primary"
+      size="m"
+      [disabled]="saving() || !name.trim()"
+      (click)="save()"
+    >
+      @if (saving()) {
+        <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>
+      }
+      {{ t('common.save') }}
+    </button>
+  </div>
+</div>

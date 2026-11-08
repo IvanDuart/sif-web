@@ -37,6 +37,8 @@ export interface TenantPreferences {
   cancellation_notice_threshold_hours?: number;
   /** Franjas horarias del desglose de asistencia (vacío = bandas por defecto). */
   appointment_time_bands?: AppointmentTimeBand[];
+  /** Habilita los grupos de intercambio y el planificador por raciones (Fase 1). */
+  exchangeGroupsEnabled?: boolean;
 }
 
 /**

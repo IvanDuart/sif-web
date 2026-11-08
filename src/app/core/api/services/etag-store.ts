@@ -1,6 +1,18 @@
 import { Injectable } from '@angular/core';
 
 /**
+ * Helpers de concurrencia optimista reexportados aquí para que las pantallas
+ * que ya trabajan con el `EtagStore` no tengan que importar dos módulos.
+ */
+export {
+  isEtagFailure,
+  isPreconditionRequired,
+  isVersionConflict,
+  ETAG_CONFLICT_STATUS,
+  ETAG_PRECONDITION_REQUIRED_STATUS,
+} from '../models/versioned.model';
+
+/**
  * Caché en memoria de los `ETag` publicados por `GET` en recursos versionados
  * (menús y comidas).
  *

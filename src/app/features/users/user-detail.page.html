@@ -1521,6 +1521,13 @@
         }
       }
 
+      <!-- TAB: Diario y adherencia -->
+      @if (canViewPatientDiary()) {
+        @if (activeTabId() === 'diary') {
+          <app-patient-diary-tab [userId]="userId" />
+        }
+      }
+
       <!-- TAB: Consumo de Agua -->
       @if (activeTabId() === 'water') {
         <div class="py-5">

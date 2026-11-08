@@ -1,0 +1,230 @@
+<boneyard-skeleton name="recipe-detail" [loading]="loading()">
+  @if (recipe(); as recipe) {
+    <div class="space-y-6 pb-4" *transloco="let t">
+      <header>
+        <button
+          type="button"
+          class="mb-3 inline-flex items-center gap-1 text-[13px] text-surface-400 transition-colors hover:text-primary-600 dark:hover:text-primary-300"
+          (click)="back()"
+        >
+          <i class="fa-solid fa-arrow-left text-[10px]" aria-hidden="true"></i>
+          {{ t('recipes.back') }}
+        </button>
+
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+          <div class="min-w-0">
+            <div class="mb-2 flex flex-wrap items-center gap-2">
+              <h1 class="font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]">
+                {{ recipe.name }}
+              </h1>
+              <span tuiBadge [appearance]="isPublic() ? 'info' : 'positive'">
+                {{ isPublic() ? t('recipes.public_badge') : t('recipes.tenant_badge') }}
+              </span>
+            </div>
+            @if (recipe.description) {
+              <p class="max-w-2xl text-sm leading-relaxed text-surface-500 dark:text-surface-400">
+                {{ recipe.description }}
+              </p>
+            }
+            <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[13px] tabular-nums text-surface-400">
+              @if (recipe.servings) {
+                <span class="inline-flex items-center gap-1.5">
+                  <i class="fa-solid fa-users" aria-hidden="true"></i>
+                  {{ t('recipes.servings', { count: recipe.servings }) }}
+                </span>
+              }
+              <span class="inline-flex items-center gap-1.5">
+                <i class="fa-solid fa-carrot" aria-hidden="true"></i>
+                {{ recipe.items.length }}
+              </span>
+              <span class="inline-flex items-center gap-1.5">
+                <i class="fa-solid fa-list-ol" aria-hidden="true"></i>
+                {{ recipe.steps.length }}
+              </span>
+              @if (recipe.updatedAt) {
+                <span>{{ t('recipes.updated_at') }}: {{ recipe.updatedAt | date: 'mediumDate' }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2 lg:ml-auto">
+            <button type="button" tuiButton appearance="secondary" size="m" (click)="instantiate()">
+              <i class="fa-solid fa-utensils mr-1" aria-hidden="true"></i>
+              {{ t('recipes.instantiate') }}
+            </button>
+
+            @if (isPublic()) {
+              <button
+                type="button"
+                tuiButton
+                appearance="primary"
+                size="m"
+                [disabled]="cloning()"
+                (click)="cloneRecipe()"
+              >
+                @if (cloning()) {
+                  <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>
+                } @else {
+                  <i class="fa-solid fa-clone mr-1" aria-hidden="true"></i>
+                }
+                {{ t('recipes.clone') }}
+              </button>
+            }
+
+            @if (canEdit()) {
+              <button type="button" tuiButton appearance="secondary" size="m" (click)="edit()">
+                <i class="fa-solid fa-pen mr-1" aria-hidden="true"></i>
+                {{ t('common.edit') }}
+              </button>
+              <button type="button" tuiButton appearance="secondary" size="m" class="text-err" (click)="deleteRecipe()">
+                <i class="fa-solid fa-trash mr-1" aria-hidden="true"></i>
+                {{ t('common.delete') }}
+              </button>
+            }
+          </div>
+        </div>
+      </header>
+
+      @if (isPublic()) {
+        <p class="rounded-md border border-info/30 bg-info/5 px-4 py-3 text-[13px] text-surface-600 dark:text-surface-300">
+          <i class="fa-solid fa-circle-info mr-1.5" aria-hidden="true"></i>
+          {{ t('recipes.public_readonly') }}
+        </p>
+      }
+
+      <div class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div class="space-y-5">
+          <section class="data-card">
+            <h2 class="mb-4 text-base font-bold uppercase tracking-widest text-surface-400">
+              {{ t('recipes.ingredients') }}
+            </h2>
+            @if (recipe.items.length === 0) {
+              <p class="text-sm text-surface-400">{{ t('recipes.no_ingredients') }}</p>
+            } @else {
+              <ul class="divide-y divide-line">
+                @for (item of sortedItems(recipe); track item.id) {
+                  <li class="flex items-center justify-between gap-4 py-2.5">
+                    <span class="min-w-0 truncate text-sm text-surface-900 dark:text-surface-0">{{ item.foodName }}</span>
+                    <span class="shrink-0 text-sm tabular-nums text-surface-500 dark:text-surface-400">
+                      {{ item.quantityG }} g
+                    </span>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+
+          <section class="data-card">
+            <h2 class="mb-4 text-base font-bold uppercase tracking-widest text-surface-400">
+              {{ t('recipes.steps') }}
+            </h2>
+            @if (recipe.steps.length === 0) {
+              <p class="text-sm text-surface-400">{{ t('recipes.no_steps') }}</p>
+            } @else {
+              <ol class="space-y-4">
+                @for (step of sortedSteps(recipe); track step.id) {
+                  <li class="flex gap-3">
+                    <span class="grid size-7 shrink-0 place-items-center rounded-pill bg-brand-tint-10 text-xs font-bold tabular-nums text-primary-700 dark:text-primary-300">
+                      {{ step.stepNumber }}
+                    </span>
+                    <p class="whitespace-pre-wrap text-sm leading-relaxed text-surface-600 dark:text-surface-300">
+                      {{ step.instruction }}
+                    </p>
+                  </li>
+                }
+              </ol>
+            }
+          </section>
+
+          @if (recipe.householdMeasures.length > 0) {
+            <section class="data-card">
+              <h2 class="mb-4 text-base font-bold uppercase tracking-widest text-surface-400">
+                {{ t('recipes.household_measures') }}
+              </h2>
+              <dl class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                @for (measure of recipe.householdMeasures; track measure.id) {
+                  <div class="flex items-center justify-between gap-3 rounded-md border border-line px-3 py-2">
+                    <dt class="text-sm">{{ measure.label }}</dt>
+                    <dd class="text-sm tabular-nums text-surface-500 dark:text-surface-400">{{ measure.grams }} g</dd>
+                  </div>
+                }
+              </dl>
+            </section>
+          }
+        </div>
+
+        <aside class="space-y-4">
+          <section class="data-card">
+            <h2 class="mb-3 text-base font-bold uppercase tracking-widest text-surface-400">
+              {{ t('recipes.photos') }}
+            </h2>
+
+            @if (coverUrl(recipe); as cover) {
+              <img [src]="cover" [alt]="recipe.name" class="mb-3 w-full rounded-md object-cover" />
+            } @else {
+              <div class="mb-3 grid h-40 place-items-center rounded-md bg-surface-100 text-3xl text-surface-300 dark:bg-surface-900">
+                <i class="fa-solid fa-utensils" aria-hidden="true"></i>
+              </div>
+            }
+
+            @if (recipe.images.length > 1) {
+              <div class="mb-3 grid grid-cols-3 gap-2">
+                @for (image of recipe.images; track image.id) {
+                  <img [src]="image.url" [alt]="recipe.name" class="h-16 w-full rounded-sm object-cover" loading="lazy" />
+                }
+              </div>
+            }
+
+            @if (canEdit()) {
+              <input #coverInput type="file" accept="image/*" class="hidden" (change)="uploadImage($event, true)" />
+              <input #imageInput type="file" accept="image/*" class="hidden" (change)="uploadImage($event, false)" />
+              <div class="flex flex-col gap-2">
+                <button
+                  type="button"
+                  tuiButton
+                  appearance="secondary"
+                  size="s"
+                  [disabled]="uploading()"
+                  (click)="coverInput.click()"
+                >
+                  @if (uploading()) {
+                    <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>
+                  }
+                  {{ t('recipes.upload_cover') }}
+                </button>
+                <button
+                  type="button"
+                  tuiButton
+                  appearance="flat"
+                  size="s"
+                  [disabled]="uploading()"
+                  (click)="imageInput.click()"
+                >
+                  <i class="fa-solid fa-image mr-1" aria-hidden="true"></i>
+                  {{ t('recipes.upload_image') }}
+                </button>
+              </div>
+            }
+          </section>
+
+          @if (recipe.allergens.length > 0) {
+            <section class="data-card">
+              <h2 class="mb-3 text-base font-bold uppercase tracking-widest text-surface-400">
+                {{ t('recipes.allergens') }}
+              </h2>
+              <div class="flex flex-wrap gap-1.5">
+                @for (allergen of recipe.allergens; track allergen) {
+                  <span tuiBadge appearance="warning">{{ allergen }}</span>
+                }
+              </div>
+            </section>
+          }
+        </aside>
+      </div>
+    </div>
+  } @else if (!loading()) {
+    <div class="data-card p-8 text-center text-surface-500" *transloco="let t">
+      {{ t('recipes.detail_not_found') }}
+    </div>
+  }
+</boneyard-skeleton>

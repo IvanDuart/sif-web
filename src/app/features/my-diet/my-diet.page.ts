@@ -1,8 +1,10 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from 'boneyard-js/angular';
-import { TuiDataList, TuiDropdown } from '@taiga-ui/core';
+import { TuiButton, TuiDataList, TuiDropdown } from '@taiga-ui/core';
+import { TuiBadge } from '@taiga-ui/kit';
 import { Subscription, catchError, forkJoin, of } from 'rxjs';
 
 import { MenuService } from '../../core/api/services/menu.api';
@@ -10,6 +12,7 @@ import { MealService } from '../../core/api/services/meal.api';
 import { MenuStreamService, MenuUpdateEvent } from '../../core/api/services/menu-stream.service';
 import { ShoppingListService } from '../../core/api/services/shopping-list.api';
 import { UserTenantRoleService } from '../../core/api/services/user-tenant-role.api';
+import { DiaryService } from '../../core/api/services/diary.api';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { BrandingStore } from '../../core/branding/branding.store';
@@ -17,6 +20,7 @@ import { NotificationService } from '../../core/ui';
 
 import { Menu } from '../../core/api/models/menu.model';
 import { Meal } from '../../core/api/models/meal.model';
+import { DiaryEntryDto, DiaryStatus } from '../../core/api/models/diary.model';
 import { emptyPage } from '../../core/api/models/page.model';
 import { UserTenantProfileFixedMealsDto } from '../../core/api/models/user.model';
 import { EmptyState } from '../../shared/ui/empty-state';
@@ -90,10 +94,21 @@ interface MealEntryVm {
   icon: string;
 }
 
+interface DiaryRowVm {
+  mealId: string;
+  mealType: string;
+  description: string;
+  status: DiaryStatus | null;
+  notes: string;
+  photoUrl: string | null;
+  photoName: string | null;
+  saving: boolean;
+}
+
 @Component({
   selector: 'app-my-diet',
   standalone: true,
-  imports: [RouterModule, TranslocoDirective, SkeletonComponent, EmptyState, LiveIndicator, TuiDropdown, TuiDataList],
+  imports: [RouterModule, FormsModule, TranslocoDirective, SkeletonComponent, EmptyState, LiveIndicator, TuiDropdown, TuiDataList, TuiButton, TuiBadge],
   templateUrl: './my-diet.page.html',
   styles: [`
     /* ── Selector de día ─────────────────────────────────────────────── */
@@ -171,6 +186,7 @@ export default class MyDietPage implements OnInit, OnDestroy {
   private readonly transloco = inject(TranslocoService);
   private readonly brandingStore = inject(BrandingStore);
   private readonly shoppingListService = inject(ShoppingListService);
+  private readonly diaryService = inject(DiaryService);
   private readonly router = inject(Router);
   private readonly notify = inject(NotificationService);
 
@@ -204,6 +220,42 @@ export default class MyDietPage implements OnInit, OnDestroy {
   readonly hasDiet = computed(() => !!this.menu() || this.hasFixedMeals());
 
   readonly observations = computed(() => this.fixedMeals()?.observations?.trim() || null);
+
+  /** Fecha local del diario, `YYYY-MM-DD`. */
+  readonly todayIso = this.isoDate(new Date());
+  readonly diaryStatuses: DiaryStatus[] = ['DONE', 'PARTIAL', 'SWAPPED', 'SKIPPED'];
+
+  /** Registros ya guardados hoy, por `mealId`. */
+  readonly todayDiary = signal<DiaryEntryDto[]>([]);
+  readonly draftStatus = signal<Record<string, DiaryStatus>>({});
+  readonly draftNotes = signal<Record<string, string>>({});
+  readonly draftPhotos = signal<Record<string, File | null>>({});
+  readonly savingDiary = signal<Record<string, boolean>>({});
+
+  /**
+   * Comidas del menú de hoy que se pueden registrar en el diario. Las pautas
+   * fijas ("todos los días") no tienen `mealId` real y quedan fuera.
+   */
+  readonly diaryRows = computed<DiaryRowVm[]>(() => {
+    const saved = this.todayDiary();
+    return this.meals()
+      .filter((meal) => meal.dayOfWeek?.toUpperCase() === this.todayKey)
+      .slice()
+      .sort((a, b) => (MEAL_HOURS[a.mealType] ?? 99) - (MEAL_HOURS[b.mealType] ?? 99))
+      .map((meal) => {
+        const existing = saved.find((item) => item.mealId === meal.id);
+        return {
+          mealId: meal.id,
+          mealType: meal.mealType,
+          description: meal.description ?? '',
+          status: this.draftStatus()[meal.id] ?? existing?.status ?? null,
+          notes: this.draftNotes()[meal.id] ?? existing?.notes ?? '',
+          photoUrl: existing?.photoUrl ?? null,
+          photoName: this.draftPhotos()[meal.id]?.name ?? null,
+          saving: this.savingDiary()[meal.id] === true,
+        };
+      });
+  });
 
   /**
    * Agenda del día seleccionado: comidas del menú + pautas fijas ("todos los
@@ -341,6 +393,98 @@ export default class MyDietPage implements OnInit, OnDestroy {
     });
   }
 
+  // ── Diario de hoy ──────────────────────────────────────────────────────────
+
+  private isoDate(date: Date): string {
+    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+    return local.toISOString().split('T')[0];
+  }
+
+  loadTodayDiary(): void {
+    const tenantId = this.tenantCtx.currentTenantId();
+    const userId = this.authService.user()?.id;
+    if (!tenantId || !userId) return;
+
+    this.diaryService
+      .list(tenantId, userId, this.todayIso, this.todayIso)
+      .pipe(catchError(() => of([] as DiaryEntryDto[])))
+      .subscribe((entries) => this.todayDiary.set(entries ?? []));
+  }
+
+  setDiaryStatus(mealId: string, status: DiaryStatus): void {
+    this.draftStatus.update((drafts) => ({ ...drafts, [mealId]: status }));
+  }
+
+  setDiaryNotes(mealId: string, notes: string): void {
+    this.draftNotes.update((drafts) => ({ ...drafts, [mealId]: notes }));
+  }
+
+  onDiaryPhotoSelected(mealId: string, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    this.draftPhotos.update((photos) => ({ ...photos, [mealId]: file }));
+  }
+
+  saveDiaryEntry(row: DiaryRowVm): void {
+    const tenantId = this.tenantCtx.currentTenantId();
+    const userId = this.authService.user()?.id;
+    if (!tenantId || !userId || !row.status) return;
+
+    const request = {
+      mealId: row.mealId,
+      status: row.status,
+      notes: row.notes.trim() || null,
+    };
+    const photo = this.draftPhotos()[row.mealId] ?? null;
+
+    this.savingDiary.update((drafts) => ({ ...drafts, [row.mealId]: true }));
+    this.diaryService.registerWithPhoto(tenantId, userId, this.todayIso, request, photo).subscribe({
+      next: (entry) => {
+        this.todayDiary.update((entries) => [
+          ...entries.filter((item) => item.mealId !== row.mealId),
+          entry,
+        ]);
+        this.draftPhotos.update((photos) => ({ ...photos, [row.mealId]: null }));
+        this.savingDiary.update((drafts) => ({ ...drafts, [row.mealId]: false }));
+        this.notify.success(this.transloco.translate('diary.saved'));
+      },
+      error: () => {
+        this.savingDiary.update((drafts) => ({ ...drafts, [row.mealId]: false }));
+        this.notify.error(this.transloco.translate('diary.save_error'));
+      },
+    });
+  }
+
+  diaryStatusLabel(status: DiaryStatus): string {
+    return this.transloco.translate(`diary.status_${status.toLowerCase()}`);
+  }
+
+  diaryStatusClass(status: DiaryStatus): string {
+    switch (status) {
+      case 'DONE':
+        return 'bg-ok/10 text-ok border-ok/30';
+      case 'PARTIAL':
+        return 'bg-warn/10 text-warn border-warn/30';
+      case 'SWAPPED':
+        return 'bg-info/10 text-info border-info/30';
+      default:
+        return 'bg-err/10 text-err border-err/30';
+    }
+  }
+
+  diaryStatusAppearance(status: DiaryStatus): 'positive' | 'warning' | 'info' | 'negative' {
+    switch (status) {
+      case 'DONE':
+        return 'positive';
+      case 'PARTIAL':
+        return 'warning';
+      case 'SWAPPED':
+        return 'info';
+      default:
+        return 'negative';
+    }
+  }
+
   private toEntry(mealType: string, description: string, everyDay: boolean, key: string): MealEntryVm {
     const type = mealType.toUpperCase();
     const hour = MEAL_HOURS[type] ?? 99;
@@ -381,6 +525,7 @@ export default class MyDietPage implements OnInit, OnDestroy {
         const active = (menus?.content ?? []).find((m) => m.isActive || m.active) ?? null;
         this.menu.set(active);
         this.syncStream();
+        this.loadTodayDiary();
 
         if (!active) {
           this.meals.set([]);

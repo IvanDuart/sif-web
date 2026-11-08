@@ -1,8 +1,10 @@
 import { Component, computed, DestroyRef, inject, NgZone, signal, viewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { RouterOutlet, RouterModule, Router } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { animate } from 'motion';
+import { forkJoin } from 'rxjs';
 
 import { TuiAvatar, TuiProgressBar } from '@taiga-ui/kit';
 import { TuiDropdown, TuiHint } from '@taiga-ui/core';
@@ -21,6 +23,8 @@ import {
   NotificationStreamService,
 } from '../../core/api/services/notification-stream.service';
 import { ChatUnreadService } from '../../core/api/services/chat-unread.service';
+import { NotificationApiService } from '../../core/api/services/notification.api';
+import { NotificationDto } from '../../core/api/models/notification.model';
 import { NotificationService } from '../../core/ui';
 import { BillingBanner } from './billing-banner';
 import { globalLoadingSignal } from '../../core/http/loading.interceptor';
@@ -52,6 +56,7 @@ const NAV_ITEMS: NavItem[] = [
   { labelKey: 'shopping_list', icon: 'fa-solid fa-cart-shopping', route: '/shopping-lists', permission: 'VIEW_MENU' },
   { labelKey: 'evolution', icon: 'fa-solid fa-chart-line', route: '/evolution', permission: 'VIEW_EVOLUTION' },
   { labelKey: 'templates', icon: 'fa-solid fa-clipboard-list', route: '/templates', permission: 'MANAGE_TEMPLATE' },
+  { labelKey: 'recipes', icon: 'fa-solid fa-book-open', route: '/recipes', permission: 'MANAGE_RECIPES' },
   { labelKey: 'billing', icon: 'fa-solid fa-credit-card', route: '/billing', permission: 'VIEW_BILLING' },
   { labelKey: 'settings', icon: 'fa-solid fa-gear', route: '/settings', permission: 'MANAGE_TENANT_BRANDING' },
   { labelKey: 'admin', icon: 'fa-solid fa-shield-halved', route: '/admin', permission: 'MANAGE_TENANT', exact: true },
@@ -72,6 +77,7 @@ const SUPERADMIN_TENANT_PAGE = 50;
     TuiAvatar,
     ...TuiDropdown,
     TuiHint,
+    DatePipe,
     BillingBanner
   ],
   templateUrl: './shell.html',
@@ -88,6 +94,7 @@ export class Shell implements OnInit, OnDestroy {
   private readonly tenantService = inject(TenantService);
   private readonly appointmentService = inject(AppointmentService);
   private readonly notificationStream = inject(NotificationStreamService);
+  private readonly mailbox = inject(NotificationApiService);
   readonly chatUnread = inject(ChatUnreadService);
   private readonly notify = inject(NotificationService);
   private readonly destroyRef = inject(DestroyRef);
@@ -96,7 +103,17 @@ export class Shell implements OnInit, OnDestroy {
   private readonly configService = inject(ConfigService);
 
   proposedAppointments = signal<AppointmentDto[]>([]);
-  bellMenuOpen = signal(false);
+  desktopBellMenuOpen = signal(false);
+  mobileBellMenuOpen = signal(false);
+
+  /** Buzón persistente (independiente de las propuestas de reagenda). */
+  readonly mailboxItems = signal<NotificationDto[]>([]);
+  readonly unreadCount = signal(0);
+  readonly mailboxLoading = signal(false);
+
+  readonly totalNotificationsCount = computed(() =>
+    this.unreadCount() + this.proposedAppointments().length
+  );
 
   user = this.authService.user;
   activeTenant = this.authService.selectedTenant;
@@ -163,6 +180,7 @@ export class Shell implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadProposals();
     this.listenToNotifications();
+    this.loadMailbox();
     this.chatUnread.refresh();
     this.loadSuperAdminTenants();
 
@@ -229,6 +247,73 @@ export class Shell implements OnInit, OnDestroy {
     if (notification.data?.type === 'CHAT_MESSAGE') {
       this.chatUnread.refresh();
     }
+
+    // El buzón persistente también se refresca con cada aviso en vivo.
+    this.loadMailbox();
+  }
+
+  /** Últimas notificaciones del usuario + contador global de no leídas. */
+  loadMailbox(): void {
+    this.mailboxLoading.set(true);
+    this.mailbox.list(false, 0, 10).subscribe({
+      next: (result) => {
+        this.mailboxItems.set(result.page.content ?? []);
+        this.unreadCount.set(result.unreadCount ?? 0);
+        this.mailboxLoading.set(false);
+      },
+      error: () => this.mailboxLoading.set(false),
+    });
+  }
+
+  markNotificationRead(notification: NotificationDto): void {
+    if (notification.readAt) return;
+    this.mailbox.markRead(notification.id).subscribe({
+      next: (updated) => {
+        this.mailboxItems.update((items) =>
+          items.map((item) => (item.id === updated.id ? updated : item))
+        );
+        this.unreadCount.update((count) => Math.max(0, count - 1));
+      },
+    });
+  }
+
+  markAllNotificationsRead(): void {
+    // No hay endpoint masivo: se piden todas las no leídas (no solo la página
+    // visible) y se marcan una a una.
+    this.mailbox.list(true, 0, 200).subscribe({
+      next: (result) => {
+        const unread = result.page.content ?? [];
+        if (!unread.length) {
+          this.unreadCount.set(0);
+          return;
+        }
+        forkJoin(unread.map((item) => this.mailbox.markRead(item.id))).subscribe({
+          next: () => this.loadMailbox(),
+          error: () => this.loadMailbox(),
+        });
+      },
+      error: () => this.loadMailbox(),
+    });
+  }
+
+  closeNotificationsMenu(): void {
+    this.desktopBellMenuOpen.set(false);
+    this.mobileBellMenuOpen.set(false);
+  }
+
+  /** Marca leída (si hace falta) y navega al recurso asociado según `data.type`. */
+  openMailboxNotification(notification: NotificationDto): void {
+    this.markNotificationRead(notification);
+    this.closeNotificationsMenu();
+
+    const type = notification.data?.['type'] ?? '';
+    if (type === 'CHAT_MESSAGE') {
+      this.router.navigate(['/chat/threads']);
+      return;
+    }
+    if (type.startsWith('APPOINTMENT_') || type === 'CALENDAR_NOTE_REMINDER') {
+      this.router.navigate(['/appointments']);
+    }
   }
 
   loadProposals() {
@@ -245,7 +330,7 @@ export class Shell implements OnInit, OnDestroy {
   }
 
   goToProposedDate(appt: AppointmentDto) {
-    this.bellMenuOpen.set(false);
+    this.closeNotificationsMenu();
     const dateOnly = appt.startTime.split('T')[0];
     this.router.navigate(['/appointments'], { queryParams: { date: dateOnly } }).then(() => {
       // If we are already on appointments, reload page to force date navigation
@@ -306,6 +391,14 @@ export class Shell implements OnInit, OnDestroy {
       if (item.permission === 'MANAGE_CHAT') {
         return this.activeTenant()?.userType === 'STAFF' && this.permissionsService.has('MANAGE_CHAT');
       }
+      // El recetario lo usan los profesionales; hasta que el backend reparta
+      // `MANAGE_RECIPES`, quien puede gestionar menús también entra.
+      if (item.permission === 'MANAGE_RECIPES') {
+        return (
+          this.activeTenant()?.userType === 'STAFF' &&
+          (this.permissionsService.has('MANAGE_RECIPES') || this.permissionsService.has('MANAGE_MENU'))
+        );
+      }
       // La evolución de medidas es una pantalla del propio paciente.
       if (item.permission === 'VIEW_EVOLUTION') {
         return this.activeTenant()?.userType === 'PATIENT';
@@ -335,7 +428,7 @@ export class Shell implements OnInit, OnDestroy {
    */
   private static readonly MOBILE_PRIORITY = [
     '/dashboard', '/my-diet', '/shopping-lists', '/evolution', '/appointments',
-    '/chat/threads', '/patients', '/revenue', '/staff', '/templates', '/settings', '/billing',
+    '/chat/threads', '/patients', '/revenue', '/staff', '/templates', '/recipes', '/settings', '/billing',
     '/admin', '/admin/billing',
   ];
 

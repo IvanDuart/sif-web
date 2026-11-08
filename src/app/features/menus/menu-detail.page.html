@@ -218,6 +218,14 @@
                             [saveFn]="saveMealItems"
                             i18nPrefix="diet_detail"
                             (saved)="onItemsSaved()" />
+                          @if (exchangeGroupsEnabled()) {
+                            <div class="mt-4 border-t border-line pt-4">
+                              <app-meal-exchanges-editor
+                                [mealId]="expanded.id"
+                                [canManage]="canManageMeal()"
+                                (saved)="onItemsSaved()" />
+                            </div>
+                          }
                         </div>
                       </div>
                     </td>
@@ -267,6 +275,14 @@
                           [saveFn]="saveMealItems"
                           i18nPrefix="diet_detail"
                           (saved)="onItemsSaved()" />
+                        @if (exchangeGroupsEnabled()) {
+                          <div class="mt-4 border-t border-line pt-4">
+                            <app-meal-exchanges-editor
+                              [mealId]="getMeal(day, mealType)!.id"
+                              [canManage]="canManageMeal()"
+                              (saved)="onItemsSaved()" />
+                          </div>
+                        }
                       </div>
                     </div>
                   }

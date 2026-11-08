@@ -38,7 +38,7 @@ export class RecipeService {
       .set('size', String(query.size ?? DEFAULT_PAGE_SIZE));
 
     if (query.name) params = params.set('name', query.name);
-    if (query.scope) params = params.set('scope', query.scope);
+    if (query.scope && query.scope !== 'ALL') params = params.set('scope', query.scope);
     (query.sort ?? ['name,DESC']).forEach((sort) => (params = params.append('sort', sort)));
 
     return this.http.get<Page<RecipeDto>>(this.endpoint(tenantId), { params });

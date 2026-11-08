@@ -1,5 +1,6 @@
 import { Component, OnDestroy, computed, inject, OnInit, signal } from '@angular/core';
-import { EMPTY, Observable, Subscription, forkJoin } from 'rxjs';
+import { EMPTY, Observable, Subscription, forkJoin, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { DatePipe, DecimalPipe, Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -31,7 +32,9 @@ import { KCAL, MenuNutritionDto, NutrientMap } from '../../core/api/models/food.
 import { normalizeDayOfWeek, normalizeMealType } from '../../core/api/models/meal-enums';
 import { MealCell } from './components/meal-cell';
 import { MealItemsEditor } from './components/meal-items-editor';
+import { MealExchangesEditor } from './components/meal-exchanges-editor';
 import { LiveIndicator } from '../../shared/ui/live-indicator';
+import { isPreconditionRequired, isVersionConflict } from '../../core/api/services/etag-store';
 
 const SUPERMARKETS = [
   { value: 'MERCADONA', label: 'Mercadona' },
@@ -50,7 +53,7 @@ const SUPERMARKETS = [
 @Component({
   selector: 'app-menu-detail',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, RouterModule, FormsModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, MealCell, MealItemsEditor, LiveIndicator, CdkDrag, CdkDropList, TuiButton, TuiBadge, TuiDropdown, TuiDataList, TuiTable],
+  imports: [DatePipe, DecimalPipe, RouterModule, FormsModule, IfPermissionDirective, TranslocoDirective, TranslocoPipe, SkeletonComponent, MealCell, MealItemsEditor, MealExchangesEditor, LiveIndicator, CdkDrag, CdkDropList, TuiButton, TuiBadge, TuiDropdown, TuiDataList, TuiTable],
   templateUrl: './menu-detail.page.html',
   styleUrls: ['./menu-detail.page.scss'],
 })
@@ -100,6 +103,10 @@ export default class MenuDetailPage implements OnInit, OnDestroy {
   canManageMenu = computed(() => this.permissionsService.has('MANAGE_MENU'));
   canManageTemplate = computed(() => this.permissionsService.has('MANAGE_TEMPLATE'));
   canViewMenu = computed(() => this.permissionsService.has('VIEW_MENU'));
+  /** Planificador por raciones: sólo si el centro lo tiene habilitado. */
+  readonly exchangeGroupsEnabled = computed(
+    () => this.tenantCtx.tenantProfile()?.preferences?.exchangeGroupsEnabled === true
+  );
   canActivateMenu = computed(() =>
     this.canManageMenu() || this.tenantCtx.currentMembership()?.userType === 'PATIENT'
   );
@@ -301,13 +308,18 @@ export default class MenuDetailPage implements OnInit, OnDestroy {
     if (!tenantId || !menu) return;
 
     this.markLocalMutation();
-    this.menuService.update(tenantId, this.menuId, { isActive: !menu.isActive }).subscribe(() => {
-      this.notify.success(
-        !menu.isActive
-          ? this.transloco.translate('menu_history.activated')
-          : this.transloco.translate('menu_history.deactivated')
-      );
-      this.loadData();
+    this.menuService.update(tenantId, this.menuId, { isActive: !menu.isActive }).subscribe({
+      next: () => {
+        this.notify.success(
+          !menu.isActive
+            ? this.transloco.translate('menu_history.activated')
+            : this.transloco.translate('menu_history.deactivated')
+        );
+        this.loadData();
+      },
+      error: (error: unknown) => {
+        if (!this.handleConcurrencyError(error)) this.notify.error(this.transloco.translate('common.error'));
+      },
     });
   }
 
@@ -382,6 +394,31 @@ export default class MenuDetailPage implements OnInit, OnDestroy {
   }
 
   /**
+   * Los guardados de menú/comida usan ETag: si otro profesional escribió antes,
+   * el backend responde `409` (versión desfasada) o `428` (sin `If-Match`).
+   * En ese caso se avisa y se ofrece recargar la versión actual.
+   */
+  private handleConcurrencyError(error: unknown): boolean {
+    if (!isVersionConflict(error) && !isPreconditionRequired(error)) return false;
+
+    this.markLocalMutation();
+    this.confirm
+      .confirm({
+        label: this.transloco.translate('common.attention'),
+        content: this.transloco.translate('diet_detail.concurrency_conflict'),
+        yes: this.transloco.translate('diet_detail.reload_version'),
+        no: this.transloco.translate('common.cancel'),
+      })
+      .subscribe((reload) => {
+        if (!reload) return;
+        this.cancelInlineEdit();
+        this.expandedMealId.set(null);
+        this.loadData();
+      });
+    return true;
+  }
+
+  /**
    * Persiste la lista de ingredientes. Referencia estable: el editor le pasa el
    * `mealId`, así que no hace falta crear una closure por comida.
    */
@@ -396,7 +433,12 @@ export default class MenuDetailPage implements OnInit, OnDestroy {
     // se perdería. Sólo se manda al vaciar la lista, para no quedarse sin texto.
     const request: UpdateMealRequest =
       fallbackDescription !== null ? { items, description: fallbackDescription } : { items };
-    return this.mealService.update(tenantId, mealId, request);
+    return this.mealService.update(tenantId, mealId, request).pipe(
+      catchError((error: unknown) => {
+        this.handleConcurrencyError(error);
+        return throwError(() => error);
+      })
+    );
   };
 
   /** Tras guardar ingredientes, la nutrición del servidor es la fuente de verdad. */
@@ -428,6 +470,9 @@ export default class MenuDetailPage implements OnInit, OnDestroy {
         next: () => {
           this.notify.success(this.transloco.translate('food.copy_day_done'));
           this.onItemsSaved();
+        },
+        error: (error: unknown) => {
+          if (!this.handleConcurrencyError(error)) this.notify.error(this.transloco.translate('common.error'));
         },
       });
     };
@@ -560,9 +605,11 @@ export default class MenuDetailPage implements OnInit, OnDestroy {
         const newDesc = updatedMeal?.description ?? desc;
         this.meals.update(list => list.map(m => m.id === meal.id ? { ...m, description: newDesc } : m));
       },
-      error: () => {
+      error: (error: unknown) => {
         this.savingInline.set(false);
-        this.notify.error(this.transloco.translate('common.error'));
+        if (!this.handleConcurrencyError(error)) {
+          this.notify.error(this.transloco.translate('common.error'));
+        }
       }
     });
   }

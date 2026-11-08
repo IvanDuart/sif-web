@@ -41,6 +41,7 @@ import { PatientEventFormDialog } from './patient-event-form.dialog';
 import { AssignMenuTemplateDialog } from './assign-menu-template.dialog';
 import { AssignNutritionistDialog, AssignNutritionistDialogInput } from './assign-nutritionist.dialog';
 import { ClinicalStatusDialog, ClinicalStatusDialogInput } from './clinical-status.dialog';
+import { PatientDiaryTab } from './patient-diary-tab';
 import { ClinicalStatusChangeDto } from '../../core/api/models/user.model';
 import { MenuUploadDialog } from '../menus/menu-upload.dialog';
 import { MenuFormDialog } from '../menus/menu-form.dialog';
@@ -209,7 +210,8 @@ export interface ProfileFigure {
     TuiSegmented,
     TuiDropdown,
     TuiDataList,
-    PaginationFooter
+    PaginationFooter,
+    PatientDiaryTab
   ],
   templateUrl: './user-detail.page.html'
 })
@@ -352,6 +354,10 @@ export default class UserDetailPage implements OnInit, OnDestroy {
   canManageMenu = computed(() => this.permissionsService.has('MANAGE_MENU'));
   canViewPatientEvents = computed(() => this.permissionsService.has('VIEW_PATIENT_EVENTS'));
   canManagePatientEvents = computed(() => this.permissionsService.has('MANAGE_PATIENT_EVENTS'));
+  /** El diario lo consulta el personal con `VIEW_PATIENT_DIARY`. */
+  canViewPatientDiary = computed(
+    () => this.permissionsService.has('VIEW_PATIENT_DIARY') || this.canViewPatientProfile()
+  );
   canManageUsers = computed(() => this.permissionsService.has('MANAGE_USER'));
 
   /** `true` si el estado clínico bloquea cualquier escritura bajo el tenant (P1). */
@@ -1004,6 +1010,10 @@ export default class UserDetailPage implements OnInit, OnDestroy {
 
     if (this.canViewPatientEvents()) {
       items.push({ id: 'patient_events', label: 'users.tab_patient_events', icon: 'fa-solid fa-calendar-days' });
+    }
+
+    if (this.canViewPatientDiary()) {
+      items.push({ id: 'diary', label: 'users.tab_diary', icon: 'fa-solid fa-clipboard-check' });
     }
 
     if (this.canViewAppointments()) {
