@@ -3,7 +3,7 @@ id: assistant-frontend-contract
 type: submodule-design
 title: Asistente para nutricionistas — contrato para Angular
 status: draft
-parent: assistant-module
+parent: ai
 ---
 
 # Asistente para nutricionistas — contrato para Angular
@@ -28,8 +28,10 @@ parent: assistant-module
   notas.
 - El `preview` de las citas usa los nombres del diálogo: `patientId`,
   `nutritionistId`, `typeId`, **`date` y `time` separados**, `notes`.
-- `uiActions` admite **`OPEN_DIALOG`, `HIGHLIGHT` y `TOAST`** además de `NAVIGATE`,
-  y el DTO tiene un campo **`target`** nuevo.
+- `uiActions` **solo emite `TOAST`**: `NAVIGATE`, `OPEN_DIALOG` y `HIGHLIGHT` se
+  retiraron en la fase B4, y con ellos las tools `navigate_to`, `navigate_to_patient`,
+  `open_dialog` y `highlight_field`. Mover la pantalla es cosa de las herramientas de
+  cliente. El paciente activo viaja ahora en **`subjectUserId`** de la respuesta. Ver §4.
 - **10 pantallas nuevas** en `ALLOWED_SCREENS`.
 - La respuesta de **`confirm` puede traer `uiActions`**.
 - Envío de mensaje **en streaming (SSE)**.
@@ -100,10 +102,15 @@ Content-Type: application/json
   "assistantMessage": { "...": "..." },
   "pendingAction": null,
   "uiActions": [
-    { "type": "NAVIGATE", "screen": "PATIENT_PROFILE", "params": { "patientId": "uuid" } }
-  ]
+    { "type": "TOAST", "params": { "severity": "success", "message": "Medición registrada" } }
+  ],
+  "subjectUserId": "uuid"
 }
 ```
+
+`subjectUserId` es el **paciente activo de la sesión al cerrar el turno**, o `null` si
+no hay. Si el modelo lo ha fijado o cambiado con `set_active_patient` a mitad de turno,
+aquí viene ya el nuevo. Viaja igual en el evento `done` del streaming.
 
 ### 3.1 En streaming (SSE)
 
@@ -317,6 +324,120 @@ Un valor suelto de más de 4 000 caracteres se corta con `…(cortado)`. Si algo
 recortó, el bloque lo dice y el modelo tiene instrucciones de preguntar en vez de
 suponer.
 
+### Los formularios que no están en pantalla (`pageContext.reachableForms`)
+
+> **Nuevo (2026-11-07).** Es lo que hace posible que la mascota vaya a buscar un
+> formulario en vez de escribir por detrás.
+
+Hasta ahora solo viajaba lo de **esta** pantalla. Estando en el panel principal,
+`fill_measurement` no se declara, así que desde donde el modelo mira **la medición no
+tiene formulario**: lo único que conoce para apuntar un peso es `create_measurement`, y
+la persona acaba confirmando una tarjeta. No elegía mal; elegía con lo que le dábamos.
+
+Mandad en cada turno dónde vive cada formulario de la aplicación:
+
+```json
+{
+  "pageContext": {
+    "route": "/dashboard",
+    "forms": [],
+    "reachableForms": [
+      { "id": "measurement", "screen": "PATIENT_MEASUREMENTS", "needsPatient": true,
+        "tools": ["create_measurement", "update_measurement"] },
+      { "id": "appointment",  "screen": "PATIENT_PROFILE",      "needsPatient": true,
+        "tools": ["create_appointment", "reschedule_appointment"] },
+      { "id": "template",     "screen": "TEMPLATES",            "needsPatient": false,
+        "tools": [] }
+    ]
+  }
+}
+```
+
+- `id` es **el mismo** que usan `open_<id>` / `fill_<id>` cuando sí está delante.
+- `screen` es el valor que le pasaréis a `navigate`.
+- `needsPatient: true` le dice al modelo que antes tiene que resolver el paciente con
+  `search_patients` o `set_active_patient`.
+- `tools` **(nuevo, 2026-11-08)** son las escrituras de servidor que ese formulario
+  cubre. Es lo que convierte la regla de preferir el formulario en una comprobación
+  exacta en vez de un parecido de nombres: `create_measurement` y `measurement` comparten
+  palabra y el modelo ataba el cabo solo, pero `reschedule_appointment` no lleva el verbo
+  en el id del formulario de citas, y ahí se iba derecho a la tarjeta de confirmar.
+  - `tools: []` significa **que no hay tool de servidor para eso** y el formulario es el
+    único camino. El modelo lo lee tal cual y deja de buscar alternativa. Hoy pasa con
+    `template`.
+  - **Omitir el campo no es lo mismo que mandarlo vacío.** Si no viaja, del formulario no
+    se dice nada y el modelo decide como antes; si viaja vacío, se le está afirmando que
+    no existe escritura equivalente. Mandadlo siempre que lo sepáis.
+  - Se sanea como el resto: cada nombre con forma de tool (`^[a-z][a-z0-9_]{0,48}$`),
+    sin repetidos y con **tope de 12** por formulario. Lo que no encaja se descarta en
+    silencio.
+- Va **en el bloque de pantalla, como dato**, con la cabecera `Formularios de la
+  aplicación`. La regla de preferirlo está en el prompt del sistema, que es nuestro: el
+  navegador aporta el mapa, no las instrucciones.
+- Se sanea igual que el catálogo de herramientas: `id` en minúsculas
+  (`^[a-z][a-z0-9_]{0,48}$`), `screen` en mayúsculas (`^[A-Z][A-Z0-9_]{0,48}$`), **tope
+  de 40**. Lo que no encaja se descarta en silencio, así que si un formulario no aparece
+  en el bloque, mirad el formato del id.
+- No cuenta contra el recorte: va en la cabecera, antes que `forms` y `extras`.
+
+### Primero el formulario, después la tool de servidor (`preferClientTools`)
+
+> **Nuevo (2026-11-07).** Resuelve «el modelo prefiere escribir él antes que abrir el
+> formulario». Implementada la **opción A** (regla en el prompt) más el interruptor de
+> la **opción C**. La **opción B** —esconder la tool de servidor— se descartó: ver abajo.
+
+Con `reachableForms` delante, el prompt del sistema le dice al modelo, cuando el turno
+trae herramientas de cliente:
+
+1. Para escribir, busca primero un `fill_<x>` (o `action_<x>`) entre las herramientas de
+   la pantalla; si lo hay, úsalo y termina con `save_<x>`.
+2. Que no esté delante **no es motivo para escribir por detrás**: antes de llamar a una
+   escritura de servidor, busca su **nombre exacto** en el `tools` de los formularios de
+   `reachableForms`. Si aparece, resuelve el paciente si hace falta, `navigate` a su
+   pantalla, `open_<x>` y entonces rellénalo. El catálogo nuevo lo lee del resultado de
+   `navigate`, sin gastar un paso en preguntarlo.
+3. La tool de escritura de servidor queda para cuando su nombre **no aparece en ningún
+   `tools`** (`import_holidays`, `generate_shopping_list`,
+   `create_menu_from_description`) o cuando llegar hasta el formulario ha fallado —no
+   aparece el paciente, la pantalla no monta, la persona dice que no—. Ahí la tarjeta de
+   ACCIÓN PENDIENTE es la respuesta correcta, no la primera opción.
+
+> **Cambiado (2026-11-08).** El punto 2 era «si sale en `reachableForms`», y eso dejaba a
+> la intuición del modelo decidir qué formulario corresponde a qué escritura. Funcionaba
+> para `create_measurement` → `measurement`, que comparten palabra, y fallaba para
+> `reschedule_appointment`: ni buscaba al paciente, iba directo a la tarjeta. Ahora es una
+> comprobación de nombres contra `tools` (§3.2).
+
+El interruptor viaja en la petición, al lado de `clientTools`:
+
+```json
+{ "content": "...", "clientTools": [...], "pageContext": {...}, "preferClientTools": false }
+```
+
+- **Ausente es `true`**: no hay que mandar nada para tener el comportamiento nuevo.
+- `false` deja el prompt como estaba (las reglas de herramientas de pantalla siguen, sin
+  el bloque de preferencia), para poder apagarlo con usuarios reales sin desplegar
+  backend.
+- El endpoint **bloqueante** lo ignora: no tiene herramientas de cliente.
+
+**Por qué no la opción B.** Esconder `create_measurement` cuando existe su formulario deja
+al modelo sin salida justo cuando la cadena falla —el paciente no aparece, la pantalla no
+monta— que es el caso en el que vosotros mismos pedís que la tarjeta siga estando. Además
+obligaría a mantener una tabla de equivalencias que se queda vieja en silencio: un
+formulario nuevo sin fila en la tabla no cambiaría nada, y una fila mal puesta dejaría una
+escritura sin ninguna vía. Si con la regla en el prompt el modelo sigue tirando por lo
+corto, volvemos sobre ello con datos de telemetría (`clientTool` ya registra qué se llamó).
+
+De los dos motivos, **el de la tabla ya no aplica**: con `tools` (§3.2) la equivalencia la
+manda el navegador en cada turno y sale de lo que el formulario declara, así que no puede
+desfasarse. El primero sigue en pie y es el que manda: esconder la tool deja al modelo sin
+salida cuando la cadena falla. La regla se queda en el prompt.
+
+**Arreglado de paso:** fijar el paciente con `set_active_patient` borraba del prompt las
+reglas de las herramientas de pantalla durante el resto del turno. Era justo el primer
+paso de «apunta 70 kg a Homer» desde el panel principal, así que la cadena se quedaba sin
+reglas en el momento de decidir.
+
 ### Cambiar de pantalla a mitad de turno
 
 Cuando una herramienta cambia de pantalla (`navigate`), el catálogo declarado al empezar
@@ -450,49 +571,56 @@ una persona a mano.
 
 ---
 
-## 4. Acciones de UI (`uiActions`)
+## 4. Avisos de UI (`uiActions`)
 
 ```json
-{ "type": "NAVIGATE",    "screen": "PATIENT_MENU", "params": { "patientId": "uuid" } }
-{ "type": "OPEN_DIALOG", "target": "measurement",  "params": { "patientId": "uuid" } }
-{ "type": "HIGHLIGHT",   "target": "waistCm" }
-{ "type": "TOAST",       "params": { "severity": "success", "message": "Menú creado" } }
+{ "type": "TOAST", "params": { "severity": "success", "message": "Menú creado" } }
 ```
 
-El DTO es `{ type, screen?, target?, params }`; los campos nulos no se serializan.
-**Cualquier `type`, `screen` o `target` desconocido debe ignorarse en silencio**, para
-poder seguir añadiendo sin romper versiones viejas.
+El DTO sigue siendo `{ type, screen?, target?, params }`, pero **desde la fase B4 el
+único `type` que se emite es `TOAST`**: `screen` y `target` van siempre a `null` y no
+se serializan. **Cualquier `type`, `screen` o `target` desconocido debe ignorarse en
+silencio**, para poder seguir añadiendo sin romper versiones viejas.
 
-### Pantallas (`screen`)
+### Qué se retiró y por qué
 
-| `screen` | Destino | `params` |
-|---|---|---|
-| `PATIENTS` | Listado de pacientes | `query` (opcional) |
-| `AGENDA` | Agenda del nutricionista | — |
-| `DASHBOARD` | Panel principal | — |
-| `PATIENT_PROFILE` | Ficha del paciente | `patientId` |
-| `PATIENT_MENU` | Menú del paciente | `patientId` |
-| `PATIENT_MEASUREMENTS` | Mediciones del paciente | `patientId` |
-| `PATIENT_APPOINTMENTS` | Citas del paciente | `patientId` |
-| `MENUS` | Listado de menús | `query` (opcional) |
-| `SHOPPING_LIST` | Lista de la compra | `patientId` |
-| `EVOLUTION` | Evolución del paciente | `patientId` |
-| `REVENUE` | Ingresos | — |
-| `STAFF` | Personal del centro | — |
-| `SETTINGS` | Ajustes del centro | — |
-| `SETTINGS_SCHEDULES` | Ajustes → Horarios → Jornadas | — |
-| `SETTINGS_ASSIGNMENTS` | Ajustes → Horarios → Asignaciones | — |
-| `SETTINGS_HOLIDAYS` | Ajustes → Horarios → Festivos | — |
-| `SETTINGS_BRANDING` | Ajustes → Marca | — |
-| `PROFILE`, `ANAMNESIS`, `MEASUREMENTS`, `MENU`, `APPOINTMENTS`, `DIARY` | Pantallas heredadas | — |
+| Antes | Ahora |
+|---|---|
+| `NAVIGATE` + tools `navigate_to` / `navigate_to_patient` | la herramienta de cliente `navigate` |
+| `OPEN_DIALOG` + tool `open_dialog` | la herramienta de cliente `open_<id>` |
+| `HIGHLIGHT` + tool `highlight_field` | la herramienta de cliente `point_at` |
+| `TOAST` | **se queda**: no es la mascota actuando, es el backend avisando |
 
-### Formularios (`target` de `OPEN_DIALOG`)
+Un `uiAction` se mandaba a ciegas: el modelo no se enteraba de si la pantalla llegó a
+cambiar, de si el formulario se abrió ni de si el campo existía, y acababa diciendo
+«ya tienes abierta la ficha» con la pantalla quieta. Las herramientas de cliente (§3.2)
+hacen lo mismo y **devuelven el resultado dentro del mismo turno**, que es lo que le
+permite corregirse.
 
-`measurement`, `appointment`, `schedule`, `schedule-assignment`, `holiday`.
-Los dos primeros llevan `params.patientId`; los otros tres son del centro y no llevan
-paciente.
+Las cuatro tools de servidor se retiraron **a la vez** que la emisión, en la misma
+entrega: mientras existieran, retirar solo el `uiAction` dejaba al modelo creyendo que
+había navegado. El orden acordado con el frontend es retirar tools y emisión en backend
+(ya hecho) y después el código que las atendía en Angular.
 
----
+> **Con el endpoint bloqueante no hay navegación.** Ignora `clientTools`, así que por
+> ahí el modelo no tiene ninguna forma de mover la pantalla: responde con texto y, si
+> hace falta, dice dónde está lo que le piden. Es el camino de respaldo cuando el
+> stream se corta; la mascota navega por el de streaming.
+
+### El paciente activo
+
+`params.patientId` de los `uiAction` de navegación era el único sitio por el que el
+frontend se enteraba de qué paciente tiene el backend por activo. Lo sustituye
+**`subjectUserId`** en la respuesta del turno (§3), que además es más fiable: sale de
+la sesión, no de una navegación que podía no venir.
+
+### Formularios y pantallas
+
+La lista de pantallas (`ALLOWED_SCREENS`) y la de formularios abribles
+(`ALLOWED_DIALOGS`) se fueron con las tools: el destino ya no lo valida el backend
+contra una lista cerrada, lo resuelve el navegador, que es quien sabe lo que hay. El
+contrato de destinos vive ahora en el catálogo de `clientTools` que declara Angular
+(§3.2) y en `pageContext.reachableForms`.
 
 ## 5. Acciones pendientes (escrituras)
 
@@ -503,7 +631,10 @@ Content-Type: application/json
 { "idempotencyKey": "..." }
 ```
 
-La respuesta puede traer ahora `uiActions`, con la misma forma que la de un mensaje:
+La respuesta puede traer `uiActions`, con la misma forma que la de un mensaje —y,
+desde la fase B4, con el mismo único tipo: `TOAST`. Aplicar una escritura ya **no
+propone navegar**; si el turno sigue vivo, es el modelo quien lleva a la pantalla con
+la herramienta de cliente `navigate` después de leer el resultado de la confirmación:
 
 ```json
 {
@@ -512,7 +643,6 @@ La respuesta puede traer ahora `uiActions`, con la misma forma que la de un mens
   "entityId": "uuid",
   "message": "Jornada \"Horario de invierno\" creada.",
   "uiActions": [
-    { "type": "NAVIGATE", "screen": "SETTINGS_SCHEDULES" },
     { "type": "TOAST", "params": { "severity": "success", "message": "Jornada creada" } }
   ]
 }
@@ -686,8 +816,10 @@ el modelo los busca antes con `search_foods`.
 ### Centro y transversales
 
 `get_tenant_info`, **`get_tenant_profile`**, **`update_tenant_profile`**,
-**`get_revenue_summary`**, `navigate_to`, `navigate_to_patient`, **`open_dialog`**,
-**`highlight_field`**, **`explain_ui`**.
+**`get_revenue_summary`**, **`explain_ui`**.
+
+`navigate_to`, `navigate_to_patient`, `open_dialog` y `highlight_field` **ya no
+existen** (fase B4): lo hacen las herramientas de cliente. Ver §4.
 
 Temas de `explain_ui` (lista cerrada): `crear-jornada`, `asignar-jornada`,
 `importar-festivos`, `crear-cita`, `registrar-medida`, `crear-menu`, `lista-compra`,
@@ -721,7 +853,7 @@ puede hacer.
 
 | Frase | Comportamiento |
 |---|---|
-| "Vamos a la ficha de Ana García" | `search_patients` → `set_active_patient` → `NAVIGATE` a `PATIENT_PROFILE` |
+| "Vamos a la ficha de Ana García" | `search_patients` → `set_active_patient` → `navigate` (herramienta de cliente); el turno devuelve el nuevo `subjectUserId` |
 | "¿Cuál es el próximo paciente?" | `get_next_patient` o `get_today_overview` |
 | "Cambia la cita de Ana al jueves a las 10" | `search_patients` → `get_next_appointment` → `reschedule_appointment` |
 | "Cancela la cita de Ana" | `search_patients` → `get_next_appointment` → `update_appointment_status(CANCELLED)` |
@@ -733,7 +865,7 @@ puede hacer.
 | "¿A quién tengo descolgado?" | `get_patients_needing_followup` |
 | "Pásame los pacientes de Ana a Luis" | `search_patients` → `assign_nutritionist` |
 | "¿Cuánto he facturado este mes?" | `get_revenue_summary` |
-| "¿Cómo asigno una jornada?" | `explain_ui` (+ `highlight_field`) |
+| "¿Cómo asigno una jornada?" | `explain_ui` (+ `point_at`, herramienta de cliente) |
 
 ### Una escritura que no se puede preparar no rompe el turno
 
@@ -747,17 +879,36 @@ la petición falle. El caso típico: `import_holidays` sin país configurado res
 
 ## 9. Consideraciones para Angular
 
-- Mantener el `subjectUserId` de la sesión sincronizado con la ficha abierta.
+- Mantener el `subjectUserId` de la sesión sincronizado con la ficha abierta; cada
+  turno devuelve el suyo en `subjectUserId` (§3).
 - Tras `set_active_patient`, el backend actualiza la sesión; no hay que recrearla.
 - Al confirmar una acción, no reutilizar la `idempotencyKey` anterior.
 - Ignorar en silencio los `type`, `screen` y `target` desconocidos de `uiActions`.
-- Con el stream cortado, reintentar por el endpoint bloqueante.
+- Con el stream cortado, reintentar por el endpoint bloqueante, **sabiendo que por ahí
+  la mascota no mueve la pantalla**: no declara herramientas de cliente.
 
-### Lo que falta en `sif-web`
+### Superficies de relleno: dónde estamos
 
-Estas tools funcionan ya, pero caen en la tarjeta de confirmar hasta que exista su
-superficie de relleno: `update_tenant_profile`, `create_appointment_type` /
-`update_appointment_type` (las tres con `FieldAccess` a mano, porque van con
-`ngModel`), `update_clinical_status`, `create_patient_event`, `assign_nutritionist`
-(reactivos, baratos), `create_calendar_note` y `update_meal` (este con filas
-repetibles).
+> **Corregido (2026-11-08).** Este párrafo decía que a estas siete tools les faltaba
+> superficie. **Ya la tienen todas**, con su formulario, su `open_<id>` y su
+> `save_<id>`, y todas viajan en `pageContext.reachableForms`.
+
+| Tool | Formulario | Se abre | Se guarda sola |
+|---|---|---|---|
+| `update_tenant_profile` | `tenant_profile` | sí | **no** — `noSave` |
+| `create_appointment_type` / `update_appointment_type` | `appointment_type` | sí | **no** — `noSave` |
+| `update_clinical_status` | `clinical_status` | sí | **no** — `noSave` |
+| `create_patient_event` | `patient_event` | sí | sí |
+| `assign_nutritionist` | `assign_nutritionist` | sí | sí |
+| `create_calendar_note` | `calendar_note` | sí | sí |
+| `update_meal` | `meal` | sí | sí |
+
+Los tres `noSave` son **deliberados**, no una carencia: esos formularios llevan precios,
+datos fiscales o el alta y baja de un paciente. La mascota los rellena y **el Guardar lo
+pulsa la persona**. Que ahí salga la tarjeta de confirmar es el comportamiento correcto.
+
+`template` (la plantilla de menú del centro, pantalla `TEMPLATES`) se añadió el
+2026-11-07 y es un caso aparte: **no hay tool de servidor equivalente**. El catálogo
+tiene `get_menu_templates` y `create_menu_from_template`, pero ninguna que cree la
+plantilla ni que le añada comidas, así que el formulario es el único camino y viaja con
+`tools: []` para decirlo (§3.2).

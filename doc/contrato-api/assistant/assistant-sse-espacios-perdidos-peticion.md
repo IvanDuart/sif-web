@@ -6,6 +6,8 @@
 > **Gravedad:** visible para cualquier usuario en cada respuesta de más de una línea, y **queda
 > guardado así en la base de datos**.
 > **Fecha:** 2026-11-07.
+> **Estado: ARREGLADA** el 2026-11-07 por el backend, antes de que llegara el documento.
+> **Entregada** en `tus-dietas/doc/peticiones/frontend/` el 2026-11-08.
 
 ---
 

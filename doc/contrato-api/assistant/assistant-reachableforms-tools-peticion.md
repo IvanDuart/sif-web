@@ -3,7 +3,9 @@
 > **Quién lo pide:** frontend (sif-web).
 > **Contra qué:** [`assistant-frontend.md`](assistant-frontend.md) §3.2,
 > `pageContext.reachableForms` y la regla de `preferClientTools`.
-> **Estado:** el frontend ya lo manda. Falta que el prompt lo use.
+> **Estado: APLICADA** el 2026-11-08. El backend recibe `tools`, lo sanea (tope de 12 por
+> formulario, sin repetidos) y la regla del prompt comprueba el nombre exacto contra él.
+> **Entregada** en `tus-dietas/doc/peticiones/frontend/` el 2026-11-08.
 > **Fecha:** 2026-11-08.
 
 ---

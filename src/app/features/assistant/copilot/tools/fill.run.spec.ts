@@ -34,7 +34,7 @@ describe('runFill', () => {
     TestBed.runInInjectionContext(() => fill.register(surf, access));
 
   const run = (args: Record<string, unknown>, keys = ['weightKg', 'date'], signal = new AbortController().signal) =>
-    runFill('measurement', keys, args, { fill, cursor, signal });
+    runFill('measurement', keys, args, { fill, cursor, signal, catalog: () => undefined });
 
   beforeEach(() => {
     jasmine.clock().withMock(() => undefined);
@@ -80,6 +80,44 @@ describe('runFill', () => {
     const result = await run({ weightKg: 70 });
     expect(result.ok).withContext(String(result['reason'])).toBeTrue();
     expect(values['weightKg']).toBe('70');
+  });
+
+  it('al terminar nombra el Guardar del propio formulario', async () => {
+    // Rellenar no guarda. Si no le decimos con qué se termina, el modelo se
+    // acuerda del catálogo que mandamos hace varios pasos —o no— y acaba
+    // proponiendo la escritura de servidor con una tarjeta de confirmación.
+    register(surface());
+    expect((await run({ weightKg: 70 }))['saveWith']).toBe('save_measurement');
+  });
+
+  it('el formulario que no se guarda solo no promete un Guardar que no tiene', async () => {
+    register(surface({ noSave: true }));
+    expect((await run({ weightKg: 70 }))['saveWith']).toBeUndefined();
+  });
+
+  it('si lo ha abierto él, devuelve el catálogo nuevo: antes no existía', async () => {
+    host.innerHTML = '<button data-abrir>Registrar medición</button>';
+    TestBed.runInInjectionContext(() =>
+      fill.registerOpener({ id: 'measurement', tools: [], screen: 'PATIENT_MEASUREMENTS', trigger: '[data-abrir]' }),
+    );
+    host.querySelector('button')!.addEventListener('click', () => {
+      host.innerHTML += '<input formcontrolname="weightKg" />';
+      register(surface());
+    });
+
+    const result = await runFill('measurement', ['weightKg'], { weightKg: 70 }, {
+      fill,
+      cursor,
+      signal: new AbortController().signal,
+      catalog: () => [{ name: 'save_measurement' }],
+    });
+    expect(result['opened']).toBe('measurement');
+    expect(result['clientTools']).toEqual([{ name: 'save_measurement' }]);
+  });
+
+  it('un formulario que ya estaba abierto no reenvía el catálogo', async () => {
+    register(surface());
+    expect((await run({ weightKg: 70 }))['clientTools']).toBeUndefined();
   });
 
   it('un formulario que aún carga se espera, no se da por ausente', async () => {

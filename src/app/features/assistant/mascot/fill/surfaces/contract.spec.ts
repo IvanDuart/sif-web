@@ -206,11 +206,13 @@ describe('contrato del preview', () => {
       });
     });
 
-    it('assign_schedule / update_schedule_assignment', () => {
+    it('assign_schedule', () => {
       const surface = scheduleAssignmentSurface({
         schedules: () => [{ label: 'Horario de invierno', value: 's-1' }],
       });
-      expect(surface.tools).toEqual(['assign_schedule', 'update_schedule_assignment']);
+      // `update_schedule_assignment` no existe en el catálogo del backend:
+      // lo arrastrábamos de una versión anterior (`assistant-contract` §5.1).
+      expect(surface.tools).toEqual(['assign_schedule']);
       expectContract(surface, {
         scheduleId: 'Horario de invierno',
         validFrom: '2026-01-01',

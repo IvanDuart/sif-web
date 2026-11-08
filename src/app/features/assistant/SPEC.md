@@ -80,7 +80,15 @@ noticing, so `mascot-state.subject.spec.ts` guards it.
 
 `pageContext.reachableForms` tells the model which forms the app has and on which screen, whether or
 not they are in front of it. It is **derived from the openers**, each of which declares the screen
-its button lives on — never a parallel table. A table drifts: ours said the appointment form lived
+its button lives on and the server writes it covers — never a parallel table.
+
+Those writes (`tools`) are what turn "prefer the form" into an exact check instead of a guess at
+the names. `create_measurement` and `measurement` share a word and the model joined them by itself;
+`reschedule_appointment` does not carry the verb in the appointment form's id, and there it went
+straight to the confirmation card without even looking. Sending `tools: []` is an **assertion** that
+no server write exists for that form — true only of `template` — so a stale name is worse than
+none: `write-tools.testing.ts` checks every name we claim against the backend's catalogue, which is
+how we found we were still claiming `update_schedule_assignment`, retired versions ago. A table drifts: ours said the appointment form lived
 on `PATIENT_APPOINTMENTS`, which routes to the agenda, where there is no button to press at all. The
 mascot would navigate there, find nothing and give up — worse than never offering the route. Forms
 nothing can open (a menu's meal, renaming, a calendar note) are left out for the same reason.

@@ -3,6 +3,7 @@ import type { MascotFillService } from '../../mascot/fill/mascot-fill.service';
 import type { CursorService } from '../cursor.service';
 import type { ToolResult } from '../client-tool.model';
 import { matchArgs } from '../fill-args';
+import { saveTool } from '../schema';
 import { runOpen } from './open.run';
 
 /** Lo que se espera a que el formulario cargue sus datos (`FillSurface.ready`). */
@@ -22,7 +23,18 @@ export async function runFill(
   surfaceId: string,
   keys: readonly string[],
   args: Record<string, unknown>,
-  { fill, cursor, signal }: { fill: MascotFillService; cursor: CursorService; signal: AbortSignal },
+  {
+    fill,
+    cursor,
+    signal,
+    catalog,
+  }: {
+    fill: MascotFillService;
+    cursor: CursorService;
+    signal: AbortSignal;
+    /** Lo que se puede hacer ahora, para decírselo si la pantalla ha cambiado. */
+    catalog: () => unknown;
+  },
 ): Promise<ToolResult> {
   let mounted = await fill.waitForId(surfaceId, READY_WAIT_MS);
 
@@ -32,9 +44,13 @@ export async function runFill(
   // paso de más, no un error: rendirse aquí le devuelve `surface_gone` y lo
   // manda a escribir por detrás, que es justo lo que no queremos. Abrirlo es
   // exactamente lo que `open_<id>` haría.
+  let abierto = false;
   if (!mounted && fill.openerFor(surfaceId)) {
     const opened = await runOpen(surfaceId, { fill, signal, catalog: () => undefined });
-    if (opened.ok) mounted = await fill.waitForId(surfaceId, READY_WAIT_MS);
+    if (opened.ok) {
+      mounted = await fill.waitForId(surfaceId, READY_WAIT_MS);
+      abierto = mounted !== null;
+    }
   }
 
   if (!mounted) return { ok: false, reason: 'surface_gone' };
@@ -60,12 +76,21 @@ export async function runFill(
     const report = await playFill(mounted.surface, mounted.access, values, fill, preferredTiming(), () =>
       cursor.whenResumed(),
     );
+
+    // Con qué se termina. Rellenar no guarda nada: si el formulario ofrece su
+    // Guardar, se nombra aquí para que el modelo no tenga que acordarse de un
+    // catálogo que mandamos hace varios pasos —y que, si el formulario lo
+    // abrimos nosotros, ni siquiera llegó a ver.
+    const save = saveTool(mounted.surface);
+
     return {
       ok: report.written.length > 0,
       written: report.written,
       missing: report.missing,
       rejected: report.rejected,
       missingRequired: report.missingRequired,
+      ...(save ? { saveWith: save.name } : {}),
+      ...(abierto ? { opened: surfaceId, clientTools: catalog() } : {}),
       ...(unknown.length + foreign.length > 0 ? { unknown: [...unknown, ...foreign] } : {}),
       ...(report.written.length === 0 ? { reason: 'tool_error' } : {}),
     };

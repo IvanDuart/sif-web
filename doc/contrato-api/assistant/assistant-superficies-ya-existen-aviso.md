@@ -4,6 +4,8 @@
 > **Contra qué:** [`assistant-frontend.md`](assistant-frontend.md) §9, «Lo que falta en `sif-web`».
 > **Gravedad:** baja, pero afecta a lo que el modelo cree que puede hacer.
 > **Fecha:** 2026-11-07.
+> **Estado: CORREGIDO** el 2026-11-08: el §9 del contrato ya no las da por ausentes.
+> **Entregado** en `tus-dietas/doc/peticiones/frontend/` el 2026-11-08.
 
 ---
 

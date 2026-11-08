@@ -2,6 +2,7 @@ import { ALL_OPENERS } from '../mascot/fill/surfaces/openers';
 import { reachableForms } from './reachable-forms';
 import { NAVIGABLE_SCREENS, routeForScreen } from './screen-routes';
 import { slugOf } from './tool-names';
+import { BACKEND_WRITE_TOOLS } from './write-tools.testing';
 
 /**
  * El mapa de formularios alcanzables tiene que decir la verdad.
@@ -66,12 +67,39 @@ describe('dónde vive cada formulario', () => {
     expect(routeForScreen(cita!.screen, { patientId: 'p-1' })?.commands).toEqual(['/users', 'p-1']);
   });
 
+  it('lo que decimos cubrir EXISTE en el catálogo del backend', () => {
+    // Arrastrábamos `update_schedule_assignment` de una versión anterior: el
+    // modelo lo buscaba en su catálogo y no lo encontraba nunca, así que para
+    // ese formulario la regla de preferirlo no se activaba jamás.
+    for (const form of mapa) {
+      for (const tool of form.tools) {
+        expect(BACKEND_WRITE_TOOLS).withContext(`${form.id} → ${tool}`).toContain(tool);
+      }
+    }
+  });
+
+  it('`tools` vacío es una afirmación, no un «no lo sé»', () => {
+    // El contrato distingue omitirlo de mandarlo vacío: vacío le dice al modelo
+    // que NO hay escritura de servidor para eso. Sólo vale donde es verdad.
+    const sinEquivalente = mapa.filter((form) => form.tools.length === 0).map((form) => form.id);
+    expect(sinEquivalente).toEqual(['template']);
+  });
+
   it('cumple el saneado del backend y cabe en su tope', () => {
     for (const form of mapa) {
       expect(form.id).withContext(form.id).toMatch(/^[a-z][a-z0-9_]{0,48}$/);
       expect(form.screen).withContext(form.screen).toMatch(/^[A-Z][A-Z0-9_]{0,48}$/);
     }
     expect(mapa.length).toBeLessThanOrEqual(40);
+
+    for (const form of mapa) {
+      // Tope de 12 por formulario, sin repetidos y con forma de tool.
+      expect(form.tools.length).withContext(form.id).toBeLessThanOrEqual(12);
+      expect(new Set(form.tools).size).withContext(form.id).toBe(form.tools.length);
+      for (const tool of form.tools) {
+        expect(tool).withContext(tool).toMatch(/^[a-z][a-z0-9_]{0,48}$/);
+      }
+    }
   });
 
   it('no promete lo que nadie sabe abrir', () => {

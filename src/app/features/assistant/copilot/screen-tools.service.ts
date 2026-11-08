@@ -69,7 +69,12 @@ export class ScreenToolsService {
     for (const { surface } of this.fill.surfaces()) {
       const fillMatch = fillTools(surface).find((tool) => tool.decl.name === name);
       if (fillMatch) {
-        return (args, { signal }) => runFill(surface.id, fillMatch.keys, args, { fill: this.fill, cursor: this.cursor, signal });
+        return (args, { signal }) => runFill(surface.id, fillMatch.keys, args, {
+            fill: this.fill,
+            cursor: this.cursor,
+            signal,
+            catalog: deps.catalog,
+          });
       }
       const edit = editTool(surface);
       if (edit?.decl.name === name) {

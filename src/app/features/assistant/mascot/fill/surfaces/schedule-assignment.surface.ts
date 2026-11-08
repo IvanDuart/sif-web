@@ -20,7 +20,7 @@ interface AssignmentOptions {
 export function scheduleAssignmentSurface(options: AssignmentOptions): FillSurface {
   return {
     id: 'schedule-assignment',
-    tools: ['assign_schedule', 'update_schedule_assignment'],
+    tools: ['assign_schedule'],
     fields: [
       {
         key: 'scheduleId',
@@ -50,7 +50,7 @@ export function scheduleAssignmentSurface(options: AssignmentOptions): FillSurfa
 /** Ajustes → Horarios → Asignaciones → "Nueva asignación". */
 export const SCHEDULE_ASSIGNMENT_OPENER: FillOpener = {
   id: 'schedule-assignment',
-  tools: ['assign_schedule', 'update_schedule_assignment'],
+  tools: ['assign_schedule'],
   reveal: scheduleReveal('assignments'),
   screen: 'SETTINGS_ASSIGNMENTS',
   trigger: '[data-mascot-open="schedule-assignment"]',
