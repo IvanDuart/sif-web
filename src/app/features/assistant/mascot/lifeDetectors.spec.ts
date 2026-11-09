@@ -56,6 +56,48 @@ describe('createPettingDetector', () => {
     expect(hit).toBeFalse();
   });
 
+  it('detecta una caricia vertical: x fija, y yendo y viniendo', () => {
+    const detector = createPettingDetector();
+    let y = 100;
+    let hit = false;
+    detector.move(50, 0, y);
+    for (let index = 1; index <= 8; index += 1) {
+      y += index % 2 === 0 ? 20 : -20;
+      hit = detector.move(50, index * 100, y) || hit;
+    }
+
+    expect(hit).toBeTrue();
+  });
+
+  it('detecta una caricia diagonal', () => {
+    const detector = createPettingDetector();
+    let x = 100;
+    let y = 100;
+    let hit = false;
+    detector.move(x, 0, y);
+    for (let index = 1; index <= 8; index += 1) {
+      const step = index % 2 === 0 ? 20 : -20;
+      x += step;
+      y += step;
+      hit = detector.move(x, index * 100, y) || hit;
+    }
+
+    expect(hit).toBeTrue();
+  });
+
+  it('un recorrido vertical lento no cuenta como mimo', () => {
+    const detector = createPettingDetector();
+    let y = 100;
+    let hit = false;
+    detector.move(50, 0, y);
+    for (let index = 1; index <= 8; index += 1) {
+      y += index % 2 === 0 ? 20 : -20;
+      hit = detector.move(50, index * 900, y) || hit;
+    }
+
+    expect(hit).toBeFalse();
+  });
+
   it('reset olvida el movimiento acumulado', () => {
     const detector = createPettingDetector();
 

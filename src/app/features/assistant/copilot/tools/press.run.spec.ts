@@ -45,6 +45,14 @@ describe('runPress', () => {
     expect(clicked).toHaveBeenCalled();
   });
 
+  it('al terminar deja el anillo de pulsación apagado', async () => {
+    mount('<button data-mascot-point="new">Nueva cita</button>');
+
+    expect((await run('new')).ok).toBeTrue();
+
+    expect(fill.presses()).toBe(0);
+  });
+
   it('lo que no está marcado no se pulsa, aunque exista', async () => {
     const button = mount('<button>Eliminar</button>');
     const clicked = spyOn(button, 'click');

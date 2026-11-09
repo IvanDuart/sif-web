@@ -6,6 +6,7 @@ export interface AppointmentTypeDto {
   price: number;
   isDefault: boolean;
   isActive: boolean;
+  color: string;
   createdAt: string;
 }
 
@@ -14,6 +15,7 @@ export interface CreateAppointmentTypeRequest {
   durationMinutes: number;
   price: number;
   isDefault?: boolean;
+  color?: string;
 }
 
 export interface UpdateAppointmentTypeRequest {
@@ -22,4 +24,5 @@ export interface UpdateAppointmentTypeRequest {
   price?: number;
   isDefault?: boolean;
   isActive?: boolean;
+  color?: string;
 }

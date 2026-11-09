@@ -8,13 +8,14 @@ import { NotificationService, ModalService, ConfirmService } from '../../../core
 import { AppointmentTypeFormDialog } from './appointment-type-form.dialog';
 import type { AppointmentTypeFormDialogInput } from './appointment-type-form.dialog';
 import { TuiTable } from '@taiga-ui/addon-table';
-import { TuiButton } from '@taiga-ui/core';
+import { TuiButton, TuiDataList, TuiDropdown } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
+import { EmptyState } from '../../../shared/ui/empty-state';
 
 @Component({
   selector: 'app-appointment-types-settings',
   standalone: true,
-  imports: [TranslocoDirective, TuiTable, TuiButton, TuiBadge],
+  imports: [TranslocoDirective, TuiTable, TuiButton, TuiBadge, TuiDataList, TuiDropdown, EmptyState],
   templateUrl: './appointment-types-settings.html'
 })
 export class AppointmentTypesSettings implements OnInit {

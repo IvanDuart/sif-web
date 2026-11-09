@@ -52,6 +52,11 @@ const BORED_RANGE_MS = 20_000;
 /** Lo que se entretiene con el teléfono antes de que se le cierren los ojos. */
 export const BORED_PHONE_MS = 45_000;
 
+/** Sin puntero, tecla ni scroll durante este tiempo, la persona se ha ido. */
+export const AWAY_AFTER_MS = 120_000;
+/** Volver después de estar fuera este tiempo merece una bienvenida. */
+export const WELCOME_AFTER_MS = 300_000;
+
 export const DIZZY_MS = 2400;
 export const BLUSH_MS = 2600;
 export const ANGRY_MS = 3200;
@@ -258,11 +263,11 @@ export class MascotLifeService {
   }
 
   /** Registra el puntero moviéndose sobre ella. */
-  move(x: number): void {
+  move(x: number, y = 0): void {
     if (!this.restless()) return;
     const reaction = this.reaction();
     if (reaction === 'dizzy' || reaction === 'angry') return;
-    if (this.petting.move(x, Date.now())) this.react('blush');
+    if (this.petting.move(x, Date.now(), y)) this.react('blush');
   }
 
   /** El puntero se fue. */

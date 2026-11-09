@@ -1,10 +1,26 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  afterNextRender,
+  computed,
+  inject,
+  output,
+  signal,
+} from '@angular/core';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { TuiButton } from '@taiga-ui/core';
 
+import type { Scene } from '../mascot/agentMotion';
 import { MascotLookService } from '../mascot/mascot-look.service';
+import { MascotMoodService } from '../mascot/mascot-mood.service';
 import type { AccessoryId, SkinId } from '../mascot/skins/types';
 import { MascotOrb } from './mascot-orb';
+
+/** Lo que recibe el foco dentro del diálogo, en orden de tabulación. */
+const FOCUSABLE =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * El armario (diseño de alkimia, `core/copilot/mascot/Wardrobe.tsx`): una
@@ -54,8 +70,15 @@ import { MascotOrb } from './mascot-orb';
             <span class="wd-bar" aria-hidden="true"></span>
             <span class="wd-floor" aria-hidden="true"></span>
 
-            <div class="wd-model">
-              <app-mascot-orb [skin]="pick()" [accessories]="draft()" size="l" [decorative]="true" />
+            <div class="wd-model" [class.wd-model--dip]="dip()">
+              <app-mascot-orb
+                [skin]="pick()"
+                [accessories]="draft()"
+                [mode]="stageMode()"
+                [previewScene]="previewScene()"
+                size="l"
+                [decorative]="true"
+              />
             </div>
 
             <button
@@ -105,7 +128,7 @@ import { MascotOrb } from './mascot-orb';
                   [attr.aria-checked]="pick() === id"
                   [attr.aria-label]="t('assistant.skin_' + id)"
                   [tabIndex]="pick() === id ? 0 : -1"
-                  (click)="pick.set(id)"
+                  (click)="choose(id)"
                   (keydown)="onShelfKey($event)"
                 >
                   <span class="wd-thumb__box" aria-hidden="true">
@@ -169,21 +192,107 @@ export class MascotWardrobe {
   /** El borrador: lo que se está probando mientras no se confirme. */
   readonly pick = signal<SkinId>(this.look.skin());
   readonly draft = signal<readonly AccessoryId[]>([...this.look.accessories()]);
+  /** La reacción de la fruta al probarla, durante un momento. */
+  readonly previewScene = signal<Scene | null>(null);
+  /** La fruta se hunde un instante al probarla: peso físico, no sólo un destello. */
+  readonly dip = signal(false);
+  /** El orbe del escenario celebra el look confirmado antes de que se cierre. */
+  readonly stageMode = signal<'wardrobe' | 'done'>('wardrobe');
+
+  private previewTimer: ReturnType<typeof setTimeout> | undefined;
+  private dipTimer: ReturnType<typeof setTimeout> | undefined;
+  private doneTimer: ReturnType<typeof setTimeout> | undefined;
+  private readonly mood = inject(MascotMoodService);
 
   readonly changed = computed(
     () => this.pick() !== this.look.skin() || !this.sameAccessories(this.draft(), this.look.accessories())
   );
 
   constructor() {
+    const host = inject(ElementRef<HTMLElement>).nativeElement as HTMLElement;
+    let previousFocus: HTMLElement | null = null;
+
+    // Al abrirse, el foco entra en el diálogo: la fruta elegida es el punto
+    // natural, porque es lo que se viene a probar.
+    afterNextRender(() => {
+      previousFocus = document.activeElement as HTMLElement | null;
+      host.querySelector<HTMLElement>('.wd-thumb--on')?.focus();
+    });
+
     // Esc se atrapa antes que nadie: no debe cerrar el panel que hay debajo.
+    // Tab no sale de la tarjeta: es un diálogo modal.
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      event.stopImmediatePropagation();
-      event.preventDefault();
-      this.cancel();
+      if (event.key === 'Escape') {
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        this.cancel();
+        return;
+      }
+      if (event.key === 'Tab') this.trapTab(host, event);
     };
     document.addEventListener('keydown', onKey, true);
-    inject(DestroyRef).onDestroy(() => document.removeEventListener('keydown', onKey, true));
+    inject(DestroyRef).onDestroy(() => {
+      document.removeEventListener('keydown', onKey, true);
+      clearTimeout(this.previewTimer);
+      clearTimeout(this.dipTimer);
+      clearTimeout(this.doneTimer);
+      if (previousFocus?.isConnected) previousFocus.focus();
+    });
+  }
+
+  /** Mantiene Tab y Shift+Tab dentro de la tarjeta mientras el armario está abierto. */
+  private trapTab(host: HTMLElement, event: KeyboardEvent): void {
+    const card = host.querySelector<HTMLElement>('.wd-card');
+    if (!card) return;
+    const focusable = Array.from(card.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+      (element) => element.tabIndex >= 0,
+    );
+    if (focusable.length === 0) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement as HTMLElement | null;
+    const inside = active !== null && card.contains(active);
+
+    event.preventDefault();
+    if (!inside) {
+      (event.shiftKey ? last : first).focus();
+      return;
+    }
+    if (event.shiftKey && active === first) {
+      last.focus();
+      return;
+    }
+    if (!event.shiftKey && active === last) {
+      first.focus();
+      return;
+    }
+    const at = focusable.indexOf(active as HTMLElement);
+    const next = (at + (event.shiftKey ? -1 : 1) + focusable.length) % focusable.length;
+    focusable[next].focus();
+  }
+
+  /**
+   * Probarse una fruta es elegirla: además de cambiarla en el escenario, enseña
+   * un momento su carácter (`happyMove` y `happyBits` de `personalities.ts`).
+   */
+  choose(id: SkinId): void {
+    if (id === this.pick()) return;
+    this.pick.set(id);
+    this.flashPreview();
+    this.flashDip();
+  }
+
+  private flashDip(): void {
+    clearTimeout(this.dipTimer);
+    this.dip.set(true);
+    this.dipTimer = setTimeout(() => this.dip.set(false), 160);
+  }
+
+  private flashPreview(): void {
+    clearTimeout(this.previewTimer);
+    this.previewScene.set('blush');
+    this.previewTimer = setTimeout(() => this.previewScene.set(null), 1800);
   }
 
   /** Las flechas del escenario: la siguiente mascota, dando la vuelta. */
@@ -191,7 +300,7 @@ export class MascotWardrobe {
     const all = this.skins();
     if (all.length === 0) return;
     const at = all.indexOf(this.pick());
-    this.pick.set(all[(at + by + all.length) % all.length]);
+    this.choose(all[(at + by + all.length) % all.length]);
   }
 
   onShelfKey(event: KeyboardEvent): void {
@@ -218,11 +327,20 @@ export class MascotWardrobe {
   }
 
   confirm(): void {
+    if (this.stageMode() === 'done') return;
     this.look.setLook(this.pick(), this.draft());
-    this.closed.emit();
+    this.stageMode.set('done');
+    this.mood.feel('cheer', 1400);
+    clearTimeout(this.doneTimer);
+    this.doneTimer = setTimeout(
+      () => this.closed.emit(),
+      globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 0 : 450,
+    );
   }
 
   cancel(): void {
+    if (this.stageMode() === 'done') return;
+    clearTimeout(this.doneTimer);
     this.closed.emit();
   }
 

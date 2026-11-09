@@ -25,7 +25,7 @@ Implementación en `sif-web` del contrato
 | `features/billing/billing.page.*` | Estado, acciones, facturas y pantalla de suspensión. |
 | `features/billing/billing-return.page.*` | Vuelta de Stripe (`/billing/success`, `/billing/cancel`). |
 | `core/api/services/platform-billing.api.ts` | `PlatformBillingService`: panel de superadmin (§6). |
-| `features/admin/billing/*` | Listado y ficha de facturación por centro (§6). |
+| `features/admin/billing/*` | Ficha unificada de centro: propiedades (`TenantService`) y facturación por centro (§6). |
 
 Rutas: `/billing`, `/billing/success` y `/billing/cancel`, dentro del `Shell`.
 Las dos concretas van **antes** que `/billing` en `app.routes.ts`: con
@@ -132,19 +132,32 @@ Se definen en `core/http/http-context.tokens.ts` y `error.interceptor.ts` los
 
 Base `/api/tenants`, permiso de plataforma `MANAGE_TENANT`. Cuelga de `/admin`,
 que ya exige ese permiso y centro administrador (`adminGuard`), así que las
-pantallas no vuelven a comprobar nada.
+pantallas no vuelven a comprobar nada. La administración de centros y la
+facturación de plataforma están unificadas en dos rutas:
 
 | Ruta | Pantalla |
 |---|---|
-| `/admin/billing` | Listado de centros con filtro por estado y búsqueda. |
-| `/admin/billing/:tenantId` | Ficha: Stripe y fechas, configuración, acciones manuales, histórico y facturas. |
+| `/admin` | Listado unificado de centros: propiedades (`GET /tenants`) cruzadas con su facturación (`GET /tenants/billing`), buscador, filtro por estado y alta de centros. |
+| `/admin/:tenantId` | Ficha unificada: propiedades del centro (`GET/PUT /tenants/{id}`) y facturación (Stripe y fechas, configuración, acciones manuales, histórico y facturas). |
 
-Cliente: `core/api/services/platform-billing.api.ts` (`PlatformBillingService`).
-Modelos: `TenantBillingAdminDto`, `UpdateTenantBillingRequest`,
-`BillingOverrideRequest` y `SubscriptionEvent`, en `billing.model.ts`.
+`/admin/billing` y `/admin/billing/:tenantId` se conservan como redirecciones
+de compatibilidad a `/admin` y `/admin/:tenantId`.
+
+Cliente de facturación: `core/api/services/platform-billing.api.ts`
+(`PlatformBillingService`). Cliente de propiedades:
+`core/api/services/tenant.api.ts` (`TenantService`).
+Modelos: `Tenant`, `TenantBillingAdminDto`, `UpdateTenantBillingRequest`,
+`BillingOverrideRequest` y `SubscriptionEvent`.
 
 Detalles que importan:
 
+- **El listado no depende de facturación.** Si `GET /tenants/billing` falla o
+  está deshabilitado, el `Tenant` ya trae sus `TenantBillingFields` y la tabla
+  de `/admin` se pinta igualmente (el cruce por `tenantId` solo añade
+  `stripeCustomerId` y el precio exacto).
+- **Las propiedades se guardan con `PUT /tenants/{id}`** reenviando las
+  `preferences` leídas para que el reemplazo del backend no las borre; si el
+  centro editado es el activo, se refresca `TenantContextService.tenantProfile`.
 - **El precio se edita en euros y viaja en céntimos.** Y solo afecta a
   suscripciones nuevas: las existentes conservan su `price_id` de Stripe, cosa
   que la propia pantalla avisa.
@@ -183,8 +196,10 @@ cabeceras:
 4. Un usuario sin `VIEW_BILLING` en un centro suspendido → `/billing` le dice que
    contacte con el administrador y no se dispara ninguna llamada de facturación.
 
-5. Panel de superadmin: entra como centro administrador, `/admin` → botón
-   «Facturación». El filtro por estado no manda `status` cuando está en «todos».
+5. Panel de superadmin: entra como centro administrador, `/admin` → el listado
+   unificado mezcla centros y suscripciones y abre la ficha en
+   `/admin/:tenantId`, donde se editan tanto las propiedades como la
+   facturación. El filtro por estado no manda `status` cuando está en «todos».
 
 Tests: `core/http/billing.interceptor.spec.ts`,
 `core/http/error.interceptor.spec.ts`,

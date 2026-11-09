@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { TuiButton, TuiInput, TuiTextfield } from '@taiga-ui/core';
+import { TuiButton, TuiInput, TuiLabel, TuiTextfield } from '@taiga-ui/core';
 import { TuiSwitch, TuiTextarea } from '@taiga-ui/kit';
 
 import { AssistantService } from '../../../core/api/services/assistant.api';
@@ -34,6 +34,7 @@ import {
     TranslocoDirective,
     TuiButton,
     TuiInput,
+    TuiLabel,
     TuiTextfield,
     TuiSwitch,
     TuiTextarea,

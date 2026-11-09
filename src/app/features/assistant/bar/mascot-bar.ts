@@ -5,6 +5,7 @@ import {
   ElementRef,
   afterRenderEffect,
   computed,
+  effect,
   inject,
   signal,
   viewChild,
@@ -16,6 +17,7 @@ import { CatalogDebug } from '../copilot/catalog-debug';
 import { ToolRunnerService } from '../copilot/tool-runner.service';
 import { FirstStepsService, type FirstStep } from '../mascot/first-steps';
 import { MascotFillService } from '../mascot/fill/mascot-fill.service';
+import { overlapsBar, type Box } from '../mascot/placement';
 import { MascotActionCard } from '../components/mascot-action-card';
 import { MascotRichText } from '../components/mascot-rich-text';
 import { MascotStateService } from '../mascot-state.service';
@@ -24,6 +26,11 @@ import { stripKind } from './strip-kind';
 
 /** Lo que crece el campo antes de hacer scroll (4 líneas). */
 const MAX_INPUT_PX = 92;
+
+function boxOf(element: HTMLElement): Box {
+  const rect = element.getBoundingClientRect();
+  return { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+}
 
 /**
  * La barra de abajo: una sola tarjeta con la mascota montada sobre su borde
@@ -45,6 +52,9 @@ const MAX_INPUT_PX = 92;
   standalone: true,
   imports: [CatalogDebug, FormsModule, TranslocoDirective, MascotActionCard, MascotRichText],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class.is-compact]': 'compact()',
+  },
   templateUrl: './mascot-bar.html',
   styleUrl: './mascot-bar.scss',
 })
@@ -75,6 +85,7 @@ export class MascotBar {
    * que da saltos cada vez que contesta cansa de mirar.
    */
   private readonly inputRow = viewChild<ElementRef<HTMLElement>>('inputRow');
+  private readonly doingRow = viewChild<ElementRef<HTMLElement>>('doingRow');
 
   /** Lo último que dijo la mascota. */
   private readonly reply = computed(() => {
@@ -99,6 +110,39 @@ export class MascotBar {
   protected readonly asking = computed(() => this.kind() === 'confirm' || this.kind() === 'choice');
   protected readonly dangerous = computed(() => this.state.questions.current()?.dangerous === true);
   protected readonly options = computed(() => this.state.questions.current()?.options ?? []);
+
+  /** El puntero o el foco están sobre la tarjeta: la fila de escribir se queda fuera. */
+  protected readonly hover = signal(false);
+  protected readonly focusIn = signal(false);
+  /** La barra tapa el campo en el que trabaja la mascota: se encoge. */
+  protected readonly compact = signal(false);
+  /** Centro vertical de la fila activa dentro de la tarjeta, para el anillo punteado. */
+  protected readonly dockGhostTop = signal(0);
+  /** La mascota salió de su acople a trabajar: el hueco queda marcado. */
+  protected readonly away = computed(() => this.fill.filling() || this.fill.target() !== null);
+  /** Mientras trabaja y no la están usando, la fila de escribir se pliega. */
+  protected readonly folded = computed(
+    () =>
+      (this.working() || this.fill.filling()) &&
+      !this.asking() &&
+      !this.hover() &&
+      !this.focusIn() &&
+      this.text().trim() === '' &&
+      this.state.attachment() === null,
+  );
+
+  /** El cierre no desmonta de golpe: la tarjeta se enrolla y luego se va. */
+  protected readonly barLeaving = signal(false);
+  protected readonly barMounted = computed(() => this.state.barOpen() || this.barLeaving());
+  private wasOpen = this.state.barOpen();
+  private leaveTimer: ReturnType<typeof setTimeout> | undefined;
+
+  /**
+   * El tamaño de la tarjeta SIN encoger. `overlapsBar` debe medir siempre con
+   * este ancho: si midiera con el ancho compacto, la propia compactación haría
+   * que el campo dejase de solapar y la barra volvería a crecer, oscilando.
+   */
+  private fullSize = { width: 560, height: 0 };
 
   /**
    * Lo que la tarjeta enseña escrito: la pregunta si hay una, y si no lo
@@ -164,32 +208,98 @@ export class MascotBar {
     // flotando fuera en cuanto aparece una fila nueva.
     const measure = () => {
       const card = this.card()?.nativeElement;
-      const row = this.inputRow()?.nativeElement;
+      const activeRow = (this.folded() && this.doingRow()) || this.inputRow();
+      const row = activeRow?.nativeElement;
       if (!card || !row) return publishDock(null);
+      const cardRect = card.getBoundingClientRect();
+      const rowRect = row.getBoundingClientRect();
       publishDock(
         // `clientWidth`, no `innerWidth`: éste último cuenta la barra de
         // desplazamiento, y un `position: fixed` con `right` no. Son los 15 px
         // que dejaban a la mascota al lado del borde en vez de encima.
-        dockPoint(card.getBoundingClientRect(), row.getBoundingClientRect(), {
+        dockPoint(cardRect, rowRect, {
           width: document.documentElement.clientWidth,
           height: document.documentElement.clientHeight,
         }),
+      );
+      this.dockGhostTop.set(Math.round(rowRect.top + rowRect.height / 2 - cardRect.top - 22));
+
+      // El ancho de referencia es el de la tarjeta SIN compactar. Si se midiera
+      // con el actual, al encoger dejaría de solapar y volvería a crecer.
+      if (!this.compact() || this.fullSize.height === 0) {
+        this.fullSize = { width: cardRect.width, height: cardRect.height };
+      }
+
+      // Si la barra tapa el campo que la mascota está rellenando, se encoge
+      // para no esconder justo lo que la persona tiene que mirar.
+      const target = this.fill.target();
+      const viewport = {
+        width: document.documentElement.clientWidth,
+        height: document.documentElement.clientHeight,
+      };
+      this.compact.set(
+        this.working() && !!target && overlapsBar(boxOf(target), this.fullSize, viewport),
       );
     };
 
     afterRenderEffect(() => {
       // Leerlos aquí es lo que hace que se vuelva a medir cuando cambian: lo
       // que la tarjeta lleva dentro es justo lo que le cambia el alto.
-      const watched = [this.kind(), this.said(), this.state.queued().length, this.pill()];
+      const watched = [
+        this.kind(),
+        this.said(),
+        this.state.queued().length,
+        this.pill(),
+        this.folded(),
+        this.working(),
+        this.fill.target(),
+        this.compact(),
+      ];
       if (watched.length > 0) measure();
     });
 
+    // Al cerrar no se desmonta en 0 ms: la tarjeta se enrolla hacia la esquina
+    // (720 ms) y sólo después se retira y se suelta el punto de acople.
+    effect(() => {
+      const open = this.state.barOpen();
+      if (open) {
+        clearTimeout(this.leaveTimer);
+        this.barLeaving.set(false);
+        this.wasOpen = true;
+        return;
+      }
+      if (!this.wasOpen) return;
+      this.wasOpen = false;
+      this.barLeaving.set(true);
+      clearTimeout(this.leaveTimer);
+      this.leaveTimer = setTimeout(() => {
+        this.barLeaving.set(false);
+        publishDock(null);
+      }, this.prefersReducedMotion() ? 0 : 720);
+    });
+
     const onResize = () => measure();
+    let scrollFrame = 0;
+    const onScroll = () => {
+      if (scrollFrame) return;
+      scrollFrame = requestAnimationFrame(() => {
+        scrollFrame = 0;
+        measure();
+      });
+    };
     window.addEventListener('resize', onResize);
+    window.addEventListener('scroll', onScroll, { passive: true });
     inject(DestroyRef).onDestroy(() => {
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('scroll', onScroll);
+      clearTimeout(this.leaveTimer);
+      cancelAnimationFrame(scrollFrame);
       publishDock(null);
     });
+  }
+
+  private prefersReducedMotion(): boolean {
+    return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
   }
 
   protected grow(): void {

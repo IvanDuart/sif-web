@@ -976,7 +976,14 @@
     "add_band": "Add band",
     "remove_band": "Remove band",
     "no_bands": "No bands: the clinic defaults are used.",
-    "address_subtitle2": "Tax address and location of the clinic."
+    "address_subtitle2": "Tax address and location of the clinic.",
+    "gemini_api_key": "Gemini API key",
+    "gemini_api_configured": "Configured",
+    "gemini_api_missing": "Not configured",
+    "gemini_api_hint": "The key is write-only: it is never shown again. Get one at",
+    "gemini_api_placeholder": "AIzaSy...",
+    "gemini_api_rotate_placeholder": "Enter a new key to rotate it",
+    "gemini_api_link": "Google AI Studio"
   },
   "appointment_types": {
     "title": "Appointment Types",
@@ -992,7 +999,10 @@
     "delete_confirm": "Deactivate appointment type '{{name}}'?",
     "delete_success": "Appointment type deactivated",
     "empty": "No appointment types configured",
-    "subtitle": "Duration, price and availability for each consultation type."
+    "subtitle": "Duration, price and availability for each consultation type.",
+    "color": "Color",
+    "default_type": "Default type",
+    "empty_description": "Create your first appointment type to define durations, prices and colors."
   },
   "schedule_settings": {
     "title": "Schedules & Holidays",
@@ -1061,7 +1071,11 @@
     "assign": "Assign",
     "update_assignment": "Update",
     "edit_assignment": "Edit Assignment",
-    "subtitle": "Working schedules, staff assignments and clinic holidays."
+    "subtitle": "Working schedules, staff assignments and clinic holidays.",
+    "no_blocks": "No blocks yet. Add the first one to define the schedule.",
+    "empty_schedules_description": "You haven't created any schedule with its time blocks yet.",
+    "empty_assignments_description": "Assign a schedule to the team for a period of the year.",
+    "empty_holidays_description": "Add national or local holidays to adjust availability."
   },
   "primeng": {
     "startsWith": "Starts with",
@@ -1438,7 +1452,10 @@
     "rations_short": "rations",
     "group_created": "Group created",
     "equivalent_created": "Equivalent created",
-    "save_error": "Could not save"
+    "save_error": "Could not save",
+    "empty_description": "Create your first group to define equivalents and rations.",
+    "no_equivalents_description": "Add foods and their rations to get started.",
+    "select_group_description": "Pick a group from the list to view and add its equivalents."
   },
   "diary": {
     "tab_title": "Diary & Adherence",
@@ -1816,6 +1833,20 @@
     "dialog_info_title": "Automatic initialization",
     "dialog_info": "The new center will be created with the base configuration: default language and preferences, initial appointment types, standard schedule and your user as administrator. No need to set it up from scratch.",
     "dialog_submit": "Create center",
+    "search_placeholder": "Search by name, CIF, city, phone or email…",
+    "edit_tenant": "Edit center",
+    "enter_tenant": "Enter center",
+    "tab_properties": "Center properties",
+    "tab_billing": "Subscription & billing",
+    "properties_section": "General details & contact",
+    "properties_subtitle": "Update the center's tax, contact and location details.",
+    "currency": "Currency",
+    "tenant_id": "Center ID",
+    "updated_at": "Last updated",
+    "tenant_saved": "Center properties saved successfully.",
+    "tenant_save_error": "Could not save center properties.",
+    "tenant_name_required": "The center name is required.",
+    "currency_invalid": "Currency must be a 3-letter ISO code (e.g. EUR).",
     "billing": {
       "title": "Billing",
       "count": "{{total}} clinics",

@@ -697,13 +697,14 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
 
     (appointments || []).forEach(a => {
       const statusClass = STATUS_CLASS[a.status];
+      const baseColor = a.typeColor || statusColor(a.status);
       events.push({
         id: a.id,
         title: a.patientName ?? this.transloco.translate('appointments.no_patient'),
         start: a.startTime,
         end: a.endTime,
-        backgroundColor: statusColor(a.status) + '20',
-        borderColor: statusColor(a.status),
+        backgroundColor: hexToRgba(baseColor, 0.15),
+        borderColor: baseColor,
         classNames: statusClass ? [statusClass] : [],
         extendedProps: {
           kind: 'APPOINTMENT',
@@ -711,6 +712,7 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
           patientName: a.patientName,
           patientId: a.patientId,
           typeName: a.typeName,
+          typeColor: a.typeColor,
           notes: a.notes
         }
       });

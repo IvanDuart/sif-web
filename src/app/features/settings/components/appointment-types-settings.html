@@ -19,28 +19,70 @@
     </button>
   </header>
 
-  <!-- Tabla (escritorio) -->
-  <div class="hidden md:block table-wrapper">
-    @if (loading()) {
-      <div class="table-loading" role="status" [attr.aria-label]="t('common.loading')">
-        <div class="loading-spinner"></div>
-      </div>
-    } @else {
+  @if (loading()) {
+    <div class="table-loading" role="status" [attr.aria-label]="t('common.loading')">
+      <div class="loading-spinner"></div>
+    </div>
+  } @else if (types().length === 0) {
+    <app-empty-state
+      icon="fa-solid fa-calendar-check"
+      [title]="t('appointment_types.empty')"
+      [description]="t('appointment_types.empty_description')"
+      [actionLabel]="t('appointment_types.create')"
+      actionIcon="fa-solid fa-plus"
+      (action)="showFormDialog()">
+    </app-empty-state>
+  } @else {
+    <!-- Tabla (escritorio) -->
+    <div class="hidden md:block table-wrapper">
       <table [attr.aria-label]="t('appointment_types.title')" tuiTable class="w-full">
         <thead>
           <tr>
+            <th tuiTh scope="col" class="w-14"><span class="sr-only">{{ t('common.actions') }}</span></th>
             <th tuiTh scope="col">{{ t('appointment_types.name') }}</th>
             <th tuiTh scope="col">{{ t('appointment_types.duration') }}</th>
             <th tuiTh scope="col">{{ t('appointment_types.price') }}</th>
             <th tuiTh scope="col">{{ t('appointment_types.is_default') }}</th>
             <th tuiTh scope="col">{{ t('appointment_types.is_active') }}</th>
-            <th tuiTh scope="col" class="w-14"><span class="sr-only">{{ t('common.actions') }}</span></th>
           </tr>
         </thead>
         <tbody tuiTbody>
           @for (type of types(); track type.id) {
             <tr tuiTr>
-              <td tuiTd class="font-medium text-surface-900 dark:text-surface-0">{{ type.name }}</td>
+              <td tuiTd (click)="$event.stopPropagation()">
+                <div
+                  class="inline-block"
+                  [tuiDropdown]="rowMenu"
+                  tuiDropdownAuto
+                  tuiDropdownAlign="start"
+                  tuiDropdownLimitWidth="min"
+                >
+                  <button
+                    tuiButton
+                    appearance="flat"
+                    size="s"
+                    type="button"
+                    [attr.aria-label]="t('common.actions') + ': ' + type.name"
+                  >
+                    <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                  </button>
+                  <ng-template #rowMenu>
+                    <tui-data-list>
+                      <button tuiOption type="button" (click)="showFormDialog(type)">
+                        <i class="fa-solid fa-pen mr-2" aria-hidden="true"></i>
+                        {{ t('common.edit') }}
+                      </button>
+                      <button tuiOption type="button" class="text-err-text" (click)="confirmDelete(type)">
+                        <i class="fa-solid fa-trash mr-2" aria-hidden="true"></i>
+                        {{ t('common.delete') }}
+                      </button>
+                    </tui-data-list>
+                  </ng-template>
+                </div>
+              </td>
+              <td tuiTd class="font-medium text-surface-900 dark:text-surface-0">
+                <span class="inline-block size-3 rounded-full mr-2 align-middle" [style.background]="type.color || '#3B82F6'"></span>{{ type.name }}
+              </td>
               <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">{{ type.durationMinutes }} min</td>
               <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">{{ formatPrice(type.price) }}</td>
               <td tuiTd>
@@ -53,98 +95,67 @@
                   {{ type.isActive ? t('diets.active') : t('diets.inactive') }}
                 </span>
               </td>
-              <td tuiTd class="text-right">
-                <button
-                  tuiButton
-                  appearance="flat"
-                  size="s"
-                  type="button"
-                  [attr.title]="t('common.edit')"
-                  [attr.aria-label]="t('common.edit')"
-                  (click)="showFormDialog(type)">
-                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
-                </button>
-                <button
-                  tuiButton
-                  appearance="flat"
-                  size="s"
-                  type="button"
-                  class="text-err-text"
-                  [attr.title]="t('common.delete')"
-                  [attr.aria-label]="t('common.delete')"
-                  (click)="confirmDelete(type)">
-                  <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                </button>
-              </td>
-            </tr>
-          } @empty {
-            <tr tuiTr>
-              <td tuiTd colspan="6" class="py-8 text-center text-surface-400">
-                {{ t('appointment_types.empty') }}
-              </td>
             </tr>
           }
         </tbody>
       </table>
-    }
-  </div>
+    </div>
 
-  <!-- Tarjetas (móvil) -->
-  <div class="space-y-3 md:hidden">
-    @for (type of types(); track type.id) {
-      <div class="rounded-md border border-line bg-surface-0 p-3 dark:bg-surface-800">
-        <div class="flex items-start justify-between gap-2">
-          <p class="font-medium text-surface-900 dark:text-surface-0">{{ type.name }}</p>
-          <span tuiBadge [appearance]="type.isActive ? 'positive' : 'neutral'">
-            {{ type.isActive ? t('diets.active') : t('diets.inactive') }}
-          </span>
+    <!-- Tarjetas (móvil) -->
+    <div class="space-y-3 md:hidden">
+      @for (type of types(); track type.id) {
+        <div class="rounded-md border border-line bg-surface-0 p-3 dark:bg-surface-800">
+          <div class="flex items-start justify-between gap-2">
+            <p class="font-medium text-surface-900 dark:text-surface-0">
+              <span class="inline-block size-3 rounded-full mr-2 align-middle" [style.background]="type.color || '#3B82F6'"></span>{{ type.name }}
+            </p>
+            <span tuiBadge [appearance]="type.isActive ? 'positive' : 'neutral'">
+              {{ type.isActive ? t('diets.active') : t('diets.inactive') }}
+            </span>
+          </div>
+          <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px]">
+            <div class="flex items-center gap-1.5">
+              <dt class="text-surface-400">{{ t('appointment_types.duration') }}</dt>
+              <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ type.durationMinutes }} min</dd>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <dt class="text-surface-400">{{ t('appointment_types.price') }}</dt>
+              <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ formatPrice(type.price) }}</dd>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <dt class="text-surface-400">{{ t('appointment_types.is_default') }}</dt>
+              <dd>
+                @if (type.isDefault) {
+                  <i class="fa-solid fa-check text-ok" aria-hidden="true"></i>
+                }
+              </dd>
+            </div>
+          </dl>
+          <div class="mt-3 flex items-center justify-end gap-1 border-t border-line pt-2">
+            <button
+              tuiButton
+              appearance="flat"
+              size="s"
+              type="button"
+              [attr.title]="t('common.edit')"
+              [attr.aria-label]="t('common.edit')"
+              (click)="showFormDialog(type)">
+              <i class="fa-solid fa-pen" aria-hidden="true"></i>
+            </button>
+            <button
+              tuiButton
+              appearance="flat"
+              size="s"
+              type="button"
+              class="text-err-text"
+              [attr.title]="t('common.delete')"
+              [attr.aria-label]="t('common.delete')"
+              (click)="confirmDelete(type)">
+              <i class="fa-solid fa-trash" aria-hidden="true"></i>
+            </button>
+          </div>
         </div>
-        <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px]">
-          <div class="flex items-center gap-1.5">
-            <dt class="text-surface-400">{{ t('appointment_types.duration') }}</dt>
-            <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ type.durationMinutes }} min</dd>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <dt class="text-surface-400">{{ t('appointment_types.price') }}</dt>
-            <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ formatPrice(type.price) }}</dd>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <dt class="text-surface-400">{{ t('appointment_types.is_default') }}</dt>
-            <dd>
-              @if (type.isDefault) {
-                <i class="fa-solid fa-check text-ok" aria-hidden="true"></i>
-              }
-            </dd>
-          </div>
-        </dl>
-        <div class="mt-3 flex items-center justify-end gap-1 border-t border-line pt-2">
-          <button
-            tuiButton
-            appearance="flat"
-            size="s"
-            type="button"
-            [attr.title]="t('common.edit')"
-            [attr.aria-label]="t('common.edit')"
-            (click)="showFormDialog(type)">
-            <i class="fa-solid fa-pen" aria-hidden="true"></i>
-          </button>
-          <button
-            tuiButton
-            appearance="flat"
-            size="s"
-            type="button"
-            class="text-err-text"
-            [attr.title]="t('common.delete')"
-            [attr.aria-label]="t('common.delete')"
-            (click)="confirmDelete(type)">
-            <i class="fa-solid fa-trash" aria-hidden="true"></i>
-          </button>
-        </div>
-      </div>
-    } @empty {
-      <div class="table-wrapper">
-        <p class="py-8 text-center text-surface-400">{{ t('appointment_types.empty') }}</p>
-      </div>
-    }
-  </div>
+      }
+    </div>
+  }
 </div>

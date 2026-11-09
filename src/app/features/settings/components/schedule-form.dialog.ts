@@ -27,7 +27,6 @@ export interface ScheduleFormDialogInput {
     TuiComboBox, TuiDataListWrapper, TuiChevron, TuiInputTime, TuiInputColor,
   ],
   templateUrl: './schedule-form.dialog.html',
-  styleUrls: ['./schedule-form.dialog.scss'],
 })
 export class ScheduleFormDialog {
   private readonly fb = inject(FormBuilder);

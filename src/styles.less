@@ -146,8 +146,9 @@
   --tui-text-secondary: var(--ink-2);
   --tui-text-tertiary: var(--ink-3);
   /* Texto sobre rellenos de acento (botones, chips, segmentados con
-     appearance="primary"). ThemeService calcula el color por tenant; sin este
-     puente Taiga pinta blanco fijo y un acento luminoso cae a 3.05:1. */
+     appearance="primary"). El par calculado por tenant gobierna oscuro y
+     superficies no interactivas; en claro los controles escriben en blanco
+     por decisión de marca (override justo debajo). */
   --tui-text-primary-on-accent-1: var(--p-primary-contrast-color);
   --tui-border: var(--line);
   --tui-border-normal: var(--line);
@@ -181,6 +182,15 @@
   --status-holiday: #dc2626;
   --status-closed: #94a3b8;
   --status-active-hours: #10b981;
+}
+
+/* Marca: en modo claro, todo control con relleno de acento escribe en blanco
+   (decisión aprobada; con un acento claro el contraste queda por debajo de AA).
+   `--p-primary-contrast-color` sigue gobernando el modo oscuro, los avatares,
+   el skip link, las burbujas de chat y las tarjetas de la mascota. */
+:root:not(.dark),
+:root:not(.dark) [tuiTheme] {
+  --tui-text-primary-on-accent-1: #ffffff;
 }
 
 .dark {

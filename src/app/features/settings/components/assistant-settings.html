@@ -2,7 +2,9 @@
   <p class="text-[13.5px] text-surface-500 dark:text-surface-400">{{ t('assistant.settings_subtitle') }}</p>
 
   @if (loading()) {
-    <p class="py-10 text-center text-[13px] text-surface-400">{{ t('common.loading') }}</p>
+    <div class="flex items-center justify-center py-10" role="status" [attr.aria-label]="t('common.loading')">
+      <div class="loading-spinner"></div>
+    </div>
   } @else if (loadError()) {
     <div class="data-card flex flex-col items-start gap-3">
       <p class="text-sm text-surface-600 dark:text-surface-300">{{ t('assistant.settings_load_error') }}</p>
@@ -13,7 +15,7 @@
     </div>
   } @else {
     <div class="data-card space-y-6">
-      <h2 class="text-base font-semibold text-surface-900 dark:text-surface-0">{{ t('assistant.settings_title') }}</h2>
+      <h2 class="text-surface-900 dark:text-surface-0">{{ t('assistant.settings_title') }}</h2>
 
       <div class="flex items-start gap-3">
         <input id="assistantEnabled" type="checkbox" tuiSwitch [ngModel]="enabled()" (ngModelChange)="enabled.set($event)" />
@@ -26,10 +28,8 @@
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <label for="assistantName" class="text-sm font-medium text-surface-700 dark:text-surface-200">
-          {{ t('assistant.settings_name') }}
-        </label>
-        <tui-textfield>
+        <tui-textfield class="w-full">
+          <label tuiLabel for="assistantName">{{ t('assistant.settings_name') }}</label>
           <input
             id="assistantName"
             tuiInput
@@ -42,10 +42,8 @@
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <label for="assistantPersona" class="text-sm font-medium text-surface-700 dark:text-surface-200">
-          {{ t('assistant.settings_persona') }}
-        </label>
-        <tui-textfield>
+        <tui-textfield class="w-full">
+          <label tuiLabel for="assistantPersona">{{ t('assistant.settings_persona') }}</label>
           <textarea
             id="assistantPersona"
             tuiTextarea
@@ -60,10 +58,8 @@
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <label for="assistantTone" class="text-sm font-medium text-surface-700 dark:text-surface-200">
-          {{ t('assistant.settings_tone') }}
-        </label>
-        <tui-textfield>
+        <tui-textfield class="w-full">
+          <label tuiLabel for="assistantTone">{{ t('assistant.settings_tone') }}</label>
           <input
             id="assistantTone"
             tuiInput
@@ -76,10 +72,8 @@
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <label for="assistantConsent" class="text-sm font-medium text-surface-700 dark:text-surface-200">
-          {{ t('assistant.settings_consent') }}
-        </label>
-        <tui-textfield [tuiTextfieldCleaner]="false">
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <label tuiLabel for="assistantConsent">{{ t('assistant.settings_consent') }}</label>
           <textarea
             id="assistantConsent"
             tuiTextarea
@@ -108,7 +102,7 @@
     <!-- Mascota por defecto -->
     <div class="data-card space-y-5">
       <div>
-        <h2 class="text-base font-semibold text-surface-900 dark:text-surface-0">{{ t('assistant.settings_mascot_title') }}</h2>
+        <h2 class="text-surface-900 dark:text-surface-0">{{ t('assistant.settings_mascot_title') }}</h2>
         <p class="mt-1 text-xs text-surface-400">{{ t('assistant.settings_mascot_hint') }}</p>
       </div>
 
@@ -117,11 +111,11 @@
         @for (skin of skins; track skin.id) {
           <button
             type="button"
-            class="flex items-center gap-2 rounded-xl border px-3 py-2 transition disabled:opacity-50"
+            class="flex items-center gap-2 rounded-md border px-3 py-2 transition disabled:opacity-50"
             [class]="
               defaultSkinId() === skin.id
-                ? 'border-primary bg-brand-tint-10'
-                : 'border-surface-200 bg-surface-50 hover:border-primary dark:border-surface-700 dark:bg-surface-800'
+                ? 'border-primary bg-brand-tint-10 text-primary-700 dark:text-primary-300'
+                : 'border-line bg-surface-0 hover:border-primary-400 dark:border-surface-700 dark:bg-surface-800'
             "
             [attr.aria-pressed]="defaultSkinId() === skin.id"
             (click)="selectDefaultSkin(skin.id)"
@@ -136,7 +130,7 @@
     <!-- Personalización por usuario -->
     <div class="data-card space-y-5">
       <div>
-        <h2 class="text-base font-semibold text-surface-900 dark:text-surface-0">{{ t('assistant.settings_look_title') }}</h2>
+        <h2 class="text-surface-900 dark:text-surface-0">{{ t('assistant.settings_look_title') }}</h2>
         <p class="mt-1 text-xs text-surface-400">{{ t('assistant.settings_look_hint') }}</p>
       </div>
 
@@ -161,11 +155,11 @@
           <div class="flex flex-wrap gap-2">
             @for (skin of skins; track skin.id) {
               <label
-                class="flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition"
+                class="flex cursor-pointer items-center gap-2 rounded-sm border px-3 py-1.5 text-xs transition"
                 [class]="
                   isSkinAllowed(skin.id)
-                    ? 'border-primary bg-brand-tint-10 text-primary'
-                    : 'border-surface-200 text-surface-500 dark:border-surface-700'
+                    ? 'border-primary bg-brand-tint-10 text-primary-700 dark:text-primary-300'
+                    : 'border-line text-surface-500 dark:border-surface-700'
                 "
               >
                 <input
@@ -185,11 +179,11 @@
           <div class="flex flex-wrap gap-2">
             @for (accessory of accessories; track accessory) {
               <label
-                class="flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition"
+                class="flex cursor-pointer items-center gap-2 rounded-sm border px-3 py-1.5 text-xs transition"
                 [class]="
                   isAccessoryAllowed(accessory)
-                    ? 'border-primary bg-brand-tint-10 text-primary'
-                    : 'border-surface-200 text-surface-500 dark:border-surface-700'
+                    ? 'border-primary bg-brand-tint-10 text-primary-700 dark:text-primary-300'
+                    : 'border-line text-surface-500 dark:border-surface-700'
                 "
               >
                 <input

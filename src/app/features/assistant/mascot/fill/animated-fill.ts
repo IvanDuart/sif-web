@@ -425,8 +425,16 @@ export async function playFill(
   } finally {
     stop();
     fill.end();
+    report.missingRequired = [...(access.missingRequired?.() ?? [])];
+    // Cómo acabó, en la cara: si algo se rechazó —o no se encontró nada de lo
+    // que había que escribir— se queda confusa; si escribió y nadie le dijo
+    // que no, se da por satisfecha. Dura poco y no pisa un turno en marcha.
+    if (report.rejected.length > 0 || (report.missing.length > 0 && report.written.length === 0)) {
+      fill.flashMode('confused', 1600);
+    } else if (report.written.length > 0 && report.rejected.length === 0) {
+      fill.flashMode('done', 1400);
+    }
   }
-  report.missingRequired = [...(access.missingRequired?.() ?? [])];
   return report;
 }
 

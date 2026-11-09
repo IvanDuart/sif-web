@@ -1,0 +1,43 @@
+<div *transloco="let t" class="w-full">
+  <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4 mt-2">
+    <div>
+      <tui-textfield class="w-full">
+        <label tuiLabel for="groupCode">{{ t('exchange.group_code') }}</label>
+        <input id="groupCode" tuiInput formControlName="code" maxlength="12" autocomplete="off" placeholder="HC" />
+      </tui-textfield>
+      <tui-error formControlName="code" />
+    </div>
+
+    <div>
+      <tui-textfield class="w-full">
+        <label tuiLabel for="groupName">{{ t('exchange.group_name') }}</label>
+        <input id="groupName" tuiInput formControlName="name" maxlength="80" autocomplete="off" [placeholder]="t('exchange.group_name')" />
+      </tui-textfield>
+      <tui-error formControlName="name" />
+    </div>
+
+    <tui-textfield class="w-full">
+      <label tuiLabel for="groupColor">{{ t('exchange.group_color') }}</label>
+      <input id="groupColor" tuiInputColor formControlName="colorHex" placeholder="#22c55e" />
+      <datalist id="exchangeGroupColors">
+        <option value="#22c55e"></option>
+        <option value="#3B82F6"></option>
+        <option value="#F59E0B"></option>
+        <option value="#EF4444"></option>
+        <option value="#8B5CF6"></option>
+      </datalist>
+    </tui-textfield>
+
+    <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-line">
+      <button tuiButton appearance="secondary" size="m" type="button" (click)="context.$implicit.complete()">
+        {{ t('common.cancel') }}
+      </button>
+      <button tuiButton size="m" type="submit" [disabled]="form.invalid || saving()">
+        @if (saving()) {
+          <i class="fa-solid fa-spinner fa-spin mr-1.5" aria-hidden="true"></i>
+        }
+        {{ t('common.save') }}
+      </button>
+    </div>
+  </form>
+</div>

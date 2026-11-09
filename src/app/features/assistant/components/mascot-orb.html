@@ -1,5 +1,8 @@
 <span class="mascot-bob" [style.--mascot-scale]="scale()">
   <span #orb class="mascot-orb" [attr.data-mode]="mode()" [attr.data-skin]="skin()">
+    @for (pulse of bursts(); track pulse) {
+      <span class="mascot-burst" aria-hidden="true"></span>
+    }
     <span class="mascot-turner" data-turner>
       @if (skin() === 'manzana') {
         <svg class="mascot-detail mascot-detail--behind" viewBox="0 0 160 160" aria-hidden="true">
@@ -76,8 +79,10 @@
         @if (hasEars()) {
           <g data-ears stroke-linejoin="round">
             @for (ear of ears(); track $index) {
-              <path [attr.d]="ear.outer" [attr.fill]="dark()" [attr.stroke]="dark()" stroke-width="4" />
-              <path [attr.d]="ear.inner" fill="#ffb3c7" stroke="#ffb3c7" stroke-width="3" />
+              <g class="mascot-ear">
+                <path [attr.d]="ear.outer" [attr.fill]="dark()" [attr.stroke]="dark()" stroke-width="4" />
+                <path [attr.d]="ear.inner" fill="#ffb3c7" stroke="#ffb3c7" stroke-width="3" />
+              </g>
             }
           </g>
         }
@@ -197,11 +202,9 @@
                 <path
                   data-brow
                   class="mascot-face-brow"
-                  [attr.d]="
-                    $index === 0
-                      ? 'M' + (eyeCx - 12) + ' ' + (eyeCy - 29) + ' L' + (eyeCx + 10) + ' ' + (eyeCy - 21)
-                      : 'M' + (eyeCx - 10) + ' ' + (eyeCy - 21) + ' L' + (eyeCx + 12) + ' ' + (eyeCy - 29)
-                  "
+                  [attr.data-brow-kind]="browKind()"
+                  [attr.d]="browPath($index)"
+                  [attr.opacity]="browOpacity()"
                   stroke-width="6.5"
                   stroke-linecap="round"
                   [attr.stroke]="eyeColour()"
@@ -248,6 +251,16 @@
       <i data-o="spark" class="mascot-spark" style="left: 0; top: 4px">✦</i>
       <i data-o="spark" class="mascot-spark" style="left: 46px; top: 0">✦</i>
       <i data-o="spark" class="mascot-spark" style="left: 40px; top: 40px">✦</i>
+    }
+
+    <!-- Lo que pide o el hecho de estar en pausa, encima de la cabeza. -->
+    @if (!still() && mode() === 'confirm') {
+      <span class="mascot-badge mascot-badge--ask mascot-pop" data-badge="ask" aria-hidden="true">?</span>
+    }
+    @if (!still() && mode() === 'paused') {
+      <span class="mascot-badge mascot-badge--paused mascot-pop" data-badge="paused" aria-hidden="true">
+        <i></i><i></i>
+      </span>
     }
   </span>
 </span>

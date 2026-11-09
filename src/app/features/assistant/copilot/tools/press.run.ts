@@ -79,7 +79,13 @@ export async function runPress(
 
   fill.presses.update((count) => count + 1);
   found.element.click();
-  await fill.wait(SETTLE_MS);
+  try {
+    await fill.wait(SETTLE_MS);
+  } finally {
+    // El anillo es de esta pulsación y de nadie más: si sobreviviera, se
+    // quedaría latiendo después de que la tool haya terminado.
+    fill.presses.set(0);
+  }
 
   // La aplicación ha pedido confirmación por su cuenta: hasta aquí llega la
   // mascota.

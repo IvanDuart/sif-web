@@ -17,8 +17,8 @@ There is one folder per business area. Each folder owns its pages (lazy-loaded, 
 - **Staff side:** `patients`, `users` (patient/user detail), `staff`, `menus`, `templates`,
   `shopping-lists`, `appointments`, `chat` (staff-only, enforced by `chatGuard`), `revenue`,
   `settings` (tenant branding), `billing` (subscription, invoices and the suspension screen, gated
-  by `VIEW_BILLING`), `tenant` (dashboard), `admin` (platform admins create tenants and run the
-  platform-wide billing panel under `/admin/billing`), `help`.
+  by `VIEW_BILLING`), `tenant` (dashboard), `admin` (platform admins manage tenant properties and
+  platform billing from a unified list at `/admin` and detail at `/admin/:tenantId`), `help`.
 - **Patient side** (read-mostly): `my-diet`, `evolution`, `shopping-lists`.
 - **Infrastructure:** `error` (not-authorized / not-found) and `sandbox` (an unauthenticated
   playground that boneyard uses to capture skeletons; production builds swap its routes for an empty

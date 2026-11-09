@@ -1,6 +1,6 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TuiButton, TuiDialogContext, TuiTextfield, TuiDropdown, TuiFilterByInputPipe, TuiCheckbox } from '@taiga-ui/core';
+import { TuiButton, TuiDialogContext, TuiError, TuiTextfield, TuiDropdown, TuiFilterByInputPipe, TuiCheckbox } from '@taiga-ui/core';
 import { TuiComboBox, TuiDataListWrapper, TuiChevron, TuiInputDate } from '@taiga-ui/kit';
 import { TuiDay } from '@taiga-ui/cdk';
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -24,7 +24,7 @@ export interface AssignmentFormDialogInput {
   imports: [
     ReactiveFormsModule, TranslocoDirective,
     TuiButton, TuiTextfield, TuiDropdown, TuiFilterByInputPipe,
-    TuiComboBox, TuiDataListWrapper, TuiChevron, TuiInputDate, TuiCheckbox,
+    TuiComboBox, TuiDataListWrapper, TuiChevron, TuiInputDate, TuiCheckbox, TuiError,
   ],
   templateUrl: './assignment-form.dialog.html',
 })
@@ -94,9 +94,25 @@ export class AssignmentFormDialog {
         this.indefiniteCtrl.setValue(true);
       }
     }
+
+    this.syncValidToValidators(this.indefiniteCtrl.value ?? false);
+    this.indefiniteCtrl.valueChanges.subscribe((indefinite) => this.syncValidToValidators(indefinite ?? false));
+  }
+
+  /** Sin fecha fin, el campo no se muestra y no debe bloquear el guardado. */
+  private syncValidToValidators(indefinite: boolean): void {
+    const validTo = this.form.controls.validTo;
+    if (indefinite) {
+      validTo.clearValidators();
+      validTo.setValue(null);
+    } else {
+      validTo.setValidators(Validators.required);
+    }
+    validTo.updateValueAndValidity({ emitEvent: false });
   }
 
   save() {
+    this.form.markAllAsTouched();
     if (this.form.invalid) return;
 
     const tenantId = this.tenantCtx.currentTenantId();

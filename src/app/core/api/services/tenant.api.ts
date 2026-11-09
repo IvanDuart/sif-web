@@ -24,6 +24,8 @@ export interface UpdateTenantRequest {
   countryCode?: string;
   stateCode?: string;
   city?: string;
+  /** Código ISO 4217 de la moneda del centro (p. ej. `EUR`). */
+  currency?: string;
   /** Zona horaria IANA (p. ej. `Europe/Madrid`, `America/Mexico_City`). */
   timezone?: string;
   /** Hora local (0-23) de envío del recordatorio de citas. */

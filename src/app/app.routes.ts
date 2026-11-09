@@ -144,15 +144,21 @@ export const routes: Routes = [
         path: '',
         loadComponent: () => import('./features/admin/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent)
       },
-      // La ruta con parámetro va primero: 'billing' a secas no la cubre y, al
-      // revés, se tragaría el segmento del centro.
-      {
-        path: 'billing/:tenantId',
-        loadComponent: () => import('./features/admin/billing/admin-billing-detail.page').then(m => m.default)
-      },
+      // Redirecciones de compatibilidad para enlaces existentes: la ficha y el
+      // listado viven ahora unificados en `/admin` y `/admin/:tenantId`.
       {
         path: 'billing',
-        loadComponent: () => import('./features/admin/billing/admin-billing-list.page').then(m => m.default)
+        redirectTo: '',
+        pathMatch: 'full'
+      },
+      {
+        path: 'billing/:tenantId',
+        redirectTo: ':tenantId',
+        pathMatch: 'full'
+      },
+      {
+        path: ':tenantId',
+        loadComponent: () => import('./features/admin/billing/admin-billing-detail.page').then(m => m.default)
       }
     ]
   },

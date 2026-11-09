@@ -30,7 +30,7 @@
 
 .card__kicker {
   margin: 0;
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -76,7 +76,7 @@
 
 .card__hint {
   margin: 8px 0 0;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink-3);
 }
 
@@ -126,10 +126,10 @@
 .btn--primary {
   border: 1px solid transparent;
   background: var(--primary);
-  color: var(--p-primary-contrast-color, #fff);
+  color: var(--tui-text-primary-on-accent-1, #fff);
 
   &:hover:not(:disabled) {
-    background: var(--primary-600, var(--primary));
+    background: var(--primary-hover);
   }
 }
 

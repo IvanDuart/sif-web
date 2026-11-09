@@ -1,21 +1,30 @@
-<div *transloco="let t">
+<div *transloco="let t" class="w-full">
   <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4 mt-2">
-    <tui-textfield>
-      <label tuiLabel for="holidayDate">{{ t('schedule_settings.holiday_date') }}</label>
-      <input id="holidayDate" tuiInputDate formControlName="holidayDate" />
-      <tui-calendar *tuiDropdown />
-    </tui-textfield>
+    <div>
+      <tui-textfield class="w-full">
+        <label tuiLabel for="holidayDate">{{ t('schedule_settings.holiday_date') }}</label>
+        <input id="holidayDate" tuiInputDate formControlName="holidayDate" />
+        <tui-calendar *tuiDropdown />
+      </tui-textfield>
+      <tui-error formControlName="holidayDate" />
+    </div>
 
-    <tui-textfield>
-      <label tuiLabel for="holidayDescription">{{ t('schedule_settings.description') }}</label>
-      <input id="holidayDescription" tuiInput formControlName="description" />
-    </tui-textfield>
+    <div>
+      <tui-textfield class="w-full">
+        <label tuiLabel for="holidayDescription">{{ t('schedule_settings.description') }}</label>
+        <input id="holidayDescription" tuiInput formControlName="description" />
+      </tui-textfield>
+      <tui-error formControlName="description" />
+    </div>
 
-    <tui-textfield tuiChevron>
-      <label tuiLabel for="holidayType">{{ t('schedule_settings.type') }}</label>
-      <input id="holidayType" tuiComboBox formControlName="type" />
-      <tui-data-list-wrapper *tuiDropdown [items]="typeLabels() | tuiFilterByInput" />
-    </tui-textfield>
+    <div>
+      <tui-textfield tuiChevron class="w-full">
+        <label tuiLabel for="holidayType">{{ t('schedule_settings.type') }}</label>
+        <input id="holidayType" tuiComboBox formControlName="type" />
+        <tui-data-list-wrapper *tuiDropdown [items]="typeLabels() | tuiFilterByInput" />
+      </tui-textfield>
+      <tui-error formControlName="type" />
+    </div>
 
     <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-line">
       <button
@@ -32,6 +41,9 @@
         type="submit"
         data-mascot-submit="holiday"
         [disabled]="form.invalid || saving()">
+        @if (saving()) {
+          <i class="fa-solid fa-spinner fa-spin mr-1.5" aria-hidden="true"></i>
+        }
         {{ t('common.save') }}
       </button>
     </div>

@@ -5,53 +5,42 @@
 
     <div class="lg:col-span-2 space-y-6">
       <div class="data-card">
-        <h2 class="text-base font-semibold text-surface-900 dark:text-surface-0 mb-5">{{ t('settings.general_settings') }}</h2>
+        <h2 class="mb-5 text-surface-900 dark:text-surface-0">{{ t('settings.general_settings') }}</h2>
 
         <div class="space-y-5">
-          <div class="flex flex-col gap-1.5">
-            <label for="primaryColor" class="text-sm font-medium text-surface-700 dark:text-surface-200">
-              {{ t('settings.primary_color') }}
-            </label>
-            <div class="flex items-center gap-3">
-              <label for="primaryColor" class="relative w-10 h-10 rounded-lg overflow-hidden ring-1 ring-surface-300 dark:ring-surface-600 cursor-pointer flex-shrink-0">
-                <input
-                  #colorInput
-                  id="primaryColor"
-                  type="color"
-                  [(ngModel)]="preferences().primary_color"
-                  class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
-                <span class="block w-full h-full" [style.background]="preferences().primary_color"></span>
-              </label>
-              <tui-textfield class="flex-1">
-                <input tuiInput [(ngModel)]="preferences().primary_color" class="text-sm uppercase tabular-nums" aria-label="Código de color hexadecimal" />
-              </tui-textfield>
-            </div>
-          </div>
+          <tui-textfield class="w-full">
+            <label tuiLabel for="primaryColor">{{ t('settings.primary_color') }}</label>
+            <input
+              id="primaryColor"
+              list="brandColors"
+              tuiInputColor
+              [(ngModel)]="preferences().primary_color"
+              placeholder="#059669" />
+            <datalist id="brandColors">
+              <option value="#2F5D4F"></option>
+              <option value="#059669"></option>
+              <option value="#4F46E5"></option>
+              <option value="#B04A06"></option>
+              <option value="#3C6E96"></option>
+            </datalist>
+          </tui-textfield>
 
-          <div class="flex flex-col gap-1.5">
-            <label for="fromEmail" class="text-sm font-medium text-surface-700 dark:text-surface-200">
-              {{ t('settings.from_email') }}
-            </label>
-            <tui-textfield>
-              <input id="fromEmail" tuiInput [(ngModel)]="preferences().from_email" type="email" />
-            </tui-textfield>
-          </div>
+          <tui-textfield class="w-full">
+            <label tuiLabel for="fromEmail">{{ t('settings.from_email') }}</label>
+            <input id="fromEmail" tuiInput [(ngModel)]="preferences().from_email" type="email" />
+          </tui-textfield>
 
-          <div class="flex flex-col gap-1.5">
-            <label for="defaultLang" class="text-sm font-medium text-surface-700 dark:text-surface-200">
-              {{ t('settings.default_language') }}
-            </label>
-            <tui-textfield tuiChevron>
-              <input id="defaultLang" tuiComboBox [ngModel]="languageDisplay()" (ngModelChange)="languageDisplay.set($event)" />
-              <tui-data-list-wrapper *tuiDropdown [items]="languageLabels | tuiFilterByInput" />
-            </tui-textfield>
-          </div>
+          <tui-textfield class="w-full" tuiChevron>
+            <label tuiLabel for="defaultLang">{{ t('settings.default_language') }}</label>
+            <input id="defaultLang" tuiComboBox [ngModel]="languageDisplay()" (ngModelChange)="languageDisplay.set($event)" />
+            <tui-data-list-wrapper *tuiDropdown [items]="languageLabels | tuiFilterByInput" />
+          </tui-textfield>
         </div>
 
       </div>
 
       <div class="data-card">
-        <h2 class="text-base font-semibold text-surface-900 dark:text-surface-0 mb-5">{{ t('settings.ai_section') }}</h2>
+        <h2 class="mb-5 text-surface-900 dark:text-surface-0">{{ t('settings.ai_section') }}</h2>
         <div class="space-y-5">
           <div class="flex items-center gap-3">
             <input id="aiEnabled" type="checkbox" tuiSwitch [(ngModel)]="preferences().ai_enabled" />
@@ -61,33 +50,33 @@
           </div>
           @if (preferences().ai_enabled) {
             <div class="flex flex-col gap-1.5">
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-medium text-surface-700 dark:text-surface-200">Gemini API Key</span>
-                <span tuiBadge [appearance]="hasApiKey() ? 'positive' : 'neutral'">
-                  {{ hasApiKey() ? 'Configurada' : 'Sin configurar' }}
-                </span>
-              </div>
-              <tui-textfield>
+              <tui-textfield class="w-full">
+                <label tuiLabel for="geminiKey">{{ t('settings.gemini_api_key') }}</label>
                 <input
                   id="geminiKey"
                   tuiInput
                   [ngModel]="geminiApiKeyInput()"
                   (ngModelChange)="geminiApiKeyInput.set($event)"
                   type="password"
-                  [placeholder]="hasApiKey() ? 'Introduce una nueva clave para rotarla' : 'AIzaSy...'"
+                  [placeholder]="hasApiKey() ? t('settings.gemini_api_rotate_placeholder') : t('settings.gemini_api_placeholder')"
                   aria-describedby="geminiKeyHelp" />
               </tui-textfield>
-              <p id="geminiKeyHelp" class="text-xs text-surface-400">
-                La clave es de solo escritura: nunca se vuelve a mostrar. Obtén una en
-                <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" class="text-ink-accent hover:underline">Google AI Studio</a>.
-              </p>
+              <div class="flex flex-wrap items-center gap-2">
+                <span tuiBadge [appearance]="hasApiKey() ? 'positive' : 'neutral'">
+                  {{ hasApiKey() ? t('settings.gemini_api_configured') : t('settings.gemini_api_missing') }}
+                </span>
+                <p id="geminiKeyHelp" class="text-xs text-surface-400">
+                  {{ t('settings.gemini_api_hint') }}
+                  <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" class="text-ink-accent hover:underline">{{ t('settings.gemini_api_link') }}</a>.
+                </p>
+              </div>
             </div>
           }
         </div>
       </div>
 
       <div class="data-card">
-        <h2 class="text-base font-semibold text-surface-900 dark:text-surface-0 mb-5">{{ t('settings.pricing_section') }}</h2>
+        <h2 class="mb-5 text-surface-900 dark:text-surface-0">{{ t('settings.pricing_section') }}</h2>
         <div class="flex items-center gap-3">
           <input id="showPrice" type="checkbox" tuiSwitch [(ngModel)]="preferences().show_price" />
           <label for="showPrice" class="text-sm font-medium text-surface-700 dark:text-surface-200 cursor-pointer">
@@ -98,7 +87,7 @@
       </div>
 
       <div class="data-card" *appIfPermission="'MANAGE_TENANT_BRANDING'">
-        <h2 class="text-base font-semibold text-surface-900 dark:text-surface-0 mb-5">{{ t('settings.menu_mode_section') }}</h2>
+        <h2 class="mb-5 text-surface-900 dark:text-surface-0">{{ t('settings.menu_mode_section') }}</h2>
         <div class="flex items-center gap-3">
           <input
             id="menuCreationMode"
@@ -117,25 +106,21 @@
       </div>
 
       <div class="data-card">
-        <h2 class="text-base font-semibold text-surface-900 dark:text-surface-0 mb-1">{{ t('settings.nutrient_display_section') }}</h2>
+        <h2 class="mb-1 text-surface-900 dark:text-surface-0">{{ t('settings.nutrient_display_section') }}</h2>
         <p class="text-xs text-surface-400 mb-5">{{ t('settings.nutrient_display_hint') }}</p>
-        <div class="flex flex-col gap-1.5">
-          <label for="nutrientDisplayMode" class="text-sm font-medium text-surface-700 dark:text-surface-200">
-            {{ t('settings.nutrient_display_mode') }}
-          </label>
-          <tui-textfield tuiChevron>
-            <input
-              id="nutrientDisplayMode"
-              tuiComboBox
-              [ngModel]="nutrientDisplayModeDisplay()"
-              (ngModelChange)="onNutrientDisplayModeChange($event)" />
-            <tui-data-list-wrapper *tuiDropdown [items]="nutrientDisplayModeLabels | tuiFilterByInput" />
-          </tui-textfield>
-        </div>
+        <tui-textfield class="w-full" tuiChevron>
+          <label tuiLabel for="nutrientDisplayMode">{{ t('settings.nutrient_display_mode') }}</label>
+          <input
+            id="nutrientDisplayMode"
+            tuiComboBox
+            [ngModel]="nutrientDisplayModeDisplay()"
+            (ngModelChange)="onNutrientDisplayModeChange($event)" />
+          <tui-data-list-wrapper *tuiDropdown [items]="nutrientDisplayModeLabels | tuiFilterByInput" />
+        </tui-textfield>
       </div>
 
       <div class="data-card">
-        <h2 class="text-base font-semibold text-surface-900 dark:text-surface-0 mb-5">{{ t('settings.notifications_section') }}</h2>
+        <h2 class="mb-5 text-surface-900 dark:text-surface-0">{{ t('settings.notifications_section') }}</h2>
         <div class="flex items-center gap-3">
           <input id="enableAppointmentReminders" type="checkbox" tuiSwitch [(ngModel)]="preferences().enable_appointment_reminders" />
           <label for="enableAppointmentReminders" class="text-sm font-medium text-surface-700 dark:text-surface-200 cursor-pointer">
@@ -146,15 +131,13 @@
       </div>
 
       <div class="data-card">
-        <h2 class="text-base font-semibold text-surface-900 dark:text-surface-0 mb-1">{{ t('settings.metrics_section') }}</h2>
+        <h2 class="mb-1 text-surface-900 dark:text-surface-0">{{ t('settings.metrics_section') }}</h2>
         <p class="text-xs text-surface-400 mb-5">{{ t('settings.metrics_section_hint') }}</p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div class="flex flex-col gap-1.5">
-            <label for="attendanceTargetRate" class="text-sm font-medium text-surface-700 dark:text-surface-200">
-              {{ t('settings.attendance_target_rate') }}
-            </label>
-            <tui-textfield>
+            <tui-textfield class="w-full">
+              <label tuiLabel for="attendanceTargetRate">{{ t('settings.attendance_target_rate') }}</label>
               <input
                 id="attendanceTargetRate"
                 tuiInput
@@ -170,10 +153,8 @@
           </div>
 
           <div class="flex flex-col gap-1.5">
-            <label for="cancellationThreshold" class="text-sm font-medium text-surface-700 dark:text-surface-200">
-              {{ t('settings.cancellation_threshold_hours') }}
-            </label>
-            <tui-textfield>
+            <tui-textfield class="w-full">
+              <label tuiLabel for="cancellationThreshold">{{ t('settings.cancellation_threshold_hours') }}</label>
               <input
                 id="cancellationThreshold"
                 tuiInput
@@ -189,10 +170,10 @@
         </div>
 
         <div class="mt-6">
-          <div class="flex items-center gap-3">
-            <h3 class="text-sm font-medium text-surface-700 dark:text-surface-200">{{ t('settings.time_bands') }}</h3>
-            <button tuiButton appearance="secondary" size="xs" type="button" (click)="addTimeBand()">
-              <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          <div class="flex flex-wrap items-center gap-3">
+            <h3 class="text-surface-900 dark:text-surface-0">{{ t('settings.time_bands') }}</h3>
+            <button tuiButton appearance="secondary" size="s" type="button" (click)="addTimeBand()">
+              <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
               {{ t('settings.add_band') }}
             </button>
           </div>
@@ -203,7 +184,7 @@
           } @else {
             <ul class="space-y-2">
               @for (band of timeBands(); track $index) {
-                <li class="grid grid-cols-[1fr_auto_auto_auto] items-center gap-2">
+                <li class="grid grid-cols-1 items-center gap-2 rounded-md border border-line bg-surface-50 p-2 dark:bg-surface-800 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
                   <tui-textfield>
                     <input
                       tuiInput
@@ -212,7 +193,7 @@
                       (ngModelChange)="updateTimeBand($index, 'label', $event)"
                       [placeholder]="t('settings.band_label')" />
                   </tui-textfield>
-                  <tui-textfield class="w-32">
+                  <tui-textfield class="w-full sm:w-32">
                     <input
                       tuiInput
                       type="time"
@@ -221,7 +202,7 @@
                       [ngModel]="band.from"
                       (ngModelChange)="updateTimeBand($index, 'from', $event)" />
                   </tui-textfield>
-                  <tui-textfield class="w-32">
+                  <tui-textfield class="w-full sm:w-32">
                     <input
                       tuiInput
                       type="time"
@@ -232,10 +213,12 @@
                   </tui-textfield>
                   <button
                     tuiButton
-                    appearance="secondary-destructive"
+                    appearance="flat"
                     size="s"
                     type="button"
+                    class="justify-self-end text-err-text"
                     [attr.aria-label]="t('settings.remove_band')"
+                    [attr.title]="t('settings.remove_band')"
                     (click)="removeTimeBand($index)">
                     <i class="fa-solid fa-trash" aria-hidden="true"></i>
                   </button>
@@ -249,9 +232,10 @@
       <div class="flex justify-end pt-5 border-t border-line">
         <button tuiButton size="m" [disabled]="saving()" (click)="save()">
           @if (saving()) {
-            <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+            <i class="fa-solid fa-spinner fa-spin mr-1.5" aria-hidden="true"></i>
+          } @else {
+            <i class="fa-solid fa-floppy-disk mr-1.5" aria-hidden="true"></i>
           }
-          <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
           {{ t('common.save') }}
         </button>
       </div>
@@ -259,7 +243,7 @@
 
     <div class="space-y-6">
       <div class="data-card">
-        <h3 class="text-sm font-semibold text-surface-900 dark:text-surface-0 mb-3">{{ t('settings.main_logo') }}</h3>
+        <h3 class="mb-3 text-surface-900 dark:text-surface-0">{{ t('settings.main_logo') }}</h3>
 
         <label tuiInputFiles>
           <input tuiInputFiles accept="image/*" [ngModel]="null" (ngModelChange)="onFileSelected($event)" />
@@ -293,7 +277,7 @@
       </div>
 
       <div class="data-card">
-        <h3 class="text-sm font-semibold text-surface-900 dark:text-surface-0 mb-3">{{ t('settings.logo_pdf') }}</h3>
+        <h3 class="mb-3 text-surface-900 dark:text-surface-0">{{ t('settings.logo_pdf') }}</h3>
 
         <label tuiInputFiles>
           <input tuiInputFiles accept="image/*" [ngModel]="null" (ngModelChange)="onPdfFileSelected($event)" />

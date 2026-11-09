@@ -1,0 +1,343 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-08T16:45:00Z",
+  "title": "Design System: SIF Web Clinic",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Clinic Green",
+        "canonical": "#2F5D4F",
+        "tonalRamp": [
+          "#0E1C18",
+          "#1B362E",
+          "#23453A",
+          "#2F5D4F",
+          "#7A978E",
+          "#9BB1AB",
+          "#B8C8C3",
+          "#E6ECEA"
+        ]
+      },
+      "accent": {
+        "role": "secondary",
+        "displayName": "Burnt Ember",
+        "canonical": "#B04A06",
+        "tonalRamp": [
+          "#461E02",
+          "#612903",
+          "#B04A06",
+          "#C06E38",
+          "#D0926A",
+          "#DFB79B",
+          "#EFDBCD",
+          "#FAF0EA"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Warm Ink",
+        "canonical": "#1F1D1A",
+        "tonalRamp": [
+          "#16140F",
+          "#1F1D1A",
+          "#2A2723",
+          "#3A3631",
+          "#55504A",
+          "#6B665E",
+          "#D8D4CC",
+          "#F4F2EE"
+        ]
+      },
+      "ok": {
+        "role": "semantic",
+        "displayName": "Clinic Green Success",
+        "canonical": "#2D7A5F",
+        "tonalRamp": [
+          "#0B1F18",
+          "#14372B",
+          "#1B4939",
+          "#2D7A5F",
+          "#D5E4DF",
+          "#ABCABF",
+          "#81AF9F",
+          "#57957F"
+        ]
+      },
+      "warn": {
+        "role": "semantic",
+        "displayName": "Warm Amber",
+        "canonical": "#B5892C",
+        "tonalRamp": [
+          "#2D220B",
+          "#513E14",
+          "#6D521A",
+          "#B5892C",
+          "#F0E7D5",
+          "#E1D0AB",
+          "#D3B880",
+          "#C4A156"
+        ]
+      },
+      "err": {
+        "role": "semantic",
+        "displayName": "Brick",
+        "canonical": "#B04A3E",
+        "tonalRamp": [
+          "#2C1310",
+          "#4F211C",
+          "#6A2C25",
+          "#B04A3E",
+          "#EFDBD8",
+          "#DFB7B2",
+          "#D0928B",
+          "#C06E65"
+        ]
+      },
+      "info": {
+        "role": "semantic",
+        "displayName": "Deep Blue",
+        "canonical": "#3C6E96",
+        "tonalRamp": [
+          "#0F1C26",
+          "#1B3244",
+          "#24425A",
+          "#3C6E96",
+          "#D8E2EA",
+          "#B1C5D5",
+          "#8AA8C0",
+          "#638BAB"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles only; Satoshi 700 at -0.02em."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Card and dialog titles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Subsections and named blocks."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Tables, forms, lists and prose; dense by design."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Timestamps, counts, helper text and secondary values."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Table headers, badges, section labels and navigation captions."
+      }
+    },
+    "shadows": [
+      {
+        "name": "float",
+        "value": "0 1px 2px rgba(31,29,26,0.04), 0 8px 24px rgba(31,29,26,0.06)",
+        "purpose": "Dialogs, dropdowns, toasts and the assistant. Never on resting cards."
+      }
+    ],
+    "motion": [
+      {
+        "name": "fast",
+        "value": "120ms",
+        "purpose": "Hover, press and small color changes."
+      },
+      {
+        "name": "base",
+        "value": "180ms",
+        "purpose": "Default state transitions and dialog enter/leave."
+      },
+      {
+        "name": "slow",
+        "value": "280ms",
+        "purpose": "Larger surface transitions; maximum for standard motion."
+      },
+      {
+        "name": "ease-out-quart",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The standard easing for every state transition."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "rail",
+        "value": "1080px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single primary action of a view; fill is the tenant accent. Light mode uses white text by brand decision; dark mode uses the computed on-accent pair.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">Invitar paciente</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:6px 16px;border:0;border-radius:12px;background:var(--primary,#2F5D4F);color:var(--on-primary,#FFFFFF);font:700 16px/1.2 Inter,system-ui,sans-serif;cursor:pointer;transition:background-color 180ms cubic-bezier(.16,1,.3,1);}.ds-btn-primary:hover{background:var(--primary-hover,#295246);}.ds-btn-primary:active{transform:scale(.97);}.ds-btn-primary:focus-visible{outline:2px solid var(--primary,#2F5D4F);outline-offset:2px;}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Quiet action on a warm sunken fill with contrast-safe accent text.",
+      "html": "<button class=\"ds-btn-secondary\" type=\"button\">Exportar</button>",
+      "css": ".ds-btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:6px 16px;border:0;border-radius:12px;background:var(--sunken,#F4F2EE);color:var(--accent-text,#23453A);font:700 16px/1.2 Inter,system-ui,sans-serif;cursor:pointer;transition:background-color 180ms cubic-bezier(.16,1,.3,1);}.ds-btn-secondary:hover{background:var(--line,#EAE7E1);}.ds-btn-secondary:focus-visible{outline:2px solid var(--primary,#2F5D4F);outline-offset:2px;}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Labelled Taiga-style field: 56px tall, 16px radius, visible label, hint placeholders only.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field__label\">Buscar paciente</span><input class=\"ds-field__input\" type=\"search\" placeholder=\"Nombre, email o teléfono\"></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:6px;font-family:Inter,system-ui,sans-serif;}.ds-field__label{font-size:12.5px;font-weight:500;color:var(--ink-2,#6B665E);}.ds-field__input{height:56px;padding:0 16px;border:1px solid var(--line,#EAE7E1);border-radius:16px;background:var(--surface,#FFFFFF);color:var(--ink,#1F1D1A);font:400 16px/1.4 Inter,system-ui,sans-serif;outline:none;transition:border-color 180ms cubic-bezier(.16,1,.3,1),box-shadow 180ms cubic-bezier(.16,1,.3,1);}.ds-field__input::placeholder{color:var(--ink-3,#6E6960);}.ds-field__input:focus-visible{border-color:var(--primary,#2F5D4F);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary,#2F5D4F) 18%,transparent);}"
+    },
+    {
+      "name": "Surface Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The standard container: white surface, 1px hairline, 12px radius, 20px padding, no rest shadow.",
+      "html": "<section class=\"ds-card\"><h2 class=\"ds-card__title\">Ajustes Generales</h2><p class=\"ds-card__text\">Color principal, correo remitente e idioma por defecto del centro.</p></section>",
+      "css": ".ds-card{background:var(--surface,#FFFFFF);border:1px solid var(--line,#EAE7E1);border-radius:12px;padding:20px;color:var(--ink,#1F1D1A);font-family:Inter,system-ui,sans-serif;}.ds-card__title{margin:0 0 8px;font:700 19px/1.2 Satoshi,system-ui,sans-serif;letter-spacing:-.02em;}.ds-card__text{margin:0;font-size:14px;line-height:1.43;color:var(--ink-2,#6B665E);}"
+    },
+    {
+      "name": "Chip Selected",
+      "kind": "chip",
+      "refersTo": "chip-selected",
+      "description": "Active filter or selected layer: accent fill, 44px rounded filter chip. Light mode uses white text; dark mode uses the computed on-accent pair.",
+      "html": "<button class=\"ds-chip ds-chip--selected\" type=\"button\" aria-pressed=\"true\">Citas <span>0</span></button>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;gap:6px;height:44px;padding:2px 16px;border:0;border-radius:12px;font:400 16px/1.2 Inter,system-ui,sans-serif;cursor:pointer;}.ds-chip--selected{background:var(--primary,#2F5D4F);color:var(--on-primary,#FFFFFF);}.ds-chip--selected span{font-variant-numeric:tabular-nums;opacity:1;}.ds-chip--selected:focus-visible{outline:2px solid var(--primary,#2F5D4F);outline-offset:2px;}"
+    },
+    {
+      "name": "Chip Neutral",
+      "kind": "chip",
+      "refersTo": "chip-neutral",
+      "description": "Inactive filter or quiet tag on a warm sunken fill, 44px rounded filter chip.",
+      "html": "<button class=\"ds-chip ds-chip--neutral\" type=\"button\" aria-pressed=\"false\">Inactivos <span>1</span></button>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;gap:6px;height:44px;padding:2px 16px;border:0;border-radius:12px;font:400 16px/1.2 Inter,system-ui,sans-serif;cursor:pointer;}.ds-chip--neutral{background:var(--sunken,#F4F2EE);color:var(--ink-2,#6B665E);}.ds-chip--neutral span{font-variant-numeric:tabular-nums;}.ds-chip--neutral:hover{background:var(--line,#EAE7E1);}"
+    },
+    {
+      "name": "Sidebar Nav Item",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Active destination: soft brand tint, contrast-safe accent text, 8px radius and aria-current.",
+      "html": "<a class=\"ds-nav is-active\" href=\"#\" aria-current=\"page\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"4.5\" r=\"2.6\" fill=\"currentColor\"/><path d=\"M2.4 14c0-3 2.5-4.7 5.6-4.7s5.6 1.7 5.6 4.7\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"/></svg>Pacientes</a>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:10px;min-height:40px;padding:9px 10px;border-radius:8px;color:var(--ink-2,#6B665E);font:500 14.5px/1.3 Inter,system-ui,sans-serif;text-decoration:none;transition:background-color 120ms cubic-bezier(.16,1,.3,1);}.ds-nav:hover{background:var(--sunken,#F4F2EE);color:var(--ink,#1F1D1A);}.ds-nav.is-active{background:var(--primary-soft,#EAEFED);color:var(--accent-text,#23453A);font-weight:500;}.ds-nav:focus-visible{outline:2px solid var(--primary,#2F5D4F);outline-offset:2px;}"
+    },
+    {
+      "name": "Bottom Navigation",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Mobile shell navigation: five destinations, 60px tall, 11.5px labels, accent text for the active item.",
+      "html": "<nav class=\"ds-bottom-nav\" aria-label=\"Navegación\"><a class=\"is-active\" href=\"#\" aria-current=\"page\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M2 7 8 2l6 5v7H2z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"/></svg><span>Panel Principal</span></a><a href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"/></svg><span>Citas</span></a><a href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M3 3h10v10H3z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"/></svg><span>Pacientes</span></a><a href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M2 12 8 3l6 9z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"/></svg><span>Más</span></a></nav>",
+      "css": ".ds-bottom-nav{display:flex;height:60px;background:var(--surface,#FFFFFF);border-top:1px solid var(--line,#EAE7E1);font-family:Inter,system-ui,sans-serif;}.ds-bottom-nav a{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px;color:var(--ink-3,#6E6960);text-decoration:none;font-size:11.5px;line-height:1.1;font-weight:400;}.ds-bottom-nav a.is-active{color:var(--accent-text,#23453A);font-weight:500;}.ds-bottom-nav a:focus-visible{outline:2px solid var(--primary,#2F5D4F);outline-offset:-2px;}"
+    },
+    {
+      "name": "Empty State",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "A section-level empty message: tonal icon tile, h2, a short description and an optional action.",
+      "html": "<section class=\"ds-empty\"><div class=\"ds-empty__tile\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 4h12v16l-6-3-6 3z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\"/></svg></div><h2>¡Todo al día!</h2><p>No hay citas programadas para hoy</p><button class=\"ds-btn-primary\" type=\"button\">Agendar cita</button></section>",
+      "css": ".ds-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:32px;border:1px dashed var(--line-strong,#D8D4CC);border-radius:16px;background:var(--canvas,#FBFAF8);text-align:center;font-family:Inter,system-ui,sans-serif;}.ds-empty__tile{display:flex;align-items:center;justify-content:center;width:64px;height:64px;margin-bottom:20px;border-radius:16px;background:var(--primary-soft,#EAEFED);color:var(--accent-text,#23453A);}.ds-empty h2{margin:0 0 4px;font:700 18px/1.2 Satoshi,system-ui,sans-serif;letter-spacing:-.02em;color:var(--ink,#1F1D1A);}.ds-empty p{max-width:45ch;margin:0 0 24px;font-size:14px;line-height:1.5;color:var(--ink-2,#6B665E);}.ds-empty .ds-btn-primary{display:inline-flex;align-items:center;height:44px;padding:6px 16px;border:0;border-radius:12px;background:var(--primary,#2F5D4F);color:var(--on-primary,#FFFFFF);font:700 16px/1.2 Inter,system-ui,sans-serif;cursor:pointer;}"
+    },
+    {
+      "name": "Dialog",
+      "kind": "custom",
+      "refersTo": "dialog",
+      "description": "Floating dialog: 560px, 12px radius, float-only shadow, Cancel on the left and primary on the right.",
+      "html": "<div class=\"ds-dialog\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"ds-dialog-title\"><header><h2 id=\"ds-dialog-title\">Invitar Paciente</h2></header><div class=\"ds-dialog__body\"><label class=\"ds-field\"><span class=\"ds-field__label\">Nombre</span><input class=\"ds-field__input\" type=\"text\" placeholder=\"Nombre\"></label></div><footer><button class=\"ds-btn-secondary\" type=\"button\">Cancelar</button><button class=\"ds-btn-primary\" type=\"button\">Invitar Usuario</button></footer></div>",
+      "css": ".ds-dialog{width:560px;max-width:100%;padding:20px;border-radius:12px;background:var(--surface,#FFFFFF);box-shadow:0 1px 2px rgba(31,29,26,.04),0 8px 24px rgba(31,29,26,.06);font-family:Inter,system-ui,sans-serif;}.ds-dialog header h2{margin:0 0 20px;font:700 19px/1.2 Satoshi,system-ui,sans-serif;letter-spacing:-.02em;color:var(--ink,#1F1D1A);}.ds-dialog .ds-field{display:flex;flex-direction:column;gap:6px;}.ds-dialog .ds-field__label{font-size:12.5px;font-weight:500;color:var(--ink-2,#6B665E);}.ds-dialog .ds-field__input{height:56px;padding:0 16px;border:1px solid var(--line,#EAE7E1);border-radius:16px;background:var(--surface,#FFFFFF);color:var(--ink,#1F1D1A);font:400 16px/1.4 Inter,system-ui,sans-serif;}.ds-dialog footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:20px;border-top:1px solid var(--line,#EAE7E1);}.ds-dialog .ds-btn-primary,.ds-dialog .ds-btn-secondary{display:inline-flex;align-items:center;height:44px;padding:6px 16px;border:0;border-radius:12px;font:700 16px/1.2 Inter,system-ui,sans-serif;cursor:pointer;}.ds-dialog .ds-btn-primary{background:var(--primary,#2F5D4F);color:var(--on-primary,#FFFFFF);}.ds-dialog .ds-btn-secondary{background:var(--sunken,#F4F2EE);color:var(--accent-text,#23453A);}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Clinic",
+    "overview": "The interface behaves like a well-run consultation room: warm paper surfaces, one accent that means \"act or choose\", and enough quiet for clinical data to be the loudest thing on screen. Warmth lives in the neutrals, the type and the spacing — never in decoration. A nutritionist should be able to read a patient's state, today's agenda and the next action in one pass, then stop thinking about the interface.\n\nThe visual world is a warm-neutral ramp (canvas, surface, sunken, ink) with a single tenant-owned accent. Every shade of that accent is derived from one anchor, and text on it follows a tenant-aware pair: white in light-mode controls by brand decision, computed on-accent in dark mode and on non-button surfaces. Structure comes from 1px hairline borders and tonal layering; shadows are reserved for things that actually float. Typography pairs Inter for the work with Satoshi for titles: a clinical, slightly editorial voice without a serif or a second UI family.\n\nThis is an Operate surface. Restraint, scanability and repeatable roles outrank expression. The brand appears in precise details — the accent, the display face, the way a tenant's color tints a card — not in gradients, oversized headlines or decorative color.",
+    "keyCharacteristics": [
+      "Warm-neutral, border-led surfaces; no shadows at rest.",
+      "One tenant accent for action, selection and state; text on it always gets a computed contrast pair.",
+      "Satoshi for display, Inter for everything else, tabular numerals for clinical data.",
+      "A hard 11.5px text floor and a 14px body role.",
+      "Responsive by structure: sidebar → icon rail → bottom nav + sheet; tables scroll inside their frame."
+    ],
+    "rules": [
+      {
+        "name": "The One Accent Rule",
+        "body": "The tenant accent is earned: action, selection, current state and focus. It never decorates illustrations, borders or backgrounds for brand.",
+        "section": "colors"
+      },
+      {
+        "name": "The Contrast Pair Rule",
+        "body": "Light-mode accent controls use white by brand decision — including light tenant accents, where contrast is accepted below AA. Everywhere else (dark mode, avatars, skip link, chat, status fills) the computed on-* pair governs.",
+        "section": "colors"
+      },
+      {
+        "name": "The Warm Ink Rule",
+        "body": "Text is warm near-black, never #000; surfaces are warm paper, never cold slate. The two exceptions are pure white cards and the accent itself.",
+        "section": "colors"
+      },
+      {
+        "name": "The 11.5px Floor",
+        "body": "No readable text goes below 11.5px. The only smaller marks are icons and SVG diagram units that scale up in the viewBox.",
+        "section": "typography"
+      },
+      {
+        "name": "The Two-Voice Rule",
+        "body": "Satoshi for display/headings, Inter for everything that is read or operated. Do not introduce a third family or a serif display face.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Numerical data — money, age, measurements, counts, dates in columns — uses tabular numerals so columns align.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Scroll Rule",
+        "body": "Only the page content scrolls (and tables inside their own frame). The shell, rail, headers and bottom navigation stay put; nothing may introduce a horizontal document scrollbar.",
+        "section": "layout"
+      },
+      {
+        "name": "The Border-Not-Shadow Rule",
+        "body": "A surface at rest gets a 1px border, never a border plus a wide soft shadow. If it floats, it gets the float shadow and no border drama.",
+        "section": "elevation"
+      },
+      {
+        "name": "The No-Nested-Card Rule",
+        "body": "A card never contains another card. Use spacing, a tonal fill, or a divider inside the existing surface instead.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do use Taiga UI v5 for every button, input, badge, chip, table and dialog; the custom layer is for layout and tokens, not replacement controls.",
+      "Do derive every accent shade from --brand-primary and let the theme service compute on-accent text for each tenant.",
+      "Do keep the accent for action, selection, current state and focus; let warm neutrals carry the rest. In light mode, accent controls write white; in dark mode they use the computed pair.",
+      "Do separate surfaces with a 1px hairline and reserve shadow-float for dialogs, menus, toasts and the assistant.",
+      "Do keep body text at 14px, labels at 12.5px and nothing readable below 11.5px; use tabular numerals for data.",
+      "Do keep the content within 1500px and let tables scroll inside their frame rather than the page."
+    ],
+    "donts": [
+      "Don't use the computed dark text on light-mode primary controls; white is the committed light-mode label. Reserve the computed pair for dark mode and non-button accent surfaces.",
+      "Don't mix Tailwind buttons or native inputs with Taiga components, and don't nest cards.",
+      "Don't use pure black or cold slate; the system is warm-neutral.",
+      "Don't use gradients, glass, wide soft shadows or decorative blur.",
+      "Don't use the accent as a second primary or as decoration on borders and illustrations.",
+      "Don't put readable text below 11.5px, shrink a text role to fit, or use color alone to communicate state."
+    ]
+  }
+}

@@ -3,21 +3,27 @@
   <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
     <div class="min-w-0">
       <a
-        routerLink="/admin/billing"
+        routerLink="/admin"
         class="text-[13px] font-medium text-surface-500 hover:text-surface-700 dark:hover:text-surface-200"
       >
         <i class="fa-solid fa-arrow-left mr-1" aria-hidden="true"></i>
-        {{ t('admin.billing.back_to_list') }}
+        {{ t('admin.billing.back_to_tenants') }}
       </a>
       <h1
         class="mt-1 font-display text-[26px] font-bold leading-tight tracking-tight text-surface-900 text-balance dark:text-surface-0 lg:text-[32px]"
       >
-        {{ billing()?.tenantName ?? '—' }}
+        {{ tenant()?.name || billing()?.tenantName || '—' }}
       </h1>
     </div>
 
-    @if (billing(); as data) {
-      <div class="flex flex-wrap items-center gap-2 lg:ml-auto">
+    <div class="flex flex-wrap items-center gap-2 lg:ml-auto">
+      @if (tenant()?.adminTenant) {
+        <span tuiBadge appearance="accent" size="l">
+          <i class="fa-solid fa-shield-halved mr-1" aria-hidden="true"></i>
+          {{ t('admin.badge_admin') }}
+        </span>
+      }
+      @if (billing(); as data) {
         <span tuiBadge [appearance]="statusAppearance(data.billingStatus)" size="l">
           {{ t('billing.status.' + data.billingStatus) }}
         </span>
@@ -27,9 +33,155 @@
         @if (data.cancelAtPeriodEnd) {
           <span tuiBadge appearance="neutral" size="l">{{ t('admin.billing.cancel_pending') }}</span>
         }
+      }
+      <button type="button" tuiButton appearance="secondary" size="m" (click)="enterTenant()">
+        <i class="fa-solid fa-right-to-bracket mr-1" aria-hidden="true"></i>
+        {{ t('admin.enter_tenant') }}
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════ Propiedades del centro ═══════════ -->
+  <section class="data-card p-5 sm:p-6">
+    <h2 class="font-display text-base font-bold text-surface-900 dark:text-surface-0">
+      {{ t('admin.properties_section') }}
+    </h2>
+    <p class="mt-1 max-w-[70ch] text-[13px] leading-relaxed text-surface-500 dark:text-surface-400">
+      {{ t('admin.properties_subtitle') }}
+    </p>
+
+    @if (geoError()) {
+      <div
+        role="alert"
+        class="mt-4 flex flex-wrap items-center gap-2 rounded-md bg-err-soft px-3 py-2 text-[13px] text-err-text"
+      >
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+        <span>{{ t('settings.address_geo_error') }}</span>
+        <button tuiButton appearance="flat" size="xs" type="button" (click)="retryGeo()">
+          {{ t('common.retry') }}
+        </button>
       </div>
     }
-  </header>
+
+    <form [formGroup]="tenantForm" (ngSubmit)="saveTenant()" class="mt-4 space-y-5">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <tui-textfield>
+          <label tuiLabel for="tenantName">{{ t('admin.dialog_name') }} *</label>
+          <input
+            id="tenantName"
+            tuiInput
+            formControlName="name"
+            [placeholder]="t('admin.dialog_name_placeholder')"
+            required
+          />
+        </tui-textfield>
+
+        <tui-textfield>
+          <label tuiLabel for="tenantCif">{{ t('admin.dialog_cif') }}</label>
+          <input id="tenantCif" tuiInput formControlName="cif" placeholder="B12345678" class="tabular-nums" />
+        </tui-textfield>
+
+        <tui-textfield>
+          <label tuiLabel for="tenantPhone">{{ t('admin.dialog_phone') }}</label>
+          <input id="tenantPhone" tuiInput formControlName="phone" placeholder="+34 600 000 000" class="tabular-nums" />
+        </tui-textfield>
+
+        <tui-textfield>
+          <label tuiLabel for="tenantCurrency">{{ t('admin.currency') }}</label>
+          <input id="tenantCurrency" tuiInput formControlName="currency" maxlength="3" placeholder="EUR" class="tabular-nums uppercase" />
+        </tui-textfield>
+      </div>
+
+      @if (tenantForm.controls.name.touched && tenantForm.controls.name.invalid) {
+        <p class="text-[13px] font-medium text-err-text">{{ t('admin.tenant_name_required') }}</p>
+      }
+      @if (tenantForm.controls.currency.touched && tenantForm.controls.currency.invalid) {
+        <p class="text-[13px] font-medium text-err-text">{{ t('admin.currency_invalid') }}</p>
+      }
+
+      <tui-textfield class="w-full">
+        <label tuiLabel for="tenantAddress">{{ t('admin.dialog_address') }}</label>
+        <input id="tenantAddress" tuiInput formControlName="address" placeholder="C/ Mayor 1, 07001 Palma" />
+      </tui-textfield>
+
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <tui-textfield tuiChevron>
+          <label tuiLabel for="tenantCountry">{{ t('admin.dialog_country') }}</label>
+          <input
+            id="tenantCountry"
+            tuiComboBox
+            [(ngModel)]="countryDisplay"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onCountryChange()"
+            [disabled]="geoLoading() || geoError()"
+          />
+          <tui-data-list-wrapper *tuiDropdown [items]="countryLabels() | tuiFilterByInput" />
+        </tui-textfield>
+
+        <tui-textfield tuiChevron>
+          <label tuiLabel for="tenantState">{{ t('admin.dialog_state') }}</label>
+          <input
+            id="tenantState"
+            tuiComboBox
+            [(ngModel)]="stateDisplay"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onStateChange()"
+            [disabled]="geoError() || geoLoading() || !countryDisplay"
+          />
+          <tui-data-list-wrapper *tuiDropdown [items]="stateLabels() | tuiFilterByInput" />
+        </tui-textfield>
+
+        <tui-textfield tuiChevron>
+          <label tuiLabel for="tenantCity">{{ t('admin.dialog_city') }}</label>
+          <input
+            id="tenantCity"
+            tuiComboBox
+            [(ngModel)]="cityDisplay"
+            [ngModelOptions]="{ standalone: true }"
+            (focus)="loadCitiesIfNeeded()"
+            [disabled]="geoError() || geoLoading() || !stateDisplay"
+          />
+          <tui-data-list-wrapper *tuiDropdown [items]="cityLabels() | tuiFilterByInput" />
+        </tui-textfield>
+      </div>
+
+      @if (tenant(); as data) {
+        <dl class="grid gap-4 border-t border-line pt-5 text-[13px] sm:grid-cols-3">
+          <div class="min-w-0">
+            <dt class="text-[11.5px] font-semibold uppercase tracking-wide text-surface-400">
+              {{ t('admin.tenant_id') }}
+            </dt>
+            <dd class="mt-1 truncate font-mono text-surface-900 dark:text-surface-0">{{ tenantId() }}</dd>
+          </div>
+          <div class="min-w-0">
+            <dt class="text-[11.5px] font-semibold uppercase tracking-wide text-surface-400">
+              {{ t('admin.col_created') }}
+            </dt>
+            <dd class="mt-1 tabular-nums text-surface-900 dark:text-surface-0">
+              {{ (data.createdAt | date: 'longDate') ?? '—' }}
+            </dd>
+          </div>
+          <div class="min-w-0">
+            <dt class="text-[11.5px] font-semibold uppercase tracking-wide text-surface-400">
+              {{ t('admin.updated_at') }}
+            </dt>
+            <dd class="mt-1 tabular-nums text-surface-900 dark:text-surface-0">
+              {{ (data.updatedAt | date: 'longDate') ?? '—' }}
+            </dd>
+          </div>
+        </dl>
+      }
+
+      <div class="flex items-center gap-2.5 border-t border-line pt-5">
+        <button type="submit" tuiButton appearance="primary" size="m" [disabled]="savingTenant()">
+          @if (savingTenant()) {
+            <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>
+          }
+          {{ t('common.save') }}
+        </button>
+      </div>
+    </form>
+  </section>
 
   @if (loading() && !billing()) {
     <tui-loader size="l" [overlay]="true"><div class="h-40"></div></tui-loader>

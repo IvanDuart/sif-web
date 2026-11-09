@@ -1,4 +1,4 @@
-@if (state.barOpen()) {
+@if (barMounted()) {
 <div class="bar" id="mascot-bar" *transloco="let t">
   @if (trayOpen()) {
     <!-- El historial, cuando se pide: la conversación entera no cabe en la tarjeta. -->
@@ -23,7 +23,22 @@
        escribe. La mascota NO se pinta aquí: es el FAB, que se acopla a este
        borde izquierdo. Así sigue siendo la misma de siempre y puede irse a
        recorrer un formulario sin dejar de ser ella.  -->
-  <div #card class="card" [class.card--pill]="pill()">
+  <div
+    #card
+    class="card"
+    [class.card--pill]="pill()"
+    [class.card--compact]="compact()"
+    [class.card--leaving]="barLeaving()"
+    (mouseenter)="hover.set(true)"
+    (mouseleave)="hover.set(false)"
+    (focusin)="focusIn.set(true)"
+    (focusout)="focusIn.set(false)"
+  >
+    @if (away()) {
+      <!-- La mascota salió a trabajar: su asiento queda marcado para que se
+           entienda que vuelve. -->
+      <span class="card__dock-ghost" aria-hidden="true" [style.top.px]="dockGhostTop()"></span>
+    }
     <div class="card__body">
       <app-catalog-debug />
 
@@ -104,7 +119,7 @@
       @if (working()) {
         <!-- Lo que está haciendo, con qué pararlo al lado: es lo que se mira
              mientras trabaja, así que no comparte sitio con lo que se escribe. -->
-        <div class="doing" role="status">
+        <div #doingRow class="doing" role="status">
           <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
           <span class="doing__text">{{ doingText() }}</span>
           @if (state.clientSteps() > 0) {
@@ -147,9 +162,10 @@
         </div>
       }
 
-      <div #inputRow class="input">
+      <div #inputRow class="input" [class.input--folded]="folded()">
         <textarea
           #input
+          data-mascot-bar-input
           rows="1"
           [placeholder]="placeholder()"
           [ngModel]="text()"

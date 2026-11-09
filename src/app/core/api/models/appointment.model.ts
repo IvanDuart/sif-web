@@ -9,6 +9,7 @@ export interface AppointmentDto {
   patientName?: string | null;
   typeId: string | null;
   typeName: string | null;
+  typeColor?: string | null;
   startTime: string;
   endTime: string;
   status: AppointmentStatus;

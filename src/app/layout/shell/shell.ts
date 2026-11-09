@@ -37,8 +37,7 @@ interface NavItem {
   permission?: string;
   /**
    * Marca el destino como activo solo en su ruta exacta. Lo necesitan los
-   * destinos que son prefijo de otro (`/admin` lo es de `/admin/billing`): sin
-   * esto se encenderían los dos a la vez.
+   * destinos que son prefijo de otro: sin esto se encenderían los dos a la vez.
    */
   exact?: boolean;
 }
@@ -59,8 +58,7 @@ const NAV_ITEMS: NavItem[] = [
   { labelKey: 'recipes', icon: 'fa-solid fa-book-open', route: '/recipes', permission: 'MANAGE_RECIPES' },
   { labelKey: 'billing', icon: 'fa-solid fa-credit-card', route: '/billing', permission: 'VIEW_BILLING' },
   { labelKey: 'settings', icon: 'fa-solid fa-gear', route: '/settings', permission: 'MANAGE_TENANT_BRANDING' },
-  { labelKey: 'admin', icon: 'fa-solid fa-shield-halved', route: '/admin', permission: 'MANAGE_TENANT', exact: true },
-  { labelKey: 'platform_billing', icon: 'fa-solid fa-file-invoice-dollar', route: '/admin/billing', permission: 'MANAGE_TENANT' },
+  { labelKey: 'admin', icon: 'fa-solid fa-shield-halved', route: '/admin', permission: 'MANAGE_TENANT' },
 ];
 
 /** Centros que caben en el desplegable del superadmin; el resto, en `/select-tenant`. */
@@ -463,7 +461,7 @@ export class Shell implements OnInit, OnDestroy, AfterViewInit {
   private static readonly MOBILE_PRIORITY = [
     '/dashboard', '/my-diet', '/shopping-lists', '/evolution', '/appointments',
     '/chat/threads', '/patients', '/revenue', '/staff', '/templates', '/recipes', '/settings', '/billing',
-    '/admin', '/admin/billing',
+    '/admin',
   ];
 
   readonly bottomNavItems = computed<NavItem[]>(() => {

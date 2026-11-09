@@ -976,7 +976,14 @@
     "add_band": "Añadir franja",
     "remove_band": "Eliminar franja",
     "no_bands": "Sin franjas: se usan las de por defecto del centro.",
-    "address_subtitle2": "Domicilio fiscal y localización del centro."
+    "address_subtitle2": "Domicilio fiscal y localización del centro.",
+    "gemini_api_key": "Clave de API de Gemini",
+    "gemini_api_configured": "Configurada",
+    "gemini_api_missing": "Sin configurar",
+    "gemini_api_hint": "La clave es de solo escritura: nunca se vuelve a mostrar. Obtén una en",
+    "gemini_api_placeholder": "AIzaSy...",
+    "gemini_api_rotate_placeholder": "Introduce una nueva clave para rotarla",
+    "gemini_api_link": "Google AI Studio"
   },
   "appointment_types": {
     "title": "Tipos de Cita",
@@ -992,7 +999,10 @@
     "delete_success": "Tipo de cita desactivado",
     "price": "Precio",
     "empty": "No hay tipos de cita configurados",
-    "subtitle": "Duración, precio y disponibilidad de cada tipo de consulta."
+    "subtitle": "Duración, precio y disponibilidad de cada tipo de consulta.",
+    "color": "Color",
+    "default_type": "Tipo predeterminado",
+    "empty_description": "Crea tu primer tipo de cita para definir duraciones, precios y colores."
   },
   "revenue": {
     "title": "Métricas del centro",
@@ -1121,7 +1131,11 @@
     "assign": "Asignar",
     "update_assignment": "Actualizar",
     "edit_assignment": "Editar Asignación",
-    "subtitle": "Jornadas laborales, asignaciones al equipo y festivos del centro."
+    "subtitle": "Jornadas laborales, asignaciones al equipo y festivos del centro.",
+    "no_blocks": "Sin bloques. Añade el primero para definir el horario.",
+    "empty_schedules_description": "Aún no has creado ninguna jornada con sus bloques horarios.",
+    "empty_assignments_description": "Asigna una jornada al equipo para un periodo del año.",
+    "empty_holidays_description": "Añade festivos nacionales o locales para ajustar la disponibilidad."
   },
   "primeng": {
     "startsWith": "Comienza con",
@@ -1498,7 +1512,10 @@
     "rations_short": "raciones",
     "group_created": "Grupo creado",
     "equivalent_created": "Equivalencia creada",
-    "save_error": "No se pudo guardar"
+    "save_error": "No se pudo guardar",
+    "empty_description": "Crea tu primer grupo para definir equivalencias y raciones.",
+    "no_equivalents_description": "Añade alimentos y sus raciones para empezar.",
+    "select_group_description": "Elige un grupo de la lista para consultar y añadir sus equivalencias."
   },
   "diary": {
     "tab_title": "Diario y Adherencia",
@@ -1876,6 +1893,20 @@
     "dialog_info_title": "Inicialización automática",
     "dialog_info": "El nuevo centro se creará con la configuración base: idioma y preferencias por defecto, tipos de cita iniciales, horario estándar y tu usuario como administrador. No es necesario configurarlo desde cero.",
     "dialog_submit": "Crear centro",
+    "search_placeholder": "Buscar por nombre, CIF, ciudad, teléfono o email…",
+    "edit_tenant": "Editar centro",
+    "enter_tenant": "Entrar al centro",
+    "tab_properties": "Propiedades del centro",
+    "tab_billing": "Suscripción y facturación",
+    "properties_section": "Datos generales y contacto",
+    "properties_subtitle": "Modifica los datos fiscales, de contacto y la ubicación del centro.",
+    "currency": "Moneda",
+    "tenant_id": "ID del centro",
+    "updated_at": "Última actualización",
+    "tenant_saved": "Propiedades del centro guardadas correctamente.",
+    "tenant_save_error": "No se pudieron guardar las propiedades del centro.",
+    "tenant_name_required": "El nombre del centro es obligatorio.",
+    "currency_invalid": "La moneda debe ser un código ISO de 3 letras (p. ej. EUR).",
     "billing": {
       "title": "Facturación",
       "count": "{{total}} centros",

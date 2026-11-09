@@ -14,7 +14,12 @@
           </h2>
           <p class="mt-1 text-[13px] text-surface-400">{{ t('schedule_settings.subtitle') }}</p>
         </div>
-        <button tuiButton appearance="primary" size="m" type="button" class="sm:shrink-0"
+        <button
+          tuiButton
+          appearance="primary"
+          size="m"
+          type="button"
+          class="sm:shrink-0"
           data-mascot-open="schedule"
           (click)="showScheduleForm()">
           <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
@@ -22,92 +27,120 @@
         </button>
       </header>
 
-      <div class="hidden md:block table-wrapper">
-        @if (loadingSchedules()) {
-          <div class="table-loading" role="status" [attr.aria-label]="t('common.loading')"><div class="loading-spinner"></div></div>
-        } @else {
+      @if (loadingSchedules()) {
+        <div class="table-loading" role="status" [attr.aria-label]="t('common.loading')">
+          <div class="loading-spinner"></div>
+        </div>
+      } @else if (schedules().length === 0) {
+        <app-empty-state
+          icon="fa-solid fa-clock"
+          [title]="t('schedule_settings.empty_schedules')"
+          [description]="t('schedule_settings.empty_schedules_description')"
+          [actionLabel]="t('schedule_settings.create_schedule')"
+          actionIcon="fa-solid fa-plus"
+          (action)="showScheduleForm()">
+        </app-empty-state>
+      } @else {
+        <div class="hidden md:block table-wrapper">
           <table [attr.aria-label]="t('schedule_settings.schedules_tab')" tuiTable class="w-full">
             <thead>
               <tr>
+                <th tuiTh scope="col" class="w-14"><span class="sr-only">{{ t('common.actions') }}</span></th>
                 <th tuiTh scope="col">{{ t('schedule_settings.name') }}</th>
-                <th tuiTh scope="col">{{ t('schedule_settings.color') }}</th>
                 <th tuiTh scope="col">{{ t('schedule_settings.days_active') }}</th>
                 <th tuiTh scope="col">{{ t('schedule_settings.blocks_header') }}</th>
-                <th tuiTh scope="col" class="w-14"><span class="sr-only">{{ t('common.actions') }}</span></th>
               </tr>
             </thead>
             <tbody tuiTbody>
               @for (s of schedules(); track s.id) {
                 <tr tuiTr>
-                  <td tuiTd class="font-medium text-surface-900 dark:text-surface-0">{{ s.name }}</td>
-                  <td tuiTd>
-                    <span class="inline-block h-6 w-6 rounded border border-line" [style.background]="s.color"></span>
+                  <td tuiTd (click)="$event.stopPropagation()">
+                    <div
+                      class="inline-block"
+                      [tuiDropdown]="scheduleMenu"
+                      tuiDropdownAuto
+                      tuiDropdownAlign="start"
+                      tuiDropdownLimitWidth="min"
+                    >
+                      <button
+                        tuiButton
+                        appearance="flat"
+                        size="s"
+                        type="button"
+                        [attr.aria-label]="t('common.actions') + ': ' + s.name"
+                      >
+                        <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                      </button>
+                      <ng-template #scheduleMenu>
+                        <tui-data-list>
+                          <button tuiOption type="button" (click)="showScheduleForm(s)">
+                            <i class="fa-solid fa-pen mr-2" aria-hidden="true"></i>
+                            {{ t('common.edit') }}
+                          </button>
+                          <button tuiOption type="button" class="text-err-text" (click)="confirmDeleteSchedule(s)">
+                            <i class="fa-solid fa-trash mr-2" aria-hidden="true"></i>
+                            {{ t('common.delete') }}
+                          </button>
+                        </tui-data-list>
+                      </ng-template>
+                    </div>
+                  </td>
+                  <td tuiTd class="font-medium text-surface-900 dark:text-surface-0">
+                    <span class="inline-block size-3 rounded-full mr-2 align-middle" [style.background]="s.color"></span>{{ s.name }}
                   </td>
                   <td tuiTd class="text-surface-500 dark:text-surface-400">{{ getActiveDays(s.details) }}</td>
                   <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">{{ s.details.length }}</td>
-                  <td tuiTd class="text-right">
-                    <button tuiButton appearance="flat" size="s" type="button"
-                      [attr.title]="t('common.edit')" [attr.aria-label]="t('common.edit')"
-                      (click)="showScheduleForm(s)">
-                      <i class="fa-solid fa-pen" aria-hidden="true"></i>
-                    </button>
-                    <button tuiButton appearance="flat" size="s" type="button"
-                      class="text-err-text"
-                      [attr.title]="t('common.delete')" [attr.aria-label]="t('common.delete')"
-                      (click)="confirmDeleteSchedule(s)">
-                      <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                    </button>
-                  </td>
-                </tr>
-              } @empty {
-                <tr tuiTr>
-                  <td tuiTd colspan="5" class="py-8 text-center text-surface-400">
-                    {{ t('schedule_settings.empty_schedules') }}
-                  </td>
                 </tr>
               }
             </tbody>
           </table>
-        }
-      </div>
+        </div>
 
-      <div class="space-y-3 md:hidden">
-        @for (s of schedules(); track s.id) {
-          <div class="rounded-md border border-line bg-surface-0 p-3 dark:bg-surface-800">
-            <div class="flex items-start justify-between gap-2">
-              <p class="font-medium text-surface-900 dark:text-surface-0">{{ s.name }}</p>
-              <span class="inline-block h-6 w-6 rounded border border-line" [style.background]="s.color"></span>
-            </div>
-            <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px]">
-              <div class="flex items-center gap-1.5">
-                <dt class="text-surface-400">{{ t('schedule_settings.days_active') }}</dt>
-                <dd class="text-surface-600 dark:text-surface-300">{{ getActiveDays(s.details) }}</dd>
+        <div class="space-y-3 md:hidden">
+          @for (s of schedules(); track s.id) {
+            <div class="rounded-md border border-line bg-surface-0 p-3 dark:bg-surface-800">
+              <div class="flex items-start justify-between gap-2">
+                <p class="font-medium text-surface-900 dark:text-surface-0">
+                  <span class="inline-block size-3 rounded-full mr-2 align-middle" [style.background]="s.color"></span>{{ s.name }}
+                </p>
               </div>
-              <div class="flex items-center gap-1.5">
-                <dt class="text-surface-400">{{ t('schedule_settings.blocks_header') }}</dt>
-                <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ s.details.length }}</dd>
+              <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px]">
+                <div class="flex items-center gap-1.5">
+                  <dt class="text-surface-400">{{ t('schedule_settings.days_active') }}</dt>
+                  <dd class="text-surface-600 dark:text-surface-300">{{ getActiveDays(s.details) }}</dd>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <dt class="text-surface-400">{{ t('schedule_settings.blocks_header') }}</dt>
+                  <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ s.details.length }}</dd>
+                </div>
+              </dl>
+              <div class="mt-3 flex items-center justify-end gap-1 border-t border-line pt-2">
+                <button
+                  tuiButton
+                  appearance="flat"
+                  size="s"
+                  type="button"
+                  [attr.title]="t('common.edit')"
+                  [attr.aria-label]="t('common.edit')"
+                  (click)="showScheduleForm(s)">
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  tuiButton
+                  appearance="flat"
+                  size="s"
+                  type="button"
+                  class="text-err-text"
+                  [attr.title]="t('common.delete')"
+                  [attr.aria-label]="t('common.delete')"
+                  (click)="confirmDeleteSchedule(s)">
+                  <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                </button>
               </div>
-            </dl>
-            <div class="mt-3 flex items-center justify-end gap-1 border-t border-line pt-2">
-              <button tuiButton appearance="flat" size="s" type="button"
-                [attr.title]="t('common.edit')" [attr.aria-label]="t('common.edit')"
-                (click)="showScheduleForm(s)">
-                <i class="fa-solid fa-pen" aria-hidden="true"></i>
-              </button>
-              <button tuiButton appearance="flat" size="s" type="button"
-                class="text-err-text"
-                [attr.title]="t('common.delete')" [attr.aria-label]="t('common.delete')"
-                (click)="confirmDeleteSchedule(s)">
-                <i class="fa-solid fa-trash" aria-hidden="true"></i>
-              </button>
             </div>
-          </div>
-        } @empty {
-          <div class="table-wrapper">
-            <p class="py-8 text-center text-surface-400">{{ t('schedule_settings.empty_schedules') }}</p>
-          </div>
-        }
-      </div>
+          }
+        </div>
+      }
     </div>
   }
 
@@ -120,7 +153,12 @@
           </h2>
           <p class="mt-1 text-[13px] text-surface-400">{{ t('schedule_settings.subtitle') }}</p>
         </div>
-        <button tuiButton appearance="primary" size="m" type="button" class="sm:shrink-0"
+        <button
+          tuiButton
+          appearance="primary"
+          size="m"
+          type="button"
+          class="sm:shrink-0"
           data-mascot-open="schedule-assignment"
           (click)="showAssignmentForm()">
           <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
@@ -128,99 +166,128 @@
         </button>
       </header>
 
-      <div class="hidden md:block table-wrapper">
-        @if (loadingAssignments()) {
-          <div class="table-loading" role="status" [attr.aria-label]="t('common.loading')"><div class="loading-spinner"></div></div>
-        } @else {
+      @if (loadingAssignments()) {
+        <div class="table-loading" role="status" [attr.aria-label]="t('common.loading')">
+          <div class="loading-spinner"></div>
+        </div>
+      } @else if (assignments().length === 0) {
+        <app-empty-state
+          icon="fa-solid fa-user-clock"
+          [title]="t('schedule_settings.empty_assignments')"
+          [description]="t('schedule_settings.empty_assignments_description')"
+          [actionLabel]="t('schedule_settings.create_assignment')"
+          actionIcon="fa-solid fa-plus"
+          (action)="showAssignmentForm()">
+        </app-empty-state>
+      } @else {
+        <div class="hidden md:block table-wrapper">
           <table [attr.aria-label]="t('schedule_settings.assignments_tab')" tuiTable class="w-full">
             <thead>
               <tr>
+                <th tuiTh scope="col" class="w-14"><span class="sr-only">{{ t('common.actions') }}</span></th>
                 <th tuiTh scope="col">{{ t('schedule_settings.name') }}</th>
                 <th tuiTh scope="col">{{ t('schedule_settings.year') }}</th>
                 <th tuiTh scope="col">{{ t('schedule_settings.valid_from') }}</th>
                 <th tuiTh scope="col">{{ t('schedule_settings.valid_to') }}</th>
-                <th tuiTh scope="col" class="w-14"><span class="sr-only">{{ t('common.actions') }}</span></th>
               </tr>
             </thead>
             <tbody tuiTbody>
               @for (a of assignments(); track a.id) {
                 <tr tuiTr>
+                  <td tuiTd (click)="$event.stopPropagation()">
+                    <div
+                      class="inline-block"
+                      [tuiDropdown]="assignmentMenu"
+                      tuiDropdownAuto
+                      tuiDropdownAlign="start"
+                      tuiDropdownLimitWidth="min"
+                    >
+                      <button
+                        tuiButton
+                        appearance="flat"
+                        size="s"
+                        type="button"
+                        [attr.aria-label]="t('common.actions') + ': ' + a.schedule.name"
+                      >
+                        <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                      </button>
+                      <ng-template #assignmentMenu>
+                        <tui-data-list>
+                          <button tuiOption type="button" (click)="showAssignmentForm(a)">
+                            <i class="fa-solid fa-pen mr-2" aria-hidden="true"></i>
+                            {{ t('common.edit') }}
+                          </button>
+                          <button tuiOption type="button" class="text-err-text" (click)="confirmDeleteAssignment(a)">
+                            <i class="fa-solid fa-trash mr-2" aria-hidden="true"></i>
+                            {{ t('common.delete') }}
+                          </button>
+                        </tui-data-list>
+                      </ng-template>
+                    </div>
+                  </td>
                   <td tuiTd>
                     <div class="flex items-center gap-2">
-                      <span class="inline-block h-3 w-3 shrink-0 rounded-full" [style.background]="a.schedule.color"></span>
+                      <span class="inline-block size-3 shrink-0 rounded-full" [style.background]="a.schedule.color"></span>
                       <span>{{ a.schedule.name }}</span>
                     </div>
                   </td>
                   <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">{{ a.year }}</td>
                   <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">{{ a.validFrom | date:'dd/MM/yyyy' }}</td>
                   <td tuiTd class="tabular-nums text-surface-500 dark:text-surface-400">{{ a.validTo ? (a.validTo | date:'dd/MM/yyyy') : t('schedule_settings.no_end_date') }}</td>
-                  <td tuiTd class="text-right">
-                    <button tuiButton appearance="flat" size="s" type="button"
-                      [attr.title]="t('common.edit')" [attr.aria-label]="t('common.edit')"
-                      (click)="showAssignmentForm(a)">
-                      <i class="fa-solid fa-pen" aria-hidden="true"></i>
-                    </button>
-                    <button tuiButton appearance="flat" size="s" type="button"
-                      class="text-err-text"
-                      [attr.title]="t('common.delete')" [attr.aria-label]="t('common.delete')"
-                      (click)="confirmDeleteAssignment(a)">
-                      <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                    </button>
-                  </td>
-                </tr>
-              } @empty {
-                <tr tuiTr>
-                  <td tuiTd colspan="5" class="py-8 text-center text-surface-400">
-                    {{ t('schedule_settings.empty_assignments') }}
-                  </td>
                 </tr>
               }
             </tbody>
           </table>
-        }
-      </div>
+        </div>
 
-      <div class="space-y-3 md:hidden">
-        @for (a of assignments(); track a.id) {
-          <div class="rounded-md border border-line bg-surface-0 p-3 dark:bg-surface-800">
-            <div class="flex items-center gap-2">
-              <span class="inline-block h-3 w-3 shrink-0 rounded-full" [style.background]="a.schedule.color"></span>
-              <p class="font-medium text-surface-900 dark:text-surface-0">{{ a.schedule.name }}</p>
+        <div class="space-y-3 md:hidden">
+          @for (a of assignments(); track a.id) {
+            <div class="rounded-md border border-line bg-surface-0 p-3 dark:bg-surface-800">
+              <div class="flex items-center gap-2">
+                <span class="inline-block size-3 shrink-0 rounded-full" [style.background]="a.schedule.color"></span>
+                <p class="font-medium text-surface-900 dark:text-surface-0">{{ a.schedule.name }}</p>
+              </div>
+              <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px]">
+                <div class="flex items-center gap-1.5">
+                  <dt class="text-surface-400">{{ t('schedule_settings.year') }}</dt>
+                  <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ a.year }}</dd>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <dt class="text-surface-400">{{ t('schedule_settings.valid_from') }}</dt>
+                  <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ a.validFrom | date:'dd/MM/yyyy' }}</dd>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <dt class="text-surface-400">{{ t('schedule_settings.valid_to') }}</dt>
+                  <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ a.validTo ? (a.validTo | date:'dd/MM/yyyy') : t('schedule_settings.no_end_date') }}</dd>
+                </div>
+              </dl>
+              <div class="mt-3 flex items-center justify-end gap-1 border-t border-line pt-2">
+                <button
+                  tuiButton
+                  appearance="flat"
+                  size="s"
+                  type="button"
+                  [attr.title]="t('common.edit')"
+                  [attr.aria-label]="t('common.edit')"
+                  (click)="showAssignmentForm(a)">
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  tuiButton
+                  appearance="flat"
+                  size="s"
+                  type="button"
+                  class="text-err-text"
+                  [attr.title]="t('common.delete')"
+                  [attr.aria-label]="t('common.delete')"
+                  (click)="confirmDeleteAssignment(a)">
+                  <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                </button>
+              </div>
             </div>
-            <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px]">
-              <div class="flex items-center gap-1.5">
-                <dt class="text-surface-400">{{ t('schedule_settings.year') }}</dt>
-                <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ a.year }}</dd>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <dt class="text-surface-400">{{ t('schedule_settings.valid_from') }}</dt>
-                <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ a.validFrom | date:'dd/MM/yyyy' }}</dd>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <dt class="text-surface-400">{{ t('schedule_settings.valid_to') }}</dt>
-                <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ a.validTo ? (a.validTo | date:'dd/MM/yyyy') : t('schedule_settings.no_end_date') }}</dd>
-              </div>
-            </dl>
-            <div class="mt-3 flex items-center justify-end gap-1 border-t border-line pt-2">
-              <button tuiButton appearance="flat" size="s" type="button"
-                [attr.title]="t('common.edit')" [attr.aria-label]="t('common.edit')"
-                (click)="showAssignmentForm(a)">
-                <i class="fa-solid fa-pen" aria-hidden="true"></i>
-              </button>
-              <button tuiButton appearance="flat" size="s" type="button"
-                class="text-err-text"
-                [attr.title]="t('common.delete')" [attr.aria-label]="t('common.delete')"
-                (click)="confirmDeleteAssignment(a)">
-                <i class="fa-solid fa-trash" aria-hidden="true"></i>
-              </button>
-            </div>
-          </div>
-        } @empty {
-          <div class="table-wrapper">
-            <p class="py-8 text-center text-surface-400">{{ t('schedule_settings.empty_assignments') }}</p>
-          </div>
-        }
-      </div>
+          }
+        </div>
+      }
     </div>
   }
 
@@ -243,7 +310,11 @@
               {{ t('schedule_settings.import_holidays') }}
             }
           </button>
-          <button tuiButton appearance="primary" size="m" type="button"
+          <button
+            tuiButton
+            appearance="primary"
+            size="m"
+            type="button"
             data-mascot-open="holiday"
             (click)="showHolidayForm()">
             <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
@@ -252,22 +323,60 @@
         </div>
       </header>
 
-      <div class="hidden md:block table-wrapper">
-        @if (loadingHolidays()) {
-          <div class="table-loading" role="status" [attr.aria-label]="t('common.loading')"><div class="loading-spinner"></div></div>
-        } @else {
+      @if (loadingHolidays()) {
+        <div class="table-loading" role="status" [attr.aria-label]="t('common.loading')">
+          <div class="loading-spinner"></div>
+        </div>
+      } @else if (holidays().length === 0) {
+        <app-empty-state
+          icon="fa-solid fa-calendar-days"
+          [title]="t('schedule_settings.empty_holidays')"
+          [description]="t('schedule_settings.empty_holidays_description')"
+          [actionLabel]="t('schedule_settings.create_holiday')"
+          actionIcon="fa-solid fa-plus"
+          (action)="showHolidayForm()">
+        </app-empty-state>
+      } @else {
+        <div class="hidden md:block table-wrapper">
           <table [attr.aria-label]="t('schedule_settings.holidays_tab')" tuiTable class="w-full">
             <thead>
               <tr>
+                <th tuiTh scope="col" class="w-14"><span class="sr-only">{{ t('common.actions') }}</span></th>
                 <th tuiTh scope="col">{{ t('schedule_settings.holiday_date') }}</th>
                 <th tuiTh scope="col">{{ t('schedule_settings.description') }}</th>
                 <th tuiTh scope="col">{{ t('schedule_settings.type') }}</th>
-                <th tuiTh scope="col" class="w-14"><span class="sr-only">{{ t('common.actions') }}</span></th>
               </tr>
             </thead>
             <tbody tuiTbody>
               @for (h of holidays(); track h.id) {
                 <tr tuiTr>
+                  <td tuiTd (click)="$event.stopPropagation()">
+                    <div
+                      class="inline-block"
+                      [tuiDropdown]="holidayMenu"
+                      tuiDropdownAuto
+                      tuiDropdownAlign="start"
+                      tuiDropdownLimitWidth="min"
+                    >
+                      <button
+                        tuiButton
+                        appearance="flat"
+                        size="s"
+                        type="button"
+                        [attr.aria-label]="t('common.actions') + ': ' + h.description"
+                      >
+                        <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                      </button>
+                      <ng-template #holidayMenu>
+                        <tui-data-list>
+                          <button tuiOption type="button" class="text-err-text" (click)="confirmDeleteHoliday(h)">
+                            <i class="fa-solid fa-trash mr-2" aria-hidden="true"></i>
+                            {{ t('common.delete') }}
+                          </button>
+                        </tui-data-list>
+                      </ng-template>
+                    </div>
+                  </td>
                   <td tuiTd class="font-medium tabular-nums text-surface-900 dark:text-surface-0">{{ h.holidayDate | date:'dd/MM/yyyy' }}</td>
                   <td tuiTd>{{ h.description }}</td>
                   <td tuiTd>
@@ -275,57 +384,44 @@
                       {{ h.type === 'NATIONAL' ? t('schedule_settings.national') : t('schedule_settings.local') }}
                     </span>
                   </td>
-                  <td tuiTd class="text-right">
-                    <button tuiButton appearance="flat" size="s" type="button"
-                      class="text-err-text"
-                      [attr.title]="t('common.delete')" [attr.aria-label]="t('common.delete')"
-                      (click)="confirmDeleteHoliday(h)">
-                      <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                    </button>
-                  </td>
-                </tr>
-              } @empty {
-                <tr tuiTr>
-                  <td tuiTd colspan="4" class="py-8 text-center text-surface-400">
-                    {{ t('schedule_settings.empty_holidays') }}
-                  </td>
                 </tr>
               }
             </tbody>
           </table>
-        }
-      </div>
+        </div>
 
-      <div class="space-y-3 md:hidden">
-        @for (h of holidays(); track h.id) {
-          <div class="rounded-md border border-line bg-surface-0 p-3 dark:bg-surface-800">
-            <div class="flex items-start justify-between gap-2">
-              <p class="font-medium tabular-nums text-surface-900 dark:text-surface-0">{{ h.holidayDate | date:'dd/MM/yyyy' }}</p>
-              <span tuiBadge [appearance]="h.type === 'NATIONAL' ? 'info' : 'neutral'">
-                {{ h.type === 'NATIONAL' ? t('schedule_settings.national') : t('schedule_settings.local') }}
-              </span>
-            </div>
-            <dl class="mt-3 text-[13px]">
-              <div class="flex items-center gap-1.5">
-                <dt class="text-surface-400">{{ t('schedule_settings.description') }}</dt>
-                <dd class="truncate text-surface-600 dark:text-surface-300">{{ h.description }}</dd>
+        <div class="space-y-3 md:hidden">
+          @for (h of holidays(); track h.id) {
+            <div class="rounded-md border border-line bg-surface-0 p-3 dark:bg-surface-800">
+              <div class="flex items-start justify-between gap-2">
+                <p class="font-medium tabular-nums text-surface-900 dark:text-surface-0">{{ h.holidayDate | date:'dd/MM/yyyy' }}</p>
+                <span tuiBadge [appearance]="h.type === 'NATIONAL' ? 'info' : 'neutral'">
+                  {{ h.type === 'NATIONAL' ? t('schedule_settings.national') : t('schedule_settings.local') }}
+                </span>
               </div>
-            </dl>
-            <div class="mt-3 flex items-center justify-end gap-1 border-t border-line pt-2">
-              <button tuiButton appearance="flat" size="s" type="button"
-                class="text-err-text"
-                [attr.title]="t('common.delete')" [attr.aria-label]="t('common.delete')"
-                (click)="confirmDeleteHoliday(h)">
-                <i class="fa-solid fa-trash" aria-hidden="true"></i>
-              </button>
+              <dl class="mt-3 text-[13px]">
+                <div class="flex items-center gap-1.5">
+                  <dt class="text-surface-400">{{ t('schedule_settings.description') }}</dt>
+                  <dd class="truncate text-surface-600 dark:text-surface-300">{{ h.description }}</dd>
+                </div>
+              </dl>
+              <div class="mt-3 flex items-center justify-end gap-1 border-t border-line pt-2">
+                <button
+                  tuiButton
+                  appearance="flat"
+                  size="s"
+                  type="button"
+                  class="text-err-text"
+                  [attr.title]="t('common.delete')"
+                  [attr.aria-label]="t('common.delete')"
+                  (click)="confirmDeleteHoliday(h)">
+                  <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                </button>
+              </div>
             </div>
-          </div>
-        } @empty {
-          <div class="table-wrapper">
-            <p class="py-8 text-center text-surface-400">{{ t('schedule_settings.empty_holidays') }}</p>
-          </div>
-        }
-      </div>
+          }
+        </div>
+      }
     </div>
   }
 </div>

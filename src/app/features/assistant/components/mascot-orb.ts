@@ -8,6 +8,7 @@ import {
   effect,
   inject,
   input,
+  OnInit,
   output,
   signal,
   viewChild,
@@ -16,6 +17,7 @@ import {
 import { startBlink, startMotion, type Condition, type MoodKind, type Scene } from '../mascot/agentMotion';
 import { personalityOf } from '../mascot/skins/personalities';
 import { MascotLifeService, type MascotLife, type MascotMode } from '../mascot/mascot-life.service';
+import { AWAY_AFTER_MS, WELCOME_AFTER_MS } from '../mascot/mascot-life.service';
 import { MascotMoodService } from '../mascot/mascot-mood.service';
 import { ARCH, EYE_CX, EYE_CY, EYE_H, EYE_W, FACES, K, OPEN, SHUT, type EyeState } from '../mascot/skins/faces';
 import { earsOf, geometryOf, mixGeometry, outlinePath, type Ear, type Geometry } from '../mascot/skins/outlines';
@@ -58,7 +60,7 @@ let nextId = 0;
     '(click)': 'onClick()',
   },
 })
-export class MascotOrb {
+export class MascotOrb implements OnInit {
   private readonly lifeService = inject(MascotLifeService);
   private readonly moodService = inject(MascotMoodService);
   private readonly destroyRef = inject(DestroyRef);
@@ -80,6 +82,23 @@ export class MascotOrb {
   /** La persona pulsó el orb y no estaba mareada: el launcher decide qué hacer. */
   readonly activated = output<void>();
 
+  /**
+   * Escena de vista previa (el armario): manda sobre la vida y el humor, y se
+   * pinta también en un orb decorativo, que no tiene vida propia.
+   */
+  readonly previewScene = input<Scene | null>(null);
+
+  /** Hacia dónde mirar mientras escribe o señala: -1 izquierda, 1 derecha. */
+  readonly lookX = input<-1 | 0 | 1>(0);
+
+  /** Mirada 2D hacia el campo que atiende (px, vector corto). */
+  readonly gaze = input<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
+
+  /** Sube cada vez que cambia la skin: reinicia el destello radial. */
+  readonly skinPulse = signal(0);
+  protected readonly bursts = computed(() => (this.skinPulse() > 0 ? [this.skinPulse()] : []));
+  private lastSkin: SkinId | null = null;
+
   readonly awake = signal(false);
   private readonly away = signal(false);
 
@@ -99,6 +118,8 @@ export class MascotOrb {
   private readonly orb = viewChild<ElementRef<HTMLElement>>('orb');
   private current: Geometry | null = null;
   private morphFrame = 0;
+  private awaySince = 0;
+  private idleTimer: ReturnType<typeof setTimeout> | undefined;
 
   readonly sizePx = computed(() => (this.size() === 's' ? 40 : this.size() === 'l' ? 72 : 56));
 
@@ -130,6 +151,8 @@ export class MascotOrb {
   protected readonly wantsMark = computed(() => this.who().angry.mark);
 
   readonly scene = computed<Scene | null>(() => {
+    const preview = this.previewScene();
+    if (preview) return preview;
     const life = this.life();
     // `peek` sólo cambia los ojos; no tiene animación propia.
     if (life && life.kind !== 'peek') return life.kind;
@@ -141,6 +164,8 @@ export class MascotOrb {
   });
 
   readonly eyes = computed<[Eyes, number | null]>(() => {
+    const preview = this.previewScene();
+    if (preview) return this.previewEyes(preview);
     const life = this.life();
     const mood = this.mood();
     const [condition] = this.conditions();
@@ -195,11 +220,67 @@ export class MascotOrb {
       this.morphTo(target);
     });
 
-    const onVisibility = () => this.away.set(document.visibilityState === 'hidden');
-    if (!this.decorative() && !this.mirror()) document.addEventListener('visibilitychange', onVisibility);
+    // Al cambiar de fruta, un destello radial cálido (sólo si el orbe vive).
+    effect(() => {
+      const skin = this.skin();
+      if (this.lastSkin === null) {
+        this.lastSkin = skin;
+        return;
+      }
+      if (skin === this.lastSkin) return;
+      this.lastSkin = skin;
+      if (this.still() || this.prefersReducedMotion()) return;
+      this.skinPulse.update((pulse) => pulse + 1);
+    });
+
     this.destroyRef.onDestroy(() => {
-      document.removeEventListener('visibilitychange', onVisibility);
       cancelAnimationFrame(this.morphFrame);
+    });
+  }
+
+  ngOnInit(): void {
+    // Un orbe quieto (armario, avatares) no necesita reloj de ausencia: y un
+    // temporizador de 120 s en un test deja `whenStable()` esperando.
+    if (this.decorative() || this.mirror() || this.still()) return;
+
+    const markAway = () => {
+      if (this.away()) return;
+      this.awaySince = Date.now();
+      this.away.set(true);
+      clearTimeout(this.idleTimer);
+    };
+    const schedule = () => {
+      clearTimeout(this.idleTimer);
+      this.idleTimer = setTimeout(markAway, AWAY_AFTER_MS);
+    };
+    const activity = () => {
+      if (document.hidden) return;
+      if (this.away()) {
+        const since = this.awaySince;
+        this.away.set(false);
+        this.lifeService.attend();
+        if (
+          Date.now() - since >= WELCOME_AFTER_MS &&
+          (this.mode() === 'idle' || this.mode() === 'listening')
+        ) {
+          this.moodService.feel('welcome');
+        }
+      }
+      schedule();
+    };
+    const onVisibility = () => {
+      if (document.hidden) markAway();
+      else activity();
+    };
+    const activityEvents = ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
+    for (const type of activityEvents) window.addEventListener(type, activity, { passive: true });
+    document.addEventListener('visibilitychange', onVisibility);
+    schedule();
+
+    this.destroyRef.onDestroy(() => {
+      for (const type of activityEvents) window.removeEventListener(type, activity);
+      document.removeEventListener('visibilitychange', onVisibility);
+      clearTimeout(this.idleTimer);
     });
   }
 
@@ -211,7 +292,7 @@ export class MascotOrb {
 
   onMove(event: PointerEvent): void {
     if (this.decorative() || this.mirror()) return;
-    this.lifeService.move(event.clientX);
+    this.lifeService.move(event.clientX, event.clientY);
   }
 
   onLeave(): void {
@@ -263,10 +344,16 @@ export class MascotOrb {
         return [pair(bar(13 / 12)), 13 / 12];
       case 'thinking':
         return [pair(bar(10 / 12, 2, -6)), null];
-      case 'acting':
-        return [pair(bar(1)), 1];
-      case 'confirm':
-        return [pair(bar(1, -3, 1)), 1];
+      case 'acting': {
+        const gaze = this.gaze();
+        const looking = gaze.dx !== 0 || gaze.dy !== 0;
+        return [pair(bar(1, looking ? gaze.dx : this.lookX() * 2.5, looking ? gaze.dy : 0)), 1];
+      }
+      case 'confirm': {
+        const gaze = this.gaze();
+        const looking = gaze.dx !== 0 || gaze.dy !== 0;
+        return [pair(bar(1, looking ? gaze.dx : -3, looking ? gaze.dy : 1)), 1];
+      }
       case 'paused':
       case 'sleeping':
         return [pair(SHUT), null];
@@ -308,6 +395,13 @@ export class MascotOrb {
       default:
         return [eyes, blink];
     }
+  }
+
+  /** Los ojos de una escena de vista previa: cada fruta enseña su reacción. */
+  private previewEyes(scene: Scene): [Eyes, number | null] {
+    if (scene === 'blush') return [pair(this.personaEyes(this.skin(), 'blush')), null];
+    if (scene === 'angry') return [pair(this.personaEyes(this.skin(), 'angry')), null];
+    return [pair(bar(1, 0, 1)), 1];
   }
 
   private moodEyes(mood: MoodKind): Eyes | null {
@@ -364,13 +458,35 @@ export class MascotOrb {
     return eye.look === 'spiral' ? 1 : 0;
   }
 
-  /** Las cejas: sólo se ven con enojo. */
+  /** Las cejas: enfado o preocupación. */
   showBrows(): boolean {
-    return this.life()?.kind === 'angry';
+    return this.life()?.kind === 'angry' || this.mood() === 'worried';
+  }
+
+  /** Preocupada inclina las cejas hacia arriba en el centro; enfadada, hacia abajo. */
+  browKind(): 'angry' | 'sorry' {
+    return this.life()?.kind === 'angry' ? 'angry' : 'sorry';
+  }
+
+  browOpacity(): number {
+    return this.life()?.kind === 'angry' ? 1 : 0.8;
+  }
+
+  browPath(index: number): string {
+    const x = EYE_CX;
+    const y = EYE_CY;
+    if (this.browKind() === 'sorry') {
+      return index === 0
+        ? `M${x - 12} ${y - 21} L${x + 10} ${y - 29}`
+        : `M${x - 10} ${y - 29} L${x + 12} ${y - 21}`;
+    }
+    return index === 0
+      ? `M${x - 12} ${y - 29} L${x + 10} ${y - 21}`
+      : `M${x - 10} ${y - 21} L${x + 12} ${y - 29}`;
   }
 
   showCheeks(): boolean {
-    return this.life()?.kind === 'blush';
+    return this.life()?.kind === 'blush' || this.previewScene() === 'blush';
   }
 
   readonly spiralPath = 'M8 8m0 0a1 1 0 0 1 2 0a2.2 2.2 0 0 1-4.4 0a3.5 3.5 0 0 1 7 0a4.8 4.8 0 0 1-9.6 0';

@@ -10,8 +10,14 @@
   left: auto;
   z-index: 299;
   display: block;
-  width: var(--mascot-card-w, 560px);
+  width: min(var(--mascot-card-w, 560px), calc(100vw - 32px));
+  transition: width 280ms cubic-bezier(0.2, 0.7, 0.2, 1);
   pointer-events: none;
+}
+
+/* Si la barra tapa el campo que se está rellenando, se encoge. */
+:host(.is-compact) {
+  width: min(400px, calc(100vw - 32px));
 }
 
 .bar {
@@ -29,7 +35,38 @@
   /* Se desenrolla desde la derecha, desde donde está la mascota, en vez de
      aparecer de golpe: así se entiende de dónde sale. `backwards` y no `both`,
      porque un `clip-path` que se queda puesto al acabar corta la sombra. */
-  animation: mascot-bar-in var(--mascot-bar-in, 500ms) cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  animation: mascot-bar-in var(--mascot-bar-in, 750ms) cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+/* El cierre se enrolla hacia la esquina derecha, donde vuelve la mascota. */
+.card--leaving {
+  pointer-events: none;
+  animation: mascot-bar-out 720ms cubic-bezier(0.45, 0, 0.2, 1) forwards;
+}
+
+@keyframes mascot-bar-out {
+  from {
+    clip-path: inset(0 0 0 0 round 20px);
+    opacity: 1;
+  }
+
+  to {
+    clip-path: inset(0 0 0 88% round 20px);
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+/* El hueco de la mascota mientras está fuera trabajando. */
+.card__dock-ghost {
+  position: absolute;
+  left: 15px;
+  z-index: 1;
+  width: 44px;
+  height: 44px;
+  border: 1.5px dashed var(--line-strong, #cddcee);
+  border-radius: 50%;
+  pointer-events: none;
 }
 
 @keyframes mascot-bar-in {
@@ -46,6 +83,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .card { animation: none; }
+  .card--leaving { animation: none; }
+  .input { transition: none; }
 }
 
 /* En reposo sólo está el campo: una pastilla, no un panel. */
@@ -54,6 +93,39 @@
 .card__body {
   /* El hueco de la mascota, que se acopla encima de este borde. */
   padding-left: 38px;
+}
+
+/* Los bloques que aparecen cuando la tarjeta deja de ser pastilla entran en
+   160ms en vez de sustituirse de golpe. Sólo los dinámicos: los fijos no
+   cambian y animarlos sería un parpadeo en cada apertura. */
+.say,
+.doing,
+.consent,
+.first,
+app-mascot-action-card {
+  animation: mascot-block-in 160ms var(--motion-ease-out, ease-out);
+}
+
+@keyframes mascot-block-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .say,
+  .doing,
+  .consent,
+  .first,
+  app-mascot-action-card {
+    animation: none;
+  }
 }
 
 /* ── Lo que dice ──────────────────────────────────────────────── */
@@ -71,19 +143,34 @@
   min-width: 0;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--ink-1);
+  color: var(--ink);
 }
 
 .say--danger .say__text { color: var(--tui-status-negative, #b04a3e); }
 
 .say__close {
   flex: none;
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
   border: none;
+  border-radius: 50%;
   background: none;
   color: var(--ink-3);
   font-size: 13px;
   cursor: pointer;
-  padding: 2px;
+}
+
+.say__close:hover {
+  background: var(--sunken);
+  color: var(--ink-2);
+}
+
+.say__close:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .consent {
@@ -94,7 +181,7 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--ink-1);
+  color: var(--ink);
 }
 
 .consent__text {
@@ -135,11 +222,18 @@
 
 .chip:hover { background: var(--sunken, #f4f2ee); }
 
+.chip:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .chip--primary {
   background: var(--tui-background-accent-1);
   border-color: transparent;
-  color: #fff;
+  color: var(--tui-text-primary-on-accent-1, #fff);
 }
+
+.chip--primary:hover:not(:disabled) { background: var(--primary-hover); }
 
 /* ── Lo que está haciendo ─────────────────────────────────────── */
 .doing {
@@ -200,7 +294,23 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  max-height: 120px;
   padding: 6px 8px 6px 4px;
+  transition:
+    max-height 280ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    padding 280ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 200ms ease;
+}
+
+/* Mientras trabaja y nadie la usa, la fila de escribir se pliega. */
+.input--folded {
+  max-height: 0;
+  min-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .input textarea {
@@ -215,7 +325,7 @@
   font: inherit;
   font-size: 14px;
   line-height: 1.4;
-  color: var(--ink-1);
+  color: var(--ink);
 }
 
 .input textarea::placeholder { color: var(--ink-3); }
@@ -240,6 +350,11 @@
   padding: 0;
 }
 
+.input__file button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 /* ── Botones redondos ─────────────────────────────────────────── */
 .icon {
   flex: none;
@@ -258,6 +373,11 @@
 
 .icon:hover { background: var(--sunken, #f4f2ee); color: var(--ink-2); }
 
+.icon:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 /* Los iconos dibujados a mano miden como los de la tipografía. */
 .icon__svg {
   width: 16px;
@@ -273,8 +393,10 @@
 
 .icon--send:not(:disabled) {
   background: var(--tui-background-accent-1);
-  color: #fff;
+  color: var(--tui-text-primary-on-accent-1, #fff);
 }
+
+.icon--send:not(:disabled):hover { background: var(--primary-hover); }
 
 .icon--send:disabled { cursor: default; }
 
@@ -284,9 +406,9 @@
 }
 
 .icon--stop {
-  background: var(--ink-1, #1f1d1a);
-  color: #fff;
-  font-size: 11px;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 11.5px;
 }
 
 /* ── Cola ─────────────────────────────────────────────────────── */
@@ -325,6 +447,11 @@
   cursor: pointer;
 }
 
+.queued__act:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 /* ── Historial ────────────────────────────────────────────────── */
 .tray {
   margin: 0 0 10px;
@@ -346,11 +473,27 @@
 .tray__title { font-size: 14px; font-weight: 500; }
 
 .tray__close {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  min-height: 28px;
   margin-left: auto;
+  padding: 0;
   border: none;
+  border-radius: 50%;
   background: none;
   color: var(--ink-3);
   cursor: pointer;
+}
+
+.tray__close:hover {
+  background: var(--sunken);
+  color: var(--ink-2);
+}
+
+.tray__close:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .tray__body {
@@ -368,9 +511,14 @@
 
 .tray__msg--mine {
   text-align: right;
-  color: var(--ink-1);
+  color: var(--ink);
 }
 
 @media (width <= 640px) {
+  :host {
+    right: 16px;
+    bottom: calc(var(--bottom-nav-h, 60px) + 14px + env(safe-area-inset-bottom, 0px));
+  }
+
   .card__body { padding-left: 34px; }
 }

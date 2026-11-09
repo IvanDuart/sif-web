@@ -1,4 +1,4 @@
-import { goToElement, preferredTiming } from '../../mascot/fill/animated-fill';
+import { HIGHLIGHT_ATTR, goToElement, preferredTiming } from '../../mascot/fill/animated-fill';
 import type { MascotFillService } from '../../mascot/fill/mascot-fill.service';
 import type { CursorService } from '../cursor.service';
 import type { ToolResult } from '../client-tool.model';
@@ -59,8 +59,14 @@ export async function runShowAround(
         skipped.push(stop.control);
         continue;
       }
-      if (stop.say !== '') fill.saying.set({ key: 'assistant.tour_saying', values: { text: stop.say } });
-      await fill.wait(STOP_MS);
+      // Cada parada se queda latiendo mientras la mascota la cuenta.
+      found.element.setAttribute(HIGHLIGHT_ATTR, '');
+      try {
+        if (stop.say !== '') fill.saying.set({ key: 'assistant.tour_saying', values: { text: stop.say } });
+        await fill.wait(STOP_MS);
+      } finally {
+        found.element.removeAttribute(HIGHLIGHT_ATTR);
+      }
       visited.push(stop.control);
     }
   } finally {

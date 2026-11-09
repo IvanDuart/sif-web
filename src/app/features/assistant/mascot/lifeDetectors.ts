@@ -35,44 +35,49 @@ export function createClickBurstDetector(
 
 export interface PettingDetector {
   /** Registra dónde está el puntero; `true` cuando este movimiento completa un mimo (el detector empieza de nuevo). */
-  move(x: number, now: number): boolean;
+  move(x: number, now: number, y?: number): boolean;
   reset(): void;
 }
 
-/** Acariciarla: el puntero va y viene por encima, rápido. */
+/** Acariciarla: el puntero va y viene por encima, rápido. En cualquier dirección. */
 export function createPettingDetector(
   config: { reversals: number; windowMs: number; minTravel: number } = PETTING,
 ): PettingDetector {
-  let anchor: number | null = null;
-  let direction = 0;
+  let anchor: { x: number; y: number } | null = null;
+  /** El último rumbo tomado, como vector. Un cambio de signo es un mimo. */
+  let direction: { x: number; y: number } | null = null;
   let reversals: number[] = [];
   const reset = () => {
     anchor = null;
-    direction = 0;
+    direction = null;
     reversals = [];
   };
   return {
     reset,
-    move(x, now) {
+    move(x, now, y = 0) {
       if (anchor === null) {
-        anchor = x;
+        anchor = { x, y };
         return false;
       }
-      const delta = x - anchor;
-      if (direction === 0) {
-        if (Math.abs(delta) >= config.minTravel) {
-          direction = Math.sign(delta);
-          anchor = x;
+      const dx = x - anchor.x;
+      const dy = y - anchor.y;
+      if (direction === null) {
+        if (Math.hypot(dx, dy) >= config.minTravel) {
+          direction = { x: dx, y: dy };
+          anchor = { x, y };
         }
         return false;
       }
-      if (delta * direction > 0) {
-        anchor = x;
+      // Producto escalar: negativo significa que va en contra del rumbo
+      // anterior, en horizontal, vertical o diagonal.
+      const dot = dx * direction.x + dy * direction.y;
+      if (dot >= 0) {
+        anchor = { x, y };
         return false;
       }
-      if (Math.abs(delta) < config.minTravel) return false;
-      direction = -direction;
-      anchor = x;
+      if (Math.hypot(dx, dy) < config.minTravel) return false;
+      direction = { x: -direction.x, y: -direction.y };
+      anchor = { x, y };
       reversals = [...reversals.filter((time) => now - time <= config.windowMs), now];
       if (reversals.length < config.reversals) return false;
       reset();

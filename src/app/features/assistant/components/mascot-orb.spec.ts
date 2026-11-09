@@ -1,4 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NG_EVENT_PLUGINS } from '@taiga-ui/event-plugins';
+
+import { MascotMoodService } from '../mascot/mascot-mood.service';
+import { AWAY_AFTER_MS, MascotLifeService, WELCOME_AFTER_MS } from '../mascot/mascot-life.service';
 
 import { FACES } from '../mascot/skins/faces';
 import { SKIN_IDS, type SkinId } from '../mascot/skins/types';
@@ -14,7 +18,7 @@ describe('MascotOrb: la cara', () => {
   let fixture: ComponentFixture<MascotOrb>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [MascotOrb] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [MascotOrb], providers: [NG_EVENT_PLUGINS] }).compileComponents();
     fixture = TestBed.createComponent(MascotOrb);
     fixture.componentRef.setInput('decorative', true);
     fixture.componentRef.setInput('still', true);
@@ -67,6 +71,87 @@ describe('MascotOrb: la cara', () => {
     for (const id of SKIN_IDS) {
       show(id);
       expect(bars()[0].getAttribute('fill')).withContext(id).toBe(FACES[id].colour);
+    }
+  });
+});
+
+describe('MascotOrb: señales de estado', () => {
+  let fixture: ComponentFixture<MascotOrb>;
+
+  const host = (): HTMLElement => fixture.nativeElement as HTMLElement;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({ imports: [MascotOrb] }).compileComponents();
+    fixture = TestBed.createComponent(MascotOrb);
+    // Decorativo para no arrancar el reloj de ausencia; no quieto, para que
+    // se pinten las señales.
+    fixture.componentRef.setInput('decorative', true);
+    fixture.componentRef.setInput('still', false);
+    fixture.detectChanges();
+  });
+
+  it('en confirm pinta la insignia de pregunta', () => {
+    fixture.componentRef.setInput('mode', 'confirm');
+    fixture.detectChanges();
+
+    expect(host().querySelector('[data-badge="ask"]')?.textContent?.trim()).toBe('?');
+  });
+
+  it('en pausa pinta las dos barras', () => {
+    fixture.componentRef.setInput('mode', 'paused');
+    fixture.detectChanges();
+
+    expect(host().querySelector('[data-badge="paused"]')).not.toBeNull();
+  });
+
+  it('preocupada enseña cejas de disculpa, no el ceño del enfado', () => {
+    const mood = TestBed.inject(MascotMoodService);
+    mood.feel('worried');
+    fixture.detectChanges();
+
+    const brow = host().querySelector<SVGPathElement>('[data-brow]');
+    expect(brow).not.toBeNull();
+    expect(brow?.getAttribute('data-brow-kind')).toBe('sorry');
+    expect(brow?.getAttribute('opacity')).toBe('0.8');
+  });
+
+  it('al cambiar de fruta suelta un destello radial', () => {
+    fixture.componentRef.setInput('skin', 'naranja');
+    fixture.detectChanges();
+    fixture.detectChanges();
+
+    expect(host().querySelector('.mascot-burst')).not.toBeNull();
+  });
+
+  it('tras 120 s sin actividad se marca ausente y al volver tras 5 min saluda', () => {
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date(0));
+    try {
+      const mood = TestBed.inject(MascotMoodService);
+      const life = TestBed.inject(MascotLifeService);
+      const absent = TestBed.createComponent(MascotOrb);
+      absent.componentRef.setInput('decorative', false);
+      absent.componentRef.setInput('still', false);
+      absent.detectChanges();
+
+      jasmine.clock().tick(AWAY_AFTER_MS);
+      absent.detectChanges();
+      expect(life.away()).toBeTrue();
+
+      const attend = spyOn(life, 'attend').and.callThrough();
+      const feel = spyOn(mood, 'feel').and.callThrough();
+      spyOnProperty(document, 'hidden', 'get').and.returnValue(false);
+      jasmine.clock().tick(WELCOME_AFTER_MS);
+      window.dispatchEvent(new Event('pointermove'));
+      absent.detectChanges();
+
+      expect(life.away()).toBeFalse();
+      expect(attend).toHaveBeenCalled();
+      expect(feel).toHaveBeenCalledWith('welcome');
+      expect(mood.mood()?.kind).toBe('welcome');
+      absent.destroy();
+    } finally {
+      jasmine.clock().uninstall();
     }
   });
 });

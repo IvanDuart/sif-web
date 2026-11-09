@@ -6,63 +6,11 @@
       </h2>
       <p class="mt-1 text-[13px] text-surface-400">{{ t('exchange.subtitle') }}</p>
     </div>
-    <button type="button" tuiButton appearance="primary" size="m" (click)="newGroupOpen.set(!newGroupOpen())">
+    <button type="button" tuiButton appearance="primary" size="m" (click)="showGroupForm()">
       <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
       {{ t('exchange.add_group') }}
     </button>
   </header>
-
-  @if (newGroupOpen()) {
-    <section class="data-card">
-      <h3 class="mb-4 text-sm font-bold text-surface-900 dark:text-surface-0">{{ t('exchange.add_group') }}</h3>
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <label class="flex flex-col gap-1.5">
-          <span class="text-[13px] font-medium text-surface-700 dark:text-surface-300">{{ t('exchange.group_code') }}</span>
-          <input
-            type="text"
-            class="rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
-            [(ngModel)]="newCode"
-            placeholder="HC"
-          />
-        </label>
-        <label class="flex flex-col gap-1.5">
-          <span class="text-[13px] font-medium text-surface-700 dark:text-surface-300">{{ t('exchange.group_name') }}</span>
-          <input
-            type="text"
-            class="rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
-            [(ngModel)]="newName"
-            [placeholder]="t('exchange.group_name')"
-          />
-        </label>
-        <label class="flex flex-col gap-1.5">
-          <span class="text-[13px] font-medium text-surface-700 dark:text-surface-300">{{ t('exchange.group_color') }}</span>
-          <input
-            type="color"
-            class="h-10 w-full cursor-pointer rounded-md border border-line bg-surface-0 px-1 dark:bg-surface-900"
-            [(ngModel)]="newColor"
-          />
-        </label>
-      </div>
-      <div class="mt-4 flex justify-end gap-2">
-        <button type="button" tuiButton appearance="secondary" size="m" (click)="newGroupOpen.set(false)">
-          {{ t('common.cancel') }}
-        </button>
-        <button
-          type="button"
-          tuiButton
-          appearance="primary"
-          size="m"
-          [disabled]="savingGroup() || !newCode.trim() || !newName.trim()"
-          (click)="createGroup()"
-        >
-          @if (savingGroup()) {
-            <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>
-          }
-          {{ t('common.save') }}
-        </button>
-      </div>
-    </section>
-  }
 
   <div class="grid grid-cols-1 items-start gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
     <section class="data-card p-3">
@@ -70,7 +18,9 @@
         {{ t('exchange.groups') }}
       </h3>
       @if (loading()) {
-        <p class="px-1 py-4 text-sm text-surface-400">{{ t('common.loading') }}</p>
+        <div class="flex justify-center px-1 py-4">
+          <div class="loading-spinner"></div>
+        </div>
       } @else if (groups().length === 0) {
         <p class="px-1 py-4 text-sm text-surface-400">{{ t('exchange.empty') }}</p>
       } @else {
@@ -100,7 +50,20 @@
     </section>
 
     <section class="data-card">
-      @if (selectedGroup(); as group) {
+      @if (loading()) {
+        <div class="table-loading" role="status" [attr.aria-label]="t('common.loading')">
+          <div class="loading-spinner"></div>
+        </div>
+      } @else if (groups().length === 0) {
+        <app-empty-state
+          icon="fa-solid fa-right-left"
+          [title]="t('exchange.empty')"
+          [description]="t('exchange.empty_description')"
+          [actionLabel]="t('exchange.add_group')"
+          actionIcon="fa-solid fa-plus"
+          (action)="showGroupForm()">
+        </app-empty-state>
+      } @else if (selectedGroup(); as group) {
         <div class="mb-4 flex flex-wrap items-center gap-2">
           <h3 class="font-display text-base font-bold text-surface-900 dark:text-surface-0">{{ group.name }}</h3>
           <span tuiBadge appearance="neutral">{{ group.code }}</span>
@@ -111,44 +74,60 @@
         </h4>
 
         @if (loadingEquivalents()) {
-          <p class="py-3 text-sm text-surface-400">{{ t('common.loading') }}</p>
+          <div class="flex justify-center py-4">
+            <div class="loading-spinner"></div>
+          </div>
         } @else if (equivalents().length === 0) {
-          <p class="py-3 text-sm text-surface-400">{{ t('exchange.no_equivalents') }}</p>
+          <app-empty-state
+            icon="fa-solid fa-scale-balanced"
+            [title]="t('exchange.no_equivalents')"
+            [description]="t('exchange.no_equivalents_description')">
+          </app-empty-state>
         } @else {
           <div class="hidden md:block table-wrapper">
-            <table class="w-full text-sm">
+            <table [attr.aria-label]="t('exchange.equivalents')" tuiTable class="w-full">
               <thead>
-                <tr class="border-b border-line text-left text-[12px] uppercase tracking-wide text-surface-400">
-                  <th class="py-2 pr-3 font-medium">{{ t('exchange.food') }}</th>
-                  <th class="py-2 pr-3 font-medium">{{ t('exchange.household_measure') }}</th>
-                  <th class="py-2 pr-3 text-right font-medium">{{ t('exchange.grams_per_ration') }}</th>
-                  <th class="py-2 text-right font-medium">{{ t('exchange.rations_per_unit') }}</th>
+                <tr>
+                  <th tuiTh scope="col">{{ t('exchange.food') }}</th>
+                  <th tuiTh scope="col">{{ t('exchange.household_measure') }}</th>
+                  <th tuiTh scope="col" class="text-right">{{ t('exchange.grams_per_ration') }}</th>
+                  <th tuiTh scope="col" class="text-right">{{ t('exchange.rations_per_unit') }}</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody tuiTbody>
                 @for (equivalent of equivalents(); track equivalent.id) {
-                  <tr class="border-b border-line/60">
-                    <td class="py-2 pr-3">{{ equivalent.foodName }}</td>
-                    <td class="py-2 pr-3 text-surface-500 dark:text-surface-400">{{ equivalent.householdMeasure || '—' }}</td>
-                    <td class="py-2 pr-3 text-right tabular-nums">{{ equivalent.gramsPerRation }} g</td>
-                    <td class="py-2 text-right tabular-nums">{{ equivalent.rationsPerUnit }}</td>
+                  <tr tuiTr>
+                    <td tuiTd class="font-medium text-surface-900 dark:text-surface-0">{{ equivalent.foodName }}</td>
+                    <td tuiTd class="text-surface-500 dark:text-surface-400">{{ equivalent.householdMeasure || '—' }}</td>
+                    <td tuiTd class="text-right tabular-nums">{{ equivalent.gramsPerRation }} g</td>
+                    <td tuiTd class="text-right tabular-nums">{{ equivalent.rationsPerUnit }}</td>
                   </tr>
                 }
               </tbody>
             </table>
           </div>
 
-          <ul class="divide-y divide-line md:hidden">
+          <div class="space-y-3 md:hidden">
             @for (equivalent of equivalents(); track equivalent.id) {
-              <li class="py-2.5">
-                <p class="text-sm font-medium">{{ equivalent.foodName }}</p>
-                <p class="mt-1 text-[12.5px] tabular-nums text-surface-400">
-                  {{ equivalent.householdMeasure || '—' }} · {{ equivalent.gramsPerRation }} g ·
-                  {{ equivalent.rationsPerUnit }} {{ t('exchange.rations_short') }}
-                </p>
-              </li>
+              <div class="rounded-md border border-line bg-surface-0 p-3 dark:bg-surface-800">
+                <p class="font-medium text-surface-900 dark:text-surface-0">{{ equivalent.foodName }}</p>
+                <dl class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[13px]">
+                  <div class="flex items-center gap-1.5">
+                    <dt class="text-surface-400">{{ t('exchange.household_measure') }}</dt>
+                    <dd class="text-surface-600 dark:text-surface-300">{{ equivalent.householdMeasure || '—' }}</dd>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <dt class="text-surface-400">{{ t('exchange.grams_per_ration') }}</dt>
+                    <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ equivalent.gramsPerRation }} g</dd>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <dt class="text-surface-400">{{ t('exchange.rations_per_unit') }}</dt>
+                    <dd class="tabular-nums text-surface-600 dark:text-surface-300">{{ equivalent.rationsPerUnit }}</dd>
+                  </div>
+                </dl>
+              </div>
             }
-          </ul>
+          </div>
         }
 
         <div class="mt-5 border-t border-line pt-4">
@@ -157,69 +136,75 @@
           </h4>
 
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div class="relative sm:col-span-2">
-              <label class="mb-1.5 block text-[13px] font-medium text-surface-700 dark:text-surface-300">
-                {{ t('exchange.food') }}
-              </label>
-              <input
-                type="search"
-                class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
-                [ngModel]="foodQuery"
-                (ngModelChange)="onFoodQuery($event)"
-                [placeholder]="t('recipes.food_search_placeholder')"
-              />
-              @if (searchingFoods()) {
-                <i class="fa-solid fa-spinner fa-spin absolute bottom-2.5 right-3 text-surface-400" aria-hidden="true"></i>
-              }
-              @if (foodResults().length > 0) {
-                <ul class="absolute z-10 mt-1 max-h-52 w-full overflow-y-auto rounded-md border border-line bg-surface-0 shadow-lg dark:bg-surface-800">
-                  @for (food of foodResults(); track food.id) {
-                    <li>
-                      <button
-                        type="button"
-                        class="w-full px-3 py-2 text-left text-sm hover:bg-surface-100 dark:hover:bg-surface-900"
-                        (click)="chooseFood(food)"
-                      >
-                        {{ food.name }}
-                      </button>
-                    </li>
+            <div
+              class="sm:col-span-2"
+              [tuiDropdown]="foodOptions"
+              tuiDropdownLimitWidth="fixed"
+              [tuiDropdownOpen]="foodResults().length > 0 || searchingFoods()"
+              (tuiDropdownOpenChange)="onFoodDropdownOpenChange($event)">
+              <tui-textfield class="w-full" [tuiTextfieldCleaner]="true">
+                <label tuiLabel for="exchangeFood">{{ t('exchange.food') }}</label>
+                <input
+                  id="exchangeFood"
+                  tuiInput
+                  type="search"
+                  autocomplete="off"
+                  [ngModel]="foodQuery"
+                  (ngModelChange)="onFoodQuery($event)"
+                  (keydown.enter)="chooseFirstFood($event)"
+                  [placeholder]="t('recipes.food_search_placeholder')" />
+              </tui-textfield>
+
+              <ng-template #foodOptions>
+                <tui-data-list>
+                  @if (searchingFoods()) {
+                    <div class="px-3 py-2 text-sm text-surface-400">
+                      <i class="fa-solid fa-spinner fa-spin mr-2" aria-hidden="true"></i>
+                      {{ t('common.loading') }}
+                    </div>
                   }
-                </ul>
-              }
+                  @for (food of foodResults(); track food.id) {
+                    <button tuiOption type="button" (click)="chooseFood(food)">
+                      {{ food.name }}
+                    </button>
+                  }
+                </tui-data-list>
+              </ng-template>
             </div>
 
-            <label class="flex flex-col gap-1.5">
-              <span class="text-[13px] font-medium text-surface-700 dark:text-surface-300">{{ t('exchange.household_measure') }}</span>
+            <tui-textfield class="w-full">
+              <label tuiLabel for="exchangeHousehold">{{ t('exchange.household_measure') }}</label>
               <input
-                type="text"
-                class="rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
+                id="exchangeHousehold"
+                tuiInput
                 [(ngModel)]="householdMeasure"
-                [placeholder]="t('exchange.household_measure_placeholder')"
-              />
-            </label>
+                [placeholder]="t('exchange.household_measure_placeholder')" />
+            </tui-textfield>
 
-            <label class="flex flex-col gap-1.5">
-              <span class="text-[13px] font-medium text-surface-700 dark:text-surface-300">{{ t('exchange.grams_per_ration') }}</span>
+            <tui-textfield class="w-full">
+              <label tuiLabel for="exchangeGrams">{{ t('exchange.grams_per_ration') }}</label>
               <input
+                id="exchangeGrams"
+                tuiInput
                 type="number"
                 min="1"
-                class="rounded-md border border-line bg-surface-0 px-3 py-2 text-sm tabular-nums outline-none focus:border-primary-400 dark:bg-surface-900"
-                [(ngModel)]="gramsPerRation"
-              />
-            </label>
+                class="tabular-nums"
+                [(ngModel)]="gramsPerRation" />
+            </tui-textfield>
 
-            <label class="flex flex-col gap-1.5">
-              <span class="text-[13px] font-medium text-surface-700 dark:text-surface-300">{{ t('exchange.rations_per_unit') }}</span>
+            <tui-textfield class="w-full">
+              <label tuiLabel for="exchangeRations">{{ t('exchange.rations_per_unit') }}</label>
               <input
+                id="exchangeRations"
+                tuiInput
                 type="number"
                 min="0.1"
                 step="0.1"
-                class="rounded-md border border-line bg-surface-0 px-3 py-2 text-sm tabular-nums outline-none focus:border-primary-400 dark:bg-surface-900"
-                [(ngModel)]="rationsPerUnit"
-              />
-            </label>
+                class="tabular-nums"
+                [(ngModel)]="rationsPerUnit" />
+            </tui-textfield>
 
-            <div class="flex items-end justify-end">
+            <div class="flex items-end justify-end sm:justify-end">
               <button
                 type="button"
                 tuiButton
@@ -229,7 +214,7 @@
                 (click)="addEquivalent()"
               >
                 @if (savingEquivalent()) {
-                  <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>
+                  <i class="fa-solid fa-spinner fa-spin mr-1.5" aria-hidden="true"></i>
                 }
                 {{ t('exchange.add_equivalent') }}
               </button>
@@ -237,7 +222,11 @@
           </div>
         </div>
       } @else {
-        <p class="py-8 text-center text-sm text-surface-400">{{ t('exchange.select_group') }}</p>
+        <app-empty-state
+          icon="fa-solid fa-hand-pointer"
+          [title]="t('exchange.select_group')"
+          [description]="t('exchange.select_group_description')">
+        </app-empty-state>
       }
     </section>
   </div>

@@ -433,14 +433,15 @@ export class AppointmentFormDialog implements OnInit, AfterViewInit, OnDestroy {
     const events: object[] = this.buildAgendaBackground(day);
 
     appointments.forEach((a) => {
+      const baseColor = a.typeColor || statusColor(a.status);
       events.push({
         id: a.id,
         title: a.patientName ?? this.transloco.translate('appointments.no_patient'),
         start: a.startTime,
         end: a.endTime,
-        backgroundColor: statusColor(a.status) + '20',
-        borderColor: statusColor(a.status),
-        extendedProps: { status: a.status, typeName: a.typeName }
+        backgroundColor: hexToRgba(baseColor, 0.15),
+        borderColor: baseColor,
+        extendedProps: { status: a.status, typeName: a.typeName, typeColor: a.typeColor }
       });
     });
 

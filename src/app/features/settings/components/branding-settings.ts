@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TuiButton, TuiInput, TuiTextfield, TuiDropdown, TuiFilterByInputPipe } from '@taiga-ui/core';
-import { TuiSwitch, TuiComboBox, TuiDataListWrapper, TuiChevron, TuiFiles, TuiBadge } from '@taiga-ui/kit';
+import { TuiSwitch, TuiComboBox, TuiDataListWrapper, TuiChevron, TuiFiles, TuiBadge, TuiInputColor } from '@taiga-ui/kit';
 import { TenantBrandingService } from '../../../core/api/services/tenant-branding.api';
 import { TenantService } from '../../../core/api/services/tenant.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
@@ -50,7 +50,7 @@ const DEFAULT_PREFERENCES: TenantPreferences = {
   imports: [
     FormsModule, TranslocoDirective, IfPermissionDirective,
     TuiButton, TuiInput, TuiTextfield, TuiDropdown, TuiFilterByInputPipe,
-    TuiSwitch, TuiComboBox, TuiDataListWrapper, TuiChevron, TuiBadge, ...TuiFiles,
+    TuiSwitch, TuiComboBox, TuiDataListWrapper, TuiChevron, TuiBadge, TuiInputColor, ...TuiFiles,
   ],
   templateUrl: `branding-settings.html`
 })

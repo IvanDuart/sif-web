@@ -38,8 +38,9 @@
   flex-direction: column;
   box-sizing: border-box;
   border-radius: 22px;
+  border: 1px solid var(--line);
   background: var(--surface);
-  box-shadow: 0 30px 80px rgb(0 0 0 / 0.35);
+  box-shadow: var(--shadow-float);
   color: var(--ink);
 }
 
@@ -61,7 +62,7 @@
 .wd-eyebrow {
   margin: 0;
   color: var(--accent-text);
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -71,7 +72,8 @@
   margin: 2px 0 0;
   font-family: var(--font-display, inherit);
   font-size: 16px;
-  font-weight: 600;
+  font-weight: var(--display-weight, 700);
+  letter-spacing: var(--display-spacing, -0.02em);
   line-height: 1.3;
 }
 
@@ -121,6 +123,14 @@
   animation: wd-arrive 420ms cubic-bezier(0.2, 0.7, 0.2, 1) 0.95s both;
 }
 
+.wd-model app-mascot-orb {
+  transition: transform 150ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.wd-model--dip app-mascot-orb {
+  transform: scale(0.84);
+}
+
 .wd-arrow {
   position: absolute;
   top: 50%;
@@ -164,7 +174,7 @@
   border-radius: 999px;
   background: var(--primary-soft);
   color: var(--accent-text);
-  font-size: 10px;
+  font-size: 11.5px;
   font-style: normal;
   font-weight: 600;
 }
@@ -245,7 +255,7 @@
 /* En el estante no se mueve nada: eso lo para el propio orb con `still`. */
 
 .wd-thumb__name {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 500;
   line-height: 16px;
 }
@@ -272,7 +282,7 @@
 .wd-extras__label {
   margin: 0 0 8px;
   color: var(--ink-3);
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -305,6 +315,11 @@
   border-color: var(--line-strong);
 }
 
+.wd-chip:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .wd-chip--on {
   border-color: var(--primary);
   background: var(--primary-soft);
@@ -324,7 +339,7 @@
 .wd-hint {
   flex: 1;
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
   text-align: left;
 }
@@ -415,6 +430,20 @@
   }
 }
 
+@media (max-width: 480px) {
+  .wd-shelf {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .wd-thumb__name {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .wd-door {
     display: none;
@@ -424,5 +453,13 @@
   .wd-scrim,
   .wd-model {
     animation: none;
+  }
+
+  .wd-model app-mascot-orb {
+    transition: none;
+  }
+
+  .wd-model--dip app-mascot-orb {
+    transform: none;
   }
 }

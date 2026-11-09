@@ -1,4 +1,4 @@
-import { goToElement, preferredTiming } from '../../mascot/fill/animated-fill';
+import { HIGHLIGHT_ATTR, goToElement, preferredTiming } from '../../mascot/fill/animated-fill';
 import type { MascotFillService } from '../../mascot/fill/mascot-fill.service';
 import type { ToolResult } from '../client-tool.model';
 import { findPointable } from '../pointing';
@@ -30,7 +30,15 @@ export async function runPointAt(
     if (!(await goToElement(found.element, preferredTiming(), fill))) {
       return { ok: false, reason: 'control_gone', control: id };
     }
-    await fill.wait(HOLD_MS);
+    // Se queda latiendo sobre el control mientras lo explica, y lo suelta
+    // pase lo que pase: un resaltado que sobrevive a la tool es una pantalla
+    // que se queda señalando sola.
+    found.element.setAttribute(HIGHLIGHT_ATTR, '');
+    try {
+      await fill.wait(HOLD_MS);
+    } finally {
+      found.element.removeAttribute(HIGHLIGHT_ATTR);
+    }
   } finally {
     fill.end();
   }

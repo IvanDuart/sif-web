@@ -1,16 +1,22 @@
 <div *transloco="let t" class="w-full">
   <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4 mt-2">
-    <tui-textfield tuiChevron>
-      <label tuiLabel for="assignmentScheduleId">{{ t('schedule_settings.select_schedule') }}</label>
-      <input id="assignmentScheduleId" tuiComboBox formControlName="scheduleId" />
-      <tui-data-list-wrapper *tuiDropdown [items]="scheduleLabels() | tuiFilterByInput" />
-    </tui-textfield>
+    <div>
+      <tui-textfield tuiChevron class="w-full">
+        <label tuiLabel for="assignmentScheduleId">{{ t('schedule_settings.select_schedule') }}</label>
+        <input id="assignmentScheduleId" tuiComboBox formControlName="scheduleId" />
+        <tui-data-list-wrapper *tuiDropdown [items]="scheduleLabels() | tuiFilterByInput" />
+      </tui-textfield>
+      <tui-error formControlName="scheduleId" />
+    </div>
 
-    <tui-textfield>
-      <label tuiLabel for="assignmentValidFrom">{{ t('schedule_settings.valid_from') }}</label>
-      <input id="assignmentValidFrom" tuiInputDate formControlName="validFrom" />
-      <tui-calendar *tuiDropdown />
-    </tui-textfield>
+    <div>
+      <tui-textfield class="w-full">
+        <label tuiLabel for="assignmentValidFrom">{{ t('schedule_settings.valid_from') }}</label>
+        <input id="assignmentValidFrom" tuiInputDate formControlName="validFrom" />
+        <tui-calendar *tuiDropdown />
+      </tui-textfield>
+      <tui-error formControlName="validFrom" />
+    </div>
 
     <label class="flex items-center gap-2 cursor-pointer p-2">
       <input
@@ -24,11 +30,14 @@
     </label>
 
     @if (!indefiniteCtrl.value) {
-      <tui-textfield>
-        <label tuiLabel for="assignmentValidTo">{{ t('schedule_settings.valid_to') }}</label>
-        <input id="assignmentValidTo" tuiInputDate formControlName="validTo" />
-        <tui-calendar *tuiDropdown />
-      </tui-textfield>
+      <div>
+        <tui-textfield class="w-full">
+          <label tuiLabel for="assignmentValidTo">{{ t('schedule_settings.valid_to') }}</label>
+          <input id="assignmentValidTo" tuiInputDate formControlName="validTo" />
+          <tui-calendar *tuiDropdown />
+        </tui-textfield>
+        <tui-error formControlName="validTo" />
+      </div>
     }
 
     <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-line">
@@ -37,9 +46,8 @@
       </button>
       <button tuiButton size="m" type="submit" data-mascot-submit="schedule-assignment" [disabled]="form.invalid || saving()">
         @if (saving()) {
-          <i class="fa-solid fa-spinner fa-spin"></i>
+          <i class="fa-solid fa-spinner fa-spin mr-1.5" aria-hidden="true"></i>
         }
-        <i class="fa-solid fa-link mr-1"></i>
         {{ editing() ? t('schedule_settings.update_assignment') : t('schedule_settings.create_assignment') }}
       </button>
     </div>

@@ -196,8 +196,18 @@ export class MascotStateService {
 
   /** El modo visual del orb según lo que está haciendo el asistente. */
   readonly orbMode = computed<MascotMode>(() => {
+    // De lo que manda más a lo que menos: el armario tapa todo; una pausa
+    // detiene el turno; una pregunta espera a la persona; y sólo después lo
+    // que el turno está haciendo por dentro.
+    if (this.wardrobeOpen()) return 'wardrobe';
+    if (this.cursor.paused()) return 'paused';
+    if (this.pendingAction() !== null || this.questions.current() !== null) return 'confirm';
+    if (this.uploading()) return 'reading';
+    if (this.fill.filling() || this.runner.running() !== null) return 'acting';
+    // El remate de un relleno (`done`/`confused`) dura poco y debe verse aunque
+    // el turno multi-paso siga mandando: `sending()` lo taparía entero.
+    if (this.fill.transientMode()) return this.fill.transientMode()!;
     if (this.sending()) return 'thinking';
-    if (this.pendingAction()) return 'confirm';
     if (this.open()) return 'listening';
     return 'idle';
   });
@@ -325,7 +335,26 @@ export class MascotStateService {
    * estaba, además de poder tirar una respuesta a medio leer.
    */
   toggle(): void {
-    if (!this.visible() || this.open()) return;
+    if (!this.visible()) return;
+    if (this.wardrobeOpen() || this.orbMode() === 'confirm') return;
+
+    const mode = this.orbMode();
+    // Trabajando (o en pausa), la mascota es el botón de pausa/reanudar.
+    if (mode === 'acting' || mode === 'thinking' || mode === 'paused') {
+      this.cursor.toggle();
+      return;
+    }
+    // Con algo terminado o celebrando, choca los cinco.
+    if (mode === 'done' || this.mood.mood()?.kind === 'cheer' || this.mood.mood()?.kind === 'highfive') {
+      this.mood.feel('highfive', 700);
+      return;
+    }
+    // En la barra (escuchando/leyendo), la respuesta se escribe en su campo.
+    if (this.open() || mode === 'reading' || mode === 'listening') {
+      this.mood.feel('highfive', 700);
+      document.querySelector<HTMLElement>('[data-mascot-bar-input]')?.focus();
+      return;
+    }
     this.openPanel();
   }
 

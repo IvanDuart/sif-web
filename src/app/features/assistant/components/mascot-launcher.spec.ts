@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
+import { MascotFillService } from '../mascot/fill/mascot-fill.service';
 import { MascotMoodService } from '../mascot/mascot-mood.service';
 import { MascotStateService } from '../mascot-state.service';
 import { MascotLauncher, ORB, beside } from './mascot-launcher';
@@ -74,7 +75,7 @@ describe('las acciones de la nota', () => {
       imports: [
         MascotLauncher,
         TranslocoTestingModule.forRoot({
-          langs: { es: {} },
+          langs: { es: { assistant: { attachment_drop: 'Suéltalo aquí' } } },
           translocoConfig: { availableLangs: ['es'], defaultLang: 'es' },
         }),
       ],
@@ -147,5 +148,150 @@ describe('las acciones de la nota', () => {
     fixture.detectChanges();
 
     expect(host().querySelector('.mascot-note')?.getAttribute('data-tone')).toBe('danger');
+  });
+
+  it('cada pulsación pinta el anillo sobre la mascota', () => {
+    const fill = TestBed.inject(MascotFillService);
+
+    fill.presses.set(1);
+    fixture.detectChanges();
+    expect(host().querySelector('.mascot-press-ring')).not.toBeNull();
+
+    // El contador es la clave: una segunda pulsación vuelve a montar el anillo.
+    fill.presses.set(2);
+    fixture.detectChanges();
+    expect(host().querySelectorAll('.mascot-press-ring').length).toBe(1);
+  });
+
+  it('arrastrar un archivo la asoma, pero sólo se agranda encima del botón', () => {
+    fixture.detectChanges();
+    const fab = host().querySelector<HTMLElement>('.mascot-fab')!;
+    const transform = fab.style.transform;
+    const dataTransfer = { types: ['Files'], files: [] };
+    const dragEvent = (type: string) => {
+      const event = new Event(type, { bubbles: true, cancelable: true });
+      Object.defineProperty(event, 'dataTransfer', { value: dataTransfer });
+      return event;
+    };
+
+    document.dispatchEvent(dragEvent('dragenter'));
+    fixture.detectChanges();
+
+    // El archivo cruza la ventana: se asoma, pero no se agranda todavía.
+    expect(fab.classList).toContain('mascot-fab--file-near');
+    expect(fab.classList).not.toContain('mascot-fab--catching');
+
+    // Ya está ENCIMA de ella: ahora sí abre los brazos.
+    fab.dispatchEvent(dragEvent('dragover'));
+    fixture.detectChanges();
+
+    expect(fab.classList).toContain('mascot-fab--catching');
+    // El escalado vive en el orbe; el viaje y la pose siguen en el botón.
+    expect(fab.style.transform).toBe(transform);
+
+    // Cancelar el arrastre (Escape) termina también el agrandado del botón.
+    document.dispatchEvent(dragEvent('dragend'));
+    fixture.detectChanges();
+    expect(fab.classList).not.toContain('mascot-fab--file-near');
+    expect(fab.classList).not.toContain('mascot-fab--catching');
+
+    // Y soltarlo encima lo limpia igual.
+    document.dispatchEvent(dragEvent('dragenter'));
+    fab.dispatchEvent(dragEvent('dragover'));
+    fixture.detectChanges();
+    expect(fab.classList).toContain('mascot-fab--catching');
+
+    fab.dispatchEvent(dragEvent('drop'));
+    fixture.detectChanges();
+    expect(fab.classList).not.toContain('mascot-fab--catching');
+  });
+
+  it('conserva la transición de 800 ms en la regla base al desacoplarse', () => {
+    fixture.detectChanges();
+
+    const fab = host().querySelector<HTMLElement>('.mascot-fab')!;
+    const style = getComputedStyle(fab);
+
+    expect(style.transitionProperty).toContain('right');
+    expect(style.transitionDuration).toContain('0.8s');
+  });
+
+  it('en modo acting o thinking, pulsarla alterna la pausa del trabajo', () => {
+    const state = TestBed.inject(MascotStateService);
+    const fill = TestBed.inject(MascotFillService);
+    state.config.set({ enabled: true } as never);
+
+    fill.begin();
+    fixture.detectChanges();
+
+    const orb = host().querySelector('app-mascot-orb')!;
+    orb.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(state.cursor.paused()).toBeTrue();
+
+    orb.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(state.cursor.paused()).toBeFalse();
+
+    fill.end();
+  });
+
+  it('el anillo de foco no se queda pintado tras un clic', () => {
+    fixture.detectChanges();
+    const fab = host().querySelector<HTMLElement>('.mascot-fab')!;
+
+    fab.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    expect(fab.hasAttribute('data-pointer-focus')).toBeTrue();
+
+    fab.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true }));
+    expect(fab.hasAttribute('data-pointer-focus')).toBeFalse();
+
+    fab.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    fab.dispatchEvent(new FocusEvent('blur'));
+    expect(fab.hasAttribute('data-pointer-focus')).toBeFalse();
+  });
+
+  it('en reposo, el hover muestra la píldora y un archivo cerca pide que se lo suelten', () => {
+    fixture.detectChanges();
+    const fab = host().querySelector<HTMLElement>('.mascot-fab')!;
+
+    fab.dispatchEvent(new MouseEvent('mouseenter'));
+    fixture.detectChanges();
+    expect(host().querySelector('.mascot-hint')?.textContent).toContain('Nuti');
+
+    fab.dispatchEvent(new MouseEvent('mouseleave'));
+    fixture.detectChanges();
+    expect(host().querySelector('.mascot-hint')).toBeNull();
+
+    const dataTransfer = { types: ['Files'], files: [] };
+    const dragEvent = (type: string) => {
+      const event = new Event(type, { bubbles: true, cancelable: true });
+      Object.defineProperty(event, 'dataTransfer', { value: dataTransfer });
+      return event;
+    };
+    document.dispatchEvent(dragEvent('dragenter'));
+    fixture.detectChanges();
+    expect(host().querySelector('.mascot-hint')?.textContent).toContain('Suéltalo aquí');
+    document.dispatchEvent(dragEvent('dragend'));
+  });
+
+  it('cerca del techo pinta el bocadillo debajo sin sumar un top al viaje', async () => {
+    const fill = TestBed.inject(MascotFillService);
+    const field = fieldAt(400, 10);
+    document.body.appendChild(field);
+    fill.saying.set({ key: 'assistant.fill_writing', values: { field: 'Peso' } });
+    fill.target.set(field);
+
+    for (let tries = 0; tries < 50 && host().querySelector('.mascot-doing--below') === null; tries += 1) {
+      fixture.detectChanges();
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    fixture.detectChanges();
+
+    const bubble = host().querySelector<HTMLElement>('.mascot-doing');
+    expect(bubble?.classList).toContain('mascot-doing--below');
+    // La posición la pone el CSS: un `top` inline se sumaría al translate del viaje.
+    expect(bubble?.style.top).toBe('');
+
+    fill.target.set(null);
+    field.remove();
   });
 });

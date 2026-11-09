@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TuiButton, TuiDialogContext, TuiTextfield, TuiDropdown, TuiFilterByInputPipe, TuiInput } from '@taiga-ui/core';
+import { TuiButton, TuiDialogContext, TuiError, TuiTextfield, TuiDropdown, TuiFilterByInputPipe, TuiInput } from '@taiga-ui/core';
 import { TuiComboBox, TuiDataListWrapper, TuiChevron, TuiInputDate } from '@taiga-ui/kit';
 import { TuiDay } from '@taiga-ui/cdk';
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -18,7 +18,7 @@ import { holidaySurface } from '../../assistant/mascot/fill/surfaces/holiday.sur
   imports: [
     ReactiveFormsModule, TranslocoDirective,
     TuiButton, TuiTextfield, TuiDropdown, TuiFilterByInputPipe, TuiInput,
-    TuiComboBox, TuiDataListWrapper, TuiChevron, TuiInputDate,
+    TuiComboBox, TuiDataListWrapper, TuiChevron, TuiInputDate, TuiError,
   ],
   templateUrl: './holiday-form.dialog.html',
 })
@@ -53,6 +53,7 @@ export class HolidayFormDialog {
   }
 
   save() {
+    this.form.markAllAsTouched();
     if (this.form.invalid) return;
 
     const tenantId = this.tenantCtx.currentTenantId();

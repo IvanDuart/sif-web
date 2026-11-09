@@ -1,12 +1,13 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { NG_EVENT_PLUGINS } from '@taiga-ui/event-plugins';
 
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
 import { FIRST_STEPS_KEY } from '../mascot/first-steps';
+import { MascotFillService } from '../mascot/fill/mascot-fill.service';
 import { QuestionService } from '../copilot/question.service';
 import { MascotStateService } from '../mascot-state.service';
 import { MascotBar } from './mascot-bar';
@@ -221,6 +222,117 @@ describe('MascotBar', () => {
     fixture.detectChanges();
     expect(el('.icon[aria-label="assistant.wardrobe"]')).toBeNull();
     expect(el('.icon[aria-label="assistant.hide"]')).toBeNull();
+  });
+
+  it('al cerrar se enrolla antes de desmontarse, y luego suelta el acople', fakeAsync(() => {
+    openBar();
+    expect(el('.card')).not.toBeNull();
+
+    state.open.set(false);
+    fixture.detectChanges();
+
+    // La tarjeta sigue en el DOM, con la animación de salida.
+    expect(el('.card--leaving')).not.toBeNull();
+    expect(el('.card')).not.toBeNull();
+
+    tick(720);
+    fixture.detectChanges();
+
+    expect(el('.card')).toBeNull();
+    expect(document.documentElement.style.getPropertyValue('--mascot-dock-right')).toBe('');
+  }));
+
+  it('si la mascota sale a trabajar, marca su hueco y pliega la fila de escribir', fakeAsync(() => {
+    const fill = TestBed.inject(MascotFillService);
+    openBar();
+
+    fill.begin();
+    fixture.detectChanges();
+
+    expect(el('.card__dock-ghost')).not.toBeNull();
+    expect(el('.input--folded')).not.toBeNull();
+
+    // El puntero sobre la tarjeta la despliega.
+    el('.card')!.dispatchEvent(new MouseEvent('mouseenter'));
+    fixture.detectChanges();
+    expect(el('.input--folded')).toBeNull();
+
+    fill.end();
+  }));
+
+  it('no oscila cuando el campo cae en la franja que descubre la compactación', fakeAsync(() => {
+    const fill = TestBed.inject(MascotFillService);
+    const vw = document.documentElement.clientWidth;
+    const vh = document.documentElement.clientHeight;
+    const component = fixture.componentInstance as unknown as { compact(): boolean };
+
+    // Un campo cuyo borde derecho queda entre el borde de la barra a 560 y a
+    // 400: con el ancho compacto dejaría de solapar y la barra volvería a
+    // crecer. Es justo la franja que provoca la oscilación.
+    const target = document.createElement('div');
+    target.getBoundingClientRect = () =>
+      ({ left: vw - 500, top: vh - 100, width: 40, height: 30, right: vw - 460, bottom: vh - 70 }) as DOMRect;
+
+    state.sending.set(true);
+    fixture.detectChanges();
+
+    const card = el('.card') as HTMLElement;
+    card.getBoundingClientRect = () => {
+      const width = component.compact() ? 400 : 560;
+      return {
+        left: vw - width - 24,
+        top: vh - 224,
+        width,
+        height: 200,
+        right: vw - 24,
+        bottom: vh - 24,
+      } as DOMRect;
+    };
+
+    fill.target.set(target);
+    fixture.detectChanges();
+    TestBed.tick();
+    fixture.detectChanges();
+
+    expect(component.compact()).toBeTrue();
+
+    // Otra medición, ya con la tarjeta a 400: el ancho de referencia sigue
+    // siendo el completo y no se vuelve a crecer.
+    state.queued.set(['otra instrucción']);
+    fixture.detectChanges();
+    TestBed.tick();
+    fixture.detectChanges();
+
+    expect(component.compact()).toBeTrue();
+
+    fill.end();
+    state.queued.set([]);
+  }));
+
+  it('enfocar la tarjeta también despliega la fila plegada', fakeAsync(() => {
+    const fill = TestBed.inject(MascotFillService);
+    openBar();
+    fill.begin();
+    fixture.detectChanges();
+    expect(el('.input--folded')).not.toBeNull();
+
+    el('.card')!.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    fixture.detectChanges();
+    expect(el('.input--folded')).toBeNull();
+
+    fill.end();
+  }));
+
+  it('cuando se compacta, el host y la tarjeta llevan su clase', () => {
+    openBar();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.classList.contains('is-compact')).toBeFalse();
+
+    (fixture.componentInstance as unknown as { compact: { set(value: boolean): void } }).compact.set(true);
+    fixture.detectChanges();
+
+    expect(host.classList.contains('is-compact')).toBeTrue();
+    expect(el('.card')!.classList.contains('card--compact')).toBeTrue();
   });
 
   it('enviar está apagado hasta que hay algo que enviar', () => {

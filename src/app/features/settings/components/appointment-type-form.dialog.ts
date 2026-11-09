@@ -1,13 +1,14 @@
-import { Component, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { TuiInput, TuiTextfield, TuiLabel, TuiButton, TuiDialogContext } from '@taiga-ui/core';
-import { TuiSwitch } from '@taiga-ui/kit';
+import { Component, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { TuiButton, TuiDialogContext, TuiError, TuiInput, TuiLabel, TuiTextfield } from '@taiga-ui/core';
+import { TuiInputColor, TuiSwitch } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AppointmentTypeService } from '../../../core/api/services/appointment-type.api';
 import { TenantContextService } from '../../../core/tenant/tenant-context.service';
 import { NotificationService } from '../../../core/ui';
 import { AppointmentTypeDto } from '../../../core/api/models/appointment-type.model';
-import { bindingAccess } from '../../assistant/mascot/fill/descriptor';
+import { formAccess } from '../../assistant/mascot/fill/descriptor';
 import { MascotFillService } from '../../assistant/mascot/fill/mascot-fill.service';
 import { APPOINTMENT_TYPE_SURFACE } from '../../assistant/mascot/fill/surfaces/appointment-type.surface';
 
@@ -18,76 +19,95 @@ export interface AppointmentTypeFormDialogInput {
 @Component({
   selector: 'app-appointment-type-form-dialog',
   standalone: true,
-  imports: [FormsModule, TuiInput, TuiTextfield, TuiLabel, TuiButton, TuiSwitch],
+  imports: [
+    ReactiveFormsModule,
+    TranslocoDirective,
+    TuiInput,
+    TuiTextfield,
+    TuiLabel,
+    TuiButton,
+    TuiSwitch,
+    TuiError,
+    TuiInputColor,
+  ],
   templateUrl: './appointment-type-form.dialog.html'
 })
 export class AppointmentTypeFormDialog {
+  private readonly fb = inject(FormBuilder);
   private readonly appointmentTypeService = inject(AppointmentTypeService);
   private readonly tenantCtx = inject(TenantContextService);
   private readonly notify = inject(NotificationService);
+  private readonly transloco = inject(TranslocoService);
   readonly context = injectContext<TuiDialogContext<boolean, AppointmentTypeFormDialogInput>>();
 
-  editing = false;
-  typeId: string | null = null;
-  name = '';
-  durationMinutes: number | null = null;
-  price: number | null = null;
-  isDefault = false;
+  readonly saving = signal(false);
+  readonly editing = signal(false);
+  private typeId: string | null = null;
+
+  readonly form = this.fb.group({
+    name: ['', Validators.required],
+    durationMinutes: [null as number | null, [Validators.required, Validators.min(1), Validators.max(480)]],
+    price: [null as number | null, [Validators.min(0)]],
+    isDefault: [false],
+    color: ['#3B82F6', Validators.required],
+  });
 
   constructor() {
-    // Mientras el diálogo esté abierto, la mascota puede rellenarlo. No es un
-    // formulario reactivo: son propiedades con `[(ngModel)]`.
-    inject(MascotFillService).register(
-      APPOINTMENT_TYPE_SURFACE,
-      bindingAccess({
-        name: { get: () => this.name, set: (value) => (this.name = String(value ?? '')) },
-        durationMinutes: {
-          get: () => this.durationMinutes,
-          set: (value) => (this.durationMinutes = value === null ? null : Number(value)),
-        },
-        price: {
-          get: () => this.price,
-          set: (value) => (this.price = value === null ? null : Number(value)),
-        },
-        isDefault: { get: () => this.isDefault, set: (value) => (this.isDefault = value === true) },
-      }),
-    );
+    // Mientras el diálogo esté abierto, la mascota puede rellenarlo.
+    inject(MascotFillService).register(APPOINTMENT_TYPE_SURFACE, formAccess(this.form));
 
     const data = this.context.data;
     if (data?.appointmentType) {
       const at: AppointmentTypeDto = data.appointmentType;
-      this.editing = true;
+      this.editing.set(true);
       this.typeId = at.id;
-      this.name = at.name;
-      this.durationMinutes = at.durationMinutes;
-      this.price = at.price;
-      this.isDefault = at.isDefault;
+      this.form.patchValue({
+        name: at.name,
+        durationMinutes: at.durationMinutes,
+        price: at.price,
+        isDefault: at.isDefault,
+        color: at.color || '#3B82F6',
+      });
     }
   }
 
   save() {
-    const tenantId = this.tenantCtx.currentTenantId();
-    if (!tenantId || !this.name || !this.durationMinutes) return;
+    if (this.saving()) return;
 
+    this.form.markAllAsTouched();
+    if (this.form.invalid) return;
+
+    const tenantId = this.tenantCtx.currentTenantId();
+    if (!tenantId) return;
+
+    const raw = this.form.getRawValue();
     const request = {
-      name: this.name,
-      durationMinutes: this.durationMinutes,
-      price: this.price ?? 0,
-      isDefault: this.isDefault
+      name: raw.name as string,
+      durationMinutes: raw.durationMinutes as number,
+      price: raw.price ?? 0,
+      isDefault: raw.isDefault ?? false,
+      color: raw.color || '#3B82F6',
     };
 
-    const obs = this.editing && this.typeId
-      ? this.appointmentTypeService.update(tenantId, this.typeId, request)
+    const isEditing = this.editing() && !!this.typeId;
+    const obs = isEditing
+      ? this.appointmentTypeService.update(tenantId, this.typeId as string, request)
       : this.appointmentTypeService.create(tenantId, request);
 
+    this.saving.set(true);
     obs.subscribe({
       next: () => {
-        this.notify.success(this.editing ? 'Tipo de cita actualizado' : 'Tipo de cita creado');
+        this.notify.success(
+          this.transloco.translate(
+            isEditing ? 'appointment_types.update_success' : 'appointment_types.create_success'
+          )
+        );
         this.context.$implicit.next(true);
         this.context.$implicit.complete();
       },
       error: () => {
-        this.notify.error('No se pudo guardar el tipo de cita');
+        this.saving.set(false);
+        this.notify.error(this.transloco.translate('common.error'));
       }
     });
   }

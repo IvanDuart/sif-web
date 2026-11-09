@@ -1,5 +1,6 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 
+import type { MascotMode } from '../mascot-life.service';
 import type { FieldAccess, FillField, FillOpener, FillSurface, MascotAction } from './descriptor';
 
 /** Un formulario montado, con cómo se escribe en él. */
@@ -36,8 +37,14 @@ export class MascotFillService {
   readonly saying = signal<{ key: string; values?: Record<string, string> } | null>(null);
   /** Sube en cada pulsación, para que el anillo se repita aunque sean dos seguidas. */
   readonly presses = signal(0);
+  /**
+   * Un estado expresivo breve (`done`, `confused`) que se pinta al terminar un
+   * relleno aunque el turno siga vivo. Se limpia solo.
+   */
+  readonly transientMode = signal<MascotMode | null>(null);
 
   private skipped = false;
+  private transientTimer: ReturnType<typeof setTimeout> | undefined;
   private readonly waiting = new Set<() => void>();
 
   // ── El registro ─────────────────────────────────────────────────────
@@ -223,7 +230,16 @@ export class MascotFillService {
    * Lo limpia `end()`, al terminar cada relleno.
    */
   begin(): void {
+    clearTimeout(this.transientTimer);
+    this.transientMode.set(null);
     this.filling.set(true);
+  }
+
+  /** Deja un modo expresivo durante `ms` y vuelve al que toque por sí solo. */
+  flashMode(mode: MascotMode, ms: number): void {
+    clearTimeout(this.transientTimer);
+    this.transientMode.set(mode);
+    this.transientTimer = setTimeout(() => this.transientMode.set(null), ms);
   }
 
   /** Lo deja: la mascota vuelve a su esquina y suelta el campo. */
@@ -232,6 +248,8 @@ export class MascotFillService {
     this.target.set(null);
     this.saying.set(null);
     this.skipped = false;
+    // El anillo de la última pulsación no debe quedarse latiendo para siempre.
+    this.presses.set(0);
     for (const resume of [...this.waiting]) resume();
     this.waiting.clear();
   }

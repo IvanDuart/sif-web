@@ -12,10 +12,12 @@ import { ScheduleFormDialog, ScheduleFormDialogInput } from './schedule-form.dia
 import { HolidayFormDialog } from './holiday-form.dialog';
 import { AssignmentFormDialog, AssignmentFormDialogInput } from './assignment-form.dialog';
 import { TuiTabs, TuiBadge } from '@taiga-ui/kit';
-import { TuiButton } from '@taiga-ui/core';
+import { TuiButton, TuiDataList, TuiDropdown } from '@taiga-ui/core';
 import { TuiTable } from '@taiga-ui/addon-table';
+import { EmptyState } from '../../../shared/ui/empty-state';
 
-const DAY_NAMES = ['', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+/** Abreviaturas de día tal y como se traducen; el índice 0 no se usa. */
+const DAY_KEYS = ['', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
 /** Las sub-pestañas, por nombre: es lo que llega en `?section=`. */
 const SUB_TABS = ['schedules', 'assignments', 'holidays'] as const;
@@ -23,7 +25,7 @@ const SUB_TABS = ['schedules', 'assignments', 'holidays'] as const;
 @Component({
   selector: 'app-schedule-settings',
   standalone: true,
-  imports: [TranslocoDirective, DatePipe, TuiTabs, TuiButton, TuiTable, TuiBadge],
+  imports: [TranslocoDirective, DatePipe, TuiTabs, TuiButton, TuiTable, TuiBadge, TuiDataList, TuiDropdown, EmptyState],
   templateUrl: './schedule-settings.html',
 })
 export class ScheduleSettings implements OnInit {
@@ -34,8 +36,6 @@ export class ScheduleSettings implements OnInit {
   private readonly confirm = inject(ConfirmService);
   private readonly notify = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
-
-  readonly dayNames = DAY_NAMES;
 
   activeSubTab = 0;
 
@@ -92,7 +92,9 @@ export class ScheduleSettings implements OnInit {
 
   getActiveDays(details: ScheduleDto['details']): string {
     const days = [...new Set(details.map(d => d.dayOfWeek))].sort();
-    return days.map(d => DAY_NAMES[d]).join(', ');
+    return days
+      .map(d => this.transloco.translate(`schedule_settings.${DAY_KEYS[d]}`))
+      .join(', ');
   }
 
   showScheduleForm(schedule?: ScheduleDto) {

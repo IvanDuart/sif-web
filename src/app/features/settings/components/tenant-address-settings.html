@@ -20,8 +20,8 @@
       </div>
     }
     @if (loading()) {
-      <div class="flex items-center justify-center py-8">
-        <i class="fa-solid fa-spinner fa-spin text-ink-accent text-xl" aria-hidden="true"></i>
+      <div class="flex items-center justify-center py-8" role="status" [attr.aria-label]="t('common.loading')">
+        <div class="loading-spinner"></div>
       </div>
     } @else {
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -52,9 +52,10 @@
       <div class="mt-6 flex justify-end border-t border-line pt-5">
         <button tuiButton appearance="primary" size="m" type="button" data-mascot-submit="tenant-profile" [disabled]="saving()" (click)="save()">
           @if (saving()) {
-            <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>
+            <i class="fa-solid fa-spinner fa-spin mr-1.5" aria-hidden="true"></i>
+          } @else {
+            <i class="fa-solid fa-floppy-disk mr-1.5" aria-hidden="true"></i>
           }
-          <i class="fa-solid fa-floppy-disk mr-1" aria-hidden="true"></i>
           {{ t('common.save') }}
         </button>
       </div>

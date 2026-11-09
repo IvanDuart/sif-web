@@ -250,7 +250,8 @@
             <div class="flex max-h-[560px] flex-col gap-2 overflow-y-auto">
               @for (appt of todayAppointments(); track appt.id) {
                 <article
-                  class="rounded-sm border border-line bg-surface-50 p-3 transition-colors hover:border-line-strong dark:bg-surface-800"
+                  class="rounded-sm border border-line border-l-[3px] bg-surface-50 p-3 transition-colors hover:border-line-strong dark:bg-surface-800"
+                  [style.border-left-color]="appt.typeColor || null"
                 >
                   <div class="flex items-start justify-between gap-3">
                     <div class="flex min-w-0 items-center gap-2.5">

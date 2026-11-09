@@ -1,63 +1,102 @@
-<div class="flex flex-col gap-4 mt-2">
-  <tui-textfield class="w-full">
-    <label tuiLabel for="typeName">Nombre</label>
-    <input
-      id="typeName"
-      tuiInput
-      data-mascot-field="appointment-type.name" [(ngModel)]="name" />
-  </tui-textfield>
+<div *transloco="let t" class="w-full">
+  <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4 mt-2">
+    <div>
+      <tui-textfield class="w-full">
+        <label tuiLabel for="typeName">{{ t('appointment_types.name') }}</label>
+        <input
+          id="typeName"
+          tuiInput
+          formControlName="name"
+          data-mascot-field="appointment-type.name" />
+      </tui-textfield>
+      <tui-error formControlName="name" />
+    </div>
 
-  <tui-textfield class="w-full">
-    <label tuiLabel for="typeDuration">Duración (minutos)</label>
-    <input
-      id="typeDuration"
-      tuiInput
-      type="number"
-      data-mascot-field="appointment-type.durationMinutes" [(ngModel)]="durationMinutes"
-      min="1"
-      max="480"
-      step="5"
-      class="tabular-nums" />
-  </tui-textfield>
+    <div>
+      <tui-textfield class="w-full">
+        <label tuiLabel for="typeDuration">{{ t('appointment_types.duration') }}</label>
+        <input
+          id="typeDuration"
+          tuiInput
+          type="number"
+          formControlName="durationMinutes"
+          data-mascot-field="appointment-type.durationMinutes"
+          min="1"
+          max="480"
+          step="5"
+          class="tabular-nums" />
+      </tui-textfield>
+      <tui-error formControlName="durationMinutes" />
+    </div>
 
-  <tui-textfield class="w-full">
-    <label tuiLabel for="typePrice">Precio (€)</label>
-    <input
-      id="typePrice"
-      tuiInput
-      type="number"
-      data-mascot-field="appointment-type.price" [(ngModel)]="price"
-      min="0"
-      step="0.01"
-      placeholder="50.00"
-      class="tabular-nums" />
-  </tui-textfield>
+    <div>
+      <tui-textfield class="w-full">
+        <label tuiLabel for="typePrice">{{ t('appointment_types.price') }}</label>
+        <input
+          id="typePrice"
+          tuiInput
+          type="number"
+          formControlName="price"
+          data-mascot-field="appointment-type.price"
+          min="0"
+          step="0.01"
+          placeholder="50.00"
+          class="tabular-nums" />
+      </tui-textfield>
+      <tui-error formControlName="price" />
+    </div>
 
-  <div class="flex items-center gap-3 py-1">
-    <input
-      id="isDefault"
-      type="checkbox"
-      tuiSwitch
-      data-mascot-field="appointment-type.isDefault" [(ngModel)]="isDefault" />
-    <label for="isDefault" class="text-sm font-medium text-surface-700 dark:text-surface-300 cursor-pointer">
-      Tipo predeterminado
-    </label>
-  </div>
+    <tui-textfield class="w-full">
+      <label tuiLabel for="typeColor">{{ t('appointment_types.color') }}</label>
+      <input
+        id="typeColor"
+        tuiInputColor
+        formControlName="color"
+        data-mascot-field="appointment-type.color"
+        placeholder="#3B82F6" />
+      <datalist id="appointmentTypeColors">
+        <option value="#4F46E5"></option>
+        <option value="#EF4444"></option>
+        <option value="#10B981"></option>
+        <option value="#F59E0B"></option>
+        <option value="#3B82F6"></option>
+        <option value="#8B5CF6"></option>
+        <option value="#EC4899"></option>
+        <option value="#06B6D4"></option>
+      </datalist>
+    </tui-textfield>
 
-  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-line">
-    <button
-      tuiButton
-      appearance="secondary"
-      size="m"
-      (click)="context.$implicit.complete()">
-      Cancelar
-    </button>
-    <button
-      tuiButton
-      size="m"
-      [disabled]="!name || !durationMinutes"
-      (click)="save()">
-      {{ editing ? 'Actualizar' : 'Crear' }}
-    </button>
-  </div>
+    <div class="flex items-center gap-3 py-1">
+      <input
+        id="isDefault"
+        type="checkbox"
+        tuiSwitch
+        formControlName="isDefault"
+        data-mascot-field="appointment-type.isDefault" />
+      <label for="isDefault" class="text-sm font-medium text-surface-700 dark:text-surface-300 cursor-pointer">
+        {{ t('appointment_types.default_type') }}
+      </label>
+    </div>
+
+    <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-line">
+      <button
+        tuiButton
+        appearance="secondary"
+        size="m"
+        type="button"
+        (click)="context.$implicit.complete()">
+        {{ t('common.cancel') }}
+      </button>
+      <button
+        tuiButton
+        size="m"
+        type="submit"
+        [disabled]="form.invalid || saving()">
+        @if (saving()) {
+          <i class="fa-solid fa-spinner fa-spin mr-1.5" aria-hidden="true"></i>
+        }
+        {{ t('common.save') }}
+      </button>
+    </div>
+  </form>
 </div>

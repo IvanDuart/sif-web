@@ -119,6 +119,111 @@
 }
 
 /* Las orejas: dos triángulos con la parte de atrás del cuerpo. */
+/* El destello al cambiar de fruta: un halo cálido que se expande y se apaga. */
+.mascot-burst {
+  position: absolute;
+  inset: -6px;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 196 120 / 0.75), rgb(255 196 120 / 0) 68%);
+  pointer-events: none;
+  animation: mascot-skin-burst 750ms ease-out both;
+}
+
+@keyframes mascot-skin-burst {
+  from {
+    transform: scale(0.2);
+    opacity: 1;
+  }
+
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* Señales de estado encima de la cabeza: pregunta o pausa. */
+.mascot-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+}
+
+.mascot-badge--ask {
+  background: #44d297;
+  color: #1b272c;
+  border: 2px solid #fff;
+  font: 700 11px/1 var(--font-ui, system-ui, sans-serif);
+}
+
+.mascot-badge--paused {
+  gap: 2px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+
+.mascot-badge--paused i {
+  width: 2.5px;
+  height: 8px;
+  border-radius: 1px;
+  background: var(--primary, #1c57a5);
+}
+
+.mascot-pop {
+  animation: mascot-pop 220ms ease-out;
+}
+
+@keyframes mascot-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Las orejas se despistan de vez en cuando, cada una a su ritmo. */
+:host(:not(.is-still)) .mascot-ear {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mascot-ear-twitch 7s ease-in-out infinite;
+}
+
+:host(:not(.is-still)) .mascot-ear:nth-child(2) {
+  animation-duration: 9s;
+  animation-delay: 2.5s;
+}
+
+@keyframes mascot-ear-twitch {
+  0%,
+  86%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  90% {
+    transform: rotate(6deg);
+  }
+
+  94% {
+    transform: rotate(-3deg);
+  }
+
+  97% {
+    transform: rotate(2deg);
+  }
+}
+
 /* Lo que flota alrededor. Posiciones en px del orb de 48. */
 .mascot-heart,
 .mascot-star,
@@ -243,5 +348,11 @@
   .mascot-face-spiral-layer,
   .mascot-face-brow {
     transition: none;
+  }
+
+  .mascot-burst,
+  .mascot-pop,
+  .mascot-ear {
+    animation: none;
   }
 }

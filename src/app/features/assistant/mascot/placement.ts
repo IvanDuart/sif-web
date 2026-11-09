@@ -88,6 +88,46 @@ export function orbBeside(field: Box, viewport: Viewport, avoid: readonly Box[] 
 }
 
 /**
+ * Hacia dónde mira mientras atiende ese campo: `1` a la derecha, `-1` a la
+ * izquierda. Es lo que hace que no se quede mirando al frente mientras escribe
+ * en un control que tiene al lado.
+ */
+export function lookSide(spot: Spot, field: Box): -1 | 1 {
+  const fieldCentre = field.left + field.width / 2;
+  return fieldCentre >= spot.left + ORB / 2 ? 1 : -1;
+}
+
+/**
+ * ¿El campo activo cae debajo de la barra? Si es así, la barra se encoge para
+ * no tapar lo que la persona está mirando.
+ *
+ * La barra vive anclada abajo a la derecha: se calcula su caja a partir del
+ * tamaño medido y del margen de la esquina. Geometría pura, como el resto.
+ */
+export function overlapsBar(
+  field: Box,
+  bar: { width: number; height: number },
+  viewport: Viewport,
+): boolean {
+  const left = viewport.width - bar.width - REST;
+  const top = viewport.height - bar.height - REST;
+  return field.top + field.height > top && field.left + field.width > left && field.left < viewport.width - REST;
+}
+
+/**
+ * Hacia dónde mirar mientras atiende un campo: un vector corto (como mucho 4 px
+ * en horizontal y 3 en vertical) hacia el centro de su primera línea. Es lo que
+ * hace que los ojos sigan lo que se escribe en vez de mirar al frente.
+ */
+export function gazeToward(spot: Spot, field: Box | null): { dx: number; dy: number } {
+  if (!field) return { dx: 0, dy: 0 };
+  const vx = field.left + field.width / 2 - (spot.left + ORB / 2);
+  const vy = field.top + Math.min(field.height, FIRST_LINE) / 2 - (spot.top + ORB / 2);
+  const length = Math.hypot(vx, vy) || 1;
+  return { dx: Math.round((vx / length) * 4), dy: Math.round((vy / length) * 3) };
+}
+
+/**
  * El desplazamiento desde su sitio de siempre, que es lo que entiende el
  * `transform` del botón: se mueve con una transición, sin recolocarse.
  */
