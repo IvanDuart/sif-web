@@ -57,7 +57,7 @@ Archivos **creados**:
 Archivo **modificado**:
 
 - `src/main/java/com/carajillolabs/tusdietas/config/SecurityConfig.java`
-  — Se añadió `/api/v1/app/version` a la `WHITE_LIST` para permitir el acceso
+  — Se añadió `/v1/app/version` a la `WHITE_LIST` para permitir el acceso
   público al `GET`.
 
 **Nota de seguridad:** no se modificó `HasAccess.java`. Se reutiliza el método

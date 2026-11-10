@@ -11,6 +11,26 @@
     </div>
     <div class="flex flex-wrap items-center gap-2.5 lg:ml-auto">
       <button
+        *appIfPermission="'MANAGE_APP_VERSION'"
+        tuiButton
+        appearance="secondary"
+        size="m"
+        type="button"
+        (click)="showAppVersionDialog()">
+        <i class="fa-solid fa-mobile-screen mr-1" aria-hidden="true"></i>
+        {{ t('admin.app_version.button') }}
+        @if (appVersion(); as v) {
+          <span class="ml-1.5 font-mono text-xs opacity-75">v{{ v.latestVersion }}</span>
+          <span
+            tuiBadge
+            size="s"
+            class="ml-1"
+            [appearance]="v.mandatoryUpdate ? 'warning' : 'neutral'">
+            {{ v.mandatoryUpdate ? t('admin.app_version.mandatory_badge') : t('admin.app_version.optional_badge') }}
+          </span>
+        }
+      </button>
+      <button
         tuiButton
         appearance="primary"
         size="m"

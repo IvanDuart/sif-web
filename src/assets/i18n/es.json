@@ -1907,6 +1907,22 @@
     "tenant_save_error": "No se pudieron guardar las propiedades del centro.",
     "tenant_name_required": "El nombre del centro es obligatorio.",
     "currency_invalid": "La moneda debe ser un código ISO de 3 letras (p. ej. EUR).",
+    "app_version": {
+      "button": "Versión app móvil",
+      "dialog_title": "Control de versión de la app móvil",
+      "latest_version": "Última versión publicada",
+      "latest_version_placeholder": "1.0.0+1",
+      "latest_version_hint": "Formato recomendado: MAJOR.MINOR.PATCH+build (ej. 1.2.0+15)",
+      "latest_version_error": "El formato debe ser válido (ej. 1.0.0 o 1.0.0+1)",
+      "mandatory_update": "Actualización obligatoria",
+      "mandatory_update_hint": "Si se activa, los pacientes con versiones anteriores no podrán acceder a la app hasta actualizarla desde App Store o Google Play.",
+      "mandatory_badge": "Obligatoria",
+      "optional_badge": "Opcional",
+      "last_updated": "Última actualización: {{ date }}",
+      "load_error": "No se pudo cargar la versión actual de la app móvil.",
+      "success_notify": "Versión de la app móvil actualizada con éxito",
+      "error_notify": "No se pudo actualizar la versión de la app móvil"
+    },
     "billing": {
       "title": "Facturación",
       "count": "{{total}} centros",

@@ -11,7 +11,9 @@ import { TuiBadge, TuiChevron, TuiDataListWrapper, TuiSelect } from '@taiga-ui/k
 import { TuiTable } from '@taiga-ui/addon-table';
 import { TenantService } from '../../../core/api/services/tenant.api';
 import { PlatformBillingService } from '../../../core/api/services/platform-billing.api';
+import { AppVersionService } from '../../../core/api/services/app-version.api';
 import { Tenant } from '../../../core/api/models/tenant.model';
+import { AppVersionDto } from '../../../core/api/models/app-version.model';
 import { Page } from '../../../core/api/models/page.model';
 import {
   BILLING_STATUSES,
@@ -21,8 +23,10 @@ import {
 import { AuthService } from '../../../core/auth/auth.service';
 import { superAdminMembership } from '../../../core/api/models/user.model';
 import { NotificationService, ModalService } from '../../../core/ui';
+import { IfPermissionDirective } from '../../../core/permissions/if-permission.directive';
 import { EmptyState } from '../../../shared/ui/empty-state';
 import { CreateTenantDialog } from '../create-tenant.dialog';
+import { AppVersionDialog } from '../app-version.dialog';
 
 /** Opción «todos» del filtro de estado. No es un `BillingStatus` real. */
 const ALL = 'ALL';
@@ -55,12 +59,14 @@ export type AdminTenantRow = Tenant & {
     TuiSelect,
     TuiTable,
     EmptyState,
+    IfPermissionDirective,
   ],
   templateUrl: './admin-dashboard.component.html',
 })
 export class AdminDashboardComponent implements OnInit {
   private readonly tenantService = inject(TenantService);
   private readonly billingApi = inject(PlatformBillingService);
+  private readonly appVersionService = inject(AppVersionService);
   private readonly authService = inject(AuthService);
   private readonly modal = inject(ModalService);
   private readonly notify = inject(NotificationService);
@@ -70,6 +76,7 @@ export class AdminDashboardComponent implements OnInit {
   readonly tenants = signal<AdminTenantRow[]>([]);
   readonly loading = signal(false);
   readonly totalRecords = signal(0);
+  readonly appVersion = signal<AppVersionDto | null>(null);
 
   readonly searchControl = new FormControl('', { nonNullable: true });
   readonly statusControl = new FormControl<string>(ALL, { nonNullable: true });
@@ -112,6 +119,18 @@ export class AdminDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadTenants();
+    this.loadAppVersion();
+  }
+
+  /**
+   * La versión es informativa en esta pantalla: si el `GET` falla, el botón
+   * sigue abriendo el diálogo y es allí donde se cuenta el problema.
+   */
+  loadAppVersion(): void {
+    this.appVersionService
+      .getVersion()
+      .pipe(catchError(() => of(null)))
+      .subscribe((version) => this.appVersion.set(version));
   }
 
   /**
@@ -219,6 +238,17 @@ export class AdminDashboardComponent implements OnInit {
       style: 'currency',
       currency: currency || 'EUR',
     }).format((cents ?? 0) / 100);
+  }
+
+  showAppVersionDialog(): void {
+    this.modal
+      .open<AppVersionDto | null, void>(AppVersionDialog, {
+        label: this.transloco.translate('admin.app_version.dialog_title'),
+        size: 'm',
+      })
+      .subscribe((updated) => {
+        if (updated) this.appVersion.set(updated);
+      });
   }
 
   showCreateDialog(): void {

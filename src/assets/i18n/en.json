@@ -1847,6 +1847,22 @@
     "tenant_save_error": "Could not save center properties.",
     "tenant_name_required": "The center name is required.",
     "currency_invalid": "Currency must be a 3-letter ISO code (e.g. EUR).",
+    "app_version": {
+      "button": "Mobile app version",
+      "dialog_title": "Mobile app version control",
+      "latest_version": "Latest published version",
+      "latest_version_placeholder": "1.0.0+1",
+      "latest_version_hint": "Recommended format: MAJOR.MINOR.PATCH+build (e.g. 1.2.0+15)",
+      "latest_version_error": "The format must be valid (e.g. 1.0.0 or 1.0.0+1)",
+      "mandatory_update": "Mandatory update",
+      "mandatory_update_hint": "If enabled, patients on older versions won't be able to access the app until they update it from the App Store or Google Play.",
+      "mandatory_badge": "Mandatory",
+      "optional_badge": "Optional",
+      "last_updated": "Last updated: {{ date }}",
+      "load_error": "Could not load the current mobile app version.",
+      "success_notify": "Mobile app version updated successfully",
+      "error_notify": "Could not update the mobile app version"
+    },
     "billing": {
       "title": "Billing",
       "count": "{{total}} clinics",

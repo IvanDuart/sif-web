@@ -1,0 +1,79 @@
+<div *transloco="let t" class="w-full">
+  @if (loading()) {
+    <div
+      class="flex items-center justify-center gap-2 py-12 text-surface-500 dark:text-surface-400"
+      role="status">
+      <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+      <span>{{ t('common.loading') }}</span>
+    </div>
+  } @else if (failed()) {
+    <div
+      role="alert"
+      class="flex flex-wrap items-center gap-2 rounded-md bg-err-soft px-3 py-2 text-[13px] text-err-text">
+      <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+      <span>{{ t('admin.app_version.load_error') }}</span>
+      <button tuiButton appearance="flat" size="xs" type="button" (click)="load()">
+        {{ t('common.retry') }}
+      </button>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="save()" class="mt-2 flex flex-col gap-4">
+      @if (lastUpdated(); as updated) {
+        <p class="text-[13px] tabular-nums text-surface-500 dark:text-surface-400">
+          {{ t('admin.app_version.last_updated', { date: (updated | date: 'medium') ?? '—' }) }}
+        </p>
+      }
+
+      <div>
+        <tui-textfield class="w-full">
+          <label tuiLabel for="latestVersion">{{ t('admin.app_version.latest_version') }} *</label>
+          <input
+            id="latestVersion"
+            tuiInput
+            formControlName="latestVersion"
+            [placeholder]="t('admin.app_version.latest_version_placeholder')"
+            (blur)="normalizeVersion()"
+            class="font-mono tabular-nums" />
+        </tui-textfield>
+        <tui-error [error]="latestVersionError()" />
+        <p class="mt-1 text-[12.5px] text-surface-400 dark:text-surface-500">
+          {{ t('admin.app_version.latest_version_hint') }}
+        </p>
+      </div>
+
+      <div class="rounded-md border border-line p-4">
+        <label class="flex cursor-pointer items-center gap-3">
+          <input id="mandatoryUpdate" type="checkbox" tuiSwitch formControlName="mandatoryUpdate" />
+          <span class="text-sm font-medium text-surface-900 dark:text-surface-0">
+            {{ t('admin.app_version.mandatory_update') }}
+          </span>
+        </label>
+        <p class="mt-2 max-w-[70ch] text-[13px] leading-relaxed text-surface-500 dark:text-surface-400">
+          {{ t('admin.app_version.mandatory_update_hint') }}
+        </p>
+      </div>
+
+      <div class="mt-4 flex justify-end gap-2 border-t border-line pt-4">
+        <button
+          tuiButton
+          appearance="secondary"
+          size="m"
+          type="button"
+          (click)="context.$implicit.complete()">
+          {{ t('common.cancel') }}
+        </button>
+        <button
+          tuiButton
+          appearance="primary"
+          size="m"
+          type="submit"
+          [disabled]="form.invalid || saving()">
+          @if (saving()) {
+            <i class="fa-solid fa-spinner fa-spin mr-1.5" aria-hidden="true"></i>
+          }
+          {{ t('common.save') }}
+        </button>
+      </div>
+    </form>
+  }
+</div>
