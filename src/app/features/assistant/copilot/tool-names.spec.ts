@@ -3,7 +3,7 @@ import { slugOf, toolName } from './tool-names';
 describe('nombres de herramienta', () => {
   it('cambia los guiones por guiones bajos', () => {
     expect(toolName('fill', 'patient-profile')).toBe('fill_patient_profile');
-    expect(toolName('save', 'appointment-type')).toBe('save_appointment_type');
+    expect(toolName('action', 'appointment-type')).toBe('action_appointment_type');
   });
 
   it('el id de pageContext sale igual que el de la herramienta', () => {

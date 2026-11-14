@@ -21,7 +21,10 @@ type JsonSchema = Record<string, unknown>;
  * descripciones solo dicen el formato, lo que el modelo no puede adivinar.
  */
 function fieldSchema(field: FillField, withHints: boolean): JsonSchema {
-  const hint = (text: string): JsonSchema => (withHints ? { description: text } : {});
+  // El del propio campo manda sobre el genérico de su tipo: se pone justo
+  // cuando «Número» o «Fecha» no dicen lo que hay que saber.
+  const hint = (text: string): JsonSchema =>
+    withHints ? { description: field.hint ?? text } : {};
 
   switch (field.kind) {
     case 'number':
@@ -41,7 +44,7 @@ function fieldSchema(field: FillField, withHints: boolean): JsonSchema {
       return usable ? { type: 'string', enum: [...options] } : { type: 'string', ...hint('Nombre de la opción') };
     }
     case 'text':
-      return { type: 'string' };
+      return { type: 'string', ...(withHints && field.hint ? { description: field.hint } : {}) };
   }
 }
 
@@ -208,21 +211,3 @@ export function actionTool(action: MascotAction): AssistantClientToolDecl | null
   };
 }
 
-/**
- * La herramienta `save_<id>` de un formulario, si lo ofrece.
- *
- * Sin parámetros: guardar es guardar lo que hay. Devuelve `null` para los
- * formularios marcados `noSave`, que es lo que hace que la exclusión no
- * dependa de que nadie se despiste al declararla.
- */
-export function saveTool(surface: FillSurface): AssistantClientToolDecl | null {
-  if (surface.noSave) return null;
-  const name = toolName('save', surface.id);
-  if (!name) return null;
-  const label = surface.id.replace(/-/g, ' ');
-  return {
-    name,
-    description: `Pulsa Guardar en «${label}»; se pregunta antes y solo guarda con un sí`.slice(0, MAX_DESCRIPTION),
-    parameters: { type: 'object', properties: {} },
-  };
-}

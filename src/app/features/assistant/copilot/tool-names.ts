@@ -1,5 +1,5 @@
 /** Las familias que el backend acepta por prefijo (`ClientToolValidator`). */
-export type ToolFamily = 'fill' | 'edit' | 'open' | 'save' | 'action';
+export type ToolFamily = 'fill' | 'edit' | 'open' | 'action';
 
 /** Los nombres sueltos que acepta el backend, sin prefijo de familia. */
 export const FIXED_TOOLS = ['point_at', 'show_around', 'press', 'ask_user', 'navigate'] as const;

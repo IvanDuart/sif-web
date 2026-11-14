@@ -26,6 +26,7 @@ export const NAVIGABLE_SCREENS: readonly AssistantScreen[] = [
   'PATIENT_APPOINTMENTS',
   'MENUS',
   'TEMPLATES',
+  'RECIPES',
   'MENU',
   'PATIENT_MENU',
   'SHOPPING_LIST',
@@ -44,6 +45,26 @@ export const NAVIGABLE_SCREENS: readonly AssistantScreen[] = [
   'MEASUREMENTS',
   'DIARY',
 ];
+
+/**
+ * Las pantallas que son de un paciente concreto: sin saber cuál, no se puede ir.
+ *
+ * `routeForScreen` tiene un destino de reserva para ellas (`onPatient`), y ese
+ * respaldo es lo que hizo que la mascota acabara en el panel principal al
+ * pedirle reagendar: navegó sin resolver antes a la paciente, `navigate`
+ * contestó `ok: true` y aterrizó donde no había formulario de cita. La ruta
+ * sigue teniendo su reserva —es razonable para quien pulsa un enlace—, pero a
+ * la mascota hay que decírselo, y de eso se encarga `runNavigate`.
+ */
+export const PATIENT_SCREENS: ReadonlySet<AssistantScreen> = new Set<AssistantScreen>([
+  'PATIENT_PROFILE',
+  'ANAMNESIS',
+  'PATIENT_MEASUREMENTS',
+  'MEASUREMENTS',
+  'PATIENT_MENU',
+  'DIARY',
+  'EVOLUTION',
+]);
 
 const text = (params: Record<string, unknown>, key: string): string =>
   typeof params[key] === 'string' ? (params[key] as string).trim() : '';
@@ -70,6 +91,8 @@ export function routeForScreen(
       return searchable('/menus');
     case 'TEMPLATES':
       return searchable('/templates');
+    case 'RECIPES':
+      return searchable('/recipes');
     case 'AGENDA':
     case 'APPOINTMENTS':
     case 'PATIENT_APPOINTMENTS':

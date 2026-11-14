@@ -3,7 +3,6 @@ import type { MascotFillService } from '../../mascot/fill/mascot-fill.service';
 import type { CursorService } from '../cursor.service';
 import type { ToolResult } from '../client-tool.model';
 import { matchArgs } from '../fill-args';
-import { saveTool } from '../schema';
 import { runOpen } from './open.run';
 
 /** Lo que se espera a que el formulario cargue sus datos (`FillSurface.ready`). */
@@ -77,11 +76,10 @@ export async function runFill(
       cursor.whenResumed(),
     );
 
-    // Con qué se termina. Rellenar no guarda nada: si el formulario ofrece su
-    // Guardar, se nombra aquí para que el modelo no tenga que acordarse de un
-    // catálogo que mandamos hace varios pasos —y que, si el formulario lo
-    // abrimos nosotros, ni siquiera llegó a ver.
-    const save = saveTool(mounted.surface);
+    // Rellenar no guarda, y ya no hay con qué: guarda la persona, con el botón
+    // del propio formulario. Antes se devolvía aquí el nombre de `save_<x>` y
+    // el modelo lo llamaba, lo que acababa en una pregunta de sí o no en el
+    // chat, lejos del formulario recién relleno.
 
     return {
       ok: report.written.length > 0,
@@ -89,7 +87,6 @@ export async function runFill(
       missing: report.missing,
       rejected: report.rejected,
       missingRequired: report.missingRequired,
-      ...(save ? { saveWith: save.name } : {}),
       ...(abierto ? { opened: surfaceId, clientTools: catalog() } : {}),
       ...(unknown.length + foreign.length > 0 ? { unknown: [...unknown, ...foreign] } : {}),
       ...(report.written.length === 0 ? { reason: 'tool_error' } : {}),

@@ -13,7 +13,8 @@ export const MAX_DESCRIPTION = 300;
 export const MAX_DEPTH = 3;
 export const MAX_PROPERTIES = 60;
 
-const PREFIXES = ['fill_', 'edit_', 'open_', 'save_', 'action_'];
+// Sin `save_`: la mascota rellena y guarda la persona (ver ClientToolValidator).
+const PREFIXES = ['fill_', 'edit_', 'open_', 'action_'];
 const TYPES = new Set(['object', 'string', 'number', 'integer', 'boolean', 'array']);
 
 /**

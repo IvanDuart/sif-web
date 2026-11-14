@@ -103,12 +103,28 @@ describe('dónde vive cada formulario', () => {
   });
 
   it('no promete lo que nadie sabe abrir', () => {
-    // La comida de un menú, renombrar y la nota de agenda tienen superficie
-    // pero NO tienen opener: se llega a ellas por un camino que la mascota no
-    // sabe recorrer. Ofrecerlas sería mandarla a un sitio donde se rinde.
+    // La comida de un menú y renombrar se llegan por un camino que la mascota
+    // no sabe recorrer desde fuera: viven en `/menus/:id` y `navigate` no sabe
+    // ir a un menú concreto. Ofrecerlas sería mandarla a un sitio donde se
+    // rinde. (`meal` SÍ tiene opener, pero sin `screen`: se ofrece estando ya
+    // en el menú y no se promete desde fuera.)
     const ids = mapa.map((form) => form.id);
     expect(ids).not.toContain('meal');
     expect(ids).not.toContain('menu_rename');
-    expect(ids).not.toContain('calendar_note');
+  });
+
+  it('la nota de agenda sí se promete, y por dos pulsaciones', () => {
+    // Dejó de estar fuera el 2026-11-13. Sin `screen` no entraba en el mapa,
+    // así que `create_calendar_note` no constaba como cubierta por ningún
+    // formulario, no se le retiraba al modelo, y el recordatorio acababa en
+    // tarjeta se pidiera desde donde se pidiera.
+    const nota = mapa.find((form) => form.id === 'calendar_note');
+    expect(nota?.screen).toBe('APPOINTMENTS');
+    expect(nota?.tools).toEqual(['create_calendar_note']);
+    // El botón de la agenda abre un selector; el formulario sólo se monta al
+    // elegir recordatorio. Por eso el `reveal` va antes que el `trigger`.
+    const opener = ALL_OPENERS.find((o) => o.id === 'calendar-note');
+    expect(opener?.reveal).toEqual(['[data-mascot-point="agenda-new"]']);
+    expect(opener?.trigger).toBe('[data-mascot-entry="REMINDER"]');
   });
 });

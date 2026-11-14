@@ -730,7 +730,23 @@ export class MascotLauncher implements OnInit {
     // diálogo), así que se le sigue cada frame en vez de medirlo una vez.
     effect((onCleanup) => {
       const target = this.fill.target();
+      // Mientras el turno siga vivo NO se vuelve a la esquina: se queda donde
+      // acabó y la siguiente herramienta sigue desde ahí.
+      //
+      // Cada herramienta de pantalla llama a `fill.end()` al terminar, y eso
+      // deja el objetivo en null. Entre una y la siguiente hay ida y vuelta al
+      // modelo —medido el 2026-11-13: entre 1,3 y 1,8 s—, y en ese hueco la
+      // mascota se iba a casa y volvía a salir. Un viaje redondo de más por
+      // herramienta: en una receta de cuatro ingredientes, ocho.
+      //
+      // `end()` no distinguía «he terminado esta herramienta» de «he terminado
+      // el turno», y quien sabe lo segundo es `sending()`. Se lee siempre, no
+      // sólo cuando hace falta, para que al acabar el turno este efecto vuelva
+      // a correr y entonces sí se vaya. Si el turno muere, `sending()` cae
+      // igual, así que no se queda clavada junto a un campo.
+      const enTurno = this.state.sending();
       if (!target) {
+        if (enTurno) return;
         this.travel.set(null);
         this.spot.set(null);
         this.field.set(null);

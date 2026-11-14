@@ -22,6 +22,9 @@ import { Meal } from '../../core/api/models/meal.model';
 import { MealTemplate, MenuTemplate } from '../../core/api/models/menu-template.model';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { NotificationService } from '../../core/ui';
+import { bindingAccess } from '../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { recipeInstantiateSurface } from '../assistant/mascot/fill/surfaces/recipe.surface';
 
 export interface RecipeInstantiateDialogInput {
   recipe: RecipeDto;
@@ -95,6 +98,33 @@ export class RecipeInstantiateDialog {
   };
 
   constructor() {
+    // Mientras el diálogo esté abierto, la mascota puede rellenarlo. Los
+    // controles son `FormControl` sueltos, sin `FormGroup` que los agrupe, así
+    // que el acceso va uno a uno. Escribir con `setValue` dispara los
+    // `valueChanges` del propio diálogo, que es lo que recarga las comidas al
+    // cambiar de menú: sin eso la mascota elegiría el menú y se encontraría la
+    // lista de comidas vacía.
+    inject(MascotFillService).register(
+      recipeInstantiateSurface({
+        targets: () => this.targetTypes.map((type) => ({ value: type, label: this.targetTypeStringify(type) })),
+        sources: () => this.sourceValues().map((id) => ({ value: id, label: this.sourceStringify(id) })),
+        meals: () => this.mealValues().map((id) => ({ value: id, label: this.mealStringify(id) })),
+        loaded: () => !this.loadingSources(),
+      }),
+      bindingAccess({
+        targetType: {
+          get: () => this.targetTypeControl.value,
+          set: (value) => this.targetTypeControl.setValue(value as InstantiateTarget),
+        },
+        source: { get: () => this.sourceControl.value, set: (value) => this.sourceControl.setValue(String(value ?? '')) },
+        meal: { get: () => this.mealControl.value, set: (value) => this.mealControl.setValue(String(value ?? '')) },
+        servings: {
+          get: () => this.servingsControl.value,
+          set: (value) => this.servingsControl.setValue(Number(value)),
+        },
+      }),
+    );
+
     const recipeServings = this.context.data?.recipe?.servings;
     this.servingsControl.setValue(recipeServings && recipeServings > 0 ? recipeServings : 1);
 

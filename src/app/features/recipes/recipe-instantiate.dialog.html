@@ -56,6 +56,7 @@
       appearance="primary"
       size="m"
       [disabled]="saving() || !mealControl.value || servingsControl.invalid"
+      data-mascot-submit="recipe-instantiate"
       (click)="save()"
     >
       @if (saving()) {

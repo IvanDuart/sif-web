@@ -295,3 +295,84 @@ describe('las acciones de la nota', () => {
     field.remove();
   });
 });
+
+describe('la mascota no vuelve a su esquina a mitad de turno', () => {
+  const TENANT = 'tenant-1';
+  let fixture: ComponentFixture<MascotLauncher>;
+  let fill: MascotFillService;
+  let state: MascotStateService;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [
+        MascotLauncher,
+        TranslocoTestingModule.forRoot({
+          langs: { es: {} },
+          translocoConfig: { availableLangs: ['es'], defaultLang: 'es' },
+        }),
+      ],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: TenantContextService,
+          useValue: {
+            currentTenantId: () => TENANT,
+            currentMembership: () => ({
+              tenantId: TENANT,
+              roleCode: 'NUTRITIONIST',
+              userType: 'STAFF',
+              permissions: [],
+            }),
+            permissions: () => new Set<string>(),
+            hasPermission: () => true,
+          },
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(MascotLauncher);
+    fill = TestBed.inject(MascotFillService);
+    state = TestBed.inject(MascotStateService);
+    state.config.set({ enabled: true } as never);
+    fixture.detectChanges();
+  });
+
+  const fab = (): HTMLElement => fixture.nativeElement.querySelector('.mascot-fab') as HTMLElement;
+  const frame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+  it('se queda donde acabó mientras el turno sigue, y vuelve al terminar', async () => {
+    // El regresivo del 2026-11-13: cada herramienta de pantalla llama a
+    // `fill.end()`, que deja el objetivo en null. Entre una y la siguiente hay
+    // ida y vuelta al modelo, y en ese hueco la mascota se iba a casa y volvía
+    // a salir: un viaje redondo de más por herramienta.
+    const campo = fieldAt(400, 300);
+    document.body.appendChild(campo);
+    try {
+      fill.target.set(campo);
+      fixture.detectChanges();
+      await frame();
+      fixture.detectChanges();
+      const viajando = fab().style.transform;
+      expect(viajando).withContext('debería haber viajado al campo').not.toBe('');
+
+      // La herramienta termina, pero el turno sigue: no se mueve.
+      state.sending.set(true);
+      fill.target.set(null);
+      fixture.detectChanges();
+      await frame();
+      fixture.detectChanges();
+      expect(fab().style.transform).toBe(viajando);
+
+      // Acaba el turno: ahora sí vuelve.
+      state.sending.set(false);
+      fixture.detectChanges();
+      await frame();
+      fixture.detectChanges();
+      expect(fab().style.transform).not.toBe(viajando);
+    } finally {
+      campo.remove();
+    }
+  });
+});

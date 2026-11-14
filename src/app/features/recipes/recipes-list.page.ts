@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TuiButton, TuiInput, TuiTextfield } from '@taiga-ui/core';
@@ -15,6 +15,8 @@ import { NotificationService, ModalService } from '../../core/ui';
 import { EmptyState } from '../../shared/ui/empty-state';
 import { PaginationFooter } from '../../shared/ui/pagination-footer';
 import { RecipeFormDialog, RecipeFormDialogInput } from './recipe-form.dialog';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { RECIPE_OPENER } from '../assistant/mascot/fill/surfaces/recipe.surface';
 
 const PAGE_SIZE = 24;
 
@@ -44,6 +46,13 @@ export default class RecipesListPage implements OnInit {
   private readonly notify = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
+  constructor() {
+    // Mientras este listado esté en pantalla, la mascota sabe abrir el
+    // formulario de receta: pulsa el mismo botón que pulsaría una persona.
+    inject(MascotFillService).registerOpener(RECIPE_OPENER);
+  }
 
   readonly recipes = signal<RecipeDto[]>([]);
   readonly loading = signal(false);
@@ -74,6 +83,12 @@ export default class RecipesListPage implements OnInit {
   });
 
   ngOnInit(): void {
+    // `?q=` deja el listado filtrado al entrar, como en menús: es como llega
+    // la mascota cuando se le pide una receta por su nombre. Sin `emitEvent`
+    // para no disparar la recarga con rebote.
+    const query = this.route.snapshot.queryParamMap.get('q')?.trim();
+    if (query) this.searchControl.setValue(query, { emitEvent: false });
+
     this.searchControl.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged())
       .subscribe(() => {

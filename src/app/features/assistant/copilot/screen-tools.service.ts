@@ -5,13 +5,11 @@ import { MascotFillService } from '../mascot/fill/mascot-fill.service';
 import type { ToolRun } from './client-tool.model';
 import { CursorService } from './cursor.service';
 import { QuestionService } from './question.service';
-import { WriteWatchService } from './write-watch.service';
-import { actionTool, editTool, fillTools, openTool, saveTool } from './schema';
+import { actionTool, editTool, fillTools, openTool } from './schema';
 import { runAction } from './tools/action.run';
 import { runEdit } from './tools/edit.run';
 import { runFill } from './tools/fill.run';
 import { runOpen } from './tools/open.run';
-import { runSave } from './tools/save.run';
 
 /** Lo que una herramienta de pantalla necesita de fuera para ejecutarse. */
 export interface ScreenToolDeps {
@@ -33,7 +31,6 @@ export class ScreenToolsService {
   private readonly fill = inject(MascotFillService);
   private readonly questions = inject(QuestionService);
   private readonly cursor = inject(CursorService);
-  private readonly writes = inject(WriteWatchService);
 
   /** Lo que se puede hacer en esta pantalla, ahora mismo. */
   decls(): AssistantClientToolDecl[] {
@@ -43,10 +40,6 @@ export class ScreenToolsService {
       ...mounted.flatMap(({ surface }) => {
         const tool = editTool(surface);
         return tool ? [tool.decl] : [];
-      }),
-      ...mounted.flatMap(({ surface }) => {
-        const tool = saveTool(surface);
-        return tool ? [tool] : [];
       }),
       // Abrir solo se ofrece de lo que NO está abierto: ofrecer `open_` de un
       // diálogo que ya está en pantalla invita al modelo a abrirlo dos veces.
@@ -80,18 +73,6 @@ export class ScreenToolsService {
       if (edit?.decl.name === name) {
         return (args, { signal }) => runEdit(surface.id, edit.keys, args, { fill: this.fill, signal });
       }
-    }
-
-    for (const { surface, access } of this.fill.surfaces()) {
-      if (saveTool(surface)?.name !== name) continue;
-      return (_args, { signal }) =>
-        runSave(surface, access, {
-          fill: this.fill,
-          questions: this.questions,
-          writes: this.writes,
-          cursor: this.cursor,
-          signal,
-        });
     }
 
     for (const opener of this.fill.allOpeners()) {

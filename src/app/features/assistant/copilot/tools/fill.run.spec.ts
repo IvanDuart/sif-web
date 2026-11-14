@@ -82,15 +82,16 @@ describe('runFill', () => {
     expect(values['weightKg']).toBe('70');
   });
 
-  it('al terminar nombra el Guardar del propio formulario', async () => {
-    // Rellenar no guarda. Si no le decimos con qué se termina, el modelo se
-    // acuerda del catálogo que mandamos hace varios pasos —o no— y acaba
-    // proponiendo la escritura de servidor con una tarjeta de confirmación.
+  it('no nombra ningún Guardar: no es cosa suya', async () => {
+    // Desde el 2026-11-13 la mascota no guarda. Devolver aquí el nombre de
+    // `save_<x>` hacía que el modelo lo llamara, y eso acababa en una pregunta
+    // de sí o no EN EL CHAT, lejos del formulario recién relleno: en un resumen
+    // no se ven los campos que no se tocaron ni los obligatorios del centro.
     register(surface());
-    expect((await run({ weightKg: 70 }))['saveWith']).toBe('save_measurement');
+    expect((await run({ weightKg: 70 }))['saveWith']).toBeUndefined();
   });
 
-  it('el formulario que no se guarda solo no promete un Guardar que no tiene', async () => {
+  it('tampoco en un formulario que nunca lo ofreció', async () => {
     register(surface({ noSave: true }));
     expect((await run({ weightKg: 70 }))['saveWith']).toBeUndefined();
   });

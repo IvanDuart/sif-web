@@ -13,6 +13,8 @@ import { PermissionsService } from '../../core/permissions/permissions.service';
 import { ConfirmService, ModalService, NotificationService } from '../../core/ui';
 import { RecipeFormDialog, RecipeFormDialogInput } from './recipe-form.dialog';
 import { RecipeInstantiateDialog, RecipeInstantiateDialogInput } from './recipe-instantiate.dialog';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { RECIPE_INSTANTIATE_OPENER } from '../assistant/mascot/fill/surfaces/recipe.surface';
 
 @Component({
   selector: 'app-recipe-detail',
@@ -30,6 +32,12 @@ export default class RecipeDetailPage implements OnInit {
   private readonly confirm = inject(ConfirmService);
   private readonly notify = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
+
+  constructor() {
+    // El diálogo de volcar la receta en una comida sólo se abre desde aquí:
+    // la receta que lleva es la de esta ficha.
+    inject(MascotFillService).registerOpener(RECIPE_INSTANTIATE_OPENER);
+  }
 
   readonly recipe = signal<RecipeDto | null>(null);
   readonly loading = signal(true);

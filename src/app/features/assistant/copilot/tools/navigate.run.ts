@@ -3,7 +3,8 @@ import type { Router } from '@angular/router';
 import type { MascotFillService } from '../../mascot/fill/mascot-fill.service';
 import type { ToolResult } from '../client-tool.model';
 import type { RouteVeilService } from '../route-veil';
-import { routeForScreen } from '../screen-routes';
+import { PATIENT_SCREENS, routeForScreen } from '../screen-routes';
+import type { AssistantScreen } from '../../../../core/api/models/assistant.model';
 
 /** Lo que se le da a la pantalla nueva para montar y apuntar sus formularios. */
 const SETTLE_MIN_MS = 250;
@@ -42,6 +43,14 @@ export async function runNavigate(
   const params = typeof args['params'] === 'object' && args['params'] !== null
     ? (args['params'] as Record<string, unknown>)
     : args;
+
+  // Una pantalla de paciente sin paciente NO se navega: la ruta tiene un
+  // destino de reserva y llevaría al panel principal sin decir nada, que es
+  // peor que no ir. Se contesta qué falta para que lo resuelva y vuelva.
+  const patientId = typeof params['patientId'] === 'string' ? params['patientId'].trim() : '';
+  if (PATIENT_SCREENS.has(screen as AssistantScreen) && patientId === '') {
+    return { ok: false, reason: 'needs_patient', screen };
+  }
 
   const route = routeForScreen(screen, params);
   if (!route) return { ok: false, reason: 'tool_error', screen };

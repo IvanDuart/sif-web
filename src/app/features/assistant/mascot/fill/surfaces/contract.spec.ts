@@ -3,6 +3,7 @@ import { appointmentSurface } from './appointment.surface';
 import { holidaySurface } from './holiday.surface';
 import { MEASUREMENT_SURFACE } from './measurement.surface';
 import { PATIENT_PROFILE_SURFACE } from './patient-profile.surface';
+import { RECIPE_SURFACE, recipeInstantiateSurface } from './recipe.surface';
 import { scheduleAssignmentSurface } from './schedule-assignment.surface';
 import { scheduleSurface } from './schedule.surface';
 
@@ -56,8 +57,9 @@ describe('contrato del preview', () => {
     ];
 
     it('rellena esta tool', () => {
-      // `update_measurement` todavía no existe en el backend; el formulario ya
-      // la espera (`doc/contrato-api/assistant/assistant-tools-backend.md` §8).
+      // `update_measurement` existe en el catálogo del núcleo
+      // (`AssistantToolRegistry.WRITE_TOOLS`), no en los módulos: buscarla sólo en
+      // `service/assistant/tools/` y concluir que falta es un error ya cometido. (`doc/contrato-api/assistant/assistant-tools-backend.md` §8).
       expect(MEASUREMENT_SURFACE.tools).toContain('create_measurement');
     });
 
@@ -230,6 +232,76 @@ describe('contrato del preview', () => {
         description: 'Navidad',
         type: 'Nacional',
       });
+    });
+  });
+
+  describe('create_recipe', () => {
+    /** Lo que manda `RecipeToolModule.prepareCreate`, nombre a nombre. */
+    const preview = [
+      { field: 'name', value: 'Tortilla de patatas' },
+      { field: 'servings', value: '4' },
+      { field: 'items[0].foodId', value: '0b5f…' },
+      { field: 'items[0].quantityG', value: '300' },
+      { field: 'steps', value: '3' },
+      { field: 'allergens', value: 'Huevo, Leche' },
+    ];
+
+    it('reconoce lo que el formulario sí sabe rellenar', () => {
+      const matched = matchPreview(RECIPE_SURFACE, preview).map(({ field }) => field.key);
+      expect(matched).toEqual(['name', 'servings', 'allergensText', 'stepsText']);
+    });
+
+    it('deja fuera los ingredientes, y es a propósito', () => {
+      // No se teclean: se buscan contra el backend y se elige de los
+      // resultados. Saldrán en la tarjeta en vez de rellenarse, que es lo
+      // honesto. Si algún día la superficie declara una `list` para ellos,
+      // este test lo dirá.
+      expect(unmatchedPreview(RECIPE_SURFACE, preview)).toEqual([
+        'items[0].foodId',
+        'items[0].quantityG',
+      ]);
+    });
+
+    it('no se traga el número de pasos como si fueran los pasos', () => {
+      // El `preview` manda en `steps` CUÁNTOS hay («3»), no su texto. Escribir
+      // «3» en la elaboración de la receta sería peor que no escribir nada.
+      const pasos = RECIPE_SURFACE.fields.find((field) => field.key === 'stepsText');
+      expect(pasos?.parse?.('3')).toBeNull();
+      expect(pasos?.parse?.('Batir los huevos. Freír la patata.')).toBe(
+        'Batir los huevos. Freír la patata.',
+      );
+    });
+  });
+
+  describe('instantiate_recipe_in_meal', () => {
+    const surface = recipeInstantiateSurface({
+      targets: () => [{ label: 'Menú', value: 'MENU' }],
+      sources: () => [{ label: 'Semana 1', value: 'm-1' }],
+      meals: () => [{ label: 'Lunes — Comida', value: 'c-1' }],
+      // Los menús ya han llegado: `ready()` en false dejaría la superficie
+      // fuera del catálogo y aquí se prueba el contrato, no la espera.
+      loaded: () => true,
+    });
+
+    /** Lo que manda `RecipeToolModule.prepareInstantiate`. */
+    const preview = [
+      { field: 'recipeId', value: 'Tortilla de patatas' },
+      { field: 'mealId', value: 'Lunes — Comida' },
+      { field: 'ingredients', value: '300 g' },
+    ];
+
+    it('lleva la comida de destino a su desplegable', () => {
+      const matched = matchPreview(surface, preview);
+      expect(matched.map(({ field }) => field.key)).toEqual(['meal']);
+      // Y sabe leer la etiqueta: el backend nombra por texto y el formulario
+      // va por id, así que un `parse` que devuelva null deja el campo vacío.
+      expect(matched[0].field.parse?.(matched[0].raw)).toBe('c-1');
+    });
+
+    it('no promete la receta ni los ingredientes', () => {
+      // `recipeId` ya está decidido antes de abrir el diálogo, y los
+      // ingredientes son informativos: los vuelca el servidor, no se teclean.
+      expect(unmatchedPreview(surface, preview)).toEqual(['recipeId', 'ingredients']);
     });
   });
 

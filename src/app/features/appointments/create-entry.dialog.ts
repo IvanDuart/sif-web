@@ -57,6 +57,7 @@ type EntryKind = 'APPOINTMENT' | CalendarNoteType;
               size="m"
               [appearance]="kind() === option.kind ? 'primary' : 'neutral'"
               [attr.aria-pressed]="kind() === option.kind"
+              [attr.data-mascot-entry]="option.kind"
               (click)="select(option.kind)">
               <i class="mr-1.5" [class]="option.icon" aria-hidden="true"></i>
               {{ t(option.labelKey) }}

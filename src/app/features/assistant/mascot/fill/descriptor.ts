@@ -36,6 +36,16 @@ export interface FillField {
   reveal?: string | readonly string[];
   /** Un selector propio, para cuando no se encuentra solo. */
   anchor?: string;
+  /**
+   * Qué decirle al modelo de este campo, cuando «Número» o «Fecha» no basta.
+   *
+   * Es para el campo que no se explica solo: el buscador de ingredientes de una
+   * receta no es un dato de la receta, es una casilla que hay que escribir y
+   * luego pulsar un botón. Sin decirlo, el modelo lo rellena y se queda ahí.
+   *
+   * Se pierde cuando el esquema no cabe, como el resto de las pistas.
+   */
+  hint?: string;
   /** Del texto que manda el backend al valor que espera el formulario. */
   parse?: (raw: string) => unknown;
   /**

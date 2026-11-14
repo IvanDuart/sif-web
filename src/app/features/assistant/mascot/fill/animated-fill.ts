@@ -175,6 +175,22 @@ export async function typeChange(
   to: string,
   timing: FillTiming,
   fill: MascotFillService,
+  /**
+   * El control donde se teclea. Con él, los pasos intermedios se escriben en el
+   * DOM y se avisan con `input`, como teclea una persona.
+   *
+   * Sin él se escribía por `access.set(..., { silent: true })`, y eso depende de
+   * cómo haya enlazado sus campos cada diálogo: con `formAccess` (formulario
+   * reactivo) el valor llega al DOM y se ve teclear; con `bindingAccess` sobre
+   * una propiedad plana con `[(ngModel)]`, no —`silent` se salta el `after()` y
+   * una propiedad no es una señal, así que nada repinta hasta la escritura
+   * final—. Medido el 2026-11-13: la plantilla tecleaba y la receta aparecía de
+   * golpe, con el mismo código de animación.
+   *
+   * Un `input` lo escuchan igual `ngModel` y `formControlName`, así que esto
+   * funciona con los dos sin que ninguno sepa del otro.
+   */
+  anchor?: HTMLElement | null,
 ): Promise<void> {
   const shared = Math.min(from.length, to.length);
   let head = 0;
@@ -187,8 +203,19 @@ export async function typeChange(
   const oldMiddle = from.slice(head, from.length - tail);
   const newMiddle = to.slice(head, to.length - tail);
 
+  const control = anchor instanceof HTMLInputElement || anchor instanceof HTMLTextAreaElement
+    ? anchor
+    : null;
   const write = (middle: string) => {
     const text = prefix + middle + suffix;
+    if (control) {
+      // Los pasos intermedios NO se parsean: media fecha o medio número no se
+      // puede traducir y `parse` devolvería null, que vaciaría el campo. El
+      // valor bueno y parseado lo escribe `playField` al terminar.
+      control.value = text;
+      control.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
+    }
     access.set(field.key, field.parse ? field.parse(text) : text, { silent: true });
   };
 
@@ -353,7 +380,7 @@ async function playField(
   }
 
   if (isTypeable(field, anchor)) {
-    await typeChange(field, access, currentText(field, access), raw, timing, fill);
+    await typeChange(field, access, currentText(field, access), raw, timing, fill, anchor);
   }
   // Siempre la escritura final y validada, teclee o no: lo tecleado son pasos
   // intermedios y silenciosos.

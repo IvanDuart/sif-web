@@ -31,6 +31,8 @@ import { ALL_DAYS, MEAL_ORDER, MEAL_TYPES } from './menu.constants';
 import { KCAL, MenuNutritionDto, NutrientMap } from '../../core/api/models/food.model';
 import { normalizeDayOfWeek, normalizeMealType } from '../../core/api/models/meal-enums';
 import { MealCell } from './components/meal-cell';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { MEAL_OPENER } from '../assistant/mascot/fill/surfaces/meal.surface';
 import { MealItemsEditor } from './components/meal-items-editor';
 import { MealExchangesEditor } from './components/meal-exchanges-editor';
 import { LiveIndicator } from '../../shared/ui/live-indicator';
@@ -73,6 +75,12 @@ export default class MenuDetailPage implements OnInit, OnDestroy {
   private readonly location = inject(Location);
   private readonly brandingStore = inject(BrandingStore);
   private readonly shoppingListService = inject(ShoppingListService);
+
+  constructor() {
+    // Mientras la rejilla esté en pantalla, la mascota sabe abrir el diálogo de
+    // comida: pulsa el botón de añadir de un hueco libre, como una persona.
+    inject(MascotFillService).registerOpener(MEAL_OPENER);
+  }
 
   menu = signal<Menu | null>(null);
   meals = signal<Meal[]>([]);

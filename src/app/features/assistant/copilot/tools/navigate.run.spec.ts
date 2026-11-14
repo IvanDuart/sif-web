@@ -34,6 +34,25 @@ describe('runNavigate', () => {
     expect(result['clientTools']).toEqual([{ name: 'fill_measurement' }]);
   });
 
+  it('no va a una pantalla de paciente sin saber de quién', async () => {
+    // El regresivo del 2026-11-13: `routeForScreen` tiene un destino de reserva
+    // para estas pantallas y llevaba al panel principal CONTESTANDO ok, así que
+    // la mascota creía haber llegado, no encontraba el formulario de cita y
+    // acababa proponiendo la tarjeta.
+    const result = await run({ screen: 'PATIENT_PROFILE' });
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(result.ok).toBeFalse();
+    expect(result.reason).toBe('needs_patient');
+  });
+
+  it('va a la ficha cuando sí sabe de quién', async () => {
+    const result = await run({ screen: 'PATIENT_PROFILE', patientId: 'p-1' });
+    expect(router.navigate).toHaveBeenCalledWith(['/users', 'p-1'], {
+      queryParams: { tab: 'patient_profile' },
+    });
+    expect(result.ok).toBeTrue();
+  });
+
   it('cierra el panel: tapa la pantalla a la que se va', async () => {
     await run({ screen: 'DASHBOARD' });
     expect(closed).toBeTrue();

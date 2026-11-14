@@ -16,6 +16,7 @@ export type AssistantScreen =
   | 'DASHBOARD'
   | 'MENUS'
   | 'TEMPLATES'
+  | 'RECIPES'
   | 'SHOPPING_LIST'
   | 'EVOLUTION'
   | 'REVENUE'

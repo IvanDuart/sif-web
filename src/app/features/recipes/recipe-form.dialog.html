@@ -6,6 +6,7 @@
         type="text"
         class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
         [(ngModel)]="name"
+        data-mascot-field="recipe.name"
         [placeholder]="t('recipes.name_placeholder')"
       />
     </label>
@@ -16,6 +17,7 @@
         rows="2"
         class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
         [(ngModel)]="description"
+        data-mascot-field="recipe.description"
       ></textarea>
     </label>
 
@@ -26,6 +28,7 @@
         min="1"
         class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm tabular-nums outline-none focus:border-primary-400 dark:bg-surface-900"
         [(ngModel)]="servings"
+        data-mascot-field="recipe.servings"
       />
     </label>
 
@@ -35,6 +38,7 @@
         type="text"
         class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
         [(ngModel)]="allergensText"
+        data-mascot-field="recipe.allergensText"
       />
     </label>
   </div>
@@ -50,6 +54,7 @@
           [ngModel]="foodQuery"
           (ngModelChange)="onFoodQuery($event)"
           (keydown)="onFoodQueryKeydown($event)"
+          data-mascot-field="recipe.foodQuery"
           [placeholder]="t('recipes.food_search_placeholder')"
         />
         <button
@@ -59,6 +64,7 @@
           size="s"
           class="shrink-0"
           [disabled]="!foodQuery.trim()"
+          data-mascot-point="recipe-add-ingredient"
           (click)="addFreeTextIngredient()"
         >
           <i class="fa-solid fa-keyboard mr-1" aria-hidden="true"></i>
@@ -132,6 +138,7 @@
       rows="5"
       class="w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-sm outline-none focus:border-primary-400 dark:bg-surface-900"
       [(ngModel)]="stepsText"
+      data-mascot-field="recipe.stepsText"
       [placeholder]="t('recipes.step_placeholder')"
     ></textarea>
   </label>
@@ -189,6 +196,7 @@
       appearance="primary"
       size="m"
       [disabled]="saving() || !name.trim()"
+      data-mascot-submit="recipe"
       (click)="save()"
     >
       @if (saving()) {

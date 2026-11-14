@@ -85,6 +85,31 @@ describe('relleno animado de la mascota', () => {
       for (const step of steps) expect(step.startsWith('Control de ')).withContext(step).toBeTrue();
     });
 
+    it('escribe los pasos intermedios en el control, no sólo en el modelo', async () => {
+      // El regresivo del 2026-11-13: por `access.set(..., { silent: true })`, un
+      // diálogo con `bindingAccess` sobre una propiedad plana y `[(ngModel)]` no
+      // repintaba hasta el final y el texto aparecía de golpe. Un `input` sobre
+      // el propio control lo escuchan igual `ngModel` y `formControlName`.
+      host.innerHTML = '<textarea data-mascot-field="measurement.notes"></textarea>';
+      const control = host.querySelector('textarea')!;
+      const vistos: string[] = [];
+      control.addEventListener('input', () => vistos.push(control.value));
+      const { access } = recorder({ notes: '' });
+
+      await typeChange(
+        field('notes'),
+        access,
+        '',
+        'Control de grasa',
+        { ...STILL_TIMING, tickMs: 1, typeBudgetMs: 10_000 },
+        fill,
+        control,
+      );
+
+      expect(vistos.length).toBeGreaterThan(1);
+      expect(vistos.at(-1)).toBe('Control de grasa');
+    });
+
     it('teclea a trozos para no pasarse del presupuesto', async () => {
       const { access, steps } = recorder({ notes: '' });
       const long = 'x'.repeat(400);

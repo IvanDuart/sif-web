@@ -28,7 +28,7 @@ describe('assistantWriteInterceptor', () => {
   afterEach(() => backend.verify());
 
   const running = (over: Partial<{ name: string; callId: string; sessionId: string }> = {}) =>
-    runner.running.set({ name: 'save_measurement', callId: 'c1', sessionId: 's1', ...over });
+    runner.running.set({ name: 'action_measurement', callId: 'c1', sessionId: 's1', ...over });
 
   it('marca la escritura que sale de una herramienta', () => {
     running();
@@ -61,7 +61,7 @@ describe('assistantWriteInterceptor', () => {
     request.flush({});
   });
 
-  it('apunta cómo acabó, que es lo que `save_` necesita saber', () => {
+  it('apunta cómo acabó, que es lo que necesita saber quien vigila la escritura', () => {
     running();
     http.post('/api/tenant/t1/measurements', {}).subscribe();
     backend.expectOne('/api/tenant/t1/measurements').flush({}, { status: 201, statusText: 'Created' });

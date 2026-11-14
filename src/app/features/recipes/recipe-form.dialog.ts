@@ -17,10 +17,16 @@ import {
 } from '../../core/api/models/recipe.model';
 import { TenantContextService } from '../../core/tenant/tenant-context.service';
 import { NotificationService } from '../../core/ui';
+import { bindingAccess } from '../assistant/mascot/fill/descriptor';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { RECIPE_SURFACE } from '../assistant/mascot/fill/surfaces/recipe.surface';
 
 export interface RecipeFormDialogInput {
   recipe?: RecipeDto;
 }
+
+/** Lo que escribe la mascota siempre es texto; el `null` de un campo vaciado, ''. */
+const text = (value: unknown): string => (value === null || value === undefined ? '' : String(value));
 
 interface IngredientRow {
   foodId: string | null;
@@ -67,6 +73,33 @@ export class RecipeFormDialog implements OnDestroy {
   private readonly foodSearch$ = new Subject<string>();
 
   constructor() {
+    // Mientras el diálogo esté abierto, la mascota puede rellenarlo. Aquí no
+    // hay formulario reactivo —son propiedades con `[(ngModel)]`—, así que el
+    // acceso se declara campo a campo.
+    inject(MascotFillService).register(
+      RECIPE_SURFACE,
+      bindingAccess({
+        name: { get: () => this.name, set: (value) => (this.name = text(value)) },
+        description: { get: () => this.description, set: (value) => (this.description = text(value)) },
+        servings: {
+          get: () => this.servings,
+          // El campo es `number | null`: lo que no sea un número lo deja vacío
+          // en vez de dejar un `NaN` que el diálogo mandaría al servidor.
+          set: (value) => (this.servings = Number.isFinite(Number(value)) ? Number(value) : null),
+        },
+        allergensText: { get: () => this.allergensText, set: (value) => (this.allergensText = text(value)) },
+        stepsText: { get: () => this.stepsText, set: (value) => (this.stepsText = text(value)) },
+        // El buscador de alimentos. No es un dato de la receta: es la casilla
+        // donde se teclea el nombre antes de pulsar «Añadir como texto libre».
+        // `onFoodQuery` es lo que dispara la búsqueda, y por eso se llama.
+        foodQuery: {
+          get: () => this.foodQuery,
+          set: (value) => (this.foodQuery = text(value)),
+          after: () => this.onFoodQuery(this.foodQuery),
+        },
+      }),
+    );
+
     const recipe = this.context.data?.recipe;
     this.isEdit = !!recipe;
     this.recipeId = recipe?.id ?? null;

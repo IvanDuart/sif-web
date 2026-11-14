@@ -1,4 +1,4 @@
-import type { FillSurface } from '../descriptor';
+import type { FillOpener, FillSurface } from '../descriptor';
 import type { PickOption } from './parse';
 import { pickOption, choicesOf } from './parse';
 
@@ -49,3 +49,26 @@ export function mealSurface(options: MealOptions): FillSurface {
     ],
   };
 }
+
+/**
+ * El botón de añadir de un hueco libre de la rejilla del menú
+ * (`menus/menu-detail`), que abre este mismo diálogo.
+ *
+ * Es el de AÑADIR y no el lápiz de una comida que ya existe a propósito: desde
+ * un hueco, el día y la toma siguen habilitados y la mascota puede llevar la
+ * comida a la casilla que se pidió. Desde una comida concreta abriría la
+ * primera que se viera en pantalla, que casi nunca es la que se pedía, y encima
+ * con el día y la toma bloqueados.
+ *
+ * Y es el único camino para CREAR una comida: el catálogo del backend tiene
+ * `update_meal`, que cambia una que ya existe, pero ninguna que la cree.
+ *
+ * Sin pantalla: la rejilla vive en `/menus/:id` y `navigate` no sabe llegar a
+ * un menú concreto (`MENU` lleva al listado o a la pestaña de la ficha), así
+ * que el botón se ofrece estando ya aquí y no se promete desde fuera.
+ */
+export const MEAL_OPENER: FillOpener = {
+  id: 'meal',
+  tools: ['update_meal'],
+  trigger: '[data-mascot-open="meal"]',
+};

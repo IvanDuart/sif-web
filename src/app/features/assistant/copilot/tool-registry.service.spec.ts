@@ -72,9 +72,10 @@ describe('ToolRegistryService', () => {
         { get: () => '', set: () => undefined },
       ),
     );
-    expect(names()).toEqual(['fill_menu_rename', 'save_menu_rename']);
+    // Sin `save_`: guarda la persona, con el botón del propio formulario.
+    expect(names()).toEqual(['fill_menu_rename']);
     expect(registry.runFor('fill_menu_rename')).not.toBeNull();
-    expect(registry.runFor('save_menu_rename')).not.toBeNull();
+    expect(registry.runFor('save_menu_rename')).toBeNull();
   });
 
   it('un formulario con texto largo ofrece además `edit_`', () => {
@@ -84,7 +85,7 @@ describe('ToolRegistryService', () => {
         { get: () => '', set: () => undefined },
       ),
     );
-    expect(names()).toEqual(['fill_appointment', 'edit_appointment', 'save_appointment']);
+    expect(names()).toEqual(['fill_appointment', 'edit_appointment']);
   });
 
   it('`open_` solo se ofrece de lo que no está ya abierto', () => {
@@ -100,7 +101,7 @@ describe('ToolRegistryService', () => {
         { get: () => '', set: () => undefined },
       ),
     );
-    expect(names()).toEqual(['fill_measurement', 'save_measurement']);
+    expect(names()).toEqual(['fill_measurement']);
   });
 
   it('un formulario excluido se rellena pero no ofrece `save_`', () => {
