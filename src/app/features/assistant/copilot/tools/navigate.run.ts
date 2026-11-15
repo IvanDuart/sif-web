@@ -47,12 +47,23 @@ export async function runNavigate(
   // Una pantalla de paciente sin paciente NO se navega: la ruta tiene un
   // destino de reserva y llevaría al panel principal sin decir nada, que es
   // peor que no ir. Se contesta qué falta para que lo resuelva y vuelva.
-  const patientId = typeof params['patientId'] === 'string' ? params['patientId'].trim() : '';
-  if (PATIENT_SCREENS.has(screen as AssistantScreen) && patientId === '') {
+  // De quién es la ficha: el que diga el modelo y, si no dice ninguno, el paciente
+  // activo que añade el backend. Éste viene FRESCO —el backend lo pone al despachar
+  // la llamada—, y es el único que vale: lo que tiene este navegador es el paciente
+  // de la respuesta del turno anterior, porque de un `set_active_patient` se entera
+  // al acabar el turno. Usarlo llevaría a la ficha de otra persona.
+  //
+  // Sólo en las pantallas de paciente: `MENU` con paciente va a su pestaña de menús
+  // y sin él al listado, y eso no debe cambiar porque haya alguien activo.
+  const esDePaciente = PATIENT_SCREENS.has(screen as AssistantScreen);
+  const explicito = typeof params['patientId'] === 'string' ? params['patientId'].trim() : '';
+  const activo = typeof args['activePatientId'] === 'string' ? args['activePatientId'].trim() : '';
+  const patientId = explicito !== '' ? explicito : esDePaciente ? activo : '';
+  if (esDePaciente && patientId === '') {
     return { ok: false, reason: 'needs_patient', screen };
   }
 
-  const route = routeForScreen(screen, params);
+  const route = routeForScreen(screen, { ...params, patientId });
   if (!route) return { ok: false, reason: 'tool_error', screen };
 
   // El panel tapa la pantalla a la que se va: si la mascota va a enseñar algo

@@ -53,6 +53,29 @@ describe('runNavigate', () => {
     expect(result.ok).toBeTrue();
   });
 
+  it('sin patientId usa el paciente activo que añade el backend', async () => {
+    // El backend manda el de AHORA, recién fijado con `set_active_patient`.
+    const result = await run({ screen: 'PATIENT_MEASUREMENTS', activePatientId: 'p-7' });
+    expect(router.navigate).toHaveBeenCalledWith(['/users', 'p-7'], {
+      queryParams: { tab: 'measurements' },
+    });
+    expect(result.ok).toBeTrue();
+  });
+
+  it('el patientId que da el modelo manda sobre el activo', async () => {
+    await run({ screen: 'PATIENT_PROFILE', patientId: 'p-1', activePatientId: 'p-7' });
+    expect(router.navigate).toHaveBeenCalledWith(['/users', 'p-1'], {
+      queryParams: { tab: 'patient_profile' },
+    });
+  });
+
+  it('fuera de las pantallas de paciente, el activo no cambia el destino', async () => {
+    // `MENU` con paciente iría a su pestaña de menús: que haya alguien activo no
+    // debe convertir «ve a los menús» en «ve a los menús de esta paciente».
+    await run({ screen: 'MENU', activePatientId: 'p-7' });
+    expect(router.navigate).toHaveBeenCalledWith(['/menus'], { queryParams: undefined });
+  });
+
   it('cierra el panel: tapa la pantalla a la que se va', async () => {
     await run({ screen: 'DASHBOARD' });
     expect(closed).toBeTrue();
