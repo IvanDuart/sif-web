@@ -1,6 +1,6 @@
 import type { FillOpener, FillSurface } from '../descriptor';
 import type { PickOption } from './parse';
-import { pickOption, toDay, toTime, choicesOf } from './parse';
+import { pickLabel, pickOption, toDay, toTime, choicesOf } from './parse';
 
 export type { PickOption } from './parse';
 export { pickOption, toDay, toTime } from './parse';
@@ -13,9 +13,17 @@ interface AppointmentOptions {
 
 /**
  * El diálogo de cita (`appointments/appointment-form.dialog`). Se construye con
- * las listas del propio diálogo porque sus desplegables van por id y el
- * asistente nombra a la gente por su nombre: la traducción sólo puede hacerla
- * quien tiene las opciones cargadas.
+ * las listas del propio diálogo porque el asistente nombra a la gente y a los
+ * tipos por su nombre, o por un id que sacó de otra tool: la traducción sólo
+ * puede hacerla quien tiene las opciones cargadas.
+ *
+ * Ojo, que los tres desplegables no guardan lo mismo:
+ * - `patientId` y `typeId` guardan la ETIQUETA («Ana García», «Revisión»): el
+ *   diálogo busca la opción por etiqueta al guardar. Por eso van con
+ *   `pickLabel`. Con `pickOption` se escribía el UUID: el campo lo enseñaba
+ *   tal cual y al guardar no casaba con ningún tipo. Pasaba al reagendar cuando
+ *   el modelo mandaba el tipo que ya tenía la cita, que no siempre lo manda.
+ * - `nutritionistId` guarda el id, y su `stringify` lo convierte en nombre.
  */
 export function appointmentSurface(options: AppointmentOptions): FillSurface {
   return {
@@ -27,7 +35,7 @@ export function appointmentSurface(options: AppointmentOptions): FillSurface {
         kind: 'choice',
         from: ['patientId', 'patient', 'paciente', 'patientName'],
         ...choicesOf(() => options.patients(), { people: true }),
-        parse: (raw) => pickOption(options.patients(), raw),
+        parse: (raw) => pickLabel(options.patients(), raw),
       },
       {
         key: 'nutritionistId',
@@ -41,7 +49,7 @@ export function appointmentSurface(options: AppointmentOptions): FillSurface {
         kind: 'choice',
         from: ['typeId', 'type', 'tipo', 'appointmentType'],
         ...choicesOf(() => options.types()),
-        parse: (raw) => pickOption(options.types(), raw),
+        parse: (raw) => pickLabel(options.types(), raw),
       },
       { key: 'date', kind: 'date', from: ['date', 'fecha', 'startDate', 'scheduledAt'], parse: toDay },
       { key: 'time', kind: 'time', from: ['time', 'hora', 'startTime', 'scheduledAt'], parse: toTime },

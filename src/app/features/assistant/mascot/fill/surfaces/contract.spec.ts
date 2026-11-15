@@ -107,7 +107,30 @@ describe('contrato del preview', () => {
 
     it('casa por el nombre de pila cuando no hay duda', () => {
       const [{ field, raw }] = matchPreview(surface, [{ field: 'patientId', value: 'Ana' }]);
-      expect(field.parse?.(raw)).toBe('p-1');
+      // El desplegable de paciente guarda la etiqueta, no el id.
+      expect(field.parse?.(raw)).toBe('Ana García');
+    });
+
+    it('escribe la etiqueta del tipo aunque el modelo mande su id', () => {
+      // El fallo de reagendar: el modelo mandaba el UUID del tipo que ya tenía la
+      // cita, se escribía tal cual y el campo enseñaba el UUID.
+      const [{ field, raw }] = matchPreview(surface, [{ field: 'typeId', value: 't-1' }]);
+      expect(field.parse?.(raw)).toBe('Primera consulta');
+    });
+
+    it('escribe la etiqueta del tipo cuando el modelo lo nombra', () => {
+      const [{ field, raw }] = matchPreview(surface, [{ field: 'type', value: 'primera consulta' }]);
+      expect(field.parse?.(raw)).toBe('Primera consulta');
+    });
+
+    it('al paciente también lo escribe por etiqueta si llega su id', () => {
+      const [{ field, raw }] = matchPreview(surface, [{ field: 'patientId', value: 'p-1' }]);
+      expect(field.parse?.(raw)).toBe('Ana García');
+    });
+
+    it('a la nutricionista la sigue escribiendo por id: su desplegable va por id', () => {
+      const [{ field, raw }] = matchPreview(surface, [{ field: 'nutritionistId', value: 'Nelson' }]);
+      expect(field.parse?.(raw)).toBe('n-1');
     });
 
     it('deja el desplegable en blanco antes que adivinar entre dos Anas', () => {
