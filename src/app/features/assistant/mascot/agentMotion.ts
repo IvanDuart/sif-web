@@ -367,12 +367,13 @@ function water(m: Motion): void {
       m.anim(
         bottle,
         [
-          { offset: 0, opacity: 0, transform: 'translate(8px, -4px) rotate(-85deg) scale(0.75)' },
-          { offset: 0.2, opacity: 1, transform: 'translate(0, 0) rotate(-112deg) scale(1)' },
-          { offset: 0.45, opacity: 1, transform: 'translate(-2px, 1px) rotate(-125deg) scale(1)' },
-          { offset: 0.7, opacity: 1, transform: 'translate(0, 0) rotate(-108deg) scale(1)' },
-          { offset: 0.9, opacity: 1, transform: 'translate(-2px, 1px) rotate(-122deg) scale(1)' },
-          { offset: 1, opacity: 1, transform: 'translate(0, 0) rotate(-112deg) scale(1)' },
+          // La botella no desaparece entre vueltas: entra una vez y se queda
+          // visible mientras vuelca, o el bucle infinito parpadearía.
+          { offset: 0, opacity: 1, transform: 'translate(0, 0) rotate(-74deg) scale(1)' },
+          { offset: 0.25, opacity: 1, transform: 'translate(-1px, 0) rotate(-70deg) scale(1)' },
+          { offset: 0.5, opacity: 1, transform: 'translate(-2px, -1px) rotate(-88deg) scale(1)' },
+          { offset: 0.75, opacity: 1, transform: 'translate(-1px, 0) rotate(-72deg) scale(1)' },
+          { offset: 1, opacity: 1, transform: 'translate(0, 0) rotate(-74deg) scale(1)' },
         ],
         { duration: 1300, iterations: inf, easing: 'ease-in-out' },
       );
@@ -415,17 +416,17 @@ function proud(m: Motion): void {
 }
 
 function notes(m: Motion): void {
-  // Saca la tabla clínica a un lado y toma apuntes con el lápiz al otro,
-  // asintiendo concentrada mientras pasa consulta.
+  // Saca la tabla clínica a un lado y toma apuntes con el lápiz encima de la
+  // hoja, asintiendo concentrada mientras pasa consulta.
   m.set(m.turner, 'transform-origin', FEET);
-  m.set(m.turner, 'transform', 'rotate(5deg)');
+  m.set(m.turner, 'transform', 'rotate(4deg)');
   if (m.on) {
     m.anim(
       m.turner,
       [
-        { transform: 'rotate(4deg) translateY(0)' },
-        { transform: 'rotate(7deg) translateY(1px)' },
-        { transform: 'rotate(4deg) translateY(0)' },
+        { transform: 'rotate(3deg) translateY(0)' },
+        { transform: 'rotate(6deg) translateY(1px)' },
+        { transform: 'rotate(3deg) translateY(0)' },
       ],
       { duration: 1200, iterations: inf, easing: 'ease-in-out' },
     );
@@ -437,10 +438,10 @@ function notes(m: Motion): void {
       m.anim(
         board,
         [
-          { opacity: 0, transform: 'translate(-6px, 8px) rotate(-24deg) scale(0.7)' },
-          { opacity: 1, transform: 'translate(0, 0) rotate(-12deg) scale(1)', offset: 0.25 },
-          { opacity: 1, transform: 'translate(0, -1px) rotate(-10deg) scale(1)', offset: 0.65 },
-          { opacity: 1, transform: 'translate(0, 0) rotate(-12deg) scale(1)' },
+          // La libreta se queda visible todo el bucle: sólo respira un poco.
+          { opacity: 1, transform: 'translate(0, 0) rotate(-10deg) scale(1)' },
+          { opacity: 1, transform: 'translate(0, -1px) rotate(-8deg) scale(1)' },
+          { opacity: 1, transform: 'translate(0, 0) rotate(-10deg) scale(1)' },
         ],
         { duration: 1200, iterations: inf, easing: 'ease-in-out' },
       );
@@ -453,10 +454,12 @@ function notes(m: Motion): void {
       m.anim(
         pencil,
         [
-          { transform: 'translate(0, 0) rotate(-25deg)' },
-          { transform: 'translate(-4px, 2px) rotate(-38deg)' },
-          { transform: 'translate(-1px, 4px) rotate(-20deg)' },
-          { transform: 'translate(0, 0) rotate(-25deg)' },
+          // Trazos cortos sobre las líneas de la hoja, sin salirse de ella.
+          { transform: 'translate(0, 0) rotate(-22deg)' },
+          { transform: 'translate(3px, 1.5px) rotate(-26deg)' },
+          { transform: 'translate(1px, 3px) rotate(-18deg)' },
+          { transform: 'translate(4px, 4px) rotate(-24deg)' },
+          { transform: 'translate(0, 0) rotate(-22deg)' },
         ],
         { duration: 550, iterations: inf, easing: 'ease-in-out' },
       );

@@ -11,13 +11,13 @@
           <path d="M83 34 Q94 28 104 25" stroke="#3d7336" stroke-width="2" fill="none" stroke-linecap="round" />
         </svg>
       }
-      @if (skin() === 'naranja') {
+      @if (skin() === 'naranja' && !accessories().includes('chef')) {
         <svg class="mascot-detail mascot-detail--behind" viewBox="0 0 160 160" aria-hidden="true">
           <path d="M80 40 Q80 26 84 18" stroke="#6b4a2b" stroke-width="7" fill="none" stroke-linecap="round" />
           <path d="M86 26 Q100 14 114 20 Q106 34 90 31 Z" fill="#4f8f45" />
         </svg>
       }
-      @if (skin() === 'pina') {
+      @if (skin() === 'pina' && !accessories().includes('chef')) {
         <!-- Corona: hojas con cintura, cada una curvada hacia fuera, y dos tonos
              alternos para que se lean una a una y no como un abanico plano. -->
         <svg class="mascot-detail mascot-detail--behind" viewBox="0 0 160 160" aria-hidden="true">
@@ -93,24 +93,6 @@
              ya llega arriba y si no quedaría tapado por el cuerpo. -->
         <svg class="mascot-detail" viewBox="0 0 160 160" aria-hidden="true" style="z-index: 1.5">
           <path d="M64 52 Q80 28 80 28 Q80 28 96 52 Z" fill="#38bdf8" />
-        </svg>
-      }
-
-      @if (accessories().includes('chef')) {
-        <!-- Gorrito de chef posado en lo alto de la cabeza, con contorno oscuro
-             para que no se pierda sobre fondos claros. -->
-        <svg class="mascot-detail mascot-detail--behind" viewBox="0 0 160 160" aria-hidden="true">
-          <g>
-            <path
-              d="M52 24 C42 22 40 9 52 9 C56 2 69 0 80 5 C91 0 104 2 108 9 C120 9 118 22 108 24 L106 34 L54 34 Z"
-              fill="#fffdf9"
-              stroke="#b5ada2"
-              stroke-width="2.6"
-              stroke-linejoin="round"
-            />
-            <rect x="54" y="28" width="52" height="6" rx="2" fill="#f3eee6" stroke="#b5ada2" stroke-width="2" />
-            <path d="M68 13 V25 M80 11 V25 M92 13 V25" stroke="#c8c0b4" stroke-width="2" stroke-linecap="round" />
-          </g>
         </svg>
       }
 
@@ -348,19 +330,41 @@
         }
       </svg>
 
-      @if (accessories().includes('gafas') || accessories().includes('cinta') || accessories().includes('flor')) {
+      @if (accessories().includes('chef') || accessories().includes('gafas') || accessories().includes('cinta') || accessories().includes('flor')) {
         <!-- Accesorios que van por delante del cuerpo y de la cara. La clase
              `mascot-detail` los deja detrás, así que aquí se sube el z-index. -->
         <svg class="mascot-detail" viewBox="0 0 160 160" aria-hidden="true" style="z-index: 3">
+          @if (accessories().includes('chef')) {
+            <!-- Gorro de chef por delante del cuerpo y del tallo, apoyado sobre la
+                 coronilla de cada skin con una banda ligeramente curvada que abraza
+                 la frente sin cortarse detrás de la fruta. -->
+            <g data-chef [attr.transform]="chefTransform()">
+              <path
+                d="M-24 -9 C-35 -12 -36 -28 -23 -29 C-19 -39 -7 -41 0 -35 C7 -41 19 -39 23 -29 C36 -28 35 -12 24 -9 L22 0 Q0 3 -22 0 Z"
+                fill="#fffdf9"
+                stroke="#b5ada2"
+                stroke-width="2.4"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M-22 -6 H22 V0 Q0 3 -22 0 Z"
+                fill="#f3eee6"
+                stroke="#b5ada2"
+                stroke-width="1.8"
+                stroke-linejoin="round"
+              />
+              <path d="M-11 -24 V-10 M0 -27 V-10 M11 -24 V-10" stroke="#c8c0b4" stroke-width="1.8" stroke-linecap="round" />
+            </g>
+          }
           @if (accessories().includes('cinta')) {
-            <g>
-              <path d="M34 56 Q80 46 126 56" stroke="#fde68a" stroke-width="10" fill="none" stroke-linecap="round" />
+            <!-- La cinta métrica se mide sobre el contorno de cada skin: la
+                 curva abraza la frente y las marcas caen sobre ella. -->
+            <g stroke="#fde68a" stroke-width="8.5" fill="none" stroke-linecap="round">
+              <path data-tape [attr.d]="tape().d" />
               <g stroke="#ffffff" stroke-width="2" opacity="0.9" stroke-linecap="round">
-                <path d="M48 51 V58" />
-                <path d="M64 48.5 V55.5" />
-                <path d="M80 47.5 V54.5" />
-                <path d="M96 48.5 V55.5" />
-                <path d="M112 51 V58" />
+                @for (tick of tape().ticks; track $index) {
+                  <path [attr.d]="tick" />
+                }
               </g>
             </g>
           }
@@ -437,7 +441,13 @@
       <i data-o="spark" class="mascot-spark" style="left: 40px; top: 40px">✦</i>
     }
     @if (scene() === 'water') {
-      <span data-o="water" class="mascot-water" aria-hidden="true">
+      <span
+        data-o="water"
+        class="mascot-water"
+        aria-hidden="true"
+        [style.right]="waterPosition().right"
+        [style.top]="waterPosition().top"
+      >
         <svg viewBox="0 0 28 36" width="21" height="27">
           <rect x="10" y="1.5" width="8" height="4.5" rx="1.5" fill="#0284c7" />
           <path
@@ -454,8 +464,8 @@
           <path d="M10.5 10 V27" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.75" />
         </svg>
       </span>
-      <i data-o="drop" class="mascot-drop" style="left: 28px; top: 14px">💧</i>
-      <i data-o="drop" class="mascot-drop" style="left: 35px; top: 6px; font-size: 8px">💧</i>
+      <i data-o="drop" class="mascot-drop" style="left: 22px; top: 32px">💧</i>
+      <i data-o="drop" class="mascot-drop" style="left: 27px; top: 36px; font-size: 8px">💧</i>
     }
     @if (scene() === 'notes') {
       <span data-o="clipboard" class="mascot-clipboard" aria-hidden="true">

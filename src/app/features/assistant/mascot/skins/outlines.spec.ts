@@ -1,4 +1,5 @@
-import { SAMPLES, earsOf, geometryOf, mixGeometry, outlinePath } from './outlines';
+import { FACES } from './faces';
+import { SAMPLES, chefOf, earsOf, geometryOf, mixGeometry, outlinePath, tapeOf } from './outlines';
 import { SKIN_IDS } from './types';
 
 describe('geometrías procedurales', () => {
@@ -80,5 +81,44 @@ describe('orejas sobre el contorno', () => {
 
     expect(left[0] - geometry.cx).toBeCloseTo(geometry.cx - right[0], 5);
     expect(left[1]).toBeCloseTo(right[1], 5);
+  });
+});
+
+describe('gorro y cinta medidos sobre el contorno', () => {
+  const NUMBER = String.raw`-?\d+(?:\.\d+)?`;
+  const TRANSLATE_SCALE = new RegExp(String.raw`^translate\((${NUMBER}) (${NUMBER})\) scale\((${NUMBER})\)$`);
+  const TAPE = new RegExp(String.raw`^M(${NUMBER}) (${NUMBER}) Q(${NUMBER}) (${NUMBER}) (${NUMBER}) (${NUMBER})$`);
+
+  /** El ancho de la curva de la cinta: de su extremo izquierdo al derecho. */
+  const tapeWidth = (d: string): number => {
+    const match = TAPE.exec(d);
+    if (!match) throw new Error(`cinta con formato inesperado: ${d}`);
+    return Number(match[5]) - Number(match[1]);
+  };
+
+  it('cada skin lleva gorro y cinta con coordenadas válidas', () => {
+    for (const id of SKIN_IDS) {
+      const geometry = geometryOf(id);
+      const chef = chefOf(geometry);
+      const tape = tapeOf(geometry, FACES[id].eyes[0][1]);
+
+      expect(TRANSLATE_SCALE.test(chef.transform)).withContext(`${id} · gorro`).toBeTrue();
+      expect(TAPE.test(tape.d)).withContext(`${id} · cinta`).toBeTrue();
+      expect(tape.ticks.length).withContext(`${id} · marcas`).toBe(5);
+      for (const tick of tape.ticks) {
+        expect(/^M[-\d.]+ [-\d.]+ V[-\d.]+$/.test(tick)).withContext(`${id} · ${tick}`).toBeTrue();
+      }
+    }
+  });
+
+  it('la cinta de semilla es más estrecha que la de melón y naranja', () => {
+    const width = (id: (typeof SKIN_IDS)[number]) => tapeWidth(tapeOf(geometryOf(id), FACES[id].eyes[0][1]).d);
+
+    const seed = width('semilla');
+    expect(seed).toBeLessThan(width('melon'));
+    expect(seed).toBeLessThan(width('naranja'));
+    // La cinta antigua medía siempre 92 unidades: la de la semilla no puede
+    // seguir sobresaliendo de su cabeza por los dos lados.
+    expect(seed).toBeLessThan(92);
   });
 });

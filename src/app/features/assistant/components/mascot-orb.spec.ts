@@ -123,6 +123,31 @@ describe('MascotOrb: la cara', () => {
     // la montura la sigue en vez de quedarse a la altura de la naranja.
     expect(seed!.y).withContext('la montura baja con los ojos').toBeGreaterThan(orange!.y);
   });
+
+  it('el gorro y la cinta se recolocan al cambiar de fruta', () => {
+    const chef = () => host().querySelector('[data-chef]')?.getAttribute('transform') ?? '';
+    const tape = () => host().querySelector('[data-tape]')?.getAttribute('d') ?? '';
+
+    fixture.componentRef.setInput('accessories', ['chef', 'cinta']);
+    fixture.componentRef.setInput('skin', 'naranja');
+    fixture.detectChanges();
+    const [chefOrange, tapeOrange] = [chef(), tape()];
+
+    fixture.componentRef.setInput('skin', 'semilla');
+    fixture.detectChanges();
+    const [chefSeed, tapeSeed] = [chef(), tape()];
+
+    expect(chefOrange).withContext('gorro naranja').not.toBe('');
+    expect(tapeOrange).withContext('cinta naranja').not.toBe('');
+    expect(chefSeed).withContext('gorro semilla').not.toBe(chefOrange);
+    expect(tapeSeed).withContext('cinta semilla').not.toBe(tapeOrange);
+
+    // El gorro va por delante del cuerpo: si vuelve a la capa de detrás, queda
+    // escondido tras las hojas y el cuerpo.
+    const layer = host().querySelector('[data-chef]')?.closest('svg');
+    expect(layer?.getAttribute('style')).withContext('capa frontal').toContain('z-index: 3');
+    expect(layer?.classList.contains('mascot-detail--behind')).withContext('detrás del cuerpo').toBeFalse();
+  });
 });
 
 describe('MascotOrb: señales de estado', () => {

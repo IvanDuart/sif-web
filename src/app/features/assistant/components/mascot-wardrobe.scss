@@ -82,7 +82,7 @@
 .wd-stage {
   position: relative;
   flex: none;
-  height: 176px;
+  height: 192px;
   margin: 12px 20px 0;
   overflow: hidden;
   border-radius: 16px;
@@ -96,7 +96,7 @@
    la sombra de contacto. Sustituye a la barra del perchero heredada. */
 .wd-pedestal {
   position: absolute;
-  bottom: 22px;
+  bottom: 14px;
   left: 50%;
   width: 172px;
   height: 26px;
@@ -200,11 +200,11 @@
 
 /* La mascota en el escenario: la misma que se lleva puesta, al tamaño del
    escenario. Entra cuando las puertas ya han abierto. Se asienta sobre el
-   plato (`top: 56%`) y deja aire arriba para que ni el gorro de chef ni las
-   orejas queden bajo la píldora de gestos. */
+   plato (`top: 60%`) y deja un margen superior limpio bajo la píldora de
+   gestos, también con gorro de chef u orejas en las skins más altas. */
 .wd-model {
   position: absolute;
-  top: 56%;
+  top: 60%;
   left: 50%;
   transform: translate(-50%, -50%) scale(1.6);
   animation: wd-arrive 420ms cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s both;

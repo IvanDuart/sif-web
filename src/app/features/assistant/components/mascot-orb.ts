@@ -20,7 +20,17 @@ import { MascotLifeService, type MascotLife, type MascotMode } from '../mascot/m
 import { AWAY_AFTER_MS, WELCOME_AFTER_MS } from '../mascot/mascot-life.service';
 import { MascotMoodService } from '../mascot/mascot-mood.service';
 import { ARCH, EYE_CX, EYE_CY, EYE_H, EYE_W, FACES, K, OPEN, SHUT, type EyeState } from '../mascot/skins/faces';
-import { earsOf, geometryOf, mixGeometry, outlinePath, type Ear, type Geometry } from '../mascot/skins/outlines';
+import {
+  chefOf,
+  earsOf,
+  geometryOf,
+  mixGeometry,
+  outlinePath,
+  tapeOf,
+  type Ear,
+  type Geometry,
+  type MeasuringTape,
+} from '../mascot/skins/outlines';
 import { DEFAULT_SKIN, type AccessoryId, type SkinId } from '../mascot/skins/types';
 
 type Eyes = readonly [EyeState, EyeState];
@@ -114,6 +124,9 @@ export class MascotOrb implements OnInit {
   readonly halo = signal(0);
   /** Las orejas, medidas sobre el contorno de la skin que se esté dibujando. */
   readonly ears = signal<readonly Ear[]>([]);
+  /** El gorro de chef y la cinta métrica, también medidos sobre el contorno. */
+  readonly chefTransform = signal('');
+  readonly tape = signal<MeasuringTape>({ d: '', ticks: [] });
 
   private readonly orb = viewChild<ElementRef<HTMLElement>>('orb');
   private current: Geometry | null = null;
@@ -332,6 +345,8 @@ export class MascotOrb implements OnInit {
     this.spot.set(geometry.spot);
     this.halo.set(geometry.halo);
     this.ears.set(earsOf(geometry));
+    this.chefTransform.set(chefOf(geometry).transform);
+    this.tape.set(tapeOf(geometry, FACES[this.skin()].eyes[0][1]));
   }
 
   // ── Ojos ─────────────────────────────────────────────────────────────
@@ -408,10 +423,11 @@ export class MascotOrb implements OnInit {
         return [pair(bar(2 / 12, 0, 3)), null];
       case 'cheer':
       case 'proud':
-      case 'water':
       case 'highfive':
       case 'welcome':
         return [pair(ARCH), null];
+      case 'water':
+        return [pair({ s: 1, x: 1.5, y: 1, look: 'arch' }), null];
       case 'dizzy':
         return [pair({ s: 1, x: 0, y: 0, look: 'spiral' }), null];
       case 'worried':
@@ -467,6 +483,20 @@ export class MascotOrb implements OnInit {
     const dx = (eye.x * K * 0.4).toFixed(2);
     const dy = (top + EYE_CY + eye.y * K).toFixed(2);
     return `translate(${dx}px, ${dy}px)`;
+  });
+
+  /**
+   * La botella pivota desde la boquilla (`transform-origin: 50% 0%`) justo por
+   * debajo de los ojos de cada skin, apuntando a la boca sin tapar la cara.
+   */
+  readonly waterPosition = computed(() => {
+    const [, eyeTop] = this.eyePositions()[0];
+    const mouthY = (eyeTop + EYE_H + 3) * 0.3875 - 7;
+    const narrow = Math.max(...geometryOf(this.skin()).body) < 45;
+    return {
+      right: narrow ? '-2px' : '-4px',
+      top: `${Math.min(40, Math.max(29, mouthY)).toFixed(1)}px`,
+    };
   });
 
   eyeTransform(index: number): string {

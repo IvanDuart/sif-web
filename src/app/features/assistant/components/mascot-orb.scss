@@ -331,13 +331,13 @@
    boquilla apuntando hacia la boca (en el centro-bajo de la cara), sin tapar el ojo. */
 .mascot-water {
   position: absolute;
-  right: -15px;
-  top: 6px;
+  right: -4px;
+  top: 34px;
   z-index: 4;
   pointer-events: none;
   opacity: 0;
-  transform-origin: 25% 18%;
-  transform: rotate(-112deg);
+  transform-origin: 50% 0%;
+  transform: rotate(-76deg);
   filter: drop-shadow(0 2px 4px rgb(2 132 199 / 0.25));
 }
 
@@ -384,26 +384,27 @@
   transform-origin: 15% 70%;
 }
 
-/* Tabla clínica y lápiz para tomar apuntes en consulta. */
+/* Tabla clínica y lápiz para tomar apuntes en consulta: los dos juntos abajo a
+   la izquierda, bajo la línea de los ojos, con la punta apoyada en la hoja. */
 .mascot-clipboard {
   position: absolute;
-  left: -12px;
-  top: 16px;
+  left: -13px;
+  top: 18px;
   z-index: 4;
   pointer-events: none;
   opacity: 0;
-  transform: rotate(-12deg);
+  transform: rotate(-10deg);
   filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.2));
 }
 
 .mascot-pencil {
   position: absolute;
-  right: -8px;
-  top: 19px;
-  z-index: 4;
+  left: -1px;
+  top: 22px;
+  z-index: 5;
   pointer-events: none;
   opacity: 0;
-  transform: rotate(-25deg);
+  transform: rotate(-22deg);
   filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.18));
 }
 

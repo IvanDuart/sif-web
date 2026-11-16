@@ -380,3 +380,70 @@ export function earsOf(geometry: Geometry): readonly Ear[] {
     };
   });
 }
+
+/**
+ * Los extremos horizontales del cuerpo a una altura dada.
+ *
+ * El contorno son radios desde el centro, así que no hay vértices «a esa
+ * altura»: se toman los que caen dentro de una tolerancia y, si la línea pasa
+ * por una zona muy curvada, se amplía hasta encontrar dos. Siempre sale de la
+ * geometría medida, así que sigue también a la transformación de una skin en
+ * otra.
+ */
+function spanAtY(geometry: Geometry, y: number): [number, number] {
+  const points = geometry.body.map((radius, index) => {
+    const angle = (index / geometry.body.length) * 2 * Math.PI;
+    return [geometry.cx + radius * Math.cos(angle), geometry.cy + radius * Math.sin(angle)] as const;
+  });
+  for (let tolerance = 3; tolerance <= 24; tolerance += 3) {
+    const near = points.filter(([, py]) => Math.abs(py - y) <= tolerance);
+    if (near.length >= 2) {
+      return [Math.min(...near.map(([px]) => px)), Math.max(...near.map(([px]) => px))];
+    }
+  }
+  // Cerca de un extremo (la coronilla, la punta) apenas hay vértices: se mide
+  // el radio del contorno justo hacia los lados.
+  return [geometry.cx - radiusAt(geometry.body, Math.PI), geometry.cx + radiusAt(geometry.body, 0)];
+}
+
+/** Dónde va el gorro de chef de cada skin: apoyado en su coronilla y a su escala. */
+export interface ChefHat {
+  /** `translate(...) scale(...)`, con la base del gorro en `(0, 0)`. */
+  transform: string;
+}
+
+export function chefOf(geometry: Geometry): ChefHat {
+  const topY = geometry.cy - radiusAt(geometry.body, -Math.PI / 2);
+  const [leftX, rightX] = spanAtY(geometry, topY + 12);
+  const width = Math.max(32, rightX - leftX);
+  const scale = Math.min(1.05, Math.max(0.7, width / 60));
+  return {
+    transform: `translate(${geometry.cx.toFixed(2)} ${(topY + 3).toFixed(2)}) scale(${scale.toFixed(3)})`,
+  };
+}
+
+/** La cinta métrica de la frente: la curva y sus cinco marcas. */
+export interface MeasuringTape {
+  /** La curva que abraza el contorno, de flanco a flanco. */
+  d: string;
+  /** Cinco rayitas verticales repartidas sobre esa misma curva. */
+  ticks: readonly string[];
+}
+
+export function tapeOf(geometry: Geometry, eyeTop: number): MeasuringTape {
+  const topY = geometry.cy - radiusAt(geometry.body, -Math.PI / 2);
+  const yEdge = Math.max(topY + 11, eyeTop - 9);
+  const [leftX, rightX] = spanAtY(geometry, yEdge);
+  const x1 = leftX - 2.5;
+  const x2 = rightX + 2.5;
+  const midX = (x1 + x2) / 2;
+  const ctrlY = yEdge - Math.max(6, (x2 - x1) * 0.11);
+  const d = `M${x1.toFixed(1)} ${yEdge.toFixed(1)} Q${midX.toFixed(1)} ${ctrlY.toFixed(1)} ${x2.toFixed(1)} ${yEdge.toFixed(1)}`;
+  const ticks = [0.18, 0.34, 0.5, 0.66, 0.82].map((t) => {
+    // Punto de la curva cuadrática de Bézier: la marca queda justo encima.
+    const x = (1 - t) ** 2 * x1 + 2 * (1 - t) * t * midX + t ** 2 * x2;
+    const y = (1 - t) ** 2 * yEdge + 2 * (1 - t) * t * ctrlY + t ** 2 * yEdge;
+    return `M${x.toFixed(1)} ${(y - 3).toFixed(1)} V${(y + 3).toFixed(1)}`;
+  });
+  return { d, ticks };
+}
