@@ -93,7 +93,7 @@
 
     <div class="flex flex-col sm:flex-row sm:flex-wrap justify-between items-stretch sm:items-center gap-4 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
       @if (canManage()) {
-        <button type="button" tuiButton appearance="secondary-destructive" size="m" [disabled]="saving()" (click)="confirmCancel()">
+        <button type="button" tuiButton appearance="secondary-destructive" size="m" [disabled]="saving()" data-mascot-point="appointment-cancel" data-mascot-submit="appointment-status" (click)="confirmCancel()">
           @if (saving()) {
             <i class="fa-solid fa-spinner fa-spin mr-1"></i>
           } @else {
@@ -116,7 +116,7 @@
         }
 
         @if (appointment.status === 'SCHEDULED' && canManage()) {
-          <button type="button" tuiButton appearance="secondary" size="m" [disabled]="saving()" (click)="markCompleted()">
+          <button type="button" tuiButton appearance="secondary" size="m" [disabled]="saving()" data-mascot-point="appointment-attended" data-mascot-submit="appointment-status" (click)="markCompleted()">
             @if (saving()) {
               <i class="fa-solid fa-spinner fa-spin mr-1"></i>
             } @else {
@@ -124,7 +124,7 @@
             }
             {{ t('appointments.attended') }}
           </button>
-          <button type="button" tuiButton appearance="secondary" size="m" [disabled]="saving()" (click)="markNoShow()">
+          <button type="button" tuiButton appearance="secondary" size="m" [disabled]="saving()" data-mascot-point="appointment-no-show" data-mascot-submit="appointment-status" (click)="markNoShow()">
             @if (saving()) {
               <i class="fa-solid fa-spinner fa-spin mr-1"></i>
             } @else {

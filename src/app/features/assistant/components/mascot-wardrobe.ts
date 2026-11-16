@@ -9,7 +9,7 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoPipe } from '@jsverse/transloco';
 import { TuiButton } from '@taiga-ui/core';
 
 import type { Scene } from '../mascot/agentMotion';
@@ -34,7 +34,7 @@ const FOCUSABLE =
 @Component({
   selector: 'app-mascot-wardrobe',
   standalone: true,
-  imports: [TranslocoDirective, TuiButton, MascotOrb],
+  imports: [TranslocoDirective, TranslocoPipe, TuiButton, MascotOrb],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './mascot-wardrobe.scss',
   template: `
@@ -58,6 +58,7 @@ const FOCUSABLE =
               tuiIconButton
               appearance="flat"
               size="s"
+              class="wd-close"
               [attr.aria-label]="t('common.close')"
               [attr.title]="t('common.close')"
               (click)="cancel()"
@@ -67,8 +68,7 @@ const FOCUSABLE =
           </header>
 
           <div class="wd-stage">
-            <span class="wd-bar" aria-hidden="true"></span>
-            <span class="wd-floor" aria-hidden="true"></span>
+            <span class="wd-pedestal" aria-hidden="true"></span>
 
             <div class="wd-model" [class.wd-model--dip]="dip()">
               <app-mascot-orb
@@ -79,6 +79,90 @@ const FOCUSABLE =
                 size="l"
                 [decorative]="true"
               />
+            </div>
+
+            <!-- Probar un gesto sin cambiarse de fruta: siete atajos que sólo
+                 enseñan su reacción un momento. El botón que está en escena se
+                 queda encendido; volver a pulsarlo la apaga. Fuera del ciclo de
+                 Tab: el diálogo se recorre por lo que de verdad se elige. -->
+            <div class="wd-moods" role="group" [attr.aria-label]="t('assistant.wardrobe_moods')">
+              <button
+                type="button"
+                tabindex="-1"
+                class="wd-mood"
+                [class.wd-mood--on]="previewScene() === 'blush'"
+                [attr.aria-label]="t('assistant.wardrobe.moods.blush')"
+                [attr.title]="t('assistant.wardrobe.moods.blush')"
+                (click)="previewMood('blush')"
+              >
+                <span aria-hidden="true">✨</span>
+              </button>
+              <button
+                type="button"
+                tabindex="-1"
+                class="wd-mood"
+                [class.wd-mood--on]="previewScene() === 'cheer'"
+                [attr.aria-label]="t('assistant.wardrobe.moods.happy')"
+                [attr.title]="t('assistant.wardrobe.moods.happy')"
+                (click)="previewMood('cheer')"
+              >
+                <span aria-hidden="true">😊</span>
+              </button>
+              <button
+                type="button"
+                tabindex="-1"
+                class="wd-mood"
+                [class.wd-mood--on]="previewScene() === 'water'"
+                [attr.aria-label]="t('assistant.wardrobe.moods.water')"
+                [attr.title]="t('assistant.wardrobe.moods.water')"
+                (click)="previewMood('water')"
+              >
+                <span aria-hidden="true">💧</span>
+              </button>
+              <button
+                type="button"
+                tabindex="-1"
+                class="wd-mood"
+                [class.wd-mood--on]="previewScene() === 'proud'"
+                [attr.aria-label]="t('assistant.wardrobe.moods.proud')"
+                [attr.title]="t('assistant.wardrobe.moods.proud')"
+                (click)="previewMood('proud')"
+              >
+                <span aria-hidden="true">💪</span>
+              </button>
+              <button
+                type="button"
+                tabindex="-1"
+                class="wd-mood"
+                [class.wd-mood--on]="previewScene() === $any('notes')"
+                [attr.aria-label]="t('assistant.wardrobe.moods.notes')"
+                [attr.title]="t('assistant.wardrobe.moods.notes')"
+                (click)="previewMood($any('notes'))"
+              >
+                <span aria-hidden="true">📋</span>
+              </button>
+              <button
+                type="button"
+                tabindex="-1"
+                class="wd-mood"
+                [class.wd-mood--on]="previewScene() === 'phone'"
+                [attr.aria-label]="t('assistant.wardrobe.moods.phone')"
+                [attr.title]="t('assistant.wardrobe.moods.phone')"
+                (click)="previewMood('phone')"
+              >
+                <span aria-hidden="true">📱</span>
+              </button>
+              <button
+                type="button"
+                tabindex="-1"
+                class="wd-mood"
+                [class.wd-mood--on]="previewScene() === 'sleep'"
+                [attr.aria-label]="t('assistant.wardrobe.moods.sleeping')"
+                [attr.title]="t('assistant.wardrobe.moods.sleeping')"
+                (click)="previewMood('sleep')"
+              >
+                <span aria-hidden="true">💤</span>
+              </button>
             </div>
 
             <button
@@ -107,13 +191,16 @@ const FOCUSABLE =
             </button>
           </div>
 
-          <div class="wd-info wd-rise" style="--d: 1.1s">
+          <div class="wd-info wd-about wd-rise" style="--d: 0.15s">
             <div class="wd-info__line" aria-live="polite">
               <strong>{{ t('assistant.skin_' + pick()) }}</strong>
               @if (pick() === look.skin()) {
                 <em>{{ t('assistant.wardrobe_worn') }}</em>
               }
             </div>
+            <p class="wd-trait" aria-live="polite">
+              {{ ('assistant.wardrobe.skins.' + pick() + '.trait') | transloco }}
+            </p>
             <p aria-live="polite">{{ t('assistant.skin_' + pick() + '_desc') }}</p>
           </div>
 
@@ -146,7 +233,7 @@ const FOCUSABLE =
           </div>
 
           @if (accessories().length > 0) {
-            <div class="wd-extras wd-rise" style="--d: 1.45s">
+            <div class="wd-extras wd-rise" style="--d: 0.25s">
               <p class="wd-extras__label">{{ t('assistant.wardrobe_accessories') }}</p>
               <div class="wd-chips">
                 @for (accessory of accessories(); track accessory) {
@@ -164,9 +251,9 @@ const FOCUSABLE =
             </div>
           }
 
-          <footer class="wd-foot wd-rise" style="--d: 1.6s">
+          <footer class="wd-foot wd-rise" style="--d: 0.35s">
             <span class="wd-hint">{{ t('assistant.wardrobe_hint') }}</span>
-            <button type="button" tuiButton appearance="flat" size="m" (click)="cancel()">
+            <button type="button" tuiButton appearance="flat" size="m" class="wd-cancel" (click)="cancel()">
               {{ t('common.cancel') }}
             </button>
             <button type="button" tuiButton appearance="primary" size="m" (click)="confirm()">
@@ -279,6 +366,9 @@ export class MascotWardrobe {
   choose(id: SkinId): void {
     if (id === this.pick()) return;
     this.pick.set(id);
+    // Elegir fruta no es un interruptor: aunque su gesto estuviera en escena,
+    // el saludo se enseña igual al cambiarla.
+    this.previewScene.set(null);
     this.flashPreview();
     this.flashDip();
   }
@@ -289,10 +379,25 @@ export class MascotWardrobe {
     this.dipTimer = setTimeout(() => this.dip.set(false), 160);
   }
 
-  private flashPreview(): void {
+  /**
+   * Probar un gesto sin cambiarse de fruta: el escenario enseña la reacción
+   * unos instantes y vuelve a la calma. No toca el borrador.
+   *
+   * Los atajos del escenario son un interruptor: pulsar el gesto que ya está
+   * en escena lo apaga en vez de volver a empezar la cuenta.
+   */
+  previewMood(scene: Scene, durationMs = 2800): void {
     clearTimeout(this.previewTimer);
-    this.previewScene.set('blush');
-    this.previewTimer = setTimeout(() => this.previewScene.set(null), 1800);
+    if (this.previewScene() === scene) {
+      this.previewScene.set(null);
+      return;
+    }
+    this.previewScene.set(scene);
+    this.previewTimer = setTimeout(() => this.previewScene.set(null), durationMs);
+  }
+
+  private flashPreview(): void {
+    this.previewMood('blush', 1800);
   }
 
   /** Las flechas del escenario: la siguiente mascota, dando la vuelta. */
@@ -319,11 +424,13 @@ export class MascotWardrobe {
 
   /** Lo que sube detrás de la ficha anterior, como en el diseño. */
   riseDelay(index: number): string {
-    return `${(1.15 + index * 0.06).toFixed(2)}s`;
+    return `${(0.15 + index * 0.02).toFixed(2)}s`;
   }
 
   labelFor(accessory: AccessoryId, t: (key: string) => string): string {
-    return accessory === 'orejas' ? t('assistant.wardrobe_ears') : accessory;
+    return accessory === 'orejas'
+      ? t('assistant.wardrobe_ears')
+      : t('assistant.wardrobe.accessories.' + accessory);
   }
 
   confirm(): void {

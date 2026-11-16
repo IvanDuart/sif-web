@@ -68,6 +68,25 @@ const blob =
       return field + (distance === 0 ? Infinity : (r * r) / distance);
     }, 0) >= 1;
 
+/**
+ * Un cono redondeado: en cada altura, un disco cuyo radio va del de arriba al
+ * de abajo. Fuera del tramo se queda el disco extremo, así que los dos
+ * extremos salen redondeados y el borde no tiene escalones.
+ *
+ * Sirve para lo que `blob` hacía mal: la zanahoria. Sumar cinco metaballs
+ * hinchaba la suma en el centro (`r²/d²` de cada círculo se suma a la de los
+ * vecinos), la cintura engordaba y la raíz parecía una patata.
+ */
+const cone =
+  (cx: number, yTop: number, rTop: number, yBot: number, rBot: number): Inside =>
+  (x, y) => {
+    const span = yBot - yTop;
+    const t = Math.max(0, Math.min(1, (y - yTop) / span));
+    const r = rTop + (rBot - rTop) * t;
+    const cy = yTop + t * span;
+    return (x - cx) ** 2 + (y - cy) ** 2 <= r * r;
+  };
+
 const without =
   (shape: Inside, ...holes: Inside[]): Inside =>
   (x, y) =>
@@ -87,8 +106,8 @@ const APPLE = without(
 /** Naranja: una esfera (el rabillo y la hoja son detalle). */
 const ORANGE = circle(80, 86, 58);
 
-/** Piña redonda: una esfera (el penacho y el enrejado son detalle). */
-const PINEAPPLE = circle(80, 92, 52);
+/** Piña redonda: una elipse algo más estilizada que la esfera (el penacho y el enrejado son detalle). */
+const PINEAPPLE = ellipse(80, 92, 47, 52);
 
 /** Melón: algo más ancho que alto (el rabillo y las rayas son detalle). */
 const MELON = ellipse(80, 90, 58, 50);
@@ -104,13 +123,31 @@ const MELON = ellipse(80, 90, 58, 50);
 const BROCCOLI = blob([80, 112, 22], [40, 86, 19], [56, 56, 20], [80, 46, 20], [104, 56, 20], [120, 86, 19]);
 
 /**
- * Zanahoria: ancha de hombros y estrechándose al bajar, como la raíz. Tres
- * círculos cada vez más pequeños bastan para el cono (el penacho es detalle).
+ * Zanahoria: un cono continuo, ancho de hombros y estrechado hasta la punta,
+ * como la raíz. Con un solo cono el borde baja en línea recta y no hay cintura
+ * que abulte (el penacho es detalle).
  */
-const CARROT = blob([80, 58, 32], [80, 88, 25], [80, 116, 15]);
+const CARROT = cone(80, 68, 42, 130, 14);
+
+/** El brillo de la zanahoria, el mismo cono desplazado a la luz. */
+const CARROT_LIT = cone(75, 65, 33, 124, 10);
 
 /** Semilla: una gota, estrecha arriba y llena abajo (el brote es detalle). */
 const SEED = blob([80, 66, 22], [80, 102, 40]);
+
+/**
+ * Aguacate: pera ancha por la mitad y estrechada arriba, con el hueso y la
+ * pulpa como detalle (se recortan al contorno en la plantilla).
+ */
+const AVOCADO = blob([80, 62, 34], [80, 82, 41], [80, 98, 48]);
+const AVOCADO_LIT = blob([74, 58, 25], [74, 78, 32], [74, 94, 38]);
+
+/** Arándano: una baya casi redonda, con la coronita estrellada de detalle. */
+const BLUEBERRY = ellipse(80, 90, 50, 46);
+
+/** Gota de agua: estrecha en el pico de arriba y llena abajo. */
+const DROP = blob([80, 60, 32], [80, 78, 40], [80, 96, 48]);
+const DROP_LIT = blob([74, 58, 24], [74, 74, 31], [74, 92, 38]);
 
 const DRAWINGS: Record<SkinId, Drawing> = {
   manzana: {
@@ -134,7 +171,7 @@ const DRAWINGS: Record<SkinId, Drawing> = {
   pina: {
     centre: [80, 92],
     inside: PINEAPPLE,
-    lit: moved(PINEAPPLE, -10, -13),
+    lit: ellipse(74, 86, 38, 43),
     dark: '#c8921c',
     light: '#edb63a',
     spot: [48, 60, -30, 38, 78, 1],
@@ -159,9 +196,9 @@ const DRAWINGS: Record<SkinId, Drawing> = {
     halo: false,
   },
   zanahoria: {
-    centre: [80, 80],
+    centre: [80, 86],
     inside: CARROT,
-    lit: moved(CARROT, -9, -11),
+    lit: CARROT_LIT,
     dark: '#cf5f18',
     light: '#ef8726',
     spot: [44, 52, -30, 38, 62, 1],
@@ -174,6 +211,33 @@ const DRAWINGS: Record<SkinId, Drawing> = {
     dark: '#8a6334',
     light: '#b1854c',
     spot: [44, 54, -30, 38, 84, 1],
+    halo: false,
+  },
+  aguacate: {
+    centre: [80, 90],
+    inside: AVOCADO,
+    lit: AVOCADO_LIT,
+    dark: '#3b6e38',
+    light: '#599852',
+    spot: [48, 56, -30, 38, 74, 1],
+    halo: false,
+  },
+  arandano: {
+    centre: [80, 90],
+    inside: BLUEBERRY,
+    lit: moved(BLUEBERRY, -6, -6),
+    dark: '#3f4c96',
+    light: '#5b6abf',
+    spot: [46, 54, -30, 36, 72, 1],
+    halo: false,
+  },
+  gota: {
+    centre: [80, 90],
+    inside: DROP,
+    lit: DROP_LIT,
+    dark: '#0284c7',
+    light: '#38bdf8',
+    spot: [48, 58, -30, 38, 76, 1],
     halo: false,
   },
 };

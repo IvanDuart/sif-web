@@ -33,6 +33,27 @@
   transition: scale 200ms ease;
 }
 
+/* Rellenando (`acting`) o señalando un campo (`reading`), el orb salta de un
+   sitio a otro de la pantalla. Una sombra de contacto lo despega del fondo —sin
+   ella parece pegado y el salto se lee como un parpadeo— y la transición va con
+   el viaje (`--mascot-hop`, el mismo que usa el launcher) en vez de con un
+   tiempo fijo: cuando el combo acelera, la sombra llega antes y el cambio de
+   campo se ve nítido. */
+.mascot-orb[data-mode='acting'],
+.mascot-orb[data-mode='reading'] {
+  filter: drop-shadow(0 3px 5px rgb(24 48 64 / 0.22));
+  transition:
+    filter var(--mascot-hop, 450ms) cubic-bezier(0.45, 0, 0.2, 1),
+    scale var(--mascot-hop, 450ms) cubic-bezier(0.45, 0, 0.2, 1);
+}
+
+/* Quieta —el armario, un avatar— no viaja ni necesita sombra de movimiento. */
+:host(.is-still) .mascot-orb[data-mode='acting'],
+:host(.is-still) .mascot-orb[data-mode='reading'] {
+  filter: none;
+  transition: none;
+}
+
 .mascot-turner {
   position: absolute;
   inset: 0;
@@ -80,6 +101,10 @@
 }
 
 .mascot-face-place {
+  transition: transform 480ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.mascot-glasses {
   transition: transform 480ms cubic-bezier(0.65, 0, 0.35, 1);
 }
 
@@ -302,6 +327,86 @@
   top: 4px;
 }
 
+/* La botella de agua y sus gotitas: inclinada desde arriba a la derecha con la
+   boquilla apuntando hacia la boca (en el centro-bajo de la cara), sin tapar el ojo. */
+.mascot-water {
+  position: absolute;
+  right: -15px;
+  top: 6px;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  transform-origin: 25% 18%;
+  transform: rotate(-112deg);
+  filter: drop-shadow(0 2px 4px rgb(2 132 199 / 0.25));
+}
+
+.mascot-drop {
+  position: absolute;
+  font-size: 10px;
+  line-height: 1;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 4;
+}
+
+/* Los brazos de fuerza con mancuerna: nacen de cada costado del cuerpo hacia
+   el exterior, dejando los ojos totalmente despejados. El espejado izquierdo
+   vive en el <svg> hijo para que la animación WAAPI del contenedor no lo pise. */
+.mascot-flex {
+  position: absolute;
+  top: 18px;
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 4;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.18));
+}
+
+.mascot-flex svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mascot-flex--left {
+  left: -16px;
+  transform-origin: 85% 70%;
+}
+
+.mascot-flex--left svg {
+  transform: scaleX(-1);
+}
+
+.mascot-flex--right {
+  right: -16px;
+  transform-origin: 15% 70%;
+}
+
+/* Tabla clínica y lápiz para tomar apuntes en consulta. */
+.mascot-clipboard {
+  position: absolute;
+  left: -12px;
+  top: 16px;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  transform: rotate(-12deg);
+  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.2));
+}
+
+.mascot-pencil {
+  position: absolute;
+  right: -8px;
+  top: 19px;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  transform: rotate(-25deg);
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.18));
+}
+
 /* El móvil que saca cuando lleva mucho esperando: visto por detrás, inclinado
    y sujeto abajo a la derecha. El giro vive aquí (y no sólo en la animación de
    entrada, que no fija su pose final) para que no se enderece al terminar. */
@@ -342,11 +447,13 @@
   }
 
   .mascot-face-place,
+  .mascot-glasses,
   .mascot-face-eye,
   .mascot-face-bar,
   .mascot-face-arch,
   .mascot-face-spiral-layer,
-  .mascot-face-brow {
+  .mascot-face-brow,
+  .mascot-orb {
     transition: none;
   }
 

@@ -13,6 +13,7 @@
         appearance="primary"
         size="s"
         [disabled]="saving() || loading()"
+        data-mascot-submit="meal-exchanges"
         (click)="save()"
       >
         @if (saving()) {
@@ -43,6 +44,7 @@
             step="0.5"
             class="w-20 rounded-sm border border-line bg-surface-0 px-2 py-1 text-right text-[13px] tabular-nums outline-none focus:border-primary-400 dark:bg-surface-900"
             [(ngModel)]="row.targetRations"
+            [attr.data-mascot-field]="'meal-exchanges.' + keyOf(row.group.id)"
             [disabled]="!canManage()"
             [attr.aria-label]="t('diet_detail.exchanges.target_rations') + ' ' + row.group.name"
           />

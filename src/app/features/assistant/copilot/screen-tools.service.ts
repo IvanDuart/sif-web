@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 
 import type { AssistantClientToolDecl } from '../../../core/api/models/assistant.model';
 import { MascotFillService } from '../mascot/fill/mascot-fill.service';
+import { AssistantFeaturesService } from './assistant-features.service';
 import type { ToolRun } from './client-tool.model';
 import { CursorService } from './cursor.service';
 import { QuestionService } from './question.service';
@@ -31,6 +32,7 @@ export class ScreenToolsService {
   private readonly fill = inject(MascotFillService);
   private readonly questions = inject(QuestionService);
   private readonly cursor = inject(CursorService);
+  private readonly features = inject(AssistantFeaturesService);
 
   /** Lo que se puede hacer en esta pantalla, ahora mismo. */
   decls(): AssistantClientToolDecl[] {
@@ -45,9 +47,9 @@ export class ScreenToolsService {
       // diálogo que ya está en pantalla invita al modelo a abrirlo dos veces.
       ...this.fill
         .allOpeners()
-        .filter((opener) => !this.fill.forId(opener.id))
+        .filter((opener) => !this.fill.forId(opener.id) && this.features.has(opener.requires))
         .flatMap((opener) => {
-          const decl = openTool(opener.id);
+          const decl = openTool(opener.id, opener.param);
           return decl ? [decl] : [];
         }),
       ...this.fill.allActions().flatMap((action) => {
@@ -77,7 +79,7 @@ export class ScreenToolsService {
 
     for (const opener of this.fill.allOpeners()) {
       if (openTool(opener.id)?.name !== name) continue;
-      return (_args, { signal }) => runOpen(opener.id, { fill: this.fill, signal, catalog: deps.catalog });
+      return (args, { signal }) => runOpen(opener.id, { fill: this.fill, signal, catalog: deps.catalog, args });
     }
 
     for (const action of this.fill.allActions()) {

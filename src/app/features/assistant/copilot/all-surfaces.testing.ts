@@ -1,12 +1,14 @@
 import type { FillSurface } from '../mascot/fill/descriptor';
 import { appointmentSurface } from '../mascot/fill/surfaces/appointment.surface';
 import { APPOINTMENT_TYPE_SURFACE } from '../mascot/fill/surfaces/appointment-type.surface';
+import { appointmentStatusSurface } from '../mascot/fill/surfaces/appointment-status.surface';
 import { assignNutritionistSurface } from '../mascot/fill/surfaces/assign-nutritionist.surface';
 import { CALENDAR_NOTE_SURFACE } from '../mascot/fill/surfaces/calendar-note.surface';
 import { clinicalStatusSurface } from '../mascot/fill/surfaces/clinical-status.surface';
 import { holidaySurface } from '../mascot/fill/surfaces/holiday.surface';
 import { mealSurface } from '../mascot/fill/surfaces/meal.surface';
 import { mealTemplateSurface } from '../mascot/fill/surfaces/meal-template.surface';
+import { mealExchangesSurface } from '../mascot/fill/surfaces/meal-exchanges.surface';
 import { MEASUREMENT_SURFACE } from '../mascot/fill/surfaces/measurement.surface';
 import { MENU_RENAME_SURFACE } from '../mascot/fill/surfaces/menu-rename.surface';
 import { menuTemplateSurface } from '../mascot/fill/surfaces/menu-template.surface';
@@ -32,12 +34,22 @@ export function allSurfaces(): FillSurface[] {
       types: options('Primera visita', 'Revisión'),
     }),
     APPOINTMENT_TYPE_SURFACE,
+    appointmentStatusSurface(() => 'a-1'),
     assignNutritionistSurface({ nutritionists: options('Marta Ruiz') }),
     CALENDAR_NOTE_SURFACE,
     clinicalStatusSurface({ statuses: options('Activo', 'Baja') } as never),
     holidaySurface({ types: options('Nacional', 'Local') } as never),
     mealSurface({ days: options('Lunes', 'Martes'), mealTypes: options('Desayuno', 'Comida') } as never),
     mealTemplateSurface({ days: options('Lunes', 'Martes'), mealTypes: options('Comida', 'Cena') }),
+    mealExchangesSurface({
+      groups: () => [
+        { id: 'g-1', name: 'Farináceos' },
+        { id: 'g-2', name: 'Proteicos' },
+        { id: 'g-3', name: 'Lácteos' },
+      ],
+      ready: () => true,
+      mealId: () => 'meal-1',
+    }),
     MEASUREMENT_SURFACE,
     MENU_RENAME_SURFACE,
     menuTemplateSurface({ templates: options('Mediterránea') } as never),

@@ -1,6 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 
-import { STILL_TIMING, WRITTEN_ATTR, findAnchor, playFill, playOpen, typeChange } from './animated-fill';
+import {
+  DEFAULT_FILL_TIMING,
+  STILL_TIMING,
+  WRITTEN_ATTR,
+  findAnchor,
+  playFill,
+  playOpen,
+  stepTimingFor,
+  typeChange,
+  type FillTiming,
+} from './animated-fill';
 import {
   matchPreview,
   type FieldAccess,
@@ -117,6 +127,114 @@ describe('relleno animado de la mascota', () => {
 
       expect(steps.length).toBeLessThanOrEqual(10);
       expect(steps.at(-1)).toBe(long);
+    });
+  });
+
+  describe('combo de velocidad en un relleno largo', () => {
+    const base = DEFAULT_FILL_TIMING;
+    /** Lo que ocupa un campo en el viaje (no cuenta el tecleo). */
+    const perStep = (timing: FillTiming) => timing.hopMs + timing.clickMs + timing.pauseMs;
+    const total = (steps: number) =>
+      Array.from({ length: steps }, (_, index) => perStep(stepTimingFor(base, index, steps))).reduce(
+        (sum, ms) => sum + ms,
+        0,
+      );
+
+    it('no toca un formulario de cuatro campos o menos', () => {
+      for (let steps = 1; steps <= 4; steps += 1) {
+        for (let index = 0; index < steps; index += 1) {
+          expect(stepTimingFor(base, index, steps)).withContext(`${index}/${steps}`).toBe(base);
+        }
+      }
+    });
+
+    it('se apaga con `adaptive` en false, por largo que sea el formulario', () => {
+      expect(stepTimingFor(base, 9, 18, false)).toBe(base);
+    });
+
+    it('va a ritmo normal los tres primeros campos de una antropometría', () => {
+      for (const index of [0, 1, 2]) {
+        expect(stepTimingFor(base, index, 10)).withContext(`campo ${index}`).toBe(base);
+      }
+    });
+
+    it('acelera a 0.55x del cuarto al séptimo y a 0.35x del octavo en adelante', () => {
+      const medio = { ...base, hopMs: 248, clickMs: 99, pauseMs: 143 };
+      const rapido = { ...base, hopMs: 158, clickMs: 63, pauseMs: 91 };
+
+      for (const index of [3, 4, 5, 6]) {
+        expect(stepTimingFor(base, index, 10)).withContext(`campo ${index}`).toEqual(medio);
+      }
+      for (const index of [7, 8, 9]) {
+        expect(stepTimingFor(base, index, 10)).withContext(`campo ${index}`).toEqual(rapido);
+      }
+    });
+
+    it('deja el tecleo y el asentamiento como estaban: lo que se acorta es el viaje', () => {
+      const rapido = stepTimingFor(base, 9, 10);
+      expect(rapido.tickMs).toBe(base.tickMs);
+      expect(rapido.typeBudgetMs).toBe(base.typeBudgetMs);
+      expect(rapido.settleMs).toBe(base.settleMs);
+    });
+
+    it('acorta una antropometría de 18 campos de 16 s a poco más de 8 s', () => {
+      // Los factores acordados dan 3 campos a 1x, 4 a 0.55x y 11 a 0.35x:
+      // 9.05 campos de 18, es decir el 50.3 % del tiempo. Un formulario de 10
+      // campos se queda en el 62.5 %. Esos factores no llegan a «menos de la
+      // mitad» ni con 18 campos, así que aquí se comprueba lo que de verdad
+      // pasa y no un número que la aritmética no da.
+      expect(total(18)).toBeLessThan(18 * perStep(base) * 0.51);
+      expect(18 * perStep(base) - total(18)).toBeGreaterThan(7_500);
+      expect(total(10)).toBeLessThan(10 * perStep(base) * 0.65);
+      expect(total(10)).toBeLessThan(10 * perStep(base));
+    });
+
+    it('usa el combo cuando el llamador no fija un `timing`', async () => {
+      const keys = Array.from({ length: 10 }, (_, index) => `f${index}`);
+      host.innerHTML = keys.map((key) => `<input formcontrolname="${key}" />`).join('');
+      const surface: FillSurface = {
+        id: 'long',
+        tools: ['long_tool'],
+        fields: keys.map((key) => field(key)),
+      };
+      const { access, values } = recorder();
+      const fast: FillTiming = { hopMs: 4, clickMs: 2, pauseMs: 2, tickMs: 0, typeBudgetMs: 0, settleMs: 0 };
+
+      const report = await playFill(
+        surface,
+        access,
+        keys.map((key) => ({ field: field(key), raw: 'x' })),
+        fill,
+        fast,
+        undefined,
+        true,
+      );
+
+      expect(report.written).toEqual(keys);
+      expect(values).toEqual(Object.fromEntries(keys.map((key) => [key, 'x'])));
+      // El último campo ya vuela: el viaje se queda en el 0.35x de 4 ms.
+      expect(fill.hopMs()).toBe(Math.round(fast.hopMs * 0.35));
+    });
+
+    it('respeta el ritmo entero de un `timing` explícito si no se pide el combo', async () => {
+      const keys = Array.from({ length: 10 }, (_, index) => `g${index}`);
+      host.innerHTML = keys.map((key) => `<input formcontrolname="${key}" />`).join('');
+      const surface: FillSurface = {
+        id: 'flat',
+        tools: ['flat_tool'],
+        fields: keys.map((key) => field(key)),
+      };
+      const fast: FillTiming = { hopMs: 4, clickMs: 2, pauseMs: 2, tickMs: 0, typeBudgetMs: 0, settleMs: 0 };
+
+      await playFill(
+        surface,
+        recorder().access,
+        keys.map((key) => ({ field: field(key), raw: 'x' })),
+        fill,
+        fast,
+      );
+
+      expect(fill.hopMs()).toBe(fast.hopMs);
     });
   });
 

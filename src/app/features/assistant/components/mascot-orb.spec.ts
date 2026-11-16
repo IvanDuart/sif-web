@@ -73,6 +73,56 @@ describe('MascotOrb: la cara', () => {
       expect(bars()[0].getAttribute('fill')).withContext(id).toBe(FACES[id].colour);
     }
   });
+
+  it('en vista previa, agua saca la botella y fuerza los dos brazos y los ojos arqueados', () => {
+    fixture.componentRef.setInput('previewScene', 'water');
+    fixture.detectChanges();
+    expect(host().querySelector('.mascot-water')).withContext('agua').not.toBeNull();
+
+    fixture.componentRef.setInput('previewScene', 'proud');
+    fixture.detectChanges();
+    expect(host().querySelectorAll('.mascot-flex').length).withContext('brazos').toBe(2);
+    const arches = host().querySelectorAll('[data-eye][data-look="arch"]');
+    expect(arches.length).withContext('ojos arqueados').toBe(2);
+    for (const arch of Array.from(arches)) {
+      expect(arch.querySelector('[data-arch]')?.getAttribute('opacity')).toBe('1');
+    }
+  });
+
+  it('en vista previa, el móvil y la tabla clínica salen con su escena', () => {
+    fixture.componentRef.setInput('previewScene', 'phone');
+    fixture.detectChanges();
+    expect(host().querySelector('.mascot-phone')).withContext('móvil').not.toBeNull();
+    expect(host().querySelector('.mascot-clipboard')).withContext('sin tabla').toBeNull();
+
+    fixture.componentRef.setInput('previewScene', 'notes');
+    fixture.detectChanges();
+    expect(host().querySelector('.mascot-clipboard')).withContext('tabla').not.toBeNull();
+    expect(host().querySelector('.mascot-pencil')).withContext('lápiz').not.toBeNull();
+  });
+
+  it('las gafas suben y bajan con los ojos de cada fruta', () => {
+    const glasses = () => host().querySelector<SVGGElement>('[data-glasses]');
+    const offset = (el: SVGGElement | null) => {
+      const match = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(el?.style.transform ?? '');
+      return match ? { x: Number(match[1]), y: Number(match[2]) } : null;
+    };
+
+    fixture.componentRef.setInput('accessories', ['gafas']);
+    fixture.componentRef.setInput('skin', 'naranja');
+    fixture.detectChanges();
+    const orange = offset(glasses());
+
+    fixture.componentRef.setInput('skin', 'semilla');
+    fixture.detectChanges();
+    const seed = offset(glasses());
+
+    expect(orange).withContext('naranja').not.toBeNull();
+    expect(seed).withContext('semilla').not.toBeNull();
+    // La semilla tiene los ojos más abajo (`FACES.semilla.eyes[0][1]`), así que
+    // la montura la sigue en vez de quedarse a la altura de la naranja.
+    expect(seed!.y).withContext('la montura baja con los ojos').toBeGreaterThan(orange!.y);
+  });
 });
 
 describe('MascotOrb: señales de estado', () => {

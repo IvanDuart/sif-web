@@ -240,6 +240,8 @@ export class MascotStateService {
           properties: {
             screen: { type: 'string', enum: [...NAVIGABLE_SCREENS] },
             patientId: { type: 'string', description: 'Id del paciente, para las pantallas de su ficha' },
+            menuId: { type: 'string', description: 'Id del menú, para abrir ese menú con screen MENU' },
+            date: { type: 'string', description: 'Día YYYY-MM-DD, para abrir la agenda en ese día' },
             query: { type: 'string', description: 'Texto por el que filtrar el listado' },
           },
           required: ['screen'],

@@ -179,18 +179,29 @@ export function editTool(surface: FillSurface): FillToolDecl | null {
 /**
  * La herramienta `open_<id>` de un formulario que esta pantalla sabe abrir.
  *
- * No tiene parámetros: abrir es abrir. El `id` del opener es el mismo que el
+ * Sin parámetros, salvo que el botón se repita por elemento (`FillOpener.param`). El `id` del opener es el mismo que el
  * del formulario que monta, así que el modelo ve `open_measurement` y
  * `fill_measurement` como las dos mitades de lo mismo.
  */
-export function openTool(id: string): AssistantClientToolDecl | null {
+export function openTool(
+  id: string,
+  param?: { name: string; description: string },
+): AssistantClientToolDecl | null {
   const name = toolName('open', id);
   if (!name) return null;
   const label = id.replace(/-/g, ' ');
+  // Con `param`, el botón se repite por elemento y hay que decir cuál.
+  const parameters = param
+    ? {
+        type: 'object',
+        properties: { [param.name]: { type: 'string', description: param.description } },
+        required: [param.name],
+      }
+    : { type: 'object', properties: {} };
   return {
     name,
     description: `Abre el formulario «${label}» pulsando su botón en la pantalla`.slice(0, MAX_DESCRIPTION),
-    parameters: { type: 'object', properties: {} },
+    parameters,
   };
 }
 

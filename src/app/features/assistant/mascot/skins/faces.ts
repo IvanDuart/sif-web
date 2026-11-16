@@ -48,8 +48,8 @@ export const FACES: Record<SkinId, Face> = {
   },
   zanahoria: {
     eyes: [
-      [53, 56],
-      [90, 56],
+      [53, 62],
+      [90, 62],
     ],
     colour: '#ffffff',
   },
@@ -57,6 +57,27 @@ export const FACES: Record<SkinId, Face> = {
     eyes: [
       [53, 86],
       [90, 86],
+    ],
+    colour: '#ffffff',
+  },
+  aguacate: {
+    eyes: [
+      [53, 72],
+      [90, 72],
+    ],
+    colour: '#ffffff',
+  },
+  arandano: {
+    eyes: [
+      [53, 72],
+      [90, 72],
+    ],
+    colour: '#ffffff',
+  },
+  gota: {
+    eyes: [
+      [53, 74],
+      [90, 74],
     ],
     colour: '#ffffff',
   },

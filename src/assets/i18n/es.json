@@ -1661,12 +1661,13 @@
     "wardrobe_skins": "Mascotas",
     "wardrobe_accessories": "Accesorios",
     "wardrobe_ears": "Orejas de gato",
+    "wardrobe_moods": "Probar expresiones",
     "wardrobe_done": "Listo",
     "wardrobe_prev": "Anterior",
     "wardrobe_next": "Siguiente",
-    "wardrobe_worn": "Puesta",
-    "wardrobe_hint": "Pruébalas con las flechas. No se queda hasta que lo confirmes.",
-    "wardrobe_put": "Ponérsela",
+    "wardrobe_worn": "Contigo en consulta",
+    "wardrobe_hint": "Pruébalos con las flechas o toca sus gestos. No cambia hasta que lo confirmes.",
+    "wardrobe_put": "Elegir compañero",
     "wardrobe_keep": "Dejarla así",
     "wardrobe_not_saved": "No se ha podido guardar en tu centro: la mascota se queda puesta solo en este navegador.",
     "wardrobe_not_allowed": "Tu centro no permite esa mascota. Se queda puesta solo en este navegador.",
@@ -1687,6 +1688,12 @@
     "skin_brocoli_desc": "Un brócoli con mucha mata y más energía.",
     "skin_zanahoria_desc": "Una zanahoria despierta, de las que ven bien el plan.",
     "skin_semilla_desc": "Una semilla a punto de brotar: todo está por empezar.",
+    "skin_aguacate": "Aguacate",
+    "skin_aguacate_desc": "Cremoso, equilibrado y el favorito de la consulta.",
+    "skin_arandano": "Arándano",
+    "skin_arandano_desc": "Pequeño pero cargado de antioxidantes y buen humor.",
+    "skin_gota": "Gota de agua",
+    "skin_gota_desc": "Fresca y ligera, para no olvidar nunca la hidratación.",
     "stuck_title": "¿Te atascaste?",
     "stuck_text": "Puedo ayudarte con {{fields}}.",
     "stuck_text_plain": "Puedo ayudarte a terminar este formulario.",
@@ -1813,12 +1820,109 @@
     "attach": "Adjuntar un archivo",
     "pause": "Pausar",
     "do_now": "Hacer ahora",
+    "answer_placeholder": "Escribe tu respuesta…",
     "queue_placeholder": "Añade otra instrucción…",
     "resume": "Reanudar",
-    "wardrobe": "Cambiar de aspecto",
+    "wardrobe": {
+      "wear": "Elegir compañero",
+      "wearing": "Contigo en consulta",
+      "hint": "Pruébalos con las flechas o toca sus gestos. No cambia hasta que lo confirmes.",
+      "skins": {
+        "manzana": {
+          "name": "Manzana",
+          "blurb": "Una manzana alegre, siempre lista para el tentempié.",
+          "trait": "Clásica y cercana · Reacciona con energía"
+        },
+        "naranja": {
+          "name": "Naranja",
+          "blurb": "Una naranja despierta, con vitamina para todo el día.",
+          "trait": "Chispa inquieta · Celebra con estrellas"
+        },
+        "pina": {
+          "name": "Piña",
+          "blurb": "Una piña redonda a la que le va el plan tropical.",
+          "trait": "Presumida y tropical · Da saltitos"
+        },
+        "melon": {
+          "name": "Melón",
+          "blurb": "Un melón tranquilo, de los que refrescan por la tarde.",
+          "trait": "Tranquilote · Se mueve con calma"
+        },
+        "brocoli": {
+          "name": "Brócoli",
+          "blurb": "Un brócoli con mucha mata y más energía.",
+          "trait": "Sereno y observador · Sonríe por dentro"
+        },
+        "zanahoria": {
+          "name": "Zanahoria",
+          "blurb": "Una zanahoria despierta, de las que ven bien el plan.",
+          "trait": "Ágil y directa · Siempre atenta"
+        },
+        "semilla": {
+          "name": "Semilla",
+          "blurb": "Una semilla a punto de brotar: todo está por empezar.",
+          "trait": "Curiosa y entusiasta · Todo le asombra"
+        },
+        "aguacate": {
+          "name": "Aguacate",
+          "blurb": "Cremoso, equilibrado y el favorito de la consulta.",
+          "trait": "Equilibrado · Transmite calma y cariño"
+        },
+        "arandano": {
+          "name": "Arándano",
+          "blurb": "Pequeño pero cargado de antioxidantes y buen humor.",
+          "trait": "Vivaz · Salta de alegría con chispas"
+        },
+        "gota": {
+          "name": "Gota de agua",
+          "blurb": "Fresca y ligera, para no olvidar nunca la hidratación.",
+          "trait": "Refrescante · Fluida y cristalina"
+        }
+      },
+      "accessories": {
+        "orejas": "Orejas de gato",
+        "chef": "Gorro de chef",
+        "gafas": "Gafas de consulta",
+        "cinta": "Cinta métrica",
+        "flor": "Flor botánica"
+      },
+      "moods": {
+        "blush": "Sonrojo",
+        "happy": "Feliz",
+        "water": "Beber agua",
+        "proud": "Fuerza",
+        "notes": "Tomar apuntes",
+        "phone": "Mirar el móvil",
+        "sleeping": "Dormir"
+      }
+    },
     "hide": "Ocultar",
     "navigating": "Un momento, voy a la pantalla…",
     "navigating_to": "Un momento, voy a {{place}}…",
+    "drop_hint": "Suelta aquí un ticket InBody, analítica o dieta en PDF",
+    "first_steps": {
+      "tour_label": "Ver el tour",
+      "tour_prompt": "Hazme un tour por la app",
+      "menu_empty_label": "Rellenar los huecos del menú",
+      "menu_empty_prompt": "Rellena los huecos del menú de esta semana con ",
+      "menu_shopping_label": "Generar la lista de la compra",
+      "menu_shopping_prompt": "Genera la lista de la compra de este menú",
+      "patient_measurement_label": "Apuntar una medición",
+      "patient_measurement_prompt": "Apunta una medición de este paciente: ",
+      "patient_evolution_label": "Ver la evolución",
+      "patient_evolution_prompt": "Cuéntame la evolución de este paciente",
+      "patient_appointment_label": "Agendar una cita",
+      "patient_appointment_prompt": "Agéndale una cita de seguimiento a este paciente",
+      "agenda_appointment_label": "Crear una cita",
+      "agenda_appointment_prompt": "Crea una cita con ",
+      "agenda_note_label": "Añadir una nota",
+      "agenda_note_prompt": "Añade una nota en la agenda para "
+    },
+    "tips": {
+      "meal_create": "Si me dices los platos de la semana o qué huecos quieres rellenar, los apunto yo por ti.",
+      "recipe_create": "Puedo crearte recetas completas si me dictas los ingredientes o me sueltas una foto del plato.",
+      "recipe_create_prompt": "Créame una receta de "
+    },
     "first_title": "¿Por dónde empezamos?",
     "first_appointment": "Agendar una cita",
     "first_appointment_draft": "Agéndale una cita de seguimiento a ",

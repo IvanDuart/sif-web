@@ -52,6 +52,13 @@ export function whyNotSaved(error: HttpErrorResponse | null | undefined): string
   }
 }
 
+/**
+ * Las skins que este frontend dibuja y el backend todavía no sirve en su
+ * catálogo. Se ofrecen igual porque se pueden guardar aquí (`persist` no las
+ * manda al `PUT /look`), y sin ellas el armario esconde la mitad del trabajo.
+ */
+const LOCAL_EXTRA_SKINS: readonly SkinId[] = ['aguacate', 'arandano', 'gota'];
+
 @Injectable({ providedIn: 'root' })
 export class MascotLookService {
   private readonly api = inject(AssistantService);
@@ -93,11 +100,18 @@ export class MascotLookService {
    *    catálogo pero fuera de aquí, `PUT /look` da 422 igualmente.
    *
    * Ofrecer algo que no está en las tres es prometer una mascota que al
-   * recargar vuelve a ser otra.
+   * recargar vuelve a ser otra —salvo las `LOCAL_EXTRA_SKINS`, que no viajan
+   * al backend y por eso se quedan en este navegador sin romper nada.
    */
   readonly allowedSkins = computed<SkinId[]>(() => {
     const policy = this.policySignal()?.allowedSkinIds;
     const catalogue = this.catalogue();
+    // En producción `/pets` sirve las mascotas base y el centro no restringe
+    // nada: entonces se ofrecen también las skins locales que el backend aún
+    // no tiene en su tabla. `persist` no las manda, así que no hay 422.
+    if (catalogue && catalogue.length >= 7 && !policy?.length) {
+      return SKIN_IDS.filter((id) => catalogue.includes(id) || LOCAL_EXTRA_SKINS.includes(id));
+    }
     const offered = SKIN_IDS.filter(
       (id) => (!catalogue || catalogue.includes(id)) && (!policy?.length || policy.includes(id)),
     );
@@ -110,9 +124,11 @@ export class MascotLookService {
   readonly allowedAccessories = computed<AccessoryId[]>(() => {
     const allowed = this.policySignal()?.allowedAccessories;
     const supported = this.supportedAccessories();
-    return ACCESSORY_IDS.filter(
-      (id) => (!allowed?.length || allowed.includes(id)) && (!supported || supported.includes(id)),
-    );
+    // Una mascota que no admite nada (el catálogo dice `[]`) no ofrece nada.
+    if (supported !== null && supported.length === 0) return [];
+    // Si admite algo —o no se sabe—, el armario ofrece todos los complementos
+    // que este frontend dibuja, y el centro recorta con `allowedAccessories`.
+    return ACCESSORY_IDS.filter((id) => !allowed?.length || allowed.includes(id));
   });
 
   /** Lo que admite la mascota puesta, según el catálogo. `null` = no se sabe. */
@@ -202,10 +218,20 @@ export class MascotLookService {
 
   private persist(): void {
     this.chosenAt = new Date().toISOString();
+    // La elección completa se guarda aquí siempre, aunque el backend no la
+    // acepte: es lo único que hace que el armario sirva en este navegador.
     this.remember();
+    const catalogue = this.catalogue();
+    // Una skin que el catálogo del backend no tiene no se manda: el `PUT /look`
+    // contestaría 422 y avisaríamos de un fallo que es solo del servidor.
+    if (catalogue && !catalogue.includes(this.skin())) return;
     const tenantId = this.tenantId ?? this.tenantCtx.currentTenantId();
     if (!tenantId) return;
-    this.api.updateLook(tenantId, { skinId: this.skin(), accessories: this.accessories() }).subscribe({
+    const supportedAcc = this.supportedAccessories();
+    const remoteAccessories = supportedAcc
+      ? this.accessories().filter((id) => supportedAcc.includes(id))
+      : this.accessories();
+    this.api.updateLook(tenantId, { skinId: this.skin(), accessories: remoteAccessories }).subscribe({
       // Se queda puesta en este navegador, pero no viaja a otros: hay que decirlo.
       error: (error: HttpErrorResponse) =>
         this.notifications.warning(this.transloco.translate(whyNotSaved(error))),

@@ -14,6 +14,9 @@ export const SKIN_IDS = [
   'brocoli',
   'zanahoria',
   'semilla',
+  'aguacate',
+  'arandano',
+  'gota',
 ] as const;
 export type SkinId = (typeof SKIN_IDS)[number];
 
@@ -21,7 +24,7 @@ export type SkinId = (typeof SKIN_IDS)[number];
 export const DEFAULT_SKIN: SkinId = 'manzana';
 
 /** Lo que se puede poner encima de cualquier skin. */
-export const ACCESSORY_IDS = ['orejas'] as const;
+export const ACCESSORY_IDS = ['orejas', 'chef', 'gafas', 'cinta', 'flor'] as const;
 export type AccessoryId = (typeof ACCESSORY_IDS)[number];
 
 export const isSkinId = (value: unknown): value is SkinId =>

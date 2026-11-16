@@ -147,4 +147,37 @@ describe('MascotWardrobe: el escenario vivo', () => {
     );
     expect(document.activeElement).toBe(last);
   });
+
+  it('la botonera ofrece los siete gestos y el que está en escena se enciende', fakeAsync(() => {
+    const moods = Array.from(
+      fixture.nativeElement.querySelectorAll('.wd-moods .wd-mood') as NodeListOf<HTMLElement>,
+    );
+    expect(moods.length).toBe(7);
+
+    // Se pulsan en orden: cada botón deja su gesto en escena y se marca solo él.
+    const scenes = ['blush', 'cheer', 'water', 'proud', 'notes', 'phone', 'sleep'];
+    scenes.forEach((scene, index) => {
+      moods[index].click();
+      fixture.detectChanges();
+
+      // `notes` aún no está en el union `Scene` (lo está añadiendo el Agente A):
+      // en tiempo de ejecución la escena es ese mismo string.
+      expect(wardrobe.previewScene()).toBe(scene as never);
+      expect(moods[index].classList.contains('wd-mood--on')).toBe(true);
+      expect(
+        moods.filter((_, at) => at !== index).some((button) => button.classList.contains('wd-mood--on')),
+      ).toBe(false);
+    });
+
+    // Volver a pulsar el gesto que ya está en escena lo apaga.
+    moods[5].click();
+    fixture.detectChanges();
+    expect(wardrobe.previewScene()).toBe('phone');
+    expect(moods[5].classList.contains('wd-mood--on')).toBe(true);
+
+    moods[5].click();
+    fixture.detectChanges();
+    expect(wardrobe.previewScene()).toBeNull();
+    expect(moods[5].classList.contains('wd-mood--on')).toBe(false);
+  }));
 });

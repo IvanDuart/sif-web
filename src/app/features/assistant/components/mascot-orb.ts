@@ -399,9 +399,30 @@ export class MascotOrb implements OnInit {
 
   /** Los ojos de una escena de vista previa: cada fruta enseña su reacción. */
   private previewEyes(scene: Scene): [Eyes, number | null] {
-    if (scene === 'blush') return [pair(this.personaEyes(this.skin(), 'blush')), null];
-    if (scene === 'angry') return [pair(this.personaEyes(this.skin(), 'angry')), null];
-    return [pair(bar(1, 0, 1)), 1];
+    switch (scene) {
+      case 'blush':
+        return [pair(this.personaEyes(this.skin(), 'blush')), null];
+      case 'angry':
+        return [pair(this.personaEyes(this.skin(), 'angry')), null];
+      case 'sleep':
+        return [pair(bar(2 / 12, 0, 3)), null];
+      case 'cheer':
+      case 'proud':
+      case 'water':
+      case 'highfive':
+      case 'welcome':
+        return [pair(ARCH), null];
+      case 'dizzy':
+        return [pair({ s: 1, x: 0, y: 0, look: 'spiral' }), null];
+      case 'worried':
+        return [pair(bar(0.75, -2, 2)), null];
+      case 'phone':
+        return [pair(bar(9 / 12, 3, 4)), 9 / 12];
+      case 'notes':
+        return [pair(bar(0.9, -2.5, 2.5)), 0.9];
+      default:
+        return [pair(bar(1, 0, 1)), 1];
+    }
   }
 
   private moodEyes(mood: MoodKind): Eyes | null {
@@ -413,6 +434,8 @@ export class MascotOrb implements OnInit {
       case 'welcome':
       case 'proud':
         return pair(ARCH);
+      case 'notes':
+        return pair(bar(0.9, -2.5, 2.5));
       default:
         return null;
     }
@@ -432,6 +455,19 @@ export class MascotOrb implements OnInit {
 
   readonly eyePositions = computed(() => FACES[this.skin()].eyes);
   readonly eyeColour = computed(() => FACES[this.skin()].colour);
+
+  /**
+   * Las gafas siguen la altura de los ojos de cada fruta (`FACES[skin]`) y una
+   * fracción de hacia dónde miran, para que ni en la semilla ni en la naranja
+   * ni en las miniaturas del estante se queden desencajadas.
+   */
+  readonly glassesTransform = computed(() => {
+    const [, top] = this.eyePositions()[0];
+    const [eye] = this.eyes()[0];
+    const dx = (eye.x * K * 0.4).toFixed(2);
+    const dy = (top + EYE_CY + eye.y * K).toFixed(2);
+    return `translate(${dx}px, ${dy}px)`;
+  });
 
   eyeTransform(index: number): string {
     const [left, top] = this.eyePositions()[index];

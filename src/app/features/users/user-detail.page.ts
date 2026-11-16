@@ -56,6 +56,7 @@ import { TuiButton, TuiCheckbox, TuiDataList, TuiDropdown, TuiTextfield } from '
 import { TuiBadge, TuiProgress, TuiSegmented, TuiTabs, TuiTextarea } from '@taiga-ui/kit';
 import { TuiTable } from '@taiga-ui/addon-table';
 import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import type { MascotAction } from '../assistant/mascot/fill/descriptor';
 import { PATIENT_PROFILE_SURFACE } from '../assistant/mascot/fill/surfaces/patient-profile.surface';
 import { CLINICAL_STATUS_OPENER } from '../assistant/mascot/fill/surfaces/clinical-status.surface';
 import { PATIENT_EVENT_OPENER } from '../assistant/mascot/fill/surfaces/patient-event.surface';
@@ -249,12 +250,64 @@ export default class UserDetailPage implements OnInit, OnDestroy {
     fillService.registerOpener(PATIENT_EVENT_OPENER);
     fillService.registerOpener(MENU_TEMPLATE_OPENER);
 
-    // Qué ficha tiene abierta la persona. Solo el id y el tipo: el nombre y lo
-    // clínico no hacen falta para que el modelo sepa de quién se habla.
+    // Qué ficha tiene abierta la persona y en qué estado está: el id y el tipo
+    // para saber de quién se habla; la pestaña y la evolución reciente para
+    // responder preguntas («¿ha bajado de peso?») sin volver a pedir datos.
     fillService.provideExtras('patient', () => {
       const open = this.user();
-      return open ? { id: open.id, userType: open.userType } : null;
+      if (!open) return null;
+      const pts = this.lastTwoPoints();
+      const round1 = (v: number) => Math.round(v * 10) / 10;
+      const evolutionDelta =
+        pts.length >= 2
+          ? {
+              latestDate: pts[0].measuredAt,
+              previousDate: pts[1].measuredAt,
+              weightDeltaKg:
+                pts[0].weightKg != null && pts[1].weightKg != null
+                  ? round1(pts[0].weightKg - pts[1].weightKg)
+                  : null,
+              bodyFatDeltaPct:
+                pts[0].bodyFatPct != null && pts[1].bodyFatPct != null
+                  ? round1(pts[0].bodyFatPct - pts[1].bodyFatPct)
+                  : null,
+            }
+          : null;
+      return {
+        id: open.id,
+        userType: open.userType,
+        activeTab: this.activeTabId(),
+        clinicalStatus: open.clinicalStatus ?? null,
+        activeMenuId: this.activeMenu()?.id ?? null,
+        measurementsCount: this.totalRecords(),
+        evolutionDelta,
+      };
     });
+
+    // Lo que esta ficha sabe hacer sin rellenar un formulario: abrir el chat 1:1
+    // y descargar el informe de composición corporal de la medición abierta.
+    const actions: MascotAction[] = [
+      {
+        id: 'open_patient_chat',
+        description: 'Abre el chat directo 1:1 con el paciente de la ficha actual.',
+        selector: '[data-mascot-point="open-patient-chat"]',
+        run: () => {
+          this.openChat();
+          return { ok: true };
+        },
+      },
+      {
+        id: 'download_composition_pdf',
+        description: 'Descarga el informe PDF de composición corporal de la medición seleccionada.',
+        selector: '[data-mascot-point="download-composition-pdf"]',
+        run: () => {
+          if (!this.canDownloadCompositionPdf()) return { ok: false, error: 'Sin permiso para descargar el informe.' };
+          this.downloadCompositionPdf();
+          return { ok: true };
+        },
+      },
+    ];
+    for (const action of actions) fillService.registerAction(action);
 
     // La anamnesis la puede rellenar la mascota. Esta pantalla no tiene botón
     // de guardar —se guarda sola—, así que una escritura definitiva dispara su

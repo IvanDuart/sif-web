@@ -63,6 +63,7 @@
             <button
               type="button"
               class="menu-table__meal-text"
+              [attr.data-mascot-meal]="m.id"
               (click)="edit.emit()"
               [attr.aria-label]="t('common.edit')">
               <ng-container *ngTemplateOutlet="mealText" />

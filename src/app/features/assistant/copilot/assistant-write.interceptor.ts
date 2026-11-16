@@ -1,6 +1,6 @@
 import { HttpEventType, type HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { tap } from 'rxjs';
+import { finalize, tap } from 'rxjs';
 
 import { ToolRunnerService } from './tool-runner.service';
 import { WriteWatchService } from './write-watch.service';
@@ -40,7 +40,9 @@ export const assistantWriteInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Y de paso se apunta cómo acabó: `save_` necesita saber si la escritura
   // llegó a hacerse, no si el botón se pudo pulsar.
+  writes.inFlight.update((count) => count + 1);
   return next(marked).pipe(
+    finalize(() => writes.inFlight.update((count) => Math.max(0, count - 1))),
     tap({
       next: (event) => {
         if (event.type === HttpEventType.Response) writes.last.set({ ok: event.ok, status: event.status });

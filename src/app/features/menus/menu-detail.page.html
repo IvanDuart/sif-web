@@ -50,7 +50,7 @@
           @if (canManageTemplate()) {
             <button
               tuiButton appearance="secondary" size="m"
-              data-mascot-point="menu-to-template"
+              data-mascot-point="convert-to-template"
               (click)="convertToTemplate()">
               <i class="fa-solid fa-copy"></i>
               {{ t('diets.convert_to_template') }}
@@ -60,7 +60,7 @@
             *appIfPermission="'VIEW_MENU'"
             tuiButton appearance="secondary" size="m"
             [disabled]="printingPdf()"
-            data-mascot-point="menu-print"
+            data-mascot-point="print-pdf"
             (click)="printPdf()">
             @if (printingPdf()) {
               <i class="fa-solid fa-spinner fa-spin"></i>
@@ -73,7 +73,7 @@
             *appIfPermission="'VIEW_MENU'"
             tuiButton appearance="secondary" size="m"
             [disabled]="downloadingPdf()"
-            data-mascot-point="menu-download"
+            data-mascot-point="download-pdf"
             (click)="downloadPdf()">
             @if (downloadingPdf()) {
               <i class="fa-solid fa-spinner fa-spin"></i>
@@ -94,6 +94,7 @@
                 *appIfPermission="'VIEW_MENU'"
                 tuiButton size="m"
                 [disabled]="generatingList()"
+                data-mascot-point="generate-shopping-list"
               >
                 @if (generatingList()) {
                   <i class="fa-solid fa-spinner fa-spin"></i>
@@ -286,6 +287,7 @@
                             <app-meal-exchanges-editor
                               [mealId]="getMeal(day, mealType)!.id"
                               [canManage]="canManageMeal()"
+                              [mascot]="false"
                               (saved)="onItemsSaved()" />
                           </div>
                         }

@@ -19,6 +19,8 @@ import {
 import { NotificationService, ConfirmService } from '../../core/ui';
 import { PermissionsService } from '../../core/permissions/permissions.service';
 import { ScheduleAvailabilityService } from '../../core/api/services/schedule-availability.service';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import { appointmentStatusSurface } from '../assistant/mascot/fill/surfaces/appointment-status.surface';
 
 @Component({
   selector: 'app-appointment-action-dialog',
@@ -42,6 +44,18 @@ export class AppointmentActionDialog implements OnInit {
   readonly context = injectContext<TuiDialogContext<boolean, { appointment: AppointmentDto }>>();
 
   appointment: AppointmentDto = this.context.data.appointment;
+
+  constructor() {
+    // La mascota abre este diálogo para señalar el botón de estado que toca y
+    // esperar a que lo pulse la persona: apuntarse es lo que le dice que se
+    // abrió, y de qué cita.
+    if (this.canManage()) {
+      inject(MascotFillService).register(appointmentStatusSurface(() => this.appointment.id), {
+        get: () => undefined,
+        set: () => undefined,
+      });
+    }
+  }
 
   appointmentTypes = signal<{ label: string; value: string }[]>([]);
   typeLabels = computed(() => this.appointmentTypes().map(t => t.label));

@@ -867,14 +867,25 @@ export class MascotLauncher implements OnInit {
     ) {
       return null;
     }
-    if (this.fileNear() || this.catching()) return { key: 'assistant.attachment_drop' };
+    // Qué se puede soltar y qué se hace con ello: un ticket de báscula, una
+    // analítica o la dieta en PDF. Decirlo al acercar el archivo ahorra el
+    // «¿esto lo entiende?» de probarlo a ciegas.
+    if (this.fileNear() || this.catching()) return { key: 'assistant.drop_hint' };
     if (this.hover() && this.state.orbMode() === 'idle') return { text: this.state.name() };
     return null;
   });
 
-  /** La píldora mezcla una clave de i18n y un nombre propio: no todo es clave. */
+  /**
+   * La píldora mezcla una clave de i18n y un nombre propio: no todo es clave.
+   *
+   * Si el idioma todavía no trae la clave de la pista —los tests montan un
+   * Transloco mínimo—, se usa la de siempre, que dice lo mismo con menos
+   * detalle: mejor eso que una píldora en blanco.
+   */
   protected hintLabel(hint: { key?: string; text?: string }): string {
-    return hint.key ? this.transloco.translate(hint.key) : (hint.text ?? '');
+    if (!hint.key) return hint.text ?? '';
+    const label = this.transloco.translate(hint.key);
+    return label === hint.key ? this.transloco.translate('assistant.attachment_drop') : label;
   }
 
   /**

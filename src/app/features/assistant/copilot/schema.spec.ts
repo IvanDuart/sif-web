@@ -20,7 +20,13 @@ describe('catálogo de herramientas de formulario', () => {
     describe(surface.id, () => {
       const tools = fillTools(surface);
 
-      it('genera al menos una herramienta', () => {
+      it('genera al menos una herramienta, salvo que no tenga campos', () => {
+        // Un diálogo de botones (el estado de una cita) se apunta sin campos: no
+        // hay nada que rellenar, sólo un botón que señalar y que pulsa la persona.
+        if (surface.fields.length === 0 && !surface.lists?.length) {
+          expect(tools).toEqual([]);
+          return;
+        }
         expect(tools.length).toBeGreaterThan(0);
       });
 

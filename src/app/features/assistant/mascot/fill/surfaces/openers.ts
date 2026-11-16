@@ -1,11 +1,13 @@
 import type { FillOpener } from '../descriptor';
 import { APPOINTMENT_OPENER } from './appointment.surface';
 import { APPOINTMENT_TYPE_OPENER } from './appointment-type.surface';
+import { APPOINTMENT_STATUS_OPENER } from './appointment-status.surface';
 import { CALENDAR_NOTE_OPENER } from './calendar-note.surface';
 import { ASSIGN_NUTRITIONIST_OPENER } from './assign-nutritionist.surface';
 import { CLINICAL_STATUS_OPENER } from './clinical-status.surface';
 import { HOLIDAY_OPENER } from './holiday.surface';
 import { MEAL_OPENER } from './meal.surface';
+import { MEAL_EXCHANGES_OPENER } from './meal-exchanges.surface';
 import { MEAL_TEMPLATE_OPENER } from './meal-template.surface';
 import { MEASUREMENT_OPENER } from './measurement.surface';
 import { MENU_TEMPLATE_OPENER } from './menu-template.surface';
@@ -26,6 +28,7 @@ import { TENANT_PROFILE_OPENER } from './tenant-profile.surface';
 export const ALL_OPENERS: readonly FillOpener[] = [
   MEASUREMENT_OPENER,
   APPOINTMENT_OPENER,
+  APPOINTMENT_STATUS_OPENER,
   CLINICAL_STATUS_OPENER,
   PATIENT_EVENT_OPENER,
   ASSIGN_NUTRITIONIST_OPENER,
@@ -39,6 +42,7 @@ export const ALL_OPENERS: readonly FillOpener[] = [
   MEAL_TEMPLATE_OPENER,
   CALENDAR_NOTE_OPENER,
   MEAL_OPENER,
+  MEAL_EXCHANGES_OPENER,
   RECIPE_OPENER,
   RECIPE_INSTANTIATE_OPENER,
 ];

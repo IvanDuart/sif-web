@@ -55,6 +55,47 @@ export const STILL_TIMING: FillTiming = {
 };
 
 /**
+ * Un formulario de 18 campos (una antropometría entera: peso, pliegues,
+ * perímetros y bioimpedancia) a `DEFAULT_FILL_TIMING` tarda casi 16 s. Nadie
+ * dicta 18 campos para mirar cómo la mascota viaja entre ellos: los primeros
+ * se enseñan a ritmo normal —para que se vea qué hace— y a partir de ahí acelera,
+ * como el «combo» de un juego. A los cuatro campos no se toca nada: es lo que
+ * dura un formulario normal y verlo es parte de entenderlo.
+ *
+ * Los tres tiempos que se recortan son los del viaje por campo (`hopMs`,
+ * `clickMs`, `pauseMs`); el tecleo y el asentamiento no, porque son los que
+ * hacen legible lo que se escribe.
+ */
+const COMBO_WARMUP_STEPS = 3;
+const COMBO_MID_STEPS = 7;
+const COMBO_MID_FACTOR = 0.55;
+const COMBO_FAST_FACTOR = 0.35;
+
+/**
+ * El `timing` de un campo según su posición en un relleno largo.
+ *
+ * `adaptive` en `false` devuelve el mismo `timing` sin tocarlo: es lo que
+ * quieren los tests y quien pida un ritmo concreto. Con `totalSteps <= 4` no
+ * hay combo que valga, así que también se devuelve tal cual.
+ */
+export function stepTimingFor(
+  base: FillTiming,
+  stepIndex: number,
+  totalSteps: number,
+  adaptive = true,
+): FillTiming {
+  if (!adaptive || totalSteps <= 4) return base;
+  if (stepIndex < COMBO_WARMUP_STEPS) return base;
+  const factor = stepIndex < COMBO_MID_STEPS ? COMBO_MID_FACTOR : COMBO_FAST_FACTOR;
+  return {
+    ...base,
+    hopMs: Math.round(base.hopMs * factor),
+    clickMs: Math.round(base.clickMs * factor),
+    pauseMs: Math.round(base.pauseMs * factor),
+  };
+}
+
+/**
  * Por qué un campo que SÍ estaba en pantalla no se quedó con el valor pedido.
  * Es la diferencia entre «no lo encontré» y «lo encontré y no lo quiso», que
  * es lo único que permite al modelo corregirse en vez de repetir.
@@ -421,30 +462,46 @@ export async function playFill(
   access: FieldAccess,
   values: readonly FillValue[],
   fill: MascotFillService,
-  timing: FillTiming = DEFAULT_FILL_TIMING,
+  /**
+   * Sin `timing` se usa `DEFAULT_FILL_TIMING` y se activa el combo (abajo). Un
+   * `timing` explícito se respeta tal cual: quien lo pasa —los tests, un
+   * llamador que quiere un ritmo fijo— sabe mejor que nadie lo que quiere.
+   */
+  timing?: FillTiming,
   /**
    * Se espera aquí ANTES de cada campo, nunca a mitad de uno: es donde encaja
    * la pausa (`CursorService`). Una pausa que dejara un campo escrito a medias
    * sería peor que no poder pausar.
    */
   beforeEach: () => Promise<void> = () => Promise.resolve(),
+  /**
+   * Aceleración progresiva en rellenos largos (`stepTimingFor`). Por defecto se
+   * activa cuando el llamador no pidió un `timing` propio; también se puede
+   * pedir con un `timing` dado pasando `true`. `false` lo apaga del todo.
+   */
+  adaptiveTiming: boolean = timing === undefined || timing === DEFAULT_FILL_TIMING,
 ): Promise<FillReport> {
+  const base = timing ?? DEFAULT_FILL_TIMING;
   const report: FillReport = { written: [], missing: [], rejected: [], missingRequired: [] };
   fill.begin();
   const stop = watchForTakeover(fill);
   try {
-    for (const { field, raw, grow } of values) {
+    for (let i = 0; i < values.length; i += 1) {
+      const { field, raw, grow } = values[i];
+      // El combo se calcula campo a campo sobre el plan entero: los primeros
+      // del formulario se ven llegar y los últimos vuelan.
+      const stepTiming = stepTimingFor(base, i, values.length, adaptiveTiming);
       await beforeEach();
       if (fill.skipRequested) {
         report.missing.push(field.key);
         continue;
       }
       // La fila donde va este campo puede no existir todavía: se crea antes.
-      if (grow && !(await growList(grow, timing, fill))) {
+      if (grow && !(await growList(grow, stepTiming, fill))) {
         report.missing.push(field.key);
         continue;
       }
-      const outcome = await playField(surface, field, raw, access, timing, fill);
+      const outcome = await playField(surface, field, raw, access, stepTiming, fill);
       if (outcome === 'written') report.written.push(field.key);
       else if (outcome === 'missing') report.missing.push(field.key);
       else report.rejected.push({ field: field.key, reason: outcome });

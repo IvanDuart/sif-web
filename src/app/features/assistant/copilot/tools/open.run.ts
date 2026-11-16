@@ -1,4 +1,5 @@
 import { playOpen, preferredTiming } from '../../mascot/fill/animated-fill';
+import { withParam } from '../../mascot/fill/descriptor';
 import type { MascotFillService } from '../../mascot/fill/mascot-fill.service';
 import type { ToolResult } from '../client-tool.model';
 
@@ -18,16 +19,31 @@ const OPENED_WAIT_MS = 2500;
  */
 export async function runOpen(
   surfaceId: string,
-  { fill, signal, catalog }: { fill: MascotFillService; signal: AbortSignal; catalog: () => unknown },
+  {
+    fill,
+    signal,
+    catalog,
+    args = {},
+  }: { fill: MascotFillService; signal: AbortSignal; catalog: () => unknown; args?: Record<string, unknown> },
 ): Promise<ToolResult> {
   if (signal.aborted) return { ok: false, reason: 'user_declined' };
 
   // Ya está abierto: no se vuelve a pulsar, que abriría un segundo diálogo
   // encima o cerraría el primero.
-  if (fill.forId(surfaceId)) return { ok: true, opened: surfaceId, alreadyOpen: true, clientTools: catalog() };
+  const registered = fill.openerFor(surfaceId);
+  // De qué elemento se pide, si el botón se repite por elemento.
+  const subject = registered?.param ? String(args[registered.param.name] ?? '').trim() : undefined;
 
-  const opener = fill.openerFor(surfaceId);
-  if (!opener) return { ok: false, reason: 'control_gone' };
+  const open = fill.forId(surfaceId);
+  if (open && (subject === undefined || open.surface.subject?.() === subject)) {
+    return { ok: true, opened: surfaceId, alreadyOpen: true, clientTools: catalog() };
+  }
+
+  if (!registered) return { ok: false, reason: 'control_gone' };
+  // El botón de qué elemento: sin un id válido no se pulsa nada, porque
+  // pulsar el primero que se vea abriría el de otra comida.
+  const opener = withParam(registered, args);
+  if (!opener) return { ok: false, reason: 'invalid_args', param: registered.param?.name };
 
   const stop = () => fill.requestSkip();
   signal.addEventListener('abort', stop, { once: true });
@@ -36,7 +52,7 @@ export async function runOpen(
     let mounted = null;
     try {
       if (await playOpen(opener, preferredTiming(), fill)) {
-        mounted = await fill.waitForId(surfaceId, OPENED_WAIT_MS);
+        mounted = await fill.waitForId(surfaceId, OPENED_WAIT_MS, subject);
       }
     } finally {
       fill.end();

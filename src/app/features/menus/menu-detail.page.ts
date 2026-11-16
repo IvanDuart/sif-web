@@ -32,7 +32,9 @@ import { KCAL, MenuNutritionDto, NutrientMap } from '../../core/api/models/food.
 import { normalizeDayOfWeek, normalizeMealType } from '../../core/api/models/meal-enums';
 import { MealCell } from './components/meal-cell';
 import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import type { MascotAction } from '../assistant/mascot/fill/descriptor';
 import { MEAL_OPENER } from '../assistant/mascot/fill/surfaces/meal.surface';
+import { MEAL_EXCHANGES_OPENER } from '../assistant/mascot/fill/surfaces/meal-exchanges.surface';
 import { MealItemsEditor } from './components/meal-items-editor';
 import { MealExchangesEditor } from './components/meal-exchanges-editor';
 import { LiveIndicator } from '../../shared/ui/live-indicator';
@@ -77,9 +79,79 @@ export default class MenuDetailPage implements OnInit, OnDestroy {
   private readonly shoppingListService = inject(ShoppingListService);
 
   constructor() {
+    const fillService = inject(MascotFillService);
+
     // Mientras la rejilla esté en pantalla, la mascota sabe abrir el diálogo de
     // comida: pulsa el botón de añadir de un hueco libre, como una persona.
-    inject(MascotFillService).registerOpener(MEAL_OPENER);
+    fillService.registerOpener(MEAL_OPENER);
+    fillService.registerOpener(MEAL_EXCHANGES_OPENER);
+
+    // Qué menú se está mirando y cómo está la semana: qué días tienen comida y
+    // en qué huecos queda sitio. Sin esto el modelo tendría que deducir los
+    // huecos libres de la propia rejilla, que no viaja en el contexto.
+    fillService.provideExtras('menu', () => {
+      const currentMenu = this.menu();
+      if (!currentMenu) return null;
+      const occupiedByDay: Record<string, string[]> = {};
+      const emptySlotsByDay: Record<string, string[]> = {};
+      for (const day of this.allDays) {
+        const dayMeals = this.groupedMeals().get(day) ?? [];
+        const occupied = dayMeals.map((m) => m.mealType);
+        occupiedByDay[day] = occupied;
+        emptySlotsByDay[day] = this.mealTypes.filter((t) => !occupied.includes(t));
+      }
+      return {
+        menuId: this.menuId,
+        isActive: Boolean(currentMenu.isActive),
+        totalMeals: this.meals().length,
+        occupiedByDay,
+        emptySlotsByDay,
+      };
+    });
+
+    // Lo que esta pantalla sabe hacer sin que sea rellenar un formulario: cada
+    // acción señala su botón para que la mascota lo pulse delante de la persona.
+    const actions: MascotAction[] = [
+      {
+        id: 'generate_shopping_list',
+        description: 'Genera con IA la lista de la compra del menú semanal abierto (por defecto para Mercadona).',
+        selector: '[data-mascot-point="generate-shopping-list"]',
+        run: () => {
+          if (!this.isAiEnabled()) return { ok: false, error: 'La IA no está habilitada en este centro.' };
+          this.generateShoppingList('MERCADONA');
+          return { ok: true };
+        },
+      },
+      {
+        id: 'download_menu_pdf',
+        description: 'Descarga en PDF el menú semanal que está en pantalla.',
+        selector: '[data-mascot-point="download-pdf"]',
+        run: () => {
+          this.downloadPdf();
+          return { ok: true };
+        },
+      },
+      {
+        id: 'print_menu_pdf',
+        description: 'Abre el PDF del menú semanal listo para imprimir.',
+        selector: '[data-mascot-point="print-pdf"]',
+        run: () => {
+          this.printPdf();
+          return { ok: true };
+        },
+      },
+      {
+        id: 'convert_menu_to_template',
+        description: 'Abre el diálogo para guardar este menú semanal como plantilla reutilizable.',
+        selector: '[data-mascot-point="convert-to-template"]',
+        run: () => {
+          if (!this.meals().length) return { ok: false, error: 'El menú no tiene comidas todavía.' };
+          this.convertToTemplate();
+          return { ok: true };
+        },
+      },
+    ];
+    for (const action of actions) fillService.registerAction(action);
   }
 
   menu = signal<Menu | null>(null);

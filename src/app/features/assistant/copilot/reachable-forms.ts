@@ -1,5 +1,5 @@
 import type { ReachableForm } from '../../../core/api/models/assistant.model';
-import type { FillOpener } from '../mascot/fill/descriptor';
+import type { FillOpener, OpenerRequirement } from '../mascot/fill/descriptor';
 import { ALL_OPENERS } from '../mascot/fill/surfaces/openers';
 import { slugOf } from './tool-names';
 
@@ -47,11 +47,14 @@ function fromOpener(opener: FillOpener): ReachableForm {
   };
 }
 
-export function reachableForms(): ReachableForm[] {
+export function reachableForms(has: (requirement: OpenerRequirement | undefined) => boolean = () => true): ReachableForm[] {
   const out = [...SIN_ABRIR];
   for (const opener of ALL_OPENERS) {
     // Sin pantalla no se promete: no habría forma de llegar.
     if (!opener.screen) continue;
+    // Ni lo que el centro no tiene: el backend retiraría su escritura y la
+    // mascota se quedaría sin ningún camino.
+    if (!has(opener.requires)) continue;
     const entry = fromOpener(opener);
     if (!out.some((form) => form.id === entry.id)) out.push(entry);
   }

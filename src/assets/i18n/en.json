@@ -1753,6 +1753,7 @@
     "attach": "Attach a file",
     "pause": "Pause",
     "do_now": "Do this now",
+    "answer_placeholder": "Type your answer…",
     "queue_placeholder": "Add another instruction…",
     "resume": "Resume",
     "wardrobe": "Change look",

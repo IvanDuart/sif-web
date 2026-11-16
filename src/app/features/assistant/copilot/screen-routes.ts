@@ -95,8 +95,14 @@ export function routeForScreen(
       return searchable('/recipes');
     case 'AGENDA':
     case 'APPOINTMENTS':
-    case 'PATIENT_APPOINTMENTS':
-      return { commands: ['/appointments'] };
+    case 'PATIENT_APPOINTMENTS': {
+      // Con fecha, ese día en vista de día (`?date=`, que la agenda ya
+      // entiende): es lo que pone en pantalla una cita concreta para abrirla.
+      const date = text(params, 'date');
+      return /^\d{4}-\d{2}-\d{2}$/.test(date)
+        ? { commands: ['/appointments'], queryParams: { date } }
+        : { commands: ['/appointments'] };
+    }
     case 'DASHBOARD':
       return { commands: ['/dashboard'] };
     case 'SHOPPING_LIST':
@@ -128,8 +134,13 @@ export function routeForScreen(
       return onPatient('measurements', '/dashboard');
     case 'PATIENT_MENU':
       return onPatient('menus', '/dashboard');
-    case 'MENU':
+    case 'MENU': {
+      // Con menuId, el menú mismo: es donde se repasa uno recién generado y
+      // donde están las raciones de intercambio de cada comida.
+      const menuId = text(params, 'menuId');
+      if (menuId !== '') return { commands: ['/menus', menuId] };
       return onPatient('menus', '/menus');
+    }
     case 'DIARY':
       return onPatient('menus', '/dashboard');
     default:

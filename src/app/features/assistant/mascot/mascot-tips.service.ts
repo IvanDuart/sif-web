@@ -49,7 +49,19 @@ export interface MascotTip {
   /** Qué escritura delata que se hizo a mano. */
   method: string;
   /** Trozo del camino de esa escritura (sin tenant: cambia por centro). */
-  path: RegExp;
+  pattern: RegExp;
+  /**
+   * Cuántas veces hay que verlo hecho a mano antes de ofrecerse. Sin él, una
+   * basta: el tip de siempre sale a la primera.
+   */
+  minHits?: number;
+  /**
+   * Clave de i18n del mensaje, para los tips que se dicen de una pieza en vez
+   * de con título, texto y borrador. `assistant.tips.<acción>`.
+   */
+  messageKey?: string;
+  /** Con qué borrador se abre el panel desde «Pruébalo», si tiene uno propio. */
+  promptKey?: string;
 }
 
 /**
@@ -61,32 +73,52 @@ export const TIPS: readonly MascotTip[] = [
     id: 'appointment.create',
     tool: 'create_appointment',
     method: 'POST',
-    path: /\/tenant\/[^/]+\/appointments$/,
+    pattern: /\/tenant\/[^/]+\/appointments$/,
   },
   {
     id: 'measurement.create',
     tool: 'create_measurement',
     method: 'POST',
-    path: /\/tenant\/[^/]+\/users\/[^/]+\/measurements$/,
+    pattern: /\/tenant\/[^/]+\/users\/[^/]+\/measurements$/,
   },
   {
     id: 'calendar-note.create',
     tool: 'create_calendar_note',
     method: 'POST',
-    path: /\/tenant\/[^/]+\/calendar-notes$/,
+    pattern: /\/tenant\/[^/]+\/calendar-notes$/,
   },
   {
     id: 'patient-event.create',
     tool: 'create_patient_event',
     method: 'POST',
-    path: /\/tenant\/[^/]+\/patients\/[^/]+\/events$/,
+    pattern: /\/tenant\/[^/]+\/patients\/[^/]+\/events$/,
+  },
+  {
+    id: 'meal.create',
+    tool: 'update_meal',
+    method: 'POST',
+    pattern: /\/tenant\/[^/]+\/menus\/[^/]+\/meals$/,
+    // Una comida suelta puede ser un descuido; dos ya son una semana entera a
+    // mano, que es justo lo que ella sabe ahorrar.
+    minHits: 2,
+    messageKey: 'assistant.tips.meal_create',
+    promptKey: 'assistant.first_steps.menu_empty_prompt',
+  },
+  {
+    id: 'recipe.create',
+    tool: 'create_recipe',
+    method: 'POST',
+    pattern: /\/tenant\/[^/]+\/recipes$/,
+    minHits: 1,
+    messageKey: 'assistant.tips.recipe_create',
+    promptKey: 'assistant.tips.recipe_create_prompt',
   },
 ];
 
 /** El tip que corresponde a esa escritura, si es que hay alguno. */
 export function tipFor(method: string, url: string): MascotTip | null {
   const path = url.split('?')[0];
-  return TIPS.find((tip) => tip.method === method && tip.path.test(path)) ?? null;
+  return TIPS.find((tip) => tip.method === method && tip.pattern.test(path)) ?? null;
 }
 
 /** Cuántas veces se dijo cada tip en este navegador. */
@@ -124,6 +156,8 @@ export class MascotTipsService {
   private lastUseAt = -Infinity;
   /** Los dichos en esta sesión: no se repiten aunque pase el rato. */
   private readonly saidNow = new Set<string>();
+  /** Cuántas veces se ha visto cada escritura en esta sesión. */
+  private readonly hits = new Map<string, number>();
 
   constructor() {
     // Usarla cuenta como usarla: hablarle, verla trabajar o verla rellenar. Lo
@@ -139,7 +173,15 @@ export class MascotTipsService {
   /** Alguien guardó algo. Si fue a mano y ella sabía hacerlo, se ofrece. */
   noticeWrite(method: string, url: string, now = Date.now()): void {
     const tip = tipFor(method, url);
-    if (tip) this.offer(tip, now);
+    if (!tip) return;
+
+    // Algunos tips no se dicen a la primera: repetir una comida suelta es
+    // casualidad, repetirla toda la semana es trabajo que ella puede quitar.
+    const hits = (this.hits.get(tip.id) ?? 0) + 1;
+    this.hits.set(tip.id, hits);
+    if (hits < (tip.minHits ?? 1)) return;
+
+    this.offer(tip, now);
   }
 
   private offer(tip: MascotTip, now: number): void {
@@ -161,7 +203,9 @@ export class MascotTipsService {
         run: () => {
           // Silenciado al probarlo: ya lo sabe, decírselo otra vez sobra.
           this.preferences.silenceTip(tip.id);
-          this.state.openPanelWithDraft(t('prompt'));
+          this.state.openPanelWithDraft(
+            this.transloco.translate(tip.promptKey ?? `assistant.tip.${tip.id}.prompt`),
+          );
         },
       },
       {
@@ -171,7 +215,13 @@ export class MascotTipsService {
     ];
 
     this.life.attend();
-    this.mood.say({ title: t('title'), text: t('text'), ms: TIP_MS, actions });
+    // Los tips de una pieza traen su frase ya escrita (`messageKey`); los de
+    // siempre se montan con título, texto y borrador.
+    this.mood.say(
+      tip.messageKey
+        ? { text: this.transloco.translate(tip.messageKey), ms: TIP_MS, actions }
+        : { title: t('title'), text: t('text'), ms: TIP_MS, actions },
+    );
   }
 
   private canSpeak(tip: MascotTip, now: number): boolean {

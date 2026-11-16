@@ -96,8 +96,8 @@
         <div class="first">
           <p class="first__title">{{ t('assistant.first_title') }}</p>
           <div class="answers">
-            @for (step of firstSteps(); track step.key) {
-              <button type="button" class="chip" (click)="useFirstStep(step)">{{ t(step.key) }}</button>
+            @for (step of firstSteps(); track step.id) {
+              <button type="button" class="chip" (click)="useFirstStep(step)">{{ t(step.labelKey) }}</button>
             }
           </div>
         </div>
@@ -194,7 +194,7 @@
           <button
             type="button"
             class="icon"
-            [attr.aria-label]="t('assistant.wardrobe')"
+            [attr.aria-label]="wardrobeLabel()"
             (click)="state.openWardrobe()"
           >
             <!-- Un armario: dos puertas con sus pomos y las patas en las que

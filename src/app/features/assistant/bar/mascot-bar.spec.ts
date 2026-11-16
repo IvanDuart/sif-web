@@ -36,6 +36,7 @@ describe('MascotBar', () => {
                 step_of: 'Paso {{n}}/{{max}}',
                 placeholder: 'Pídeme algo…',
                 queue_placeholder: 'Añade otra instrucción…',
+                answer_placeholder: 'Escribe tu respuesta…',
               },
             },
           },
@@ -341,5 +342,58 @@ describe('MascotBar', () => {
     (fixture.componentInstance as unknown as { text: { set(v: string): void } }).text.set('hola');
     fixture.detectChanges();
     expect((el('.icon--send') as HTMLButtonElement).disabled).toBeFalse();
+  });
+
+  describe('escribir con una pregunta en el aire', () => {
+    const bar = () =>
+      fixture.componentInstance as unknown as { text: { set(v: string): void }; submit(): void };
+
+    it('una pregunta abierta se contesta escribiendo: lo escrito es la respuesta', async () => {
+      openBar();
+      const answer = questions.ask({ kind: 'ask', text: '¿Qué día te viene bien?' });
+      const send = spyOn(state, 'send');
+      fixture.detectChanges();
+      expect((el('textarea') as HTMLTextAreaElement).placeholder).toBe('Escribe tu respuesta…');
+
+      bar().text.set('el martes por la tarde');
+      bar().submit();
+
+      expect(await answer).toEqual({ ok: true, value: 'el martes por la tarde' });
+      expect(send).not.toHaveBeenCalled();
+    });
+
+    it('con opciones también se puede contestar con palabras propias', async () => {
+      openBar();
+      const answer = questions.ask({ kind: 'ask', text: '¿Cuál?', options: ['Ana', 'Marta'] });
+      fixture.detectChanges();
+
+      bar().text.set('ninguna, es otra');
+      bar().submit();
+
+      expect(await answer).toEqual({ ok: true, value: 'ninguna, es otra' });
+    });
+
+    it('escribir en vez de confirmar es un no, y lo escrito sigue como mensaje', async () => {
+      openBar();
+      const answer = questions.ask({ kind: 'confirm', text: '¿Lo guardo?' });
+      const send = spyOn(state, 'send');
+      fixture.detectChanges();
+
+      bar().text.set('cámbiale la hora antes');
+      bar().submit();
+
+      expect(await answer).toEqual({ ok: false, reason: 'declined' });
+      expect(send).toHaveBeenCalledWith('cámbiale la hora antes');
+    });
+
+    it('sin pregunta, escribir sigue siendo mandar un mensaje', () => {
+      openBar();
+      const send = spyOn(state, 'send');
+
+      bar().text.set('hola');
+      bar().submit();
+
+      expect(send).toHaveBeenCalledWith('hola');
+    });
   });
 });

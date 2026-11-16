@@ -77,50 +77,137 @@
   line-height: 1.3;
 }
 
-/* ── El escenario: la barra, la sombra del suelo y las flechas ─────── */
+/* ── El escenario: la luz cálida, el pedestal y las flechas ────────── */
 
 .wd-stage {
   position: relative;
   flex: none;
   height: 176px;
   margin: 12px 20px 0;
+  overflow: hidden;
   border-radius: 16px;
-  background: var(--sunken);
+  background:
+    radial-gradient(120% 82% at 50% 6%, color-mix(in srgb, var(--primary) 16%, transparent), transparent 62%),
+    radial-gradient(72% 52% at 50% 94%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 74%),
+    var(--sunken);
 }
 
-.wd-bar {
-  position: absolute;
-  top: 18px;
-  right: 28px;
-  left: 28px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--line-strong);
-}
-
-.wd-floor {
+/* La base botánica: un plato cálido bajo la mascota, con su brillo de borde y
+   la sombra de contacto. Sustituye a la barra del perchero heredada. */
+.wd-pedestal {
   position: absolute;
   bottom: 22px;
   left: 50%;
-  width: 150px;
-  height: 20px;
-  margin-left: -75px;
+  width: 172px;
+  height: 26px;
+  margin-left: -86px;
   border-radius: 50%;
-  background: rgb(31 29 26 / 0.12);
+  background:
+    radial-gradient(closest-side, color-mix(in srgb, var(--primary) 24%, transparent), transparent 82%),
+    color-mix(in srgb, var(--primary) 9%, var(--sunken));
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 13%, transparent);
 }
 
-:host-context(.dark) .wd-floor {
-  background: rgb(0 0 0 / 0.3);
+.wd-pedestal::before {
+  position: absolute;
+  inset: 5px 16px auto;
+  height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--primary) 32%, transparent),
+    transparent
+  );
+  content: '';
 }
 
-/* La mascota en el perchero: la misma que se lleva puesta, al tamaño del
-   escenario. Entra cuando las puertas ya han abierto. */
+.wd-pedestal::after {
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  width: 62%;
+  height: 10px;
+  margin-left: -31%;
+  border-radius: 50%;
+  background: rgb(31 29 26 / 0.1);
+  content: '';
+  filter: blur(3px);
+}
+
+:host-context(.dark) .wd-pedestal::after {
+  background: rgb(0 0 0 / 0.34);
+}
+
+/* Los gestos de prueba: una barra flotante y compacta. Fuera del ciclo de
+   Tab: el diálogo se recorre por lo que de verdad se elige. */
+.wd-moods {
+  position: absolute;
+  /* Por encima de la mascota: la botonera siempre se puede pulsar. */
+  z-index: 2;
+  top: 8px;
+  left: 50%;
+  display: flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  box-shadow: 0 1px 2px rgb(31 29 26 / 0.06);
+  gap: 2px;
+  transform: translateX(-50%);
+  backdrop-filter: blur(6px);
+}
+
+.wd-mood {
+  width: 26px;
+  height: 24px;
+  padding: 0;
+  box-sizing: border-box;
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  /* El navegador pinta su anillo negro al enfocar; aquí manda el cálido. */
+  outline: none;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.wd-mood:hover {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  transform: translateY(-1px);
+}
+
+.wd-mood:active {
+  transform: scale(0.92);
+}
+
+.wd-mood:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* El gesto que está ahora mismo en escena: se queda encendido para que se vea
+   de un vistazo qué reacción se está previsualizando. Va después de `:hover`
+   para que el gesto elegido no pierda su color al pasar por encima. */
+.wd-moods .wd-mood--on {
+  border: 1.5px solid var(--primary);
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+  transform: scale(1.08);
+}
+
+/* La mascota en el escenario: la misma que se lleva puesta, al tamaño del
+   escenario. Entra cuando las puertas ya han abierto. Se asienta sobre el
+   plato (`top: 56%`) y deja aire arriba para que ni el gorro de chef ni las
+   orejas queden bajo la píldora de gestos. */
 .wd-model {
   position: absolute;
-  top: 50%;
+  top: 56%;
   left: 50%;
   transform: translate(-50%, -50%) scale(1.6);
-  animation: wd-arrive 420ms cubic-bezier(0.2, 0.7, 0.2, 1) 0.95s both;
+  animation: wd-arrive 420ms cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s both;
 }
 
 .wd-model app-mascot-orb {
@@ -131,12 +218,33 @@
   transform: scale(0.84);
 }
 
+/* Taiga pinta estos controles con su azul de acción; en la clínica manda el
+   `--primary` del centro: neutros en reposo, cálidos al pasar por encima. */
+.wd-close,
+.wd-arrow,
+.wd-cancel {
+  color: var(--tui-text-secondary) !important;
+}
+
+.wd-close {
+  border: 1px solid color-mix(in srgb, var(--tui-text-primary) 8%, transparent) !important;
+  background: color-mix(in srgb, var(--tui-text-primary) 8%, transparent) !important;
+}
+
 .wd-arrow {
   position: absolute;
   top: 50%;
   margin-top: -18px;
+  border: 1px solid color-mix(in srgb, var(--tui-text-primary) 8%, transparent) !important;
   border-radius: 50% !important;
-  background: var(--surface) !important;
+  background: color-mix(in srgb, var(--tui-text-primary) 7%, var(--surface)) !important;
+}
+
+.wd-close:hover,
+.wd-arrow:hover,
+.wd-cancel:hover {
+  color: var(--primary) !important;
+  background: color-mix(in srgb, var(--primary) 10%, transparent) !important;
 }
 
 .wd-arrow--prev {
@@ -150,10 +258,13 @@
 /* ── El nombre de lo que se está probando ─────────────────────────── */
 
 .wd-info {
+  display: flex;
   flex: none;
+  flex-direction: column;
+  align-items: center;
   box-sizing: border-box;
-  height: 58px;
-  padding: 14px 24px 0;
+  min-height: 58px;
+  padding: 12px 24px 0;
   text-align: center;
 }
 
@@ -187,13 +298,27 @@
   line-height: 1.5;
 }
 
+/* El rasgo de carácter: un susurro, no un cartel. */
+.wd-info .wd-trait {
+  margin: 6px 0 0;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 16px;
+}
+
 /* ── El estante ───────────────────────────────────────────────────── */
 
+/* De 7 a 10 skins: tantas columnas como quepan con holgura (74px mínimo) y
+   las que sobren bajan a una segunda fila, sin aplastarse. */
 .wd-shelf {
   display: grid;
   flex: none;
-  grid-auto-columns: 1fr;
-  grid-auto-flow: column;
+  grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));
   gap: 8px;
   padding: 16px 20px 0;
 }
@@ -205,14 +330,14 @@
   width: 100%;
   flex-direction: column;
   align-items: center;
-  padding: 10px 4px 9px;
+  padding: 12px 6px 10px;
   border: 1.5px solid transparent;
   border-radius: 14px;
   background: var(--canvas);
   color: var(--ink);
   cursor: pointer;
   font-family: inherit;
-  gap: 6px;
+  gap: 7px;
   transition:
     background 200ms ease,
     border-color 200ms ease;
@@ -344,6 +469,13 @@
   text-align: left;
 }
 
+/* El «Cancelar» es secundario: mismo neutro cálido que el resto de controles,
+   no el azul de acción de Taiga. */
+.wd-cancel {
+  border: 1px solid color-mix(in srgb, var(--tui-text-primary) 8%, transparent) !important;
+  background: color-mix(in srgb, var(--tui-text-primary) 8%, transparent) !important;
+}
+
 /* ── Las puertas ──────────────────────────────────────────────────── */
 
 /* Dos hojas macizas con un tirador cada una, con la bisagra en el borde de
@@ -374,7 +506,7 @@
   justify-content: flex-end;
   padding-right: 14px;
   border-right: 1px solid var(--line);
-  animation: wd-open-left 750ms cubic-bezier(0.5, 0, 0.2, 1) 700ms both;
+  animation: wd-open-left 750ms cubic-bezier(0.5, 0, 0.2, 1) 140ms both;
   transform-origin: left center;
 }
 
@@ -383,14 +515,14 @@
   justify-content: flex-start;
   padding-left: 14px;
   border-left: 1px solid var(--line);
-  animation: wd-open-right 750ms cubic-bezier(0.5, 0, 0.2, 1) 700ms both;
+  animation: wd-open-right 750ms cubic-bezier(0.5, 0, 0.2, 1) 140ms both;
   transform-origin: right center;
 }
 
 /* ── Lo que sube, uno detrás de otro ──────────────────────────────── */
 
 .wd-rise {
-  animation: wd-rise 350ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 1.1s) both;
+  animation: wd-rise 350ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0.15s) both;
 }
 
 @keyframes wd-fade {
@@ -432,8 +564,11 @@
 
 @media (max-width: 480px) {
   .wd-shelf {
-    grid-auto-flow: row;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .wd-thumb {
+    padding: 10px 4px 9px;
   }
 
   .wd-thumb__name {

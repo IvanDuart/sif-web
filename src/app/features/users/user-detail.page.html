@@ -72,7 +72,7 @@
               *appIfPermission="'MANAGE_CHAT'"
               type="button"
               tuiButton appearance="secondary" size="m"
-              data-mascot-point="patient-chat"
+              data-mascot-point="open-patient-chat"
               (click)="openChat()">
               <i class="fa-solid fa-comments mr-1" aria-hidden="true"></i>
               {{ t('chat.open_chat') }}
@@ -152,6 +152,7 @@
               tuiTab
               type="button"
               [attr.data-mascot-reveal]="'tab-' + tab.id"
+              [attr.data-mascot-point]="'tab-' + tab.id"
               class="flex items-center gap-2 px-1 pb-1"
             >
               <i class="{{ tab.icon }} text-[1.1em] opacity-80" aria-hidden="true"></i>
@@ -632,6 +633,7 @@
                       tuiButton
                       size="m"
                       appearance="secondary"
+                      data-mascot-point="download-composition-pdf"
                       (click)="downloadCompositionPdf()"
                       [disabled]="downloadingCompositionPdf()"
                       [class.loading]="downloadingCompositionPdf()">

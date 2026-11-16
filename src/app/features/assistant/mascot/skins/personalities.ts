@@ -15,8 +15,8 @@ import { SKIN_IDS, type SkinId } from './types';
 /** Lo que flota alrededor cuando algo le gusta. */
 export type HappyBits = 'heart' | 'star' | 'both' | 'none';
 /** Cómo se mueve el cuerpo. */
-export type HappyMove = 'sway' | 'hop' | 'still' | 'preen';
-export type AngryMove = 'shake' | 'shrink' | 'turn' | 'tremble' | 'pout' | 'sigh';
+export type HappyMove = 'sway' | 'hop' | 'still' | 'preen' | 'wiggle';
+export type AngryMove = 'shake' | 'shrink' | 'turn' | 'tremble' | 'pout' | 'sigh' | 'huff' | 'stomp';
 
 export interface Personality {
   /** Una línea de quién es, para quien lea esto dentro de un año. */
@@ -63,6 +63,21 @@ export const PERSONALITIES: Record<SkinId, Personality> = {
     who: 'Cría: todo le admira y todo le duele un poco.',
     happy: { bits: 'both', move: 'hop' },
     angry: { move: 'pout', mark: false },
+  },
+  aguacate: {
+    who: 'Cremoso y equilibrado, siempre de buen humor.',
+    happy: { bits: 'heart', move: 'sway' },
+    angry: { move: 'huff', mark: false },
+  },
+  arandano: {
+    who: 'Pequeño antioxidante lleno de chispa.',
+    happy: { bits: 'star', move: 'hop' },
+    angry: { move: 'shake', mark: true },
+  },
+  gota: {
+    who: 'Fresca y cristalina, te recuerda beber agua.',
+    happy: { bits: 'both', move: 'wiggle' },
+    angry: { move: 'stomp', mark: false },
   },
 };
 

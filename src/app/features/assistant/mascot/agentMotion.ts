@@ -8,7 +8,7 @@ import type { SkinId } from './skins/types';
  * Sin movimiento (`still`) solo se aplica la pose quieta de la escena.
  */
 export type LifeScene = 'spin' | 'dizzy' | 'blush' | 'angry' | 'phone' | 'sleep';
-export type MoodKind = 'worried' | 'cheer' | 'highfive' | 'welcome' | 'proud';
+export type MoodKind = 'worried' | 'cheer' | 'highfive' | 'welcome' | 'proud' | 'water' | 'notes';
 export type Condition = 'offline' | 'tired';
 export type Scene = LifeScene | MoodKind | Condition;
 
@@ -71,6 +71,17 @@ function dizzy(m: Motion): void {
 function phone(m: Motion): void {
   m.set(m.turner, 'transform-origin', FEET);
   m.set(m.turner, 'transform', 'rotate(-9deg)');
+  if (m.on) {
+    m.anim(
+      m.turner,
+      [
+        { transform: 'rotate(-9deg)' },
+        { transform: 'rotate(-12deg) translateY(1px)' },
+        { transform: 'rotate(-9deg)' },
+      ],
+      { duration: 1800, iterations: inf, easing: 'ease-in-out' },
+    );
+  }
   const ph = m.$('phone')[0] as HTMLElement | undefined;
   if (!ph) return;
   m.set(ph, 'opacity', '1');
@@ -138,6 +149,10 @@ function happyMove(m: Motion, move: HappyMove): void {
     case 'preen':
       // Se mece despacio y se deja mirar: no tiene prisa.
       m.anim(m.turner, swing(7), { duration: 3600, iterations: inf, easing: 'ease-in-out' });
+      break;
+    case 'wiggle':
+      // Se contonea: la alegría le llega al cuerpo y no puede quedarse quieta.
+      m.anim(m.turner, swing(6), { duration: 900, iterations: inf, easing: 'ease-in-out' });
       break;
     case 'still':
       // Se alegra por dentro: sólo las mejillas.
@@ -228,6 +243,27 @@ function angryMove(m: Motion, move: AngryMove): void {
         { duration: 2200, iterations: inf, easing: 'ease-in-out' },
       );
       break;
+    case 'huff':
+      // Un bufido sin palabras: se hincha y se deshincha, como resoplando.
+      m.anim(
+        m.turner,
+        [{ transform: 'scale(1)' }, { transform: 'scale(1.06,.95)' }, { transform: 'scale(1)' }],
+        { duration: 1400, iterations: inf, easing: 'ease-in-out' },
+      );
+      break;
+    case 'stomp':
+      // Pisa fuerte: el golpe se ve en el cuerpo entero.
+      m.anim(
+        m.orb,
+        [
+          { transform: 'translateY(0)' },
+          { transform: 'translateY(-4px)' },
+          { transform: 'translateY(1px)' },
+          { transform: 'translateY(0)' },
+        ],
+        { duration: 480, iterations: inf, easing: 'ease-in-out' },
+      );
+      break;
   }
 }
 
@@ -309,16 +345,123 @@ function welcome(m: Motion): void {
   );
 }
 
+function water(m: Motion): void {
+  // Da traguitos felices: la botella vuelca desde la derecha con la boquilla
+  // hacia la boca y el cuerpo la acompaña con pequeños tragos.
+  m.set(m.turner, 'transform-origin', FEET);
+  m.anim(
+    m.turner,
+    [
+      { offset: 0, transform: 'rotate(0deg) scale(1)' },
+      { offset: 0.25, transform: 'rotate(-6deg) scale(1.04, 0.96) translateY(-1px)' },
+      { offset: 0.5, transform: 'rotate(-3deg) scale(0.98, 1.03)' },
+      { offset: 0.75, transform: 'rotate(-7deg) scale(1.04, 0.96) translateY(-2px)' },
+      { offset: 1, transform: 'rotate(0deg) scale(1)' },
+    ],
+    { duration: 1300, iterations: inf, easing: 'ease-in-out' },
+  );
+  const bottle = m.$('water')[0] as HTMLElement | undefined;
+  if (bottle) {
+    m.set(bottle, 'opacity', '1');
+    if (m.on) {
+      m.anim(
+        bottle,
+        [
+          { offset: 0, opacity: 0, transform: 'translate(8px, -4px) rotate(-85deg) scale(0.75)' },
+          { offset: 0.2, opacity: 1, transform: 'translate(0, 0) rotate(-112deg) scale(1)' },
+          { offset: 0.45, opacity: 1, transform: 'translate(-2px, 1px) rotate(-125deg) scale(1)' },
+          { offset: 0.7, opacity: 1, transform: 'translate(0, 0) rotate(-108deg) scale(1)' },
+          { offset: 0.9, opacity: 1, transform: 'translate(-2px, 1px) rotate(-122deg) scale(1)' },
+          { offset: 1, opacity: 1, transform: 'translate(0, 0) rotate(-112deg) scale(1)' },
+        ],
+        { duration: 1300, iterations: inf, easing: 'ease-in-out' },
+      );
+    }
+  }
+  m.$('drop').forEach((drop, n) => rise(m, drop, 1000, n * 280, n ? 4 : -3, -12));
+  if (!m.on) m.$('drop').forEach((drop) => m.set(drop, 'opacity', '0.9'));
+}
+
 function proud(m: Motion): void {
+  // Una flexión de potencia: toma impulso, saca pecho hacia arriba y bombea
+  // las mancuernas a cada lado mientras saltan chispas.
   m.anim(
     m.orb,
     [
-      { offset: 0, transform: 'translateY(0)' },
-      { offset: 0.5, transform: 'translateY(-4px)' },
-      { offset: 1, transform: 'translateY(0)' },
+      { offset: 0, transform: 'scale(1) translateY(0)' },
+      { offset: 0.2, transform: 'scale(1.12, 0.86) translateY(3px)' },
+      { offset: 0.45, transform: 'scale(0.94, 1.09) translateY(-7px)' },
+      { offset: 0.72, transform: 'scale(1.06, 0.96) translateY(-3px)' },
+      { offset: 1, transform: 'scale(1) translateY(0)' },
     ],
-    { duration: 1800, iterations: inf, easing: 'ease-in-out' },
+    { duration: 900, iterations: inf, easing: 'ease-in-out' },
   );
+  m.$('flex').forEach((arm, i) => {
+    const dir = i === 0 ? 1 : -1;
+    m.set(arm, 'opacity', '1');
+    if (m.on) {
+      m.anim(
+        arm,
+        [
+          { opacity: 0.95, transform: `rotate(${-10 * dir}deg) translateY(2px) scale(0.9)` },
+          { opacity: 1, transform: `rotate(${18 * dir}deg) translateY(-4px) scale(1.12)`, offset: 0.45 },
+          { opacity: 1, transform: `rotate(${4 * dir}deg) translateY(-1px) scale(1)` },
+        ],
+        { duration: 450, delay: i * 70, iterations: inf, direction: 'alternate', easing: 'ease-in-out' },
+      );
+    }
+  });
+  m.$('spark').forEach((spark, n) => rise(m, spark, 900, n * 180, (n - 1) * 6, -12));
+}
+
+function notes(m: Motion): void {
+  // Saca la tabla clínica a un lado y toma apuntes con el lápiz al otro,
+  // asintiendo concentrada mientras pasa consulta.
+  m.set(m.turner, 'transform-origin', FEET);
+  m.set(m.turner, 'transform', 'rotate(5deg)');
+  if (m.on) {
+    m.anim(
+      m.turner,
+      [
+        { transform: 'rotate(4deg) translateY(0)' },
+        { transform: 'rotate(7deg) translateY(1px)' },
+        { transform: 'rotate(4deg) translateY(0)' },
+      ],
+      { duration: 1200, iterations: inf, easing: 'ease-in-out' },
+    );
+  }
+  const board = m.$('clipboard')[0] as HTMLElement | undefined;
+  if (board) {
+    m.set(board, 'opacity', '1');
+    if (m.on) {
+      m.anim(
+        board,
+        [
+          { opacity: 0, transform: 'translate(-6px, 8px) rotate(-24deg) scale(0.7)' },
+          { opacity: 1, transform: 'translate(0, 0) rotate(-12deg) scale(1)', offset: 0.25 },
+          { opacity: 1, transform: 'translate(0, -1px) rotate(-10deg) scale(1)', offset: 0.65 },
+          { opacity: 1, transform: 'translate(0, 0) rotate(-12deg) scale(1)' },
+        ],
+        { duration: 1200, iterations: inf, easing: 'ease-in-out' },
+      );
+    }
+  }
+  const pencil = m.$('pencil')[0] as HTMLElement | undefined;
+  if (pencil) {
+    m.set(pencil, 'opacity', '1');
+    if (m.on) {
+      m.anim(
+        pencil,
+        [
+          { transform: 'translate(0, 0) rotate(-25deg)' },
+          { transform: 'translate(-4px, 2px) rotate(-38deg)' },
+          { transform: 'translate(-1px, 4px) rotate(-20deg)' },
+          { transform: 'translate(0, 0) rotate(-25deg)' },
+        ],
+        { duration: 550, iterations: inf, easing: 'ease-in-out' },
+      );
+    }
+  }
 }
 
 function highfive(m: Motion): void {
@@ -367,6 +510,12 @@ export function startMotion(orb: HTMLElement, scene: Scene, skin: SkinId, still:
           break;
         case 'proud':
           proud(m);
+          break;
+        case 'water':
+          water(m);
+          break;
+        case 'notes':
+          notes(m);
           break;
       }
     }

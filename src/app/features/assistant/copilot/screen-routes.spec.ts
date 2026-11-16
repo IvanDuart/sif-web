@@ -28,4 +28,13 @@ describe('routeForScreen', () => {
     expect(routeForScreen('SETTINGS_HOLIDAYS'))
       .toEqual({ commands: ['/settings'], queryParams: { tab: 'schedules', section: 'holidays' } });
   });
+
+  it('MENU con menuId abre ese menú: donde se repasa uno recién generado', () => {
+    expect(routeForScreen('MENU', { menuId: 'menu-1' })).toEqual({ commands: ['/menus', 'menu-1'] });
+  });
+
+  it('la agenda con fecha abre ese día, y una fecha mal escrita se ignora', () => {
+    expect(routeForScreen('AGENDA', { date: '2026-11-20' })).toEqual({ commands: ['/appointments'], queryParams: { date: '2026-11-20' } });
+    expect(routeForScreen('AGENDA', { date: 'el martes' })).toEqual({ commands: ['/appointments'] });
+  });
 });

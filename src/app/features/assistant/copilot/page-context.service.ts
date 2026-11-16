@@ -6,6 +6,7 @@ import type { AssistantPageContext } from '../../../core/api/models/assistant.mo
 import type { FieldAccess, FillField, FillSurface } from '../mascot/fill/descriptor';
 import { MascotFillService } from '../mascot/fill/mascot-fill.service';
 import { fitPageContext, serializeValue } from './page-context';
+import { AssistantFeaturesService } from './assistant-features.service';
 import { reachableForms } from './reachable-forms';
 import { slugOf } from './tool-names';
 
@@ -24,6 +25,7 @@ export class PageContextService {
   private readonly router = inject(Router);
   private readonly fill = inject(MascotFillService);
   private readonly title = inject(Title);
+  private readonly features = inject(AssistantFeaturesService);
 
   build(): AssistantPageContext {
     const forms: NonNullable<AssistantPageContext['forms']> = [];
@@ -50,7 +52,7 @@ export class PageContextService {
     // que permite al modelo ir a buscar un formulario que no está delante, y
     // sin él se queda escribiendo por detrás. El backend tampoco lo cuenta
     // contra su presupuesto (`assistant-contract` §3.2).
-    return { ...fitted, reachableForms: reachableForms() };
+    return { ...fitted, reachableForms: reachableForms((requirement) => this.features.has(requirement)) };
   }
 
   private extrasOf(): Record<string, unknown> {

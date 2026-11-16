@@ -10,12 +10,16 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { NavigationEnd, Router } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { filter } from 'rxjs';
 
+import { PermissionsService } from '../../../core/permissions/permissions.service';
 import { CatalogDebug } from '../copilot/catalog-debug';
+import { FirstStepsService, firstStepsForUrl, type FirstStep } from '../copilot/first-steps';
 import { ToolRunnerService } from '../copilot/tool-runner.service';
-import { FirstStepsService, type FirstStep } from '../mascot/first-steps';
 import { MascotFillService } from '../mascot/fill/mascot-fill.service';
 import { overlapsBar, type Box } from '../mascot/placement';
 import { MascotActionCard } from '../components/mascot-action-card';
@@ -64,9 +68,36 @@ export class MascotBar {
   private readonly runner = inject(ToolRunnerService);
   private readonly transloco = inject(TranslocoService);
   private readonly firstStepsService = inject(FirstStepsService);
+  private readonly permissions = inject(PermissionsService);
+  private readonly router = inject(Router);
 
-  /** Lo que se le puede pedir la primera vez, si es la primera vez. */
-  protected readonly firstSteps = this.firstStepsService.steps;
+  /** La pantalla en la que está la persona: sus ofertas cambian con ella. */
+  private readonly url = signal(this.router.url);
+
+  /**
+   * Lo que se le puede pedir la primera vez, si es la primera vez.
+   *
+   * No es la misma lista en todas partes: en el detalle de un menú se ofrece
+   * rellenarlo, y en la ficha de un paciente, apuntar una medición. Y sólo se
+   * ofrece lo que esta persona puede hacer de verdad.
+   */
+  protected readonly firstSteps = computed(() => {
+    if (!this.firstStepsService.visible()) return [];
+    return firstStepsForUrl(this.url()).filter((step) => this.permissions.has(step.permission));
+  });
+
+  /**
+   * Cómo se llama el botón del armario.
+   *
+   * `assistant.wardrobe` ya no es un texto: es el árbol con los nombres de las
+   * mascotas y sus accesorios. El botón tiene su propia clave; si el idioma
+   * todavía no la trae —los tests montan un Transloco mínimo—, se queda con la
+   * clave de siempre, que es la que el botón ha anunciado siempre.
+   */
+  protected readonly wardrobeLabel = computed(() => {
+    const label = this.transloco.translate('assistant.wardrobe_open');
+    return label === 'assistant.wardrobe_open' ? 'assistant.wardrobe' : label;
+  });
 
   protected readonly text = signal('');
   /** El historial, abierto a mano desde la mascota. */
@@ -168,9 +199,11 @@ export class MascotBar {
    * Mientras trabaja, lo que se escribe se encola. El campo lo dice, porque si
    * no parece que se esté perdiendo.
    */
-  protected readonly placeholder = computed(() =>
-    this.transloco.translate(this.working() ? 'assistant.queue_placeholder' : 'assistant.placeholder'),
-  );
+  protected readonly placeholder = computed(() => {
+    // Con una pregunta abierta en el aire, lo que se escriba ES la respuesta.
+    if (this.kind() === 'choice') return this.transloco.translate('assistant.answer_placeholder');
+    return this.transloco.translate(this.working() ? 'assistant.queue_placeholder' : 'assistant.placeholder');
+  });
 
   /** En reposo y sin nada que contar, la tarjeta se encoge a una pastilla. */
   protected readonly pill = computed(
@@ -203,6 +236,15 @@ export class MascotBar {
   protected readonly history = computed(() => this.state.messages());
 
   constructor() {
+    // Las ofertas del estreno siguen a la ruta: cambiar de pantalla con la
+    // barra abierta no debe dejar las de la pantalla anterior.
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe((event) => this.url.set(event.urlAfterRedirects));
+
     // La tarjeta cambia de alto con lo que lleve dentro, así que se mide cada
     // vez en vez de deducirlo: una mascota colocada con constantes se queda
     // flotando fuera en cuanto aparece una fila nueva.
@@ -313,8 +355,23 @@ export class MascotBar {
     if (!this.canSend()) return;
     const value = this.text().trim();
     this.text.set('');
-    this.state.send(value);
     queueMicrotask(() => this.grow());
+
+    // Lo que se escribe con una pregunta en el aire va a esa pregunta, como en
+    // Neki. Antes iba a la cola de mensajes, y una pregunta sin opciones no
+    // tenía forma de contestarse: el turno se quedaba esperando.
+    const question = this.state.questions.current();
+    if (question && value !== '') {
+      if (question.kind === 'ask') {
+        this.state.questions.answer(value);
+        return;
+      }
+      // Escribir en vez de decir sí a una escritura es no decirle que sí. Se
+      // contesta que no y lo escrito sigue como mensaje: el modelo lo lee al
+      // acabar esta vuelta, con la negativa ya delante.
+      this.state.questions.decline();
+    }
+    this.state.send(value);
   }
 
   /** Enter envía, Shift+Enter hace un salto de línea. */
@@ -353,7 +410,7 @@ export class MascotBar {
   /** Escribe la oferta en el campo; enviarla es cosa de la persona. */
   protected useFirstStep(step: FirstStep): void {
     this.firstStepsService.dismiss();
-    this.text.set(this.transloco.translate(step.draftKey));
+    this.text.set(this.transloco.translate(step.promptKey));
     queueMicrotask(() => {
       this.grow();
       this.input()?.nativeElement.focus();

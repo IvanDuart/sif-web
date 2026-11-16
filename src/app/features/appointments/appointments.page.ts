@@ -1,4 +1,6 @@
 import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
+import type { MascotAction } from '../assistant/mascot/fill/descriptor';
+import { APPOINTMENT_STATUS_OPENER } from '../assistant/mascot/fill/surfaces/appointment-status.surface';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -301,6 +303,13 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
     eventClick: (info: EventClickArg) => {
       this.handleEventClick(info);
     },
+    // La mascota abre una cita concreta pulsándola, como la persona: para
+    // encontrarla, cada cita lleva su id en el DOM (`open_appointment_status`).
+    eventDidMount: (arg) => {
+      if (arg.event.extendedProps['kind'] !== 'NOTE' && arg.event.id) {
+        arg.el.setAttribute('data-mascot-appointment', arg.event.id);
+      }
+    },
     datesSet: (info: DatesSetArg) => {
       this.onDatesSet(info);
     },
@@ -341,9 +350,12 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
   }
 
   constructor() {
+    const fillService = inject(MascotFillService);
+
     // Qué está mirando la persona en la agenda: lo que el modelo necesita para
     // entender «el martes» o «la semana que viene».
-    inject(MascotFillService).provideExtras('agenda', () => ({
+    fillService.registerOpener(APPOINTMENT_STATUS_OPENER);
+    fillService.provideExtras('agenda', () => ({
       view: this.currentView(),
       range: this.rangeLabel(),
       // En fecha local: el ISO es UTC y en España la semana empezaría el domingo.
@@ -351,6 +363,39 @@ export default class AppointmentsPage implements OnInit, OnDestroy {
       from: this.weekStart ? this.toLocalDateStr(new Date(this.weekStart)) : null,
       to: this.weekEnd ? this.toLocalDateStr(new Date(new Date(this.weekEnd).getTime() - 1)) : null,
     }));
+
+    // Navegación del calendario sin adivinar botones: la mascota los pulsa, pero
+    // la acción existe igual para que el modelo sepa qué puede ofrecer.
+    const actions: MascotAction[] = [
+      {
+        id: 'agenda_today',
+        description: 'Lleva el calendario de la agenda al día de hoy.',
+        selector: '[data-mascot-point="agenda-today"]',
+        run: () => {
+          this.goToToday();
+          return { ok: true };
+        },
+      },
+      {
+        id: 'agenda_prev',
+        description: 'Retrocede al periodo anterior en el calendario de la agenda.',
+        selector: '[data-mascot-point="agenda-prev"]',
+        run: () => {
+          this.navigate(-1);
+          return { ok: true };
+        },
+      },
+      {
+        id: 'agenda_next',
+        description: 'Avanza al periodo siguiente en el calendario de la agenda.',
+        selector: '[data-mascot-point="agenda-next"]',
+        run: () => {
+          this.navigate(1);
+          return { ok: true };
+        },
+      },
+    ];
+    for (const action of actions) fillService.registerAction(action);
   }
 
   ngOnInit() {

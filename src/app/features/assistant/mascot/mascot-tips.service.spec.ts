@@ -7,6 +7,8 @@ import { CALENDAR_NOTE_SURFACE } from './fill/surfaces/calendar-note.surface';
 import { MEASUREMENT_SURFACE } from './fill/surfaces/measurement.surface';
 import { PATIENT_EVENT_SURFACE } from './fill/surfaces/patient-event.surface';
 import { appointmentSurface } from './fill/surfaces/appointment.surface';
+import { mealSurface } from './fill/surfaces/meal.surface';
+import { RECIPE_SURFACE } from './fill/surfaces/recipe.surface';
 import { MascotMoodService } from './mascot-mood.service';
 import { MascotPreferencesService } from './mascot-preferences.service';
 import {
@@ -32,6 +34,12 @@ const TEXTS = {
       },
       'measurement.create': { title: 'Las apunto yo', text: 'Dímelos.', prompt: 'Apunta ' },
     },
+    tips: {
+      meal_create: 'Los platos de la semana los apunto yo.',
+      recipe_create: 'Puedo crearte la receta entera.',
+      recipe_create_prompt: 'Créame una receta de ',
+    },
+    first_steps: { menu_empty_prompt: 'Rellena los huecos del menú con ' },
   },
 };
 
@@ -47,6 +55,8 @@ describe('el catálogo de tips ofrece cosas que sabe hacer', () => {
       ...MEASUREMENT_SURFACE.tools,
       ...CALENDAR_NOTE_SURFACE.tools,
       ...PATIENT_EVENT_SURFACE.tools,
+      ...mealSurface({ days: () => [], mealTypes: () => [] }).tools,
+      ...RECIPE_SURFACE.tools,
     ].map(String),
   );
 
@@ -150,6 +160,18 @@ describe('cuándo se ofrece el tip y cuándo se calla', () => {
       'Pruébalo',
       'No me lo digas más',
     ]);
+  });
+
+  it('el tip de las comidas espera a verlo dos veces antes de ofrecerse', () => {
+    const saveMeal = (now: number) =>
+      tips.noticeWrite('POST', '/api/tenant/t1/menus/m1/meals', now);
+
+    saveMeal(LATER);
+    // Una comida suelta no dice nada; la segunda ya es una semana a mano.
+    expect(mood.note()).toBeNull();
+
+    saveMeal(LATER + TIP_GAP_MS);
+    expect(mood.note()?.text).toBe('Los platos de la semana los apunto yo.');
   });
 
   it('no dice nada por guardar algo que no sabe hacer', () => {

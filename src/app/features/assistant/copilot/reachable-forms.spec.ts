@@ -127,4 +127,15 @@ describe('dónde vive cada formulario', () => {
     expect(opener?.reveal).toEqual(['[data-mascot-point="agenda-new"]']);
     expect(opener?.trigger).toBe('[data-mascot-entry="REMINDER"]');
   });
+
+  describe('lo que el centro no tiene no se promete', () => {
+    it('las raciones de intercambio sólo si el centro las usa', () => {
+      const sin = reachableForms((requirement) => requirement === undefined);
+      const con = reachableForms(() => true);
+      expect(sin.some((form) => form.id === 'meal_exchanges')).toBeFalse();
+      expect(con.some((form) => form.id === 'meal_exchanges')).toBeTrue();
+      // Lo que no pide nada sale igual.
+      expect(sin.some((form) => form.id === 'appointment_status')).toBeTrue();
+    });
+  });
 });

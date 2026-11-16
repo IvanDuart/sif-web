@@ -21,6 +21,7 @@ import { MenuUploadDialog } from './menu-upload.dialog';
 import { MenuRenameDialog, MenuRenameDialogInput } from './menu-rename.dialog';
 import { EmptyState } from '../../shared/ui/empty-state';
 import { PaginationFooter } from '../../shared/ui/pagination-footer';
+import { MascotFillService } from '../assistant/mascot/fill/mascot-fill.service';
 
 /** Chip de estado del listado de menús. `all` no envía el parámetro `isActive`. */
 export type MenuStatusFilter = 'all' | 'active' | 'inactive';
@@ -42,6 +43,15 @@ export default class MenusListPage implements OnInit {
   private readonly confirm = inject(ConfirmService);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
+
+  constructor() {
+    // Qué está mirando la persona en la lista: el filtro de estado y cuántos
+    // menús hay en total, para que «los activos» no haya que preguntarlos.
+    inject(MascotFillService).provideExtras('menus_list', () => ({
+      statusFilter: this.statusFilter(),
+      totalMenus: this.totalRecords(),
+    }));
+  }
 
   canManageMenu = computed(() => this.permissionsService.has('MANAGE_MENU'));
   canActivateMenu = computed(() =>

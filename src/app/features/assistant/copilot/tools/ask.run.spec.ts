@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 
+import { PersonSaveService } from '../person-save.service';
 import { QuestionService } from '../question.service';
-import { runAskUser } from './ask.run';
+import { WriteWatchService } from '../write-watch.service';
+import { runAskUser, savedByPerson } from './ask.run';
 
 describe('runAskUser', () => {
   let questions: QuestionService;
@@ -43,5 +45,56 @@ describe('runAskUser', () => {
     const pending = run({ question: '¿Sigo?' }, stop.signal);
     stop.abort();
     expect(await pending).toEqual({ ok: false, reason: 'aborted' });
+  });
+
+  describe('pulsar Guardar mientras pregunta', () => {
+    let host: HTMLElement;
+    beforeEach(() => {
+      host = document.createElement('div');
+      host.innerHTML = '<button data-mascot-submit="appointment">Guardar cita</button>';
+      document.body.appendChild(host);
+    });
+    afterEach(() => host.remove());
+
+    it('es la respuesta: dice que se guardó y que no lo vuelva a guardar', async () => {
+      const saves = TestBed.inject(PersonSaveService);
+      const writes = TestBed.inject(WriteWatchService);
+      const pending = runAskUser({ question: 'Revísalo y guárdalo; luego sigo con la nota.' },
+        { questions, saves, signal: new AbortController().signal });
+
+      (host.querySelector('button') as HTMLElement).click();
+      writes.last.set({ ok: true, status: 200 });
+      const result = await pending;
+
+      expect(result).toEqual(jasmine.objectContaining({ ok: true, answered: true, saved: true, pressedByPerson: 'Guardar cita' }));
+      expect(String(result['note'])).toContain('No lo vuelvas a guardar');
+      expect(questions.current()).toBeNull();
+    });
+
+    it('fuera de una pregunta, pulsar Guardar no se escucha', async () => {
+      const saves = TestBed.inject(PersonSaveService);
+      const watch = spyOn(saves, 'watch').and.callThrough();
+      const pending = runAskUser({ question: '¿Sigo?' }, { questions, saves, signal: new AbortController().signal });
+      questions.answer('sí');
+      await pending;
+      // Se escucha mientras la pregunta está en el aire y se deja de escuchar al contestarla.
+      expect(watch).toHaveBeenCalledTimes(1);
+      const outcome = spyOn(saves, 'outcome');
+      (host.querySelector('button') as HTMLElement).click();
+      expect(outcome).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('lo que se cuenta del Guardar', () => {
+    it('con errores, no dice que está hecho y pasa los motivos', () => {
+      const result = savedByPerson({ label: 'Guardar', outcome: { saved: false, reason: 'form_has_errors', errors: ['Falta la hora'] } });
+      expect(result).toEqual(jasmine.objectContaining({ saved: false, reason: 'form_has_errors', errors: ['Falta la hora'] }));
+      expect(String(result['note'])).toContain('no digas que está hecho');
+    });
+
+    it('si el servidor lo rechaza, lo dice con el estado', () => {
+      const result = savedByPerson({ label: 'Guardar', outcome: { saved: false, reason: 'rejected', status: 409 } });
+      expect(result).toEqual(jasmine.objectContaining({ saved: false, reason: 'rejected', status: 409 }));
+    });
   });
 });

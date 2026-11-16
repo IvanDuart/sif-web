@@ -25,6 +25,12 @@ export async function runAction(
     if (!answer.ok || answer.value !== YES) return { ok: false, reason: 'user_declined', action: action.id };
   }
 
-  await action.run();
+  // La pantalla puede negarse a hacerlo (sin permiso, sin datos que lo hagan
+  // posible): entonces el turno no termina en un «hecho» que no ocurrió.
+  const result = await action.run();
+  if (result && typeof result === 'object' && result.ok === false) {
+    return { ok: false, reason: 'not_found', action: action.id };
+  }
+
   return { ok: true, action: action.id };
 }

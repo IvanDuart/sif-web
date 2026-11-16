@@ -5,6 +5,7 @@ import { MascotFillService } from '../mascot/fill/mascot-fill.service';
 import { MAX_DESCRIPTION } from './catalog-rules';
 import { pointables } from './pointing';
 import { CursorService } from './cursor.service';
+import { PersonSaveService } from './person-save.service';
 import { QuestionService } from './question.service';
 import { ToolRegistryService } from './tool-registry.service';
 import { runAskUser } from './tools/ask.run';
@@ -30,6 +31,7 @@ const MAX_CONTROLS = 24;
 export class InteractionToolsService {
   private readonly registry = inject(ToolRegistryService);
   private readonly questions = inject(QuestionService);
+  private readonly saves = inject(PersonSaveService);
   private readonly fill = inject(MascotFillService);
   private readonly cursor = inject(CursorService);
 
@@ -37,7 +39,9 @@ export class InteractionToolsService {
     this.registry.register({
       decl: {
         name: 'ask_user',
-        description: 'Pregunta algo que hace falta para seguir y espera la respuesta',
+        description:
+          'Pregunta algo que hace falta para seguir y espera la respuesta. Si la persona pulsa Guardar en el '
+          + 'formulario mientras esperas, eso es la respuesta: te llega con saved y una nota.',
         parameters: {
           type: 'object',
           properties: {
@@ -47,7 +51,7 @@ export class InteractionToolsService {
           required: ['question'],
         },
       },
-      run: (args, { signal }) => runAskUser(args, { questions: this.questions, signal }),
+      run: (args, { signal }) => runAskUser(args, { questions: this.questions, saves: this.saves, signal }),
     });
 
     this.registry.register({

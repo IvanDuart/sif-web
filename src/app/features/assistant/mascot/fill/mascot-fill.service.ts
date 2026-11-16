@@ -53,9 +53,12 @@ export class MascotFillService {
    * Apunta el formulario mientras el componente que llama esté vivo. Se llama
    * desde un contexto de inyección (el constructor de la página).
    */
-  register(surface: FillSurface, access: FieldAccess): void {
+  register(surface: FillSurface, access: FieldAccess, destroyRef: DestroyRef = inject(DestroyRef)): void {
+    // `destroyRef` se pasa a mano desde fuera de un contexto de inyección: un
+    // componente que decide en `ngOnInit`, con sus inputs ya puestos, si se
+    // apunta (el editor de raciones está dos veces en la página, una oculta).
     this.mounted.set(surface.id, { surface, access });
-    inject(DestroyRef).onDestroy(() => {
+    destroyRef.onDestroy(() => {
       // Sólo si sigue siendo el suyo: dos diálogos del mismo id que se solapan
       // al cerrarse y abrirse no deben borrarse el registro el uno al otro.
       if (this.mounted.get(surface.id)?.surface === surface) this.mounted.delete(surface.id);
@@ -184,8 +187,14 @@ export class MascotFillService {
   }
 
   /** Lo mismo que `waitForTool`, pero por el id del formulario. */
-  async waitForId(id: string, timeoutMs: number): Promise<MountedSurface | null> {
-    return this.waitFor(() => this.forId(id), timeoutMs);
+  async waitForId(id: string, timeoutMs: number, subject?: string): Promise<MountedSurface | null> {
+    return this.waitFor(() => {
+      const found = this.forId(id);
+      // Con `subject`, sólo vale el formulario de ESE elemento: tras pulsar otra
+      // comida, el editor sigue montado unos instantes con la anterior.
+      if (found && subject !== undefined && found.surface.subject?.() !== subject) return null;
+      return found;
+    }, timeoutMs);
   }
 
   private async waitFor(look: () => MountedSurface | null, timeoutMs: number): Promise<MountedSurface | null> {

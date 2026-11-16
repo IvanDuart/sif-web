@@ -57,4 +57,69 @@ describe('runOpen', () => {
     expect(result['alreadyOpen']).toBeTrue();
     expect(pressed).not.toHaveBeenCalled();
   });
+
+  describe('un botón que se repite por elemento (param)', () => {
+    const EXCHANGES: FillOpener = {
+      id: 'meal-exchanges',
+      tools: ['update_meal_exchanges'],
+      trigger: '[data-meal="{mealId}"]',
+      param: { name: 'mealId', description: 'Id de la comida' },
+    };
+    const surfaceFor = (mealId: string): FillSurface => ({ id: 'meal-exchanges', tools: [], fields: [], subject: () => mealId });
+    const runWith = (args: Record<string, unknown>) =>
+      runOpen('meal-exchanges', { fill, signal: new AbortController().signal, catalog, args });
+
+    beforeEach(() => TestBed.runInInjectionContext(() => fill.registerOpener(EXCHANGES)));
+
+    it('pulsa el de ESE elemento, no el primero que se vea', async () => {
+      host.innerHTML = '<button data-meal="m-1">Lunes</button><button data-meal="m-2">Martes</button>';
+      const pressed: string[] = [];
+      host.querySelectorAll('button').forEach((button) =>
+        button.addEventListener('click', () => {
+          const id = button.getAttribute('data-meal')!;
+          pressed.push(id);
+          TestBed.runInInjectionContext(() => fill.register(surfaceFor(id), { get: () => '', set: () => undefined }));
+        }),
+      );
+
+      const result = await runWith({ mealId: 'm-2' });
+
+      expect(result.ok).toBeTrue();
+      expect(pressed).toEqual(['m-2']);
+    });
+
+    it('sin un id válido no pulsa nada: lo que escribe el modelo acaba en un selector', async () => {
+      host.innerHTML = '<button data-meal="m-1">Lunes</button>';
+      const click = jasmine.createSpy('click');
+      host.querySelector('button')!.addEventListener('click', click);
+
+      expect(await runWith({ mealId: '"] , button[data-meal' })).toEqual(jasmine.objectContaining({ ok: false, reason: 'invalid_args' }));
+      expect(await runWith({})).toEqual(jasmine.objectContaining({ ok: false, reason: 'invalid_args' }));
+      expect(click).not.toHaveBeenCalled();
+    });
+
+    it('si ya está abierto el de ese elemento, no lo vuelve a pulsar (lo cerraría)', async () => {
+      host.innerHTML = '<button data-meal="m-1">Lunes</button>';
+      const click = jasmine.createSpy('click');
+      host.querySelector('button')!.addEventListener('click', click);
+      TestBed.runInInjectionContext(() => fill.register(surfaceFor('m-1'), { get: () => '', set: () => undefined }));
+
+      expect(await runWith({ mealId: 'm-1' })).toEqual(jasmine.objectContaining({ ok: true, alreadyOpen: true }));
+      expect(click).not.toHaveBeenCalled();
+    });
+
+    it('si el abierto es el de otro elemento, pulsa el pedido', async () => {
+      host.innerHTML = '<button data-meal="m-2">Martes</button>';
+      let current = 'm-1';
+      TestBed.runInInjectionContext(() =>
+        fill.register({ id: 'meal-exchanges', tools: [], fields: [], subject: () => current }, { get: () => '', set: () => undefined }),
+      );
+      host.querySelector('button')!.addEventListener('click', () => (current = 'm-2'));
+
+      const result = await runWith({ mealId: 'm-2' });
+
+      expect(result).toEqual(jasmine.objectContaining({ ok: true, opened: 'meal-exchanges' }));
+      expect(result['alreadyOpen']).toBeUndefined();
+    });
+  });
 });

@@ -21,6 +21,11 @@ export interface WriteOutcome {
 @Injectable({ providedIn: 'root' })
 export class WriteWatchService {
   readonly last = signal<WriteOutcome | null>(null);
+  /**
+   * Escrituras salidas y sin respuesta todavía. Es lo que distingue «el botón no
+   * mandó nada» (el formulario tenía errores) de «mandó algo y aún no ha vuelto».
+   */
+  readonly inFlight = signal(0);
 
   /** Empieza a vigilar de cero: lo de la herramienta anterior no cuenta. */
   reset(): void {

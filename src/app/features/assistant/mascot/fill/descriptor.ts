@@ -138,6 +138,12 @@ export interface FillSurface {
    * formulario y se va a escribir por detrás, que es justo lo que no queremos.
    */
   saveReveal?: string | readonly string[];
+  /**
+   * De qué elemento es este formulario, cuando se abre por `FillOpener.param`
+   * (la comida de unas raciones). Es lo que permite saber si el que está
+   * abierto es el que se pidió o el de otra comida.
+   */
+  subject?(): string | null;
 }
 
 /**
@@ -158,7 +164,18 @@ export interface MascotAction {
   confirm?: boolean;
   /** Lo que se pregunta, si `confirm`. Sin esto, la descripción. */
   confirmText?: string;
-  run(): Promise<void> | void;
+  /**
+   * El control de la pantalla que la mascota señala al ejecutarla, como un
+   * selector CSS. El botón lleva el mismo `data-mascot-point`: volar hasta él
+   * es la parte visible de la acción.
+   */
+  selector?: string;
+  /**
+   * Devuelve si pudo hacerlo y, si no, por qué. La pantalla es la que sabe si
+   * puede (permisos, datos que faltan) y el modelo necesita ese motivo para
+   * explicarlo en vez de dar por hecho que se hizo.
+   */
+  run(): Promise<{ ok: boolean; error?: string } | void> | { ok: boolean; error?: string } | void;
 }
 
 /** Cómo se lee y se escribe un campo, sea lo que sea el formulario por dentro. */
@@ -386,4 +403,37 @@ export interface FillOpener {
    * pestaña ya activa no hace nada, así que no hace falta comprobarlo.
    */
   reveal?: readonly string[];
+  /**
+   * Lo que hay que decir para saber QUÉ abrir, cuando el botón se repite por
+   * elemento: las raciones de intercambio se abren desde la comida, y hay
+   * veintiocho comidas en la rejilla. `open_<id>` lo pide como argumento y se
+   * sustituye en `trigger`, donde va escrito como `{nombre}`.
+   */
+  param?: { name: string; description: string };
+  /**
+   * Lo que tiene que tener el centro para que este formulario exista. Sin eso
+   * no se promete en `reachableForms` ni se ofrece `open_`: prometerlo haría
+   * que el backend retirase su tool de servidor y la mascota se quedara sin
+   * ningún camino.
+   */
+  requires?: OpenerRequirement;
+}
+
+/** Lo que un formulario puede necesitar del centro para existir. */
+export type OpenerRequirement = 'exchanges';
+
+/** El valor de un `param`: un id, nunca un selector. */
+const PARAM_VALUE = /^[A-Za-z0-9_-]{1,64}$/;
+
+/**
+ * El opener con su `param` ya puesto en el `trigger`, o `null` si falta o no es
+ * un id. Se valida porque el valor lo escribe el modelo y acaba dentro de un
+ * selector CSS: un id con comillas o corchetes podría señalar otro botón.
+ */
+export function withParam(opener: FillOpener, args: Record<string, unknown>): FillOpener | null {
+  if (!opener.param) return opener;
+  const raw = args[opener.param.name];
+  const value = typeof raw === 'string' ? raw.trim() : '';
+  if (!PARAM_VALUE.test(value)) return null;
+  return { ...opener, trigger: opener.trigger.split(`{${opener.param.name}}`).join(value) };
 }
